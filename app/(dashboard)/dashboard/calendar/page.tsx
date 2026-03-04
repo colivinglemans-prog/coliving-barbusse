@@ -64,7 +64,7 @@ export default function CalendarPage() {
 
         {!loading && !error && (
           <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <BookingCalendar bookings={bookings} showPrices={role === "admin"} />
+            <BookingCalendar bookings={bookings} showPrices={role === "admin"} showChannels={role === "admin"} />
           </div>
         )}
       </div>

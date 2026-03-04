@@ -47,12 +47,14 @@ export default function DashboardNav({ role = "admin" }: DashboardNavProps) {
               </Link>
             );
           })}
-          <Link
-            href="/"
-            className="text-sm text-gray-300 hover:text-gray-500"
-          >
-            Retour au site
-          </Link>
+          {role === "admin" && (
+            <Link
+              href="/"
+              className="text-sm text-gray-300 hover:text-gray-500"
+            >
+              Retour au site
+            </Link>
+          )}
         </div>
         <button
           onClick={handleLogout}

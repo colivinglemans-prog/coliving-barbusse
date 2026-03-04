@@ -70,9 +70,10 @@ interface PopupData {
 interface BookingCalendarProps {
   bookings: Beds24Booking[];
   showPrices?: boolean;
+  showChannels?: boolean;
 }
 
-export default function BookingCalendar({ bookings, showPrices = true }: BookingCalendarProps) {
+export default function BookingCalendar({ bookings, showPrices = true, showChannels = true }: BookingCalendarProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -126,7 +127,7 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
         return {
           booking: b,
           channel,
-          colour: CHANNEL_COLORS[channel] ?? "#9ca3af",
+          colour: showChannels ? (CHANNEL_COLORS[channel] ?? "#9ca3af") : "#FF385C",
           startCol: startDay - 1,
           endCol: Math.max(startDay - 1, endDay - 1),
           startsInMonth,
@@ -359,14 +360,16 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
       })}
 
       {/* Legend */}
-      <div className="mt-4 flex flex-wrap gap-4">
-        {Object.entries(CHANNEL_COLORS).map(([name, colour]) => (
-          <div key={name} className="flex items-center gap-1.5 text-xs text-gray-500">
-            <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: colour }} />
-            {name}
-          </div>
-        ))}
-      </div>
+      {showChannels && (
+        <div className="mt-4 flex flex-wrap gap-4">
+          {Object.entries(CHANNEL_COLORS).map(([name, colour]) => (
+            <div key={name} className="flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: colour }} />
+              {name}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Popup — bottom-sheet on mobile, floating card on desktop */}
       {popup && (
@@ -390,7 +393,7 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
           >
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: popup.colour }} />
+                {showChannels && <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: popup.colour }} />}
                 <h4 className="text-base font-semibold text-gray-900">
                   {popup.booking.firstName} {popup.booking.lastName}
                 </h4>
@@ -430,10 +433,12 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
                 </div>
               )}
 
-              <div>
-                <p className="text-xs text-gray-400">Canal</p>
-                <p className="mt-0.5 font-medium text-gray-900">{popup.channel}</p>
-              </div>
+              {showChannels && (
+                <div>
+                  <p className="text-xs text-gray-400">Canal</p>
+                  <p className="mt-0.5 font-medium text-gray-900">{popup.channel}</p>
+                </div>
+              )}
             </div>
           </div>
         </>
