@@ -383,11 +383,16 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
             data-popup
             className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-sm rounded-2xl bg-white p-5 shadow-xl sm:inset-auto sm:absolute sm:mx-0 sm:w-72 sm:rounded-xl sm:p-4 sm:ring-1 sm:ring-gray-200"
             style={
-              typeof window !== "undefined" && window.innerWidth >= 640
-                ? {
-                    top: Math.min(popup.rect.bottom + 8, window.innerHeight - 260),
-                    left: Math.min(popup.rect.left, window.innerWidth - 300),
-                  }
+              typeof window !== "undefined" && window.innerWidth >= 640 && containerRef.current
+                ? (() => {
+                    const cr = containerRef.current!.getBoundingClientRect();
+                    const relTop = popup.rect.bottom - cr.top + 8;
+                    const relLeft = popup.rect.left - cr.left;
+                    return {
+                      top: Math.min(relTop, containerRef.current!.clientHeight - 40),
+                      left: Math.max(0, Math.min(relLeft, containerRef.current!.clientWidth - 288)),
+                    };
+                  })()
                 : undefined
             }
           >

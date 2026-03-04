@@ -47,8 +47,17 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-8 border-t border-border pt-6 text-center text-xs text-secondary">
-          &copy; {new Date().getFullYear()} {t.footer.copyright}
+        <div className="mt-8 flex items-center justify-center border-t border-border pt-6 text-xs text-secondary">
+          <span>&copy; {new Date().getFullYear()} {t.footer.copyright}</span>
+          <Link
+            href="/dashboard"
+            className="ml-3 rounded-md px-2 py-1 text-secondary/40 transition-colors hover:text-secondary"
+            aria-label="Dashboard"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+            </svg>
+          </Link>
         </div>
       </div>
     </footer>
