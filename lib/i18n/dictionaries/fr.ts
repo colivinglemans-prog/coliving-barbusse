@@ -8,7 +8,7 @@ export const fr: Dictionary = {
     book: "Réserver",
   },
   propertyHeader: {
-    title: "Maison premium 9 suites privatives Proche circuit",
+    title: "Maison premium 9 suites privatives Proche Circuit Le Mans",
     superhost: "Superhôte",
     location: "Le Mans, Pays de la Loire, France",
     travelers: "18 voyageurs",

@@ -8,7 +8,7 @@ export const en: Dictionary = {
     book: "Book",
   },
   propertyHeader: {
-    title: "Premium house 9 private suites Near the circuit",
+    title: "Premium house 9 private suites Near the Circuit Le Mans",
     superhost: "Superhost",
     location: "Le Mans, Pays de la Loire, France",
     travelers: "18 guests",
