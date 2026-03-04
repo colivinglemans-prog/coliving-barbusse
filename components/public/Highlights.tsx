@@ -52,6 +52,17 @@ export default function Highlights() {
               <p className="mt-1 text-sm text-secondary">
                 {t.highlights.superhost.description}
               </p>
+              <a
+                href="https://www.airbnb.fr/users/profile/1465428634658451220"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-dark"
+              >
+                {t.highlights.superhost.reviewsLink}
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </a>
             </div>
           </div>
         </div>

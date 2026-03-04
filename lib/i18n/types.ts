@@ -20,7 +20,7 @@ export interface Dictionary {
   highlights: {
     selfCheckIn: { title: string; description: string };
     quiet: { title: string; description: string };
-    superhost: { title: string; description: string };
+    superhost: { title: string; description: string; reviewsLink: string };
   };
   description: {
     title: string;

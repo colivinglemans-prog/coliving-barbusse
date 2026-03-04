@@ -29,6 +29,7 @@ export const fr: Dictionary = {
     superhost: {
       title: "Alexandre est Superhôte",
       description: "Superhôte sur Airbnb depuis avril 2024 — les Superhôtes sont des hôtes expérimentés, très bien notés, qui s'engagent à offrir d'excellents séjours.",
+      reviewsLink: "Découvrir plus de 100 avis sur mon profil Airbnb",
     },
   },
   description: {
@@ -131,7 +132,7 @@ Jusqu'à 18 personnes.`,
     superhost: "Superhôte",
     experience: "ans d'expérience",
     about: "À propos d'Alexandre",
-    aboutText: "Passionné d'immobilier et d'hospitalité, Alexandre a entièrement rénové cette maison de 240 m² pour en faire un lieu de vie unique au Mans. Le concept de coliving premium permet d'accueillir aussi bien des voyageurs individuels que des grands groupes, avec le confort d'un hôtel et la convivialité d'une maison.",
+    aboutText: "Ingénieur, geek, sportif et bricoleur, je suis superhôte depuis plusieurs années.\nJ'ai à cœur de proposer des hébergements propres, confortables et parfaitement fonctionnels.\nCette maison au Mans a été pensée pour accueillir familles, groupes d'amis ou équipes professionnelles, tout en garantissant l'intimité de chacun grâce à des suites avec salles de bain privatives.\nJe reste disponible et réactif, tout en vous laissant une grande autonomie.",
     languages: "Langues",
     languagesValue: "Français, English",
     responseRate: "Taux de réponse",

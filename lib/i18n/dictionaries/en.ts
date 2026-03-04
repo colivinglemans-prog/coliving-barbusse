@@ -29,6 +29,7 @@ export const en: Dictionary = {
     superhost: {
       title: "Alexandre is a Superhost",
       description: "Superhost on Airbnb since April 2024 — Superhosts are experienced, highly rated hosts who are committed to providing excellent stays.",
+      reviewsLink: "Discover 100+ reviews on my Airbnb profile",
     },
   },
   description: {
@@ -131,7 +132,7 @@ Sleeps up to 18 guests.`,
     superhost: "Superhost",
     experience: "years of experience",
     about: "About Alexandre",
-    aboutText: "Passionate about real estate and hospitality, Alexandre fully renovated this 240 m² house to create a unique living space in Le Mans. The premium coliving concept welcomes individual travellers and large groups alike, with the comfort of a hotel and the warmth of a home.",
+    aboutText: "Engineer, geek, sportsman and handyman, I've been a Superhost for several years.\nI'm committed to offering clean, comfortable and perfectly functional accommodation.\nThis house in Le Mans was designed to welcome families, groups of friends or professional teams, while guaranteeing everyone's privacy with en-suite bedrooms.\nI'm available and responsive, while giving you great autonomy.",
     languages: "Languages",
     languagesValue: "French, English",
     responseRate: "Response rate",

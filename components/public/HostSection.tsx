@@ -32,7 +32,7 @@ export default function HostSection() {
         <div className="flex-1 space-y-4">
           <div>
             <h3 className="font-medium text-foreground">{t.host.about}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-secondary">
+            <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-secondary">
               {t.host.aboutText}
             </p>
           </div>
