@@ -47,10 +47,14 @@ interface BookingBar {
   booking: Beds24Booking;
   channel: string;
   colour: string;
-  /** 0-based col start within month grid (capped to 0) */
+  /** 0-based col start within month grid */
   startCol: number;
-  /** 0-based col end (exclusive, capped to totalDays) */
+  /** 0-based col end (inclusive) */
   endCol: number;
+  /** true if the actual arrival day is visible (not clamped to month start) */
+  startsInMonth: boolean;
+  /** true if the actual departure day is visible (not clamped to month end) */
+  endsInMonth: boolean;
   label: string;
 }
 
@@ -108,21 +112,25 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
       .map((b) => {
         const channel = normalizeChannel(b.referer, b.channel);
         const guests = b.numAdult + b.numChild;
-        // Col positions: day 1 = col 0
         const arrDate = new Date(b.arrival + "T00:00:00");
         const depDate = new Date(b.departure + "T00:00:00");
         const monthStart = new Date(year, mo, 1);
         const monthEnd = new Date(year, mo, daysInMonth);
 
-        const startDay = arrDate < monthStart ? 1 : arrDate.getDate();
-        const endDay = depDate > monthEnd ? daysInMonth : depDate.getDate() - 1; // departure day is checkout, not occupied
+        // Include departure day in the bar (half-cell)
+        const startsInMonth = arrDate >= monthStart;
+        const endsInMonth = depDate <= new Date(year, mo, daysInMonth + 1);
+        const startDay = startsInMonth ? arrDate.getDate() : 1;
+        const endDay = endsInMonth ? depDate.getDate() : daysInMonth;
 
         return {
           booking: b,
           channel,
           colour: CHANNEL_COLORS[channel] ?? "#9ca3af",
           startCol: startDay - 1,
-          endCol: Math.max(startDay - 1, endDay), // endCol is inclusive
+          endCol: Math.max(startDay - 1, endDay - 1),
+          startsInMonth,
+          endsInMonth,
           label: `${b.lastName || b.firstName} · ${guests} voy.`,
         };
       })
@@ -134,7 +142,7 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
   const weeks = Math.ceil(totalCells / 7);
 
   // Assign bars to "lanes" (rows within each week) to avoid overlap
-  type BarPlacement = BookingBar & { row: number; weekStart: number; weekEnd: number };
+  type BarPlacement = BookingBar & { row: number; weekStart: number; weekEnd: number; isFirstSegment: boolean; isLastSegment: boolean };
   const barPlacements: BarPlacement[] = useMemo(() => {
     const placements: BarPlacement[] = [];
     // For each week, track used lanes
@@ -174,6 +182,8 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
           row: lane,
           weekStart: colInWeek0,
           weekEnd: colInWeek1,
+          isFirstSegment: w === startWeek,
+          isLastSegment: w === endWeek,
         });
       }
     }
@@ -304,16 +314,28 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
                   return (
                     <div key={lane} className="relative mt-0.5 h-6">
                       {laneBars.map((bp) => {
-                        const left = `${(bp.weekStart / 7) * 100}%`;
-                        const width = `${((bp.weekEnd - bp.weekStart + 1) / 7) * 100}%`;
-                        const isStart = bp.weekStart === firstDow + bp.startCol - Math.floor((firstDow + bp.startCol) / 7) * 7;
+                        const cellW = 100 / 7; // width of one cell in %
+                        const halfCell = cellW / 2;
+                        // Half-cell inset on arrival day, half-cell trim on departure day
+                        const insetStart = bp.isFirstSegment && bp.startsInMonth ? halfCell : 0;
+                        const insetEnd = bp.isLastSegment && bp.endsInMonth ? halfCell : 0;
+                        const left = `${bp.weekStart * cellW + insetStart}%`;
+                        const width = `${(bp.weekEnd - bp.weekStart + 1) * cellW - insetStart - insetEnd}%`;
+                        const isStart = bp.isFirstSegment;
+                        // Rounded ends: round-left on arrival, round-right on departure
+                        const roundLeft = bp.isFirstSegment && bp.startsInMonth;
+                        const roundRight = bp.isLastSegment && bp.endsInMonth;
 
                         return (
                           <button
                             key={`${bp.booking.id}-${bp.weekStart}`}
                             data-bar
                             onClick={(e) => handleBarClick(bp, e)}
-                            className="absolute top-0 h-full cursor-pointer overflow-hidden truncate rounded px-1.5 text-left text-[11px] font-medium text-white transition-opacity hover:opacity-90"
+                            className={`absolute top-0 h-full cursor-pointer overflow-hidden truncate px-1.5 text-left text-[11px] font-medium text-white transition-opacity hover:opacity-90 ${
+                              roundLeft && roundRight ? "rounded-full" :
+                              roundLeft ? "rounded-l-full" :
+                              roundRight ? "rounded-r-full" : ""
+                            }`}
                             style={{
                               left,
                               width,
