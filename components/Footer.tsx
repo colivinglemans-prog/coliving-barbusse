@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="border-t border-border bg-light-bg">
       <div className="mx-auto max-w-6xl px-6 py-10">
@@ -13,16 +18,16 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Navigation</h3>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">{t.footer.navigation}</h3>
             <ul className="space-y-2 text-sm text-secondary">
-              <li><Link href="/#chambres" className="hover:text-foreground">Chambres</Link></li>
-              <li><Link href="/#equipements" className="hover:text-foreground">Équipements</Link></li>
-              <li><Link href="/#localisation" className="hover:text-foreground">Localisation</Link></li>
-              <li><Link href="/#disponibilite" className="hover:text-foreground">Réserver</Link></li>
+              <li><Link href="/#chambres" className="hover:text-foreground">{t.header.rooms}</Link></li>
+              <li><Link href="/#equipements" className="hover:text-foreground">{t.header.amenities}</Link></li>
+              <li><Link href="/#localisation" className="hover:text-foreground">{t.header.location}</Link></li>
+              <li><Link href="/#disponibilite" className="hover:text-foreground">{t.header.book}</Link></li>
             </ul>
           </div>
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-foreground">Contact</h3>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">{t.footer.contact}</h3>
             <ul className="space-y-2 text-sm text-secondary">
               <li>
                 <a
@@ -31,7 +36,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-foreground"
                 >
-                  WhatsApp
+                  {t.footer.whatsapp}
                 </a>
               </li>
               <li>
@@ -43,7 +48,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t border-border pt-6 text-center text-xs text-secondary">
-          &copy; {new Date().getFullYear()} Coliving Barbusse. Tous droits réservés.
+          &copy; {new Date().getFullYear()} {t.footer.copyright}
         </div>
       </div>
     </footer>

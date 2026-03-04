@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useTranslation } from "@/lib/i18n";
 
 const PHOTOS = [
   { src: "/images/house/5-sportAI.png", alt: "Salle de sport" },
@@ -7,11 +10,13 @@ const PHOTOS = [
 ];
 
 export default function CommonSpaces() {
+  const { t } = useTranslation();
+
   return (
     <div className="mx-auto max-w-6xl border-b border-border px-6 py-8">
-      <h2 className="text-xl font-semibold text-foreground">Espace Sport</h2>
+      <h2 className="text-xl font-semibold text-foreground">{t.commonSpaces.title}</h2>
       <p className="mt-2 text-sm text-secondary">
-        Espace privatif dans une annexe de la maison, en accès libre 7j/7, 24h/24 — sans risque de réveiller qui que ce soit.
+        {t.commonSpaces.subtitle}
       </p>
 
       {/* 3 photos côte à côte */}
@@ -32,15 +37,15 @@ export default function CommonSpaces() {
       {/* Descriptions */}
       <div className="mt-6 space-y-4">
         <div>
-          <h3 className="font-medium text-foreground">Salle de sport</h3>
+          <h3 className="font-medium text-foreground">{t.commonSpaces.gym}</h3>
           <p className="mt-1 text-sm text-secondary">
-            Équipements fitness à disposition : vélo elliptique, tapis de course, haltères et banc de musculation.
+            {t.commonSpaces.gymDesc}
           </p>
         </div>
         <div>
-          <h3 className="font-medium text-foreground">Salle zen</h3>
+          <h3 className="font-medium text-foreground">{t.commonSpaces.zen}</h3>
           <p className="mt-1 text-sm text-secondary">
-            Un espace détente pour se ressourcer : yoga, méditation et relaxation.
+            {t.commonSpaces.zenDesc}
           </p>
         </div>
       </div>

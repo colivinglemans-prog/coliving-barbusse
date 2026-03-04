@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 const PHOTOS = [
   { src: "/images/house/2-cuisineAI 2.png", alt: "Cuisine — vue 2" },
@@ -17,6 +18,7 @@ const PHOTOS = [
 export default function PhotoGallery() {
   const [lightbox, setLightbox] = useState<number | null>(null);
   const touchStart = useRef(0);
+  const { t } = useTranslation();
 
   const gridPhotos = PHOTOS.slice(0, 5);
 
@@ -65,7 +67,7 @@ export default function PhotoGallery() {
               priority
             />
             <span className="absolute bottom-4 right-4 rounded-lg bg-white/90 px-4 py-2 text-sm font-medium text-foreground shadow backdrop-blur-sm">
-              Afficher les {PHOTOS.length} photos
+              {t.gallery.showPhotos(PHOTOS.length)}
             </span>
           </button>
         </div>
@@ -108,7 +110,7 @@ export default function PhotoGallery() {
             onClick={() => setLightbox(0)}
             className="rounded-lg border border-foreground px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-light-bg"
           >
-            Afficher toutes les photos
+            {t.gallery.showAllPhotos}
           </button>
         </div>
       </div>
@@ -144,6 +146,7 @@ export default function PhotoGallery() {
           <button
             className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/30"
             onClick={(e) => { e.stopPropagation(); prev(); }}
+            aria-label={t.gallery.previous}
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -152,6 +155,7 @@ export default function PhotoGallery() {
           <button
             className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/30"
             onClick={(e) => { e.stopPropagation(); next(); }}
+            aria-label={t.gallery.next}
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

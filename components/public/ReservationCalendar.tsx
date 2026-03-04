@@ -8,9 +8,8 @@ import {
   addMonths,
   monthKey,
   addDays,
-  MONTH_NAMES_FR,
-  DAY_NAMES_FR,
 } from "@/lib/calendar-utils";
+import { useTranslation } from "@/lib/i18n";
 
 const PROPERTY_ID = 303771;
 const DEFAULT_MIN_STAY = 2;
@@ -30,6 +29,7 @@ type DayCellState =
 export default function ReservationCalendar() {
   const now = new Date();
   const todayStr = formatDate(now);
+  const { t } = useTranslation();
 
   const [baseYear, setBaseYear] = useState(now.getFullYear());
   const [baseMonth, setBaseMonth] = useState(now.getMonth());
@@ -112,28 +112,17 @@ export default function ReservationCalendar() {
     return minStayCache[dateStr] ?? DEFAULT_MIN_STAY;
   }
 
-  /**
-   * Count consecutive available nights starting from dateStr.
-   * E.g. if Apr 3 is available but Apr 4 is not, returns 1.
-   */
   function consecutiveAvailableNights(dateStr: string): number {
     let count = 0;
     let d = dateStr;
     while (isDateAvailable(d)) {
       count++;
       d = addDays(d, 1);
-      // Safety: stop after 365 days
       if (count > 365) break;
     }
     return count;
   }
 
-  /**
-   * A date is valid as check-in only if:
-   * - Not in the past
-   * - Is available
-   * - Has enough consecutive available nights to meet the minimum stay
-   */
   function isValidCheckIn(dateStr: string): boolean {
     if (isDatePast(dateStr)) return false;
     if (!isDateAvailable(dateStr)) return false;
@@ -142,17 +131,12 @@ export default function ReservationCalendar() {
     return available >= minStay;
   }
 
-  /**
-   * When selecting check-out: must be at least minStay nights after check-in,
-   * and all intermediate dates must be available.
-   */
   function isValidCheckOut(dateStr: string): boolean {
     if (!checkIn) return false;
     if (dateStr <= checkIn) return false;
     const minStay = getMinStayForDate(checkIn);
     const minCheckOut = addDays(checkIn, minStay);
     if (dateStr < minCheckOut) return false;
-    // All intermediate dates must be available
     let d = addDays(checkIn, 1);
     while (d < dateStr) {
       if (!isDateAvailable(d)) return false;
@@ -171,16 +155,13 @@ export default function ReservationCalendar() {
     if (isDatePast(dateStr) || !isDateAvailable(dateStr)) return;
 
     if (!checkIn || (checkIn && checkOut)) {
-      // Starting new selection: only allow valid check-in dates
       if (isValidCheckIn(dateStr)) {
         setCheckIn(dateStr);
         setCheckOut(null);
         setHoverDate(null);
       }
     } else {
-      // Check-in is set, selecting check-out
       if (dateStr <= checkIn) {
-        // Clicked before or on check-in: restart if valid check-in
         if (isValidCheckIn(dateStr)) {
           setCheckIn(dateStr);
           setCheckOut(null);
@@ -190,7 +171,6 @@ export default function ReservationCalendar() {
         setCheckOut(dateStr);
         setHoverDate(null);
       } else if (isValidCheckIn(dateStr)) {
-        // Clicked a non-selectable check-out but valid check-in: restart
         setCheckIn(dateStr);
         setCheckOut(null);
         setHoverDate(null);
@@ -221,20 +201,13 @@ export default function ReservationCalendar() {
     }
     if (isDatePast(dateStr)) return "past";
     if (!isDateAvailable(dateStr)) return "unavailable";
-
-    // When no check-in selected: disable dates that can't be used as check-in
     if (!checkIn && !isValidCheckIn(dateStr)) return "disabled";
-
-    // When check-in selected, waiting for check-out:
-    // disable dates that are neither valid check-out nor valid check-in (for restart)
     if (checkIn && !checkOut) {
       if (!isValidCheckOut(dateStr) && !isValidCheckIn(dateStr)) return "disabled";
     }
-
     return "available";
   }
 
-  // Compute nights
   const nights =
     checkIn && checkOut
       ? Math.round(
@@ -251,7 +224,6 @@ export default function ReservationCalendar() {
   const [numAdults, setNumAdults] = useState(2);
   const [numChildren, setNumChildren] = useState(0);
 
-  // Display min stay hint when check-in is selected
   const checkInMinStay = checkIn ? getMinStayForDate(checkIn) : null;
 
   const bookingUrlWithGuests =
@@ -261,9 +233,9 @@ export default function ReservationCalendar() {
 
   return (
     <div id="disponibilite" className="mx-auto max-w-6xl border-b border-border px-6 py-8">
-      <h2 className="text-xl font-semibold text-foreground">Réservation</h2>
+      <h2 className="text-xl font-semibold text-foreground">{t.calendar.title}</h2>
       <p className="mt-1 text-sm text-secondary">
-        Sélectionnez vos dates pour réserver la maison entière.
+        {t.calendar.subtitle}
       </p>
 
       <div className="mt-6 rounded-xl border border-border p-4 sm:p-6">
@@ -273,7 +245,7 @@ export default function ReservationCalendar() {
             onClick={goPrev}
             disabled={!canGoPrev}
             className="rounded-full p-2 transition-colors hover:bg-light-bg disabled:opacity-30"
-            aria-label="Mois précédent"
+            aria-label={t.gallery.previous}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -281,16 +253,16 @@ export default function ReservationCalendar() {
           </button>
           <div className="flex gap-8 text-sm font-semibold text-foreground">
             <span>
-              {MONTH_NAMES_FR[baseMonth]} {baseYear}
+              {t.calendar.monthNames[baseMonth]} {baseYear}
             </span>
             <span className="hidden md:inline">
-              {MONTH_NAMES_FR[month2.month]} {month2.year}
+              {t.calendar.monthNames[month2.month]} {month2.year}
             </span>
           </div>
           <button
             onClick={goNext}
             className="rounded-full p-2 transition-colors hover:bg-light-bg"
-            aria-label="Mois suivant"
+            aria-label={t.gallery.next}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -306,6 +278,8 @@ export default function ReservationCalendar() {
             getCellState={getCellState}
             onDateClick={handleDateClick}
             onDateHover={handleDateHover}
+            monthNames={t.calendar.monthNames}
+            dayNames={t.calendar.dayNames}
           />
           <div className="hidden md:block">
             <MonthGrid
@@ -314,6 +288,8 @@ export default function ReservationCalendar() {
               getCellState={getCellState}
               onDateClick={handleDateClick}
               onDateHover={handleDateHover}
+              monthNames={t.calendar.monthNames}
+              dayNames={t.calendar.dayNames}
             />
           </div>
         </div>
@@ -321,7 +297,7 @@ export default function ReservationCalendar() {
         {loading && (
           <div className="mt-4 flex items-center justify-center gap-2 text-sm text-secondary">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-secondary/30 border-t-secondary" />
-            Chargement des disponibilités...
+            {t.calendar.loading}
           </div>
         )}
 
@@ -330,21 +306,21 @@ export default function ReservationCalendar() {
           <div className="mt-6 flex flex-col items-end gap-3 rounded-lg bg-light-bg p-4">
             <div className="text-sm text-foreground">
               <span className="font-semibold">
-                {nights} nuit{nights > 1 ? "s" : ""}
+                {t.calendar.nights(nights)}
               </span>{" "}
-              — du {checkIn} au {checkOut}
+              — {checkIn} → {checkOut}
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
               <GuestCounter
-                label="Adultes"
+                label={t.calendar.adults}
                 value={numAdults}
                 min={1}
                 max={18}
                 onChange={setNumAdults}
               />
               <GuestCounter
-                label="Ados (10-17 ans)"
+                label={t.calendar.teens}
                 value={numChildren}
                 min={0}
                 max={17}
@@ -352,7 +328,7 @@ export default function ReservationCalendar() {
               />
             </div>
             <p className="text-xs text-secondary">
-              Logement non adapté aux jeunes enfants.
+              {t.calendar.teensNote}
             </p>
 
             <div className="flex items-center gap-3">
@@ -360,13 +336,13 @@ export default function ReservationCalendar() {
                 onClick={clearSelection}
                 className="text-sm font-medium text-primary underline underline-offset-2 hover:text-primary-dark"
               >
-                Effacer
+                {t.calendar.clear}
               </button>
               <button
                 onClick={() => setShowBookingModal(true)}
                 className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
               >
-                Réserver maintenant
+                {t.calendar.bookNow}
               </button>
             </div>
           </div>
@@ -376,17 +352,17 @@ export default function ReservationCalendar() {
         {checkIn && !checkOut && (
           <div className="mt-4 flex items-center justify-center gap-3">
             <p className="text-sm text-secondary">
-              Arrivée : <span className="font-medium text-foreground">{checkIn}</span>
+              {t.calendar.checkInLabel} : <span className="font-medium text-foreground">{checkIn}</span>
               {checkInMinStay && checkInMinStay > 1 && (
-                <span className="text-secondary"> (min. {checkInMinStay} nuits)</span>
+                <span className="text-secondary"> {t.calendar.minStayNote(checkInMinStay)}</span>
               )}
-              {" "}— Sélectionnez votre date de départ
+              {" "}— {t.calendar.selectCheckOut}
             </p>
             <button
               onClick={clearSelection}
               className="text-sm font-medium text-primary underline underline-offset-2 hover:text-primary-dark"
             >
-              Effacer
+              {t.calendar.clear}
             </button>
           </div>
         )}
@@ -394,25 +370,9 @@ export default function ReservationCalendar() {
         {/* No selection */}
         {!checkIn && (
           <p className="mt-4 text-center text-sm text-secondary">
-            Sélectionnez votre date d&apos;arrivée
+            {t.calendar.selectCheckIn}
           </p>
         )}
-      </div>
-
-      {/* Legend */}
-      <div className="mt-3 flex flex-wrap justify-center gap-4 text-xs text-secondary">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-sm border border-border" />
-          Disponible
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-sm bg-gray-200" />
-          Indisponible
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-sm bg-primary" />
-          Sélectionné
-        </span>
       </div>
 
       {/* Booking modal with Beds24 iframe */}
@@ -428,16 +388,16 @@ export default function ReservationCalendar() {
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground">
-                  Finaliser votre réservation
+                  {t.calendar.bookNow}
                 </h3>
                 <p className="text-xs text-secondary">
-                  {nights} nuit{nights > 1 ? "s" : ""} — du {checkIn} au {checkOut} · {numAdults} adulte{numAdults > 1 ? "s" : ""}{numChildren > 0 ? `, ${numChildren} enfant${numChildren > 1 ? "s" : ""}` : ""}
+                  {t.calendar.summary(nights, checkIn!, checkOut!, numAdults, numChildren)}
                 </p>
               </div>
               <button
                 onClick={() => setShowBookingModal(false)}
                 className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-light-bg"
-                aria-label="Fermer"
+                aria-label="Close"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -449,7 +409,7 @@ export default function ReservationCalendar() {
               <iframe
                 src={bookingUrlWithGuests}
                 className="h-full w-full border-0"
-                title="Réservation Beds24"
+                title="Beds24 Booking"
                 allow="payment"
               />
             </div>
@@ -483,7 +443,7 @@ function GuestCounter({
         disabled={value <= min}
         onClick={() => onChange(value - 1)}
         className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-light-bg disabled:opacity-30 disabled:cursor-default"
-        aria-label={`Moins de ${label.toLowerCase()}`}
+        aria-label="-"
       >
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -495,7 +455,7 @@ function GuestCounter({
         disabled={value >= max}
         onClick={() => onChange(value + 1)}
         className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-light-bg disabled:opacity-30 disabled:cursor-default"
-        aria-label={`Plus de ${label.toLowerCase()}`}
+        aria-label="+"
       >
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -513,6 +473,8 @@ interface MonthGridProps {
   getCellState: (dateStr: string) => DayCellState;
   onDateClick: (dateStr: string) => void;
   onDateHover: (dateStr: string) => void;
+  monthNames: string[];
+  dayNames: string[];
 }
 
 const CELL_STYLES: Record<DayCellState, string> = {
@@ -532,6 +494,8 @@ function MonthGrid({
   getCellState,
   onDateClick,
   onDateHover,
+  monthNames,
+  dayNames,
 }: MonthGridProps) {
   const days = daysInMonth(year, month);
   const offset = firstDayOfMonth(year, month);
@@ -543,7 +507,7 @@ function MonthGrid({
   return (
     <div>
       <div className="mb-2 grid grid-cols-7 text-center text-xs font-medium text-secondary">
-        {DAY_NAMES_FR.map((name) => (
+        {dayNames.map((name) => (
           <div key={name} className="py-1">
             {name}
           </div>
@@ -572,7 +536,7 @@ function MonthGrid({
               onClick={() => isClickable && onDateClick(dateStr)}
               onMouseEnter={() => onDateHover(dateStr)}
               className={`flex aspect-square items-center justify-center text-sm transition-colors ${CELL_STYLES[state]}`}
-              aria-label={`${day} ${MONTH_NAMES_FR[month]} ${year}`}
+              aria-label={`${day} ${monthNames[month]} ${year}`}
             >
               {day}
             </button>
