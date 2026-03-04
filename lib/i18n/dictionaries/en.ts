@@ -146,7 +146,7 @@ Sleeps up to 18 guests.`,
       {
         title: "House rules",
         items: [
-          "Check-in: 3:00 PM — 11:00 PM",
+          "Check-in: 5:00 PM — 11:00 PM",
           "Checkout: before 11:00 AM",
           "18 guests maximum",
           "No smoking (indoors)",

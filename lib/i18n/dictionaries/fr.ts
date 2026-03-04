@@ -146,7 +146,7 @@ Jusqu'à 18 personnes.`,
       {
         title: "Règlement intérieur",
         items: [
-          "Arrivée : 15h00 — 23h00",
+          "Arrivée : 17h00 — 23h00",
           "Départ : avant 11h00",
           "18 voyageurs maximum",
           "Non-fumeur (intérieur)",
