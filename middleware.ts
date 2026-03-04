@@ -32,7 +32,16 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard/login", request.url));
     }
     try {
-      await jwtVerify(token, getSecret());
+      const { payload } = await jwtVerify(token, getSecret());
+      const role = (payload.role as string) ?? "admin";
+
+      // Viewers can only access the calendar page
+      if (role === "viewer" && pathname === "/dashboard") {
+        return NextResponse.redirect(new URL("/dashboard/calendar", request.url));
+      }
+      if (role === "viewer" && pathname.startsWith("/api/dashboard/stats")) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     } catch {
       return NextResponse.redirect(new URL("/dashboard/login", request.url));
     }
@@ -45,7 +54,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     try {
-      await jwtVerify(token, getSecret());
+      const { payload } = await jwtVerify(token, getSecret());
+      const role = (payload.role as string) ?? "admin";
+
+      // Viewers cannot access stats API
+      if (role === "viewer" && pathname.startsWith("/api/dashboard/stats")) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

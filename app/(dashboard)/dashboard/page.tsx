@@ -72,10 +72,9 @@ export default function Dashboard() {
 
             <RevenueChart data={stats.revenueByMonth} />
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <ChannelPieChart data={stats.channelDistribution} />
-              <OccupancyGauge rate={stats.occupancyRate} monthlyData={stats.revenueByMonth} />
-            </div>
+            <ChannelPieChart data={stats.channelDistribution} />
+
+            <OccupancyGauge rate={stats.occupancyRate} monthlyData={stats.revenueByMonth} />
           </div>
         )}
       </div>

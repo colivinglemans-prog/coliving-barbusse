@@ -9,8 +9,10 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-export async function createToken(): Promise<string> {
-  return new SignJWT({ role: "admin" })
+export type DashboardRole = "admin" | "viewer";
+
+export async function createToken(role: DashboardRole = "admin"): Promise<string> {
+  return new SignJWT({ role })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
@@ -23,6 +25,15 @@ export async function verifyToken(token: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function getTokenRole(token: string): Promise<DashboardRole> {
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    return (payload.role as DashboardRole) ?? "admin";
+  } catch {
+    return "admin";
   }
 }
 
