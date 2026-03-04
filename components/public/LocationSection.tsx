@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslation } from "@/lib/i18n";
 
 const ICONS = ["🚄", "🏁", "🏢", "🌳", "🚊", "🏛️"];
@@ -27,15 +28,29 @@ export default function LocationSection() {
       </div>
 
       {/* Circuit Bugatti highlight */}
-      <div className="mt-8 overflow-hidden rounded-xl bg-gradient-to-r from-rose-50 to-amber-50 p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <div className="shrink-0 text-5xl">🏁</div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              {t.location.circuitTitle}
-            </h3>
-            <p className="mt-1 text-sm text-secondary">
+      <div className="mt-8 overflow-hidden rounded-xl bg-gradient-to-r from-rose-50 to-amber-50">
+        <div className="flex flex-col md:flex-row">
+          <div className="relative h-56 w-full md:h-auto md:w-2/5">
+            <Image
+              src="/images/house/circuit-bugatti.jpg"
+              alt="Circuit Bugatti — Le Mans"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 40vw"
+            />
+          </div>
+          <div className="flex flex-1 flex-col justify-center p-6">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🏁</span>
+              <h3 className="text-lg font-semibold text-foreground">
+                {t.location.circuitTitle}
+              </h3>
+            </div>
+            <p className="mt-2 text-sm text-secondary">
               {t.location.circuitDesc}
+            </p>
+            <p className="mt-3 text-[10px] text-secondary/50">
+              Photo : duky.duke — CC BY-SA 2.0
             </p>
           </div>
         </div>
