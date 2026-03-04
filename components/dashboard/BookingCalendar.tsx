@@ -131,7 +131,7 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
           endCol: Math.max(startDay - 1, endDay - 1),
           startsInMonth,
           endsInMonth,
-          label: `${b.lastName || b.firstName} · ${guests} voy.`,
+          label: `${b.firstName || b.lastName} · ${guests} voy.`,
         };
       })
       .sort((a, b) => a.startCol - b.startCol);
