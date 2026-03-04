@@ -25,8 +25,13 @@ export default function Footer() {
             <h3 className="mb-3 text-sm font-semibold text-foreground">Contact</h3>
             <ul className="space-y-2 text-sm text-secondary">
               <li>
-                <a href="mailto:coliving.lemans@gmail.com" className="hover:text-foreground">
-                  coliving.lemans@gmail.com
+                <a
+                  href="https://wa.me/33620921005"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground"
+                >
+                  WhatsApp
                 </a>
               </li>
               <li>
