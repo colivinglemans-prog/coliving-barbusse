@@ -371,14 +371,14 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
       {/* Popup — bottom-sheet on mobile, floating card on desktop */}
       {popup && (
         <>
-          {/* Backdrop (mobile) */}
+          {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/30 sm:hidden"
+            className="fixed inset-0 z-40 bg-black/30"
             onClick={() => setPopup(null)}
           />
           <div
             data-popup
-            className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-white p-5 shadow-xl sm:absolute sm:inset-auto sm:w-72 sm:rounded-xl sm:p-4 sm:ring-1 sm:ring-gray-200"
+            className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-sm rounded-2xl bg-white p-5 shadow-xl sm:inset-auto sm:absolute sm:mx-0 sm:w-72 sm:rounded-xl sm:p-4 sm:ring-1 sm:ring-gray-200"
             style={
               typeof window !== "undefined" && window.innerWidth >= 640
                 ? {
@@ -388,52 +388,51 @@ export default function BookingCalendar({ bookings, showPrices = true }: Booking
                 : undefined
             }
           >
-            {/* Drag handle (mobile) */}
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-300 sm:hidden" />
-
-            <div className="mb-3 flex items-center justify-between">
-              <h4 className="font-semibold text-gray-900">
-                {popup.booking.firstName} {popup.booking.lastName}
-              </h4>
-              <button onClick={() => setPopup(null)} className="text-gray-400 hover:text-gray-600">
-                <svg className="h-5 w-5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: popup.colour }} />
+                <h4 className="text-base font-semibold text-gray-900">
+                  {popup.booking.firstName} {popup.booking.lastName}
+                </h4>
+              </div>
+              <button onClick={() => setPopup(null)} className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <div className="space-y-3 text-sm sm:space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Dates</span>
-                <span className="text-gray-900">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-gray-400">Dates</p>
+                <p className="mt-0.5 font-medium text-gray-900">
                   {new Date(popup.booking.arrival).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                   {" → "}
                   {new Date(popup.booking.departure).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
-                  <span className="ml-1 text-gray-400">({popup.nights} nuit{popup.nights > 1 ? "s" : ""})</span>
-                </span>
+                </p>
+                <p className="text-xs text-gray-400">{popup.nights} nuit{popup.nights > 1 ? "s" : ""}</p>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-gray-500">Voyageurs</span>
-                <span className="text-gray-900">
+              <div>
+                <p className="text-xs text-gray-400">Voyageurs</p>
+                <p className="mt-0.5 font-medium text-gray-900">
                   {popup.booking.numAdult} adulte{popup.booking.numAdult > 1 ? "s" : ""}
-                  {popup.booking.numChild > 0 && `, ${popup.booking.numChild} enfant${popup.booking.numChild > 1 ? "s" : ""}`}
-                </span>
+                </p>
+                {popup.booking.numChild > 0 && (
+                  <p className="text-xs text-gray-400">{popup.booking.numChild} enfant{popup.booking.numChild > 1 ? "s" : ""}</p>
+                )}
               </div>
 
               {showPrices && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Montant</span>
-                  <span className="font-medium text-gray-900">{formatEuro(popup.booking.price)}</span>
+                <div>
+                  <p className="text-xs text-gray-400">Montant</p>
+                  <p className="mt-0.5 font-medium text-gray-900">{formatEuro(popup.booking.price)}</p>
                 </div>
               )}
 
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500">Canal</span>
-                <span className="flex items-center gap-1.5 text-gray-900">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: popup.colour }} />
-                  {popup.channel}
-                </span>
+              <div>
+                <p className="text-xs text-gray-400">Canal</p>
+                <p className="mt-0.5 font-medium text-gray-900">{popup.channel}</p>
               </div>
             </div>
           </div>
