@@ -8,6 +8,7 @@ import Amenities from "@/components/public/Amenities";
 import ReservationCalendar from "@/components/public/ReservationCalendar";
 import LocationSection from "@/components/public/LocationSection";
 import HostSection from "@/components/public/HostSection";
+import AirbnbReviews from "@/components/public/AirbnbReviews";
 import HouseRules from "@/components/public/HouseRules";
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
       <ReservationCalendar />
       <LocationSection />
       <HostSection />
+      <AirbnbReviews />
       <HouseRules />
     </>
   );

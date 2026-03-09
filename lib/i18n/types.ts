@@ -88,6 +88,10 @@ export interface Dictionary {
     whatsapp: string;
     airbnbMessage: string;
   };
+  reviews: {
+    title: string;
+    subtitle: string;
+  };
   rules: {
     title: string;
     sections: Array<{

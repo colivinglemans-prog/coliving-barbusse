@@ -140,6 +140,10 @@ Sleeps up to 18 guests.`,
     whatsapp: "WhatsApp",
     airbnbMessage: "Airbnb message",
   },
+  reviews: {
+    title: "Guest reviews",
+    subtitle: "What our guests say on Airbnb",
+  },
   rules: {
     title: "Things to know",
     sections: [

@@ -140,6 +140,10 @@ Jusqu'à 18 personnes.`,
     whatsapp: "WhatsApp",
     airbnbMessage: "Message Airbnb",
   },
+  reviews: {
+    title: "Avis des voyageurs",
+    subtitle: "Ce que disent nos hôtes sur Airbnb",
+  },
   rules: {
     title: "À savoir",
     sections: [
