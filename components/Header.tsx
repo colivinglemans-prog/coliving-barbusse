@@ -11,7 +11,7 @@ export default function Header() {
   const toggleLocale = () => setLocale(locale === "fr" ? "en" : "fr");
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-white">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-white/80 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-xl font-bold text-primary">
           Coliving Barbusse - Maison premium 9 suites privatives Proche Circuit Le Mans
@@ -84,7 +84,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="border-t border-border bg-white px-6 py-4 md:hidden">
+        <div className="border-t border-border/60 bg-white/80 backdrop-blur-md px-6 py-4 md:hidden">
           <ul className="flex flex-col gap-4 text-sm font-medium text-secondary">
             <li>
               <Link href="/#chambres" onClick={() => setMenuOpen(false)} className="block hover:text-foreground">
