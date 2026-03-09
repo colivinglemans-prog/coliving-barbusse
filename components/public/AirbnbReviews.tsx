@@ -7,13 +7,19 @@ import reviews from "@/data/reviews.json";
 
 const PAGE_SIZE = 3;
 const totalPages = Math.ceil(reviews.length / PAGE_SIZE);
-const CLAMP_THRESHOLD = 120; // chars — rough proxy for 4 lines
 
 function ReviewCard({ review }: { review: (typeof reviews)[number] }) {
   const [expanded, setExpanded] = useState(false);
+  const [clamped, setClamped] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
   const date = new Date(review.date + "-01");
   const month = date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-  const isLong = review.text.length > CLAMP_THRESHOLD;
+
+  // Detect if text is actually overflowing
+  useEffect(() => {
+    const el = textRef.current;
+    if (el) setClamped(el.scrollHeight > el.clientHeight + 1);
+  }, [review.text]);
 
   return (
     <div className="flex flex-col rounded-xl border border-border p-5">
@@ -53,10 +59,13 @@ function ReviewCard({ review }: { review: (typeof reviews)[number] }) {
         <span className="text-xs capitalize text-secondary">· {month}</span>
       </div>
 
-      <p className={`mt-3 text-sm leading-relaxed text-secondary ${!expanded && isLong ? "line-clamp-4" : ""}`}>
+      <p
+        ref={textRef}
+        className={`mt-3 text-sm leading-relaxed text-secondary ${!expanded ? "line-clamp-4" : ""}`}
+      >
         {review.text}
       </p>
-      {isLong && (
+      {clamped && (
         <button
           onClick={() => setExpanded((v) => !v)}
           className="mt-1 self-start text-xs font-medium text-foreground underline underline-offset-2"
@@ -77,7 +86,7 @@ export default function AirbnbReviews() {
 
   // Auto-advance every 8s
   useEffect(() => {
-    const timer = setInterval(next, 20000);
+    const timer = setInterval(next, 30000);
     return () => clearInterval(timer);
   }, [next]);
 
