@@ -26,6 +26,10 @@ html {
   scroll-behavior: smooth;
 }
 
+[id] {
+  scroll-margin-top: 5rem;
+}
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
