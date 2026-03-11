@@ -60,7 +60,10 @@ export const metadata: Metadata = {
     images: [`${SITE_URL}/images/house/3-maison-AI.png`],
   },
   verification: {
-    google: "XC998B6YglY2roX9Ckq20C7ZMnf3u326km5hK6jh2Bo",
+    google: [
+      "XC998B6YglY2roX9Ckq20C7ZMnf3u326km5hK6jh2Bo",
+      "QJbvyp0MsKtO8FuBKZU3NCzjPUpcXbM6YNwg3hk7KSA",
+    ],
   },
   alternates: {
     canonical: SITE_URL,
