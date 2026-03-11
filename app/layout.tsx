@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { I18nProvider } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,6 +38,7 @@ export default async function RootLayout({
         <I18nProvider initialLocale={locale}>
           {children}
         </I18nProvider>
+        <Analytics />
       </body>
     </html>
   );
