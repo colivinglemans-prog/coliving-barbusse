@@ -59,6 +59,9 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: [`${SITE_URL}/images/house/3-maison-AI.png`],
   },
+  verification: {
+    google: "XC998B6YglY2roX9Ckq20C7ZMnf3u326km5hK6jh2Bo",
+  },
   alternates: {
     canonical: SITE_URL,
   },
