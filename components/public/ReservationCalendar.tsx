@@ -152,17 +152,21 @@ export default function ReservationCalendar() {
   }
 
   function handleDateClick(dateStr: string) {
-    if (isDatePast(dateStr) || !isDateAvailable(dateStr)) return;
+    if (isDatePast(dateStr)) return;
 
     if (!checkIn || (checkIn && checkOut)) {
+      // Selecting check-in: must be available
+      if (!isDateAvailable(dateStr)) return;
       if (isValidCheckIn(dateStr)) {
         setCheckIn(dateStr);
         setCheckOut(null);
         setHoverDate(null);
       }
     } else {
+      // Selecting check-out: the checkout date itself doesn't need to be available
+      // (guest leaves morning, new guest arrives evening)
       if (dateStr <= checkIn) {
-        if (isValidCheckIn(dateStr)) {
+        if (isDateAvailable(dateStr) && isValidCheckIn(dateStr)) {
           setCheckIn(dateStr);
           setCheckOut(null);
           setHoverDate(null);
@@ -170,7 +174,7 @@ export default function ReservationCalendar() {
       } else if (isValidCheckOut(dateStr)) {
         setCheckOut(dateStr);
         setHoverDate(null);
-      } else if (isValidCheckIn(dateStr)) {
+      } else if (isDateAvailable(dateStr) && isValidCheckIn(dateStr)) {
         setCheckIn(dateStr);
         setCheckOut(null);
         setHoverDate(null);
@@ -194,13 +198,20 @@ export default function ReservationCalendar() {
       hoverDate &&
       hoverDate > checkIn &&
       dateStr > checkIn &&
-      dateStr < hoverDate &&
+      dateStr <= hoverDate &&
       isValidCheckOut(hoverDate)
     ) {
-      return "hover-range";
+      return dateStr === hoverDate ? "check-out" : "hover-range";
     }
     if (isDatePast(dateStr)) return "past";
-    if (!isDateAvailable(dateStr)) return "unavailable";
+    if (!isDateAvailable(dateStr)) {
+      // When selecting checkout, an unavailable date can be a valid checkout
+      // (guest leaves morning, new guest arrives evening)
+      if (checkIn && !checkOut && dateStr > checkIn && isValidCheckOut(dateStr)) {
+        return "available";
+      }
+      return "unavailable";
+    }
     if (!checkIn && !isValidCheckIn(dateStr)) return "disabled";
     if (checkIn && !checkOut) {
       if (!isValidCheckOut(dateStr) && !isValidCheckIn(dateStr)) return "disabled";
