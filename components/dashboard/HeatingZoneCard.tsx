@@ -56,7 +56,7 @@ export default function HeatingZoneCard({
         </div>
 
         {/* Zone-wide mode buttons */}
-        <div className="flex gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {ZONE_MODE_BUTTONS.map((btn) => (
             <button
               key={btn.mode}
@@ -71,7 +71,7 @@ export default function HeatingZoneCard({
       </div>
 
       {/* Device grid */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {devices.map((device) => (
           <HeatingDeviceCard
             key={device.did}

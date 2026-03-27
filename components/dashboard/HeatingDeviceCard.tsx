@@ -109,13 +109,13 @@ export default function HeatingDeviceCard({
       </div>
 
       {/* Mode buttons */}
-      <div className="flex gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
         {MODE_BUTTONS.map((btn) => (
           <button
             key={btn.mode}
             onClick={() => onSetMode(device.did, btn.mode)}
             disabled={loading || device.mode === btn.mode}
-            className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
+            className={`rounded-lg px-1 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
           >
             {btn.label}
           </button>
