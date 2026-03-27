@@ -113,9 +113,17 @@ export async function getDeviceStatus(did: string) {
 }
 
 export async function setDeviceMode(did: string, mode: HeatzyMode | string) {
-  await heatzyFetch("POST", `/app/control/${did}`, {
-    attrs: { mode },
-  });
+  if (mode === "presence") {
+    // Presence detection is controlled via derog_mode, not mode
+    await heatzyFetch("POST", `/app/control/${did}`, {
+      attrs: { derog_mode: 3 },
+    });
+  } else {
+    // First disable derog_mode if active, then set mode
+    await heatzyFetch("POST", `/app/control/${did}`, {
+      attrs: { derog_mode: 0, mode },
+    });
+  }
 }
 
 // ─── Zone operations ────────────────────────────────────────

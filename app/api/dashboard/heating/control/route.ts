@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { setDeviceMode, setZoneMode, setAllDevicesMode } from "@/lib/heatzy";
 import type { HeatzyMode } from "@/lib/types";
 
-const VALID_MODES: Set<string> = new Set(["cft", "eco", "fro", "stop"]);
+const VALID_MODES: Set<string> = new Set(["cft", "eco", "fro", "stop", "presence"]);
 
 export async function POST(request: NextRequest) {
   try {

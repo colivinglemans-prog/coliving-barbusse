@@ -21,6 +21,7 @@ const GLOBAL_MODE_BUTTONS = [
   { mode: "cft", label: "Tout en Confort", color: "bg-orange-500 hover:bg-orange-600" },
   { mode: "eco", label: "Tout en Éco", color: "bg-blue-500 hover:bg-blue-600" },
   { mode: "fro", label: "Tout en Hors-gel", color: "bg-gray-500 hover:bg-gray-600" },
+  { mode: "presence", label: "Tout en Présence", color: "bg-green-500 hover:bg-green-600" },
   { mode: "stop", label: "Tout Stop", color: "bg-red-500 hover:bg-red-600" },
 ];
 

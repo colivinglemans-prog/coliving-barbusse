@@ -60,7 +60,10 @@ export async function GET() {
         const status = await getDeviceStatus(deviceConfig.did);
         const rawDevice = rawDeviceMap.get(deviceConfig.did);
         const isOnline = rawDevice?.is_online ?? false;
-        const mode = (status.mode as string) ?? "unknown";
+        // derog_mode 3 = presence detection (overrides base mode)
+        const derogMode = status.derog_mode as number | undefined;
+        const baseMode = (status.mode as string) ?? "unknown";
+        const mode = derogMode === 3 ? "presence" : baseMode;
         const occupied = isRoomOccupied(deviceConfig.did, allBookings, config);
         const expectedMode = occupied ? "cft" : deviceConfig.defaultMode;
 
@@ -117,10 +120,10 @@ export async function GET() {
         })
         .filter((d): d is HeatzyDevice => d !== null)
         .sort((a, b) => {
-          // Alerts first
+          // Alerts first, then alphabetical by name
           if (a.hasAlert && !b.hasAlert) return -1;
           if (!a.hasAlert && b.hasAlert) return 1;
-          return 0;
+          return a.name.localeCompare(b.name, "fr", { numeric: true });
         });
 
       return {

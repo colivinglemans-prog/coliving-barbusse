@@ -44,7 +44,7 @@ export interface Beds24Property {
 
 // ─── Heatzy Pilote Pro ──────────────────────────────────────
 
-export type HeatzyMode = "cft" | "eco" | "fro" | "stop";
+export type HeatzyMode = "cft" | "eco" | "fro" | "stop" | "presence";
 
 export interface HeatzyDevice {
   did: string;

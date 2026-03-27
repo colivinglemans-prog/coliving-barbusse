@@ -6,6 +6,7 @@ const MODE_LABELS: Record<string, string> = {
   cft: "Confort",
   eco: "Éco",
   fro: "Hors-gel",
+  presence: "Présence",
   stop: "Stop",
 };
 
@@ -13,6 +14,7 @@ const MODE_COLORS: Record<string, string> = {
   cft: "bg-orange-100 text-orange-700",
   eco: "bg-blue-100 text-blue-700",
   fro: "bg-gray-100 text-gray-600",
+  presence: "bg-green-100 text-green-700",
   stop: "bg-red-100 text-red-700",
 };
 
@@ -20,6 +22,7 @@ const MODE_BUTTONS: { mode: string; label: string; color: string }[] = [
   { mode: "cft", label: "Confort", color: "bg-orange-500 hover:bg-orange-600" },
   { mode: "eco", label: "Éco", color: "bg-blue-500 hover:bg-blue-600" },
   { mode: "fro", label: "Hors-gel", color: "bg-gray-500 hover:bg-gray-600" },
+  { mode: "presence", label: "Présence", color: "bg-green-500 hover:bg-green-600" },
   { mode: "stop", label: "Stop", color: "bg-red-500 hover:bg-red-600" },
 ];
 

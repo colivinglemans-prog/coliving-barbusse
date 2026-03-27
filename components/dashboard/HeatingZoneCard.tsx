@@ -7,6 +7,7 @@ const ZONE_MODE_BUTTONS: { mode: string; label: string; color: string }[] = [
   { mode: "cft", label: "Confort", color: "bg-orange-500 hover:bg-orange-600" },
   { mode: "eco", label: "Éco", color: "bg-blue-500 hover:bg-blue-600" },
   { mode: "fro", label: "Hors-gel", color: "bg-gray-500 hover:bg-gray-600" },
+  { mode: "presence", label: "Présence", color: "bg-green-500 hover:bg-green-600" },
   { mode: "stop", label: "Stop", color: "bg-red-500 hover:bg-red-600" },
 ];
 
