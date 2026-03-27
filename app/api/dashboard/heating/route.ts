@@ -83,7 +83,7 @@ export async function GET() {
           name: deviceConfig.name,
           mode,
           isOnline,
-          temperature: status.cur_temp,
+          temperature: typeof status.cur_temp === "number" ? Math.round(status.cur_temp / 10) : undefined,
           expectedMode,
           hasAlert,
           alertMessage,
