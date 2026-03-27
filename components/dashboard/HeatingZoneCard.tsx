@@ -14,6 +14,8 @@ const ZONE_MODE_BUTTONS: { mode: string; label: string; color: string }[] = [
 interface HeatingZoneCardProps {
   zoneId: string;
   label: string;
+  cftTemp?: number;
+  ecoTemp?: number;
   devices: HeatzyDevice[];
   onSetZoneMode: (zoneId: string, mode: string) => void;
   onSetDeviceMode: (did: string, mode: string) => void;
@@ -23,6 +25,8 @@ interface HeatingZoneCardProps {
 export default function HeatingZoneCard({
   zoneId,
   label,
+  cftTemp,
+  ecoTemp,
   devices,
   onSetZoneMode,
   onSetDeviceMode,
@@ -39,6 +43,11 @@ export default function HeatingZoneCard({
           <span className="text-sm text-gray-500">
             {devices.length} radiateur{devices.length > 1 ? "s" : ""}
           </span>
+          {cftTemp && ecoTemp && (
+            <span className="text-xs text-gray-400">
+              Confort {cftTemp}°C · Éco {ecoTemp}°C
+            </span>
+          )}
           {alertCount > 0 && (
             <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
               {alertCount} alerte{alertCount > 1 ? "s" : ""}

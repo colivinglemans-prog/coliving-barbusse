@@ -68,6 +68,8 @@ export interface HeatzyZone {
   id: string;
   label: string;
   defaultMode: HeatzyMode;
+  cftTemp?: number; // comfort temp in tenths (e.g. 210 = 21.0°C)
+  ecoTemp?: number; // eco temp in tenths (e.g. 170 = 17.0°C)
   devices: HeatzyDeviceConfig[];
 }
 

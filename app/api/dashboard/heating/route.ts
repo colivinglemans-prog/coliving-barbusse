@@ -135,6 +135,8 @@ export async function GET() {
         id: zone.id,
         label: zone.label,
         defaultMode: zone.defaultMode,
+        cftTemp: zone.cftTemp ? zone.cftTemp / 10 : undefined,
+        ecoTemp: zone.ecoTemp ? zone.ecoTemp / 10 : undefined,
         devices,
       };
     });

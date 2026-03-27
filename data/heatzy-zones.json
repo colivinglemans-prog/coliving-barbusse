@@ -4,6 +4,8 @@
       "id": "rdc",
       "label": "Rez-de-chaussée",
       "defaultMode": "fro",
+      "cftTemp": 210,
+      "ecoTemp": 170,
       "devices": [
         { "did": "7sLDdAyoRXVsBcFnvcqHyt", "name": "Cuisine", "defaultMode": "fro" },
         { "did": "TCslYTUi8gdD2QqCNMhVpS", "name": "Salon", "defaultMode": "fro" },
@@ -16,6 +18,8 @@
       "id": "chambre-rdc",
       "label": "Chambre RDC",
       "defaultMode": "fro",
+      "cftTemp": 210,
+      "ecoTemp": 170,
       "devices": [
         { "did": "qa0uutQPIUTdwqyHeKjFD0", "name": "Chambre 1", "defaultMode": "fro" }
       ]
@@ -24,6 +28,8 @@
       "id": "1er",
       "label": "1er étage",
       "defaultMode": "fro",
+      "cftTemp": 210,
+      "ecoTemp": 170,
       "devices": [
         { "did": "luuG0tlc1TvMoBf8LZdciS", "name": "Chambre 2", "defaultMode": "fro" },
         { "did": "f1ht9FxSWYTmnLUshExCCf", "name": "Chambre 4", "defaultMode": "fro" },
@@ -36,6 +42,8 @@
       "id": "dernier",
       "label": "Dernier étage",
       "defaultMode": "fro",
+      "cftTemp": 220,
+      "ecoTemp": 170,
       "devices": [
         { "did": "3rva2tiYKhRiut270ompxf", "name": "Chambre 8", "defaultMode": "fro" },
         { "did": "Bf4Zgcjr7A6wJeJzCMZlMf", "name": "Chambre 9", "defaultMode": "fro" }

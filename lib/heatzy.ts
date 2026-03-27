@@ -158,6 +158,40 @@ export async function setZoneMode(zoneId: string, mode: HeatzyMode | string) {
   return updated;
 }
 
+export async function setDeviceTemperatures(did: string, cftTemp: number, ecoTemp: number) {
+  await heatzyFetch("POST", `/app/control/${did}`, {
+    attrs: { cft_temp: cftTemp, eco_temp: ecoTemp },
+  });
+}
+
+export async function resetZoneTemperatures(zoneId: string) {
+  const config = getZoneConfig();
+  const zone = config.zones.find((z) => z.id === zoneId);
+  if (!zone || !zone.cftTemp || !zone.ecoTemp) return 0;
+
+  let updated = 0;
+  for (const device of zone.devices) {
+    await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+    updated++;
+    if (updated < zone.devices.length) await sleep(100);
+  }
+  return updated;
+}
+
+export async function resetAllTemperatures() {
+  const config = getZoneConfig();
+  let updated = 0;
+  for (const zone of config.zones) {
+    if (!zone.cftTemp || !zone.ecoTemp) continue;
+    for (const device of zone.devices) {
+      await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+      updated++;
+      await sleep(100);
+    }
+  }
+  return updated;
+}
+
 export async function setAllDevicesMode(mode: HeatzyMode | string) {
   const config = getZoneConfig();
   let updated = 0;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
-import { getZoneConfig, setDeviceMode } from "@/lib/heatzy";
+import { getZoneConfig, setDeviceMode, setDeviceTemperatures } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import { sendHeatingAlert } from "@/lib/email";
 
@@ -54,7 +54,11 @@ export async function GET(request: NextRequest) {
           : device.defaultMode;
 
         await setDeviceMode(device.did, targetMode);
-        actions.push(`${device.name}: ${targetMode}`);
+        // Reset temperatures to zone defaults
+        if (zone.cftTemp && zone.ecoTemp) {
+          await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+        }
+        actions.push(`${device.name}: ${targetMode} (cft=${zone.cftTemp ? zone.cftTemp / 10 : "?"}°C, eco=${zone.ecoTemp ? zone.ecoTemp / 10 : "?"}°C)`);
         await sleep(100);
       }
     }

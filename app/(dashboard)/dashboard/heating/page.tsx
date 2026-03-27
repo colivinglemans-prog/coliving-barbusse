@@ -9,6 +9,8 @@ interface ZoneData {
   id: string;
   label: string;
   defaultMode: string;
+  cftTemp?: number;
+  ecoTemp?: number;
   devices: HeatzyDevice[];
 }
 
@@ -187,6 +189,8 @@ export default function HeatingPage() {
               key={zone.id}
               zoneId={zone.id}
               label={zone.label}
+              cftTemp={zone.cftTemp}
+              ecoTemp={zone.ecoTemp}
               devices={zone.devices}
               onSetZoneMode={handleSetZoneMode}
               onSetDeviceMode={handleSetDeviceMode}
