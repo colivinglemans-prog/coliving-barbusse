@@ -41,3 +41,45 @@ export interface Beds24Property {
   id: number;
   name: string;
 }
+
+// ─── Heatzy Pilote Pro ──────────────────────────────────────
+
+export type HeatzyMode = "cft" | "eco" | "fro" | "stop";
+
+export interface HeatzyDevice {
+  did: string;
+  name: string;
+  zone: string;
+  mode: HeatzyMode | string;
+  isOnline: boolean;
+  temperature?: number;
+  expectedMode?: HeatzyMode | string;
+  hasAlert: boolean;
+  alertMessage?: string;
+}
+
+export interface HeatzyDeviceConfig {
+  did: string;
+  name: string;
+  defaultMode: HeatzyMode;
+}
+
+export interface HeatzyZone {
+  id: string;
+  label: string;
+  defaultMode: HeatzyMode;
+  devices: HeatzyDeviceConfig[];
+}
+
+export interface HeatzyZoneConfig {
+  zones: HeatzyZone[];
+  roomMapping: Record<
+    string,
+    {
+      beds24PropertyId: number;
+      beds24RoomId?: number;
+      zoneId: string;
+      deviceIds: string[];
+    }
+  >;
+}

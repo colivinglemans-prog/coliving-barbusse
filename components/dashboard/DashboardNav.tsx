@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Statistiques", adminOnly: true },
   { href: "/dashboard/calendar", label: "Calendrier", adminOnly: false },
+  { href: "/dashboard/heating", label: "Chauffage", adminOnly: false },
 ];
 
 interface DashboardNavProps {
