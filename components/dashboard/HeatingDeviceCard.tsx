@@ -4,6 +4,8 @@ import type { HeatzyDevice } from "@/lib/types";
 
 const MODE_LABELS: Record<string, string> = {
   cft: "Confort",
+  cft1: "Confort-1",
+  cft2: "Confort-2",
   eco: "Éco",
   fro: "Hors-gel",
   presence: "Présence",
@@ -12,6 +14,8 @@ const MODE_LABELS: Record<string, string> = {
 
 const MODE_COLORS: Record<string, string> = {
   cft: "bg-orange-100 text-orange-700",
+  cft1: "bg-orange-100 text-orange-700",
+  cft2: "bg-orange-100 text-orange-700",
   eco: "bg-blue-100 text-blue-700",
   fro: "bg-gray-100 text-gray-600",
   presence: "bg-green-100 text-green-700",

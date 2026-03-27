@@ -26,6 +26,8 @@ function isRoomOccupied(
 
 const MODE_LABELS: Record<string, string> = {
   cft: "confort",
+  cft1: "confort-1",
+  cft2: "confort-2",
   eco: "éco",
   fro: "hors-gel",
   stop: "stop",
@@ -108,10 +110,9 @@ export async function GET() {
           });
         }
 
-        // Fil pilote mismatch: API mode != actual signal sent
-        // cur_signal shows what the fil pilote wire actually sends
-        // If it differs from baseMode, the physical switch isn't in fil pilote position
-        if (isOnline && curSignal && curSignal !== baseMode) {
+        // Fil pilote mismatch: only relevant when NOT in presence mode (derog_mode=3)
+        // In presence mode, cur_signal=fro when no one is detected is NORMAL behavior
+        if (isOnline && curSignal && derogMode !== 3 && curSignal !== baseMode) {
           alerts.push({
             level: "error",
             message: `Signal fil pilote (${modeLabel(curSignal)}) ≠ mode commandé (${modeLabel(baseMode)}) — remettre le boîtier en position fil pilote`,
