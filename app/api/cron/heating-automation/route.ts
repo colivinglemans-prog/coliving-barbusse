@@ -60,8 +60,12 @@ export async function GET(request: NextRequest) {
         (b) => b.arrival === today && hasCheckOutToday,
       );
 
+      // 7h-20h = presence, 20h-7h = confort (for occupied rooms)
+      const isDaytime = currentHour >= 7 && currentHour < 20;
+      const occupiedMode = isDaytime ? "presence" : "cft";
+
       for (const did of mapping.deviceIds) {
-        // Pre-heating: check-in tomorrow and it's after 15h
+        // Pre-heating: check-in tomorrow and it's after 15h -> always confort (warm up)
         if (hasCheckInTomorrow && currentHour >= 15 && !isCurrentlyOccupied) {
           await setDeviceMode(did, "cft");
           actions.push(`${roomKey}/${did}: pré-chauffage confort (arrivée demain)`);
@@ -69,10 +73,10 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Check-in today -> presence detection mode (comfort as fallback)
+        // Check-in today or occupied -> presence (day) or confort (night)
         if (hasCheckInToday || isCurrentlyOccupied) {
-          await setDeviceMode(did, "cft");
-          actions.push(`${roomKey}/${did}: confort (occupé)`);
+          await setDeviceMode(did, occupiedMode);
+          actions.push(`${roomKey}/${did}: ${occupiedMode} (occupé)`);
           await sleep(100);
           continue;
         }

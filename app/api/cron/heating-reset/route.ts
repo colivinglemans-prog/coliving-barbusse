@@ -40,12 +40,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 7h-20h = presence, 20h-7h = confort (for occupied rooms)
+    const currentHour = new Date().getHours();
+    const isDaytime = currentHour >= 7 && currentHour < 20;
+    const occupiedMode = isDaytime ? "presence" : "cft";
+
     const actions: string[] = [];
 
     for (const zone of config.zones) {
       for (const device of zone.devices) {
         const targetMode = occupiedDeviceIds.has(device.did)
-          ? "cft" // Comfort for occupied rooms (presence detection mode when API code is confirmed)
+          ? occupiedMode
           : device.defaultMode;
 
         await setDeviceMode(device.did, targetMode);

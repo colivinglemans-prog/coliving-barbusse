@@ -65,7 +65,12 @@ export async function GET() {
         const baseMode = (status.mode as string) ?? "unknown";
         const mode = derogMode === 3 ? "presence" : baseMode;
         const occupied = isRoomOccupied(deviceConfig.did, allBookings, config);
-        const expectedMode = occupied ? "cft" : deviceConfig.defaultMode;
+        // 7h-20h = presence, 20h-7h = confort (for occupied rooms)
+        const currentHour = new Date().getHours();
+        const isDaytime = currentHour >= 7 && currentHour < 20;
+        const expectedMode = occupied
+          ? (isDaytime ? "presence" : "cft")
+          : deviceConfig.defaultMode;
 
         let hasAlert = false;
         let alertMessage: string | undefined;
