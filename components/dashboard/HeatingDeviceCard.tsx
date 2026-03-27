@@ -88,14 +88,17 @@ export default function HeatingDeviceCard({
         </div>
       </div>
 
-      {/* Status row */}
-      <div className="flex items-center gap-3 mb-3">
+      {/* Status row: mode + temperature → target + heating badge */}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${modeColor}`}>
           {modeLabel}
         </span>
         {device.temperature !== undefined && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm font-medium text-gray-700">
             {device.temperature}°C
+            {device.targetTemp !== undefined && (
+              <span className="text-gray-400 font-normal"> → {device.targetTemp}°C</span>
+            )}
           </span>
         )}
         {device.isHeating && (
@@ -104,14 +107,6 @@ export default function HeatingDeviceCard({
           </span>
         )}
       </div>
-
-      {/* Temperatures if available */}
-      {(device.cftTemp || device.ecoTemp) && (
-        <div className="flex items-center gap-3 mb-3 text-xs text-gray-400">
-          {device.cftTemp && <span>Confort: {device.cftTemp}°C</span>}
-          {device.ecoTemp && <span>Éco: {device.ecoTemp}°C</span>}
-        </div>
-      )}
 
       {/* Mode buttons */}
       <div className="flex gap-1.5">

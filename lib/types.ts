@@ -64,6 +64,7 @@ export interface HeatzyDevice {
   cftTemp?: number;            // température confort actuelle du device (°C)
   ecoTemp?: number;            // température éco actuelle du device (°C)
   expectedMode?: HeatzyMode | string;
+  targetTemp?: number;         // consigne attendue en °C
   alerts: HeatzyDeviceAlert[]; // liste des alertes (peut en avoir plusieurs)
 }
 

@@ -7,21 +7,11 @@ function todayStr() {
   return new Date().toISOString().split("T")[0];
 }
 
-function isRoomOccupied(
-  deviceId: string,
+function hasActiveReservation(
   bookings: { arrival: string; departure: string }[],
-  config: ReturnType<typeof getZoneConfig>,
 ): boolean {
   const today = todayStr();
-  for (const mapping of Object.values(config.roomMapping)) {
-    if (!mapping.deviceIds.includes(deviceId)) continue;
-    for (const booking of bookings) {
-      if (booking.arrival <= today && booking.departure > today) {
-        return true;
-      }
-    }
-  }
-  return false;
+  return bookings.some((b) => b.arrival <= today && b.departure > today);
 }
 
 const MODE_LABELS: Record<string, string> = {
@@ -38,6 +28,19 @@ function modeLabel(mode: string) {
   return MODE_LABELS[mode] ?? mode;
 }
 
+/** Returns the target temperature (°C) for the current mode */
+function getTargetTemp(
+  mode: string,
+  deviceCftTemp?: number,
+  deviceEcoTemp?: number,
+): number | undefined {
+  if (mode.startsWith("cft")) return deviceCftTemp;
+  if (mode === "eco") return deviceEcoTemp;
+  if (mode === "fro") return 7;
+  if (mode === "stop") return undefined;
+  return undefined;
+}
+
 export async function GET() {
   try {
     const config = getZoneConfig();
@@ -45,7 +48,7 @@ export async function GET() {
       z.devices.map((d) => ({ ...d, zone: z })),
     );
 
-    // Fetch device statuses and bookings in parallel
+    // Fetch device list and active bookings in parallel
     const [rawDevices, activeBookings] = await Promise.all([
       getDevices(),
       getBookings({
@@ -54,7 +57,10 @@ export async function GET() {
       }).catch(() => []),
     ]);
 
+    const occupied = hasActiveReservation(activeBookings);
     const rawDeviceMap = new Map(rawDevices.map((d) => [d.did, d]));
+    const currentHour = new Date().getHours();
+    const isDaytime = currentHour >= 7 && currentHour < 20;
 
     // Fetch detailed status for each configured device in parallel
     const statusPromises = allDeviceConfigs.map(async (deviceConfig) => {
@@ -67,34 +73,22 @@ export async function GET() {
         const derogMode = status.derog_mode as number | undefined;
         const baseMode = (status.mode as string) ?? "unknown";
         const mode = derogMode === 3 ? "presence" : baseMode;
-        const curSignal = status.cur_signal as string | undefined;
+        const isHeating = (status.Heating_state as number) === 1;
         const curTemp = typeof status.cur_temp === "number" ? Math.round(status.cur_temp / 10) : undefined;
-        const curHumi = typeof status.cur_humi === "number" ? status.cur_humi as number : undefined;
         const deviceCftTemp = typeof status.cft_temp === "number" ? (status.cft_temp as number) / 10 : undefined;
         const deviceEcoTemp = typeof status.eco_temp === "number" ? (status.eco_temp as number) / 10 : undefined;
 
-        // Expected mode based on occupancy + time
-        const occupied = isRoomOccupied(deviceConfig.did, activeBookings, config);
-        const currentHour = new Date().getHours();
-        const isDaytime = currentHour >= 7 && currentHour < 20;
-        const expectedMode = occupied
-          ? (isDaytime ? "presence" : "cft")
-          : deviceConfig.defaultMode;
+        // Target temp is based on the actual base mode (what the radiator is doing)
+        const targetTemp = getTargetTemp(baseMode, deviceCftTemp, deviceEcoTemp);
 
-        // Zone temperature defaults
+        // Zone defaults for comparison
         const zoneCftTemp = deviceConfig.zone.cftTemp ? deviceConfig.zone.cftTemp / 10 : undefined;
         const zoneEcoTemp = deviceConfig.zone.ecoTemp ? deviceConfig.zone.ecoTemp / 10 : undefined;
 
-        const isHeating = (status.Heating_state as number) === 1;
-
-        // Target temperature for current mode
-        const targetTemp = baseMode === "cft" ? (deviceCftTemp ?? zoneCftTemp)
-          : baseMode === "eco" ? (deviceEcoTemp ?? zoneEcoTemp)
-          : baseMode === "fro" ? 7
-          : undefined;
-
         // ─── Alert detection ──────────────────────────────────
         const alerts: HeatzyDeviceAlert[] = [];
+
+        // === ALWAYS ===
 
         if (!isOnline) {
           alerts.push({
@@ -103,58 +97,72 @@ export async function GET() {
           });
         }
 
-        if (isOnline && occupied && mode === "stop") {
-          alerts.push({
-            level: "error",
-            message: "Éteint alors que chambre occupée — allumer le radiateur",
-          });
-        }
-
-        // Fil pilote mismatch: only relevant when NOT in presence mode (derog_mode=3)
-        // In presence mode, cur_signal=fro when no one is detected is NORMAL behavior
-        if (isOnline && curSignal && derogMode !== 3 && curSignal !== baseMode) {
-          alerts.push({
-            level: "error",
-            message: `Signal fil pilote (${modeLabel(curSignal)}) ≠ mode commandé (${modeLabel(baseMode)}) — remettre le boîtier en position fil pilote`,
-          });
-        }
-
-        // Heating while it shouldn't: mode is hors-gel/stop, temp is above target, but still heating
-        if (isOnline && isHeating && targetTemp && curTemp && curTemp > targetTemp + 2) {
-          alerts.push({
-            level: "warning",
-            message: `Chauffe alors que la température (${curTemp}°C) dépasse la consigne (${targetTemp}°C) — vérifier le radiateur`,
-          });
-        }
-
-        // Not heating when it should: mode is comfort/eco, temp is well below target, but not heating
-        if (isOnline && !isHeating && targetTemp && curTemp && curTemp < targetTemp - 3 && mode !== "stop" && mode !== "fro") {
-          alerts.push({
-            level: "warning",
-            message: `Ne chauffe pas alors que la température (${curTemp}°C) est sous la consigne (${targetTemp}°C)`,
-          });
-        }
-
-        // Mode mismatch vs expected (lower priority if fil pilote issue already flagged)
-        if (isOnline && mode !== expectedMode && !alerts.some((a) => a.level === "error")) {
-          alerts.push({
-            level: "warning",
-            message: `Mode ${modeLabel(mode)} au lieu de ${modeLabel(expectedMode)}`,
-          });
-        }
-
-        // Temperature mismatch: guest changed comfort or eco temp
         if (isOnline && zoneCftTemp && deviceCftTemp && Math.abs(deviceCftTemp - zoneCftTemp) >= 1) {
           alerts.push({
             level: "warning",
-            message: `Température confort modifiée : ${deviceCftTemp}°C au lieu de ${zoneCftTemp}°C`,
+            message: `Consigne confort modifiée : ${deviceCftTemp}°C au lieu de ${zoneCftTemp}°C`,
           });
         }
+
         if (isOnline && zoneEcoTemp && deviceEcoTemp && Math.abs(deviceEcoTemp - zoneEcoTemp) >= 1) {
           alerts.push({
             level: "warning",
-            message: `Température éco modifiée : ${deviceEcoTemp}°C au lieu de ${zoneEcoTemp}°C`,
+            message: `Consigne éco modifiée : ${deviceEcoTemp}°C au lieu de ${zoneEcoTemp}°C`,
           });
+        }
+
+        if (isOnline && !occupied) {
+          // === A) PAS DE RÉSERVATION ===
+
+          if (isHeating && curTemp !== undefined && curTemp > 10) {
+            alerts.push({
+              level: "error",
+              message: `Chauffe sans réservation (${curTemp}°C) — vérifier sur place`,
+            });
+          }
+
+          if (curTemp !== undefined && deviceCftTemp !== undefined && curTemp > deviceCftTemp + 3) {
+            alerts.push({
+              level: "warning",
+              message: `Température anormale (${curTemp}°C pour consigne ${deviceCftTemp}°C)`,
+            });
+          }
+        }
+
+        if (isOnline && occupied) {
+          // === B) RÉSERVATION ACTIVE ===
+
+          // Pas en mode présence alors qu'il devrait (journée)
+          if (isDaytime && derogMode !== 3) {
+            alerts.push({
+              level: "warning",
+              message: `Pas en mode présence — mode actuel : ${modeLabel(baseMode)}`,
+            });
+          }
+
+          // Température trop élevée
+          if (curTemp !== undefined && deviceCftTemp !== undefined && curTemp > deviceCftTemp + 3) {
+            alerts.push({
+              level: "warning",
+              message: `Température anormale (${curTemp}°C pour consigne ${deviceCftTemp}°C)`,
+            });
+          }
+
+          // Chauffe mais n'atteint pas la consigne
+          if (isHeating && curTemp !== undefined && targetTemp !== undefined && curTemp < targetTemp - 5) {
+            alerts.push({
+              level: "warning",
+              message: `Chauffe mais n'atteint pas la consigne (${curTemp}°C pour ${targetTemp}°C) — vérifier sur place`,
+            });
+          }
+
+          // Ne chauffe pas alors que la pièce est froide
+          if (!isHeating && curTemp !== undefined && targetTemp !== undefined && curTemp < targetTemp - 3 && baseMode !== "stop" && baseMode !== "fro") {
+            alerts.push({
+              level: "error",
+              message: `Ne chauffe pas alors que la pièce est froide (${curTemp}°C pour ${targetTemp}°C) — vérifier le radiateur`,
+            });
+          }
         }
 
         return {
@@ -162,14 +170,13 @@ export async function GET() {
           name: deviceConfig.name,
           zone: deviceConfig.zone.id,
           mode,
-          curSignal,
           isOnline,
           isHeating,
           temperature: curTemp,
-          humidity: curHumi,
           cftTemp: deviceCftTemp,
           ecoTemp: deviceEcoTemp,
-          expectedMode,
+          expectedMode: occupied ? (isDaytime ? "presence" : "cft") : "fro",
+          targetTemp,
           alerts,
         } as HeatzyDevice;
       } catch {
@@ -191,14 +198,13 @@ export async function GET() {
     const deviceStatuses = await Promise.all(statusPromises);
     const statusMap = new Map(deviceStatuses.map((d) => [d.did, d]));
 
-    // Build zones with enriched device data
+    // Build zones
     let alertCount = 0;
     const zones = config.zones.map((zone) => {
       const devices: HeatzyDevice[] = zone.devices
         .map((dc) => statusMap.get(dc.did))
         .filter((d): d is HeatzyDevice => d !== null && d !== undefined)
         .sort((a, b) => {
-          // Errors first, then warnings, then clean — then alphabetical
           const aLevel = a.alerts.some((al) => al.level === "error") ? 0 : a.alerts.length > 0 ? 1 : 2;
           const bLevel = b.alerts.some((al) => al.level === "error") ? 0 : b.alerts.length > 0 ? 1 : 2;
           if (aLevel !== bLevel) return aLevel - bLevel;
@@ -217,7 +223,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ zones, alertCount });
+    return NextResponse.json({ zones, alertCount, occupied });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
