@@ -32,7 +32,7 @@ export default function HeatingZoneCard({
   onSetDeviceMode,
   loading,
 }: HeatingZoneCardProps) {
-  const alertCount = devices.filter((d) => d.hasAlert).length;
+  const alertCount = devices.filter((d) => d.alerts.length > 0).length;
 
   return (
     <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5">

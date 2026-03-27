@@ -46,16 +46,24 @@ export interface Beds24Property {
 
 export type HeatzyMode = "cft" | "eco" | "fro" | "stop" | "presence";
 
+export interface HeatzyDeviceAlert {
+  level: "error" | "warning";
+  message: string;
+}
+
 export interface HeatzyDevice {
   did: string;
   name: string;
   zone: string;
   mode: HeatzyMode | string;
+  curSignal?: string;          // signal réellement envoyé par le fil pilote
   isOnline: boolean;
   temperature?: number;
+  humidity?: number;
+  cftTemp?: number;            // température confort actuelle du device (°C)
+  ecoTemp?: number;            // température éco actuelle du device (°C)
   expectedMode?: HeatzyMode | string;
-  hasAlert: boolean;
-  alertMessage?: string;
+  alerts: HeatzyDeviceAlert[]; // liste des alertes (peut en avoir plusieurs)
 }
 
 export interface HeatzyDeviceConfig {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDevices, getDeviceStatus, getZoneConfig } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
-import type { HeatzyDevice } from "@/lib/types";
+import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 
 function todayStr() {
   return new Date().toISOString().split("T")[0];
@@ -13,7 +13,6 @@ function isRoomOccupied(
   config: ReturnType<typeof getZoneConfig>,
 ): boolean {
   const today = todayStr();
-  // Check if this device is part of any room mapping with an active booking
   for (const mapping of Object.values(config.roomMapping)) {
     if (!mapping.deviceIds.includes(deviceId)) continue;
     for (const booking of bookings) {
@@ -25,111 +24,162 @@ function isRoomOccupied(
   return false;
 }
 
+const MODE_LABELS: Record<string, string> = {
+  cft: "confort",
+  eco: "éco",
+  fro: "hors-gel",
+  stop: "stop",
+  presence: "présence",
+};
+
+function modeLabel(mode: string) {
+  return MODE_LABELS[mode] ?? mode;
+}
+
 export async function GET() {
   try {
     const config = getZoneConfig();
-    const allDeviceIds = config.zones.flatMap((z) => z.devices);
+    const allDeviceConfigs = config.zones.flatMap((z) =>
+      z.devices.map((d) => ({ ...d, zone: z })),
+    );
 
     // Fetch device statuses and bookings in parallel
-    const [rawDevices, bookings] = await Promise.all([
+    const [rawDevices, activeBookings] = await Promise.all([
       getDevices(),
       getBookings({
-        arrivalFrom: todayStr(),
         arrivalTo: todayStr(),
         departureFrom: todayStr(),
-        departureTo: todayStr(),
       }).catch(() => []),
     ]);
 
-    // Also fetch bookings that started before today but haven't ended
-    const activeBookings = await getBookings({
-      arrivalTo: todayStr(),
-      departureFrom: todayStr(),
-    }).catch(() => []);
-
-    const allBookings = [...bookings, ...activeBookings].filter(
-      (b, i, arr) => arr.findIndex((x) => x.id === b.id) === i,
-    );
-
-    // Build a map of did -> raw device info for online status
     const rawDeviceMap = new Map(rawDevices.map((d) => [d.did, d]));
 
     // Fetch detailed status for each configured device in parallel
-    const statusPromises = allDeviceIds.map(async (deviceConfig) => {
+    const statusPromises = allDeviceConfigs.map(async (deviceConfig) => {
       try {
         const status = await getDeviceStatus(deviceConfig.did);
         const rawDevice = rawDeviceMap.get(deviceConfig.did);
         const isOnline = rawDevice?.is_online ?? false;
-        // derog_mode 3 = presence detection (overrides base mode)
+
+        // Parse device attributes
         const derogMode = status.derog_mode as number | undefined;
         const baseMode = (status.mode as string) ?? "unknown";
         const mode = derogMode === 3 ? "presence" : baseMode;
-        const occupied = isRoomOccupied(deviceConfig.did, allBookings, config);
-        // 7h-20h = presence, 20h-7h = confort (for occupied rooms)
+        const curSignal = status.cur_signal as string | undefined;
+        const curTemp = typeof status.cur_temp === "number" ? Math.round(status.cur_temp / 10) : undefined;
+        const curHumi = typeof status.cur_humi === "number" ? status.cur_humi as number : undefined;
+        const deviceCftTemp = typeof status.cft_temp === "number" ? (status.cft_temp as number) / 10 : undefined;
+        const deviceEcoTemp = typeof status.eco_temp === "number" ? (status.eco_temp as number) / 10 : undefined;
+
+        // Expected mode based on occupancy + time
+        const occupied = isRoomOccupied(deviceConfig.did, activeBookings, config);
         const currentHour = new Date().getHours();
         const isDaytime = currentHour >= 7 && currentHour < 20;
         const expectedMode = occupied
           ? (isDaytime ? "presence" : "cft")
           : deviceConfig.defaultMode;
 
-        let hasAlert = false;
-        let alertMessage: string | undefined;
+        // Zone temperature defaults
+        const zoneCftTemp = deviceConfig.zone.cftTemp ? deviceConfig.zone.cftTemp / 10 : undefined;
+        const zoneEcoTemp = deviceConfig.zone.ecoTemp ? deviceConfig.zone.ecoTemp / 10 : undefined;
+
+        // ─── Alert detection ──────────────────────────────────
+        const alerts: HeatzyDeviceAlert[] = [];
 
         if (!isOnline) {
-          hasAlert = true;
-          alertMessage = "Hors ligne — vérifier branchement / WiFi";
-        } else if (occupied && mode === "stop") {
-          hasAlert = true;
-          alertMessage = "Éteint alors que chambre occupée — vérifier le radiateur";
-        } else if (mode !== expectedMode && isOnline) {
-          hasAlert = true;
-          alertMessage = `Mode inattendu (${mode} au lieu de ${expectedMode}) — remettre en fil pilote`;
+          alerts.push({
+            level: "error",
+            message: "Hors ligne — vérifier branchement / WiFi",
+          });
+        }
+
+        if (isOnline && occupied && mode === "stop") {
+          alerts.push({
+            level: "error",
+            message: "Éteint alors que chambre occupée — allumer le radiateur",
+          });
+        }
+
+        // Fil pilote mismatch: API mode != actual signal sent
+        if (isOnline && curSignal && derogMode !== 3) {
+          // Only check when not in presence mode (presence mode manages signal itself)
+          if (curSignal !== baseMode) {
+            alerts.push({
+              level: "error",
+              message: `Signal fil pilote (${modeLabel(curSignal)}) ≠ mode commandé (${modeLabel(baseMode)}) — remettre le boîtier en position fil pilote`,
+            });
+          }
+        }
+
+        // Mode mismatch vs expected (lower priority if fil pilote issue already flagged)
+        if (isOnline && mode !== expectedMode && !alerts.some((a) => a.level === "error")) {
+          alerts.push({
+            level: "warning",
+            message: `Mode ${modeLabel(mode)} au lieu de ${modeLabel(expectedMode)}`,
+          });
+        }
+
+        // Temperature mismatch: guest changed comfort or eco temp
+        if (isOnline && zoneCftTemp && deviceCftTemp && Math.abs(deviceCftTemp - zoneCftTemp) >= 1) {
+          alerts.push({
+            level: "warning",
+            message: `Température confort modifiée : ${deviceCftTemp}°C au lieu de ${zoneCftTemp}°C`,
+          });
+        }
+        if (isOnline && zoneEcoTemp && deviceEcoTemp && Math.abs(deviceEcoTemp - zoneEcoTemp) >= 1) {
+          alerts.push({
+            level: "warning",
+            message: `Température éco modifiée : ${deviceEcoTemp}°C au lieu de ${zoneEcoTemp}°C`,
+          });
         }
 
         return {
           did: deviceConfig.did,
           name: deviceConfig.name,
+          zone: deviceConfig.zone.id,
           mode,
+          curSignal,
           isOnline,
-          temperature: typeof status.cur_temp === "number" ? Math.round(status.cur_temp / 10) : undefined,
+          temperature: curTemp,
+          humidity: curHumi,
+          cftTemp: deviceCftTemp,
+          ecoTemp: deviceEcoTemp,
           expectedMode,
-          hasAlert,
-          alertMessage,
-        };
+          alerts,
+        } as HeatzyDevice;
       } catch {
         return {
           did: deviceConfig.did,
           name: deviceConfig.name,
+          zone: deviceConfig.zone.id,
           mode: "unknown",
           isOnline: false,
-          temperature: undefined,
-          expectedMode: deviceConfig.defaultMode,
-          hasAlert: true,
-          alertMessage: "Impossible de récupérer le statut — vérifier la connexion",
-        };
+          alerts: [{
+            level: "error" as const,
+            message: "Impossible de récupérer le statut — vérifier la connexion",
+          }],
+        } as HeatzyDevice;
       }
     });
 
     const deviceStatuses = await Promise.all(statusPromises);
     const statusMap = new Map(deviceStatuses.map((d) => [d.did, d]));
 
-    // Build zones with enriched device data, alerts first
+    // Build zones with enriched device data
     let alertCount = 0;
     const zones = config.zones.map((zone) => {
       const devices: HeatzyDevice[] = zone.devices
-        .map((dc) => {
-          const status = statusMap.get(dc.did);
-          if (!status) return null;
-          if (status.hasAlert) alertCount++;
-          return { ...status, zone: zone.id } as HeatzyDevice;
-        })
-        .filter((d): d is HeatzyDevice => d !== null)
+        .map((dc) => statusMap.get(dc.did))
+        .filter((d): d is HeatzyDevice => d !== null && d !== undefined)
         .sort((a, b) => {
-          // Alerts first, then alphabetical by name
-          if (a.hasAlert && !b.hasAlert) return -1;
-          if (!a.hasAlert && b.hasAlert) return 1;
+          // Errors first, then warnings, then clean — then alphabetical
+          const aLevel = a.alerts.some((al) => al.level === "error") ? 0 : a.alerts.length > 0 ? 1 : 2;
+          const bLevel = b.alerts.some((al) => al.level === "error") ? 0 : b.alerts.length > 0 ? 1 : 2;
+          if (aLevel !== bLevel) return aLevel - bLevel;
           return a.name.localeCompare(b.name, "fr", { numeric: true });
         });
+
+      alertCount += devices.filter((d) => d.alerts.length > 0).length;
 
       return {
         id: zone.id,
