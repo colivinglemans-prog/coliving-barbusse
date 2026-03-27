@@ -58,6 +58,7 @@ export interface HeatzyDevice {
   mode: HeatzyMode | string;
   curSignal?: string;          // signal réellement envoyé par le fil pilote
   isOnline: boolean;
+  isHeating: boolean;          // true si le radiateur chauffe actuellement
   temperature?: number;
   humidity?: number;
   cftTemp?: number;            // température confort actuelle du device (°C)

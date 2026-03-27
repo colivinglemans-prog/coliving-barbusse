@@ -83,6 +83,14 @@ export async function GET() {
         const zoneCftTemp = deviceConfig.zone.cftTemp ? deviceConfig.zone.cftTemp / 10 : undefined;
         const zoneEcoTemp = deviceConfig.zone.ecoTemp ? deviceConfig.zone.ecoTemp / 10 : undefined;
 
+        const isHeating = (status.Heating_state as number) === 1;
+
+        // Target temperature for current mode
+        const targetTemp = baseMode === "cft" ? (deviceCftTemp ?? zoneCftTemp)
+          : baseMode === "eco" ? (deviceEcoTemp ?? zoneEcoTemp)
+          : baseMode === "fro" ? 7
+          : undefined;
+
         // ─── Alert detection ──────────────────────────────────
         const alerts: HeatzyDeviceAlert[] = [];
 
@@ -101,14 +109,29 @@ export async function GET() {
         }
 
         // Fil pilote mismatch: API mode != actual signal sent
-        if (isOnline && curSignal && derogMode !== 3) {
-          // Only check when not in presence mode (presence mode manages signal itself)
-          if (curSignal !== baseMode) {
-            alerts.push({
-              level: "error",
-              message: `Signal fil pilote (${modeLabel(curSignal)}) ≠ mode commandé (${modeLabel(baseMode)}) — remettre le boîtier en position fil pilote`,
-            });
-          }
+        // cur_signal shows what the fil pilote wire actually sends
+        // If it differs from baseMode, the physical switch isn't in fil pilote position
+        if (isOnline && curSignal && curSignal !== baseMode) {
+          alerts.push({
+            level: "error",
+            message: `Signal fil pilote (${modeLabel(curSignal)}) ≠ mode commandé (${modeLabel(baseMode)}) — remettre le boîtier en position fil pilote`,
+          });
+        }
+
+        // Heating while it shouldn't: mode is hors-gel/stop, temp is above target, but still heating
+        if (isOnline && isHeating && targetTemp && curTemp && curTemp > targetTemp + 2) {
+          alerts.push({
+            level: "warning",
+            message: `Chauffe alors que la température (${curTemp}°C) dépasse la consigne (${targetTemp}°C) — vérifier le radiateur`,
+          });
+        }
+
+        // Not heating when it should: mode is comfort/eco, temp is well below target, but not heating
+        if (isOnline && !isHeating && targetTemp && curTemp && curTemp < targetTemp - 3 && mode !== "stop" && mode !== "fro") {
+          alerts.push({
+            level: "warning",
+            message: `Ne chauffe pas alors que la température (${curTemp}°C) est sous la consigne (${targetTemp}°C)`,
+          });
         }
 
         // Mode mismatch vs expected (lower priority if fil pilote issue already flagged)
@@ -140,6 +163,7 @@ export async function GET() {
           mode,
           curSignal,
           isOnline,
+          isHeating,
           temperature: curTemp,
           humidity: curHumi,
           cftTemp: deviceCftTemp,
@@ -154,6 +178,7 @@ export async function GET() {
           zone: deviceConfig.zone.id,
           mode: "unknown",
           isOnline: false,
+          isHeating: false,
           alerts: [{
             level: "error" as const,
             message: "Impossible de récupérer le statut — vérifier la connexion",

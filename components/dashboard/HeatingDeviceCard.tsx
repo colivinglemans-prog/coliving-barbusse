@@ -66,12 +66,22 @@ export default function HeatingDeviceCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-medium text-gray-900 text-sm">{device.name}</h4>
-        <span
-          className={`inline-flex h-2.5 w-2.5 rounded-full ${
-            device.isOnline ? "bg-green-400" : "bg-red-400"
-          }`}
-          title={device.isOnline ? "En ligne" : "Hors ligne"}
-        />
+        <div className="flex items-center gap-2">
+          {device.isHeating && (
+            <span
+              className="text-xs text-orange-500"
+              title="En cours de chauffage"
+            >
+              ~
+            </span>
+          )}
+          <span
+            className={`inline-flex h-2.5 w-2.5 rounded-full ${
+              device.isOnline ? "bg-green-400" : "bg-red-400"
+            }`}
+            title={device.isOnline ? "En ligne" : "Hors ligne"}
+          />
+        </div>
       </div>
 
       {/* Status row */}
@@ -84,9 +94,9 @@ export default function HeatingDeviceCard({
             {device.temperature}°C
           </span>
         )}
-        {device.humidity !== undefined && (
-          <span className="text-sm text-gray-400">
-            {device.humidity}%
+        {device.isHeating && (
+          <span className="rounded-full bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-600">
+            Chauffe
           </span>
         )}
       </div>
