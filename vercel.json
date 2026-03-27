@@ -1,7 +1,6 @@
 {
   "crons": [
-    { "path": "/api/cron/heating-automation", "schedule": "*/15 * * * *" },
-    { "path": "/api/cron/heating-reset", "schedule": "0 */4 * * *" },
-    { "path": "/api/cron/heating-health", "schedule": "*/30 * * * *" }
+    { "path": "/api/cron/heating-automation", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/heating-health", "schedule": "0 8 * * *" }
   ]
 }
