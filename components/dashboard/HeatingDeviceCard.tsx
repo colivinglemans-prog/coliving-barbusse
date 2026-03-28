@@ -30,16 +30,24 @@ const MODE_BUTTONS: { mode: string; label: string; color: string }[] = [
   { mode: "stop", label: "Stop", color: "bg-red-500 hover:bg-red-600" },
 ];
 
+export type TempTrend = "up" | "down" | "stable";
+
 interface HeatingDeviceCardProps {
   device: HeatzyDevice;
   onSetMode: (did: string, mode: string) => void;
+  onToggleLock?: (did: string, lock: boolean) => void;
   loading?: boolean;
+  role?: "admin" | "viewer";
+  trend?: TempTrend;
 }
 
 export default function HeatingDeviceCard({
   device,
   onSetMode,
+  onToggleLock,
   loading,
+  role = "admin",
+  trend,
 }: HeatingDeviceCardProps) {
   const modeLabel = MODE_LABELS[device.mode] ?? device.mode;
   const modeColor = MODE_COLORS[device.mode] ?? "bg-gray-100 text-gray-600";
@@ -66,6 +74,22 @@ export default function HeatingDeviceCard({
           {alert.message}
         </div>
       ))}
+
+      {/* Locked badge */}
+      {device.isLocked && (
+        <div className="mb-3 rounded-lg bg-purple-50 border border-purple-200 px-3 py-2 text-sm text-purple-800 flex items-center justify-between">
+          <span>Verrouillé en hors-gel</span>
+          {role === "admin" && onToggleLock && (
+            <button
+              onClick={() => onToggleLock(device.did, false)}
+              disabled={loading}
+              className="text-xs text-purple-600 underline hover:text-purple-800 disabled:opacity-40"
+            >
+              Déverrouiller
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
@@ -96,6 +120,8 @@ export default function HeatingDeviceCard({
         {device.temperature !== undefined && (
           <span className="text-sm font-medium text-gray-700">
             {device.temperature}°C
+            {trend === "up" && <span className="text-red-500 ml-0.5">↑</span>}
+            {trend === "down" && <span className="text-blue-500 ml-0.5">↓</span>}
             {device.targetTemp !== undefined && (
               <span className="text-gray-400 font-normal"> → {device.targetTemp}°C</span>
             )}
@@ -108,19 +134,32 @@ export default function HeatingDeviceCard({
         )}
       </div>
 
-      {/* Mode buttons */}
-      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
-        {MODE_BUTTONS.map((btn) => (
-          <button
-            key={btn.mode}
-            onClick={() => onSetMode(device.did, btn.mode)}
-            disabled={loading || device.mode === btn.mode}
-            className={`rounded-lg px-1 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
-          >
-            {btn.label}
-          </button>
-        ))}
-      </div>
+      {/* Mode buttons (admin only, not if locked) */}
+      {role === "admin" && !device.isLocked && (
+        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+          {MODE_BUTTONS.map((btn) => (
+            <button
+              key={btn.mode}
+              onClick={() => onSetMode(device.did, btn.mode)}
+              disabled={loading || device.mode === btn.mode}
+              className={`rounded-lg px-1 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Lock button (admin only, not already locked) */}
+      {role === "admin" && !device.isLocked && onToggleLock && (
+        <button
+          onClick={() => onToggleLock(device.did, true)}
+          disabled={loading}
+          className="mt-2 w-full rounded-lg border border-purple-300 px-2 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-50 transition-colors disabled:opacity-40"
+        >
+          Verrouiller en hors-gel
+        </button>
+      )}
     </div>
   );
 }

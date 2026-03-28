@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import HeatingZoneCard from "@/components/dashboard/HeatingZoneCard";
 import type { HeatzyDevice } from "@/lib/types";
+import type { TempTrend } from "@/components/dashboard/HeatingDeviceCard";
 
 interface ZoneData {
   id: string;
@@ -17,6 +18,9 @@ interface ZoneData {
 interface HeatingData {
   zones: ZoneData[];
   alertCount: number;
+  occupied: boolean;
+  currentRule?: string;
+  nextRule?: string;
 }
 
 const GLOBAL_MODE_BUTTONS = [
@@ -33,6 +37,32 @@ export default function HeatingPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tempHistoryRef = useRef<Map<string, number[]>>(new Map());
+  const [trends, setTrends] = useState<Map<string, TempTrend>>(new Map());
+
+  const updateTrends = useCallback((zones: ZoneData[]) => {
+    const history = tempHistoryRef.current;
+    const newTrends = new Map<string, TempTrend>();
+
+    for (const zone of zones) {
+      for (const device of zone.devices) {
+        if (device.temperature === undefined) continue;
+        const did = device.did;
+        const temps = history.get(did) ?? [];
+        temps.push(device.temperature);
+        if (temps.length > 10) temps.shift();
+        history.set(did, temps);
+
+        if (temps.length >= 2) {
+          const diff = temps[temps.length - 1] - temps[0];
+          if (diff > 0.5) newTrends.set(did, "up");
+          else if (diff < -0.5) newTrends.set(did, "down");
+          else newTrends.set(did, "stable");
+        }
+      }
+    }
+    setTrends(newTrends);
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -40,11 +70,12 @@ export default function HeatingPage() {
       if (!res.ok) throw new Error("Erreur de chargement");
       const json = await res.json();
       setData(json);
+      updateTrends(json.zones);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
     }
-  }, []);
+  }, [updateTrends]);
 
   useEffect(() => {
     // Fetch role
@@ -97,6 +128,26 @@ export default function HeatingPage() {
 
   function handleSetAllMode(mode: string) {
     handleSetMode({}, mode);
+  }
+
+  async function handleToggleLock(did: string, lock: boolean) {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/dashboard/heating/lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceId: did, lock }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Erreur");
+      }
+      setTimeout(fetchData, 1500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur lors du verrouillage");
+    } finally {
+      setLoading(false);
+    }
   }
 
   // Stats
@@ -159,22 +210,38 @@ export default function HeatingPage() {
           </div>
         </div>
 
-        {/* Global control */}
-        <div className="mb-8 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 mr-2">
-            Contrôle global :
-          </span>
-          {GLOBAL_MODE_BUTTONS.map((btn) => (
-            <button
-              key={btn.mode}
-              onClick={() => handleSetAllMode(btn.mode)}
-              disabled={loading}
-              className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
+        {/* Heating rules */}
+        {data?.currentRule && (
+          <div className="mb-6 rounded-2xl bg-blue-50 border border-blue-200 p-4">
+            <div className="text-sm font-medium text-blue-900">
+              {data.currentRule}
+            </div>
+            {data.nextRule && (
+              <div className="text-sm text-blue-600 mt-1">
+                Prochain : {data.nextRule}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Global control (admin only) */}
+        {role === "admin" && (
+          <div className="mb-8 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-gray-700 mr-2">
+              Contrôle global :
+            </span>
+            {GLOBAL_MODE_BUTTONS.map((btn) => (
+              <button
+                key={btn.mode}
+                onClick={() => handleSetAllMode(btn.mode)}
+                disabled={loading}
+                className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Zone sections */}
         {!data && !error && (
@@ -195,6 +262,9 @@ export default function HeatingPage() {
               onSetZoneMode={handleSetZoneMode}
               onSetDeviceMode={handleSetDeviceMode}
               loading={loading}
+              role={role}
+              trends={trends}
+              onToggleLock={handleToggleLock}
             />
           ))}
         </div>

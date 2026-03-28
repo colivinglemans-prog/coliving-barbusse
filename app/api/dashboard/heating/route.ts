@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDevices, getDeviceStatus, getZoneConfig } from "@/lib/heatzy";
+import { getDevices, getDeviceStatus, getZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 
@@ -60,7 +60,20 @@ export async function GET() {
     const occupied = hasActiveReservation(activeBookings);
     const rawDeviceMap = new Map(rawDevices.map((d) => [d.did, d]));
     const currentHour = new Date().getHours();
-    const isDaytime = currentHour >= 7 && currentHour < 20;
+
+    // Check for same-day turnaround and next check-in
+    const today = todayStr();
+    const hasCheckOutToday = activeBookings.some((b) => b.departure === today);
+    const hasCheckInToday = activeBookings.some((b) => b.arrival === today);
+    const hasSameDayTurnaround = hasCheckOutToday && hasCheckInToday;
+    const futureBookings = activeBookings
+      .filter((b) => b.arrival > today)
+      .sort((a, b) => a.arrival.localeCompare(b.arrival));
+    const nextCheckIn = futureBookings[0]?.arrival;
+
+    // Compute heating rules
+    const rules = getHeatingRules(occupied, currentHour, hasSameDayTurnaround, nextCheckIn);
+    const lockedDevices = getLockedDevices();
 
     // Fetch detailed status for each configured device in parallel
     const statusPromises = allDeviceConfigs.map(async (deviceConfig) => {
@@ -74,6 +87,7 @@ export async function GET() {
         const baseMode = (status.mode as string) ?? "unknown";
         const mode = derogMode === 3 ? "presence" : baseMode;
         const isHeating = (status.Heating_state as number) === 1;
+        const isLocked = lockedDevices.has(deviceConfig.did);
         const curTemp = typeof status.cur_temp === "number" ? Math.round(status.cur_temp / 10) : undefined;
         const deviceCftTemp = typeof status.cft_temp === "number" ? (status.cft_temp as number) / 10 : undefined;
         const deviceEcoTemp = typeof status.eco_temp === "number" ? (status.eco_temp as number) / 10 : undefined;
@@ -132,8 +146,9 @@ export async function GET() {
         if (isOnline && occupied) {
           // === B) RÉSERVATION ACTIVE ===
 
-          // Pas en mode présence alors qu'il devrait (journée)
-          if (isDaytime && derogMode !== 3) {
+          // Check if device is in the expected mode for this zone/hour
+          const expectedZoneMode = getOccupiedMode(deviceConfig.zone, currentHour);
+          if (expectedZoneMode === "presence" && derogMode !== 3) {
             alerts.push({
               level: "warning",
               message: `Pas en mode présence — mode actuel : ${modeLabel(baseMode)}`,
@@ -172,10 +187,11 @@ export async function GET() {
           mode,
           isOnline,
           isHeating,
+          isLocked,
           temperature: curTemp,
           cftTemp: deviceCftTemp,
           ecoTemp: deviceEcoTemp,
-          expectedMode: occupied ? (isDaytime ? "presence" : "cft") : "fro",
+          expectedMode: isLocked ? "fro" : (occupied ? getOccupiedMode(deviceConfig.zone, currentHour) : "fro"),
           targetTemp,
           alerts,
         } as HeatzyDevice;
@@ -187,6 +203,7 @@ export async function GET() {
           mode: "unknown",
           isOnline: false,
           isHeating: false,
+          isLocked: lockedDevices.has(deviceConfig.did),
           alerts: [{
             level: "error" as const,
             message: "Impossible de récupérer le statut — vérifier la connexion",
@@ -223,7 +240,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ zones, alertCount, occupied });
+    return NextResponse.json({ zones, alertCount, occupied, ...rules });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

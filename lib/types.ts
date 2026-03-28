@@ -63,6 +63,7 @@ export interface HeatzyDevice {
   humidity?: number;
   cftTemp?: number;            // température confort actuelle du device (°C)
   ecoTemp?: number;            // température éco actuelle du device (°C)
+  isLocked: boolean;            // true si verrouillé en hors-gel (ignoré par les crons)
   expectedMode?: HeatzyMode | string;
   targetTemp?: number;         // consigne attendue en °C
   alerts: HeatzyDeviceAlert[]; // liste des alertes (peut en avoir plusieurs)
@@ -78,6 +79,7 @@ export interface HeatzyZone {
   id: string;
   label: string;
   defaultMode: HeatzyMode;
+  nightMode?: HeatzyMode; // mode applied 0h-5h during reservation (e.g. "presence" for common areas)
   cftTemp?: number; // comfort temp in tenths (e.g. 210 = 21.0°C)
   ecoTemp?: number; // eco temp in tenths (e.g. 170 = 17.0°C)
   devices: HeatzyDeviceConfig[];

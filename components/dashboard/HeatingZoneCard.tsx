@@ -2,6 +2,7 @@
 
 import type { HeatzyDevice } from "@/lib/types";
 import HeatingDeviceCard from "./HeatingDeviceCard";
+import type { TempTrend } from "./HeatingDeviceCard";
 
 const ZONE_MODE_BUTTONS: { mode: string; label: string; color: string }[] = [
   { mode: "cft", label: "Confort", color: "bg-orange-500 hover:bg-orange-600" },
@@ -19,7 +20,10 @@ interface HeatingZoneCardProps {
   devices: HeatzyDevice[];
   onSetZoneMode: (zoneId: string, mode: string) => void;
   onSetDeviceMode: (did: string, mode: string) => void;
+  onToggleLock?: (did: string, lock: boolean) => void;
   loading?: boolean;
+  role?: "admin" | "viewer";
+  trends?: Map<string, TempTrend>;
 }
 
 export default function HeatingZoneCard({
@@ -31,6 +35,9 @@ export default function HeatingZoneCard({
   onSetZoneMode,
   onSetDeviceMode,
   loading,
+  role = "admin",
+  trends,
+  onToggleLock,
 }: HeatingZoneCardProps) {
   const alertCount = devices.filter((d) => d.alerts.length > 0).length;
 
@@ -55,19 +62,21 @@ export default function HeatingZoneCard({
           )}
         </div>
 
-        {/* Zone-wide mode buttons */}
-        <div className="flex flex-wrap gap-1.5">
-          {ZONE_MODE_BUTTONS.map((btn) => (
-            <button
-              key={btn.mode}
-              onClick={() => onSetZoneMode(zoneId, btn.mode)}
-              disabled={loading}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
+        {/* Zone-wide mode buttons (admin only) */}
+        {role === "admin" && (
+          <div className="flex flex-wrap gap-1.5">
+            {ZONE_MODE_BUTTONS.map((btn) => (
+              <button
+                key={btn.mode}
+                onClick={() => onSetZoneMode(zoneId, btn.mode)}
+                disabled={loading}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Device grid */}
@@ -77,7 +86,10 @@ export default function HeatingZoneCard({
             key={device.did}
             device={device}
             onSetMode={onSetDeviceMode}
+            onToggleLock={onToggleLock}
             loading={loading}
+            role={role}
+            trend={trends?.get(device.did)}
           />
         ))}
       </div>

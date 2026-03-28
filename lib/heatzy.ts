@@ -1,6 +1,97 @@
-import type { HeatzyMode, HeatzyZoneConfig } from "./types";
+import type { HeatzyMode, HeatzyZone, HeatzyZoneConfig } from "./types";
 import { readFileSync } from "fs";
 import { join } from "path";
+
+// ─── Scheduling logic ───────────────────────────────────────
+
+/**
+ * Returns the mode a zone should be in given current hour and occupancy.
+ * Chambres: 7h-20h presence, 20h-7h confort
+ * RDC (nightMode set): 0h-5h nightMode, rest same as chambres
+ */
+export function getOccupiedMode(zone: HeatzyZone, hour: number): HeatzyMode {
+  // Night mode override (0h-5h) for zones with nightMode (e.g. RDC)
+  if (zone.nightMode && hour >= 0 && hour < 5) {
+    return zone.nightMode;
+  }
+  // Daytime: presence (7h-20h)
+  if (hour >= 7 && hour < 20) {
+    return "presence";
+  }
+  // Evening/night: confort
+  return "cft";
+}
+
+/**
+ * Returns the mode for a between-reservations gap (same-day checkout+checkin).
+ * Éco from 9h to 17h, otherwise hors-gel.
+ */
+export function getBetweenReservationsMode(hour: number): HeatzyMode {
+  if (hour >= 9 && hour < 17) return "eco";
+  return "fro";
+}
+
+/**
+ * Returns human-readable description of current and next heating rule.
+ */
+export function getHeatingRules(
+  occupied: boolean,
+  hour: number,
+  hasSameDayTurnaround: boolean,
+  nextCheckIn?: string,
+): { currentRule: string; nextRule: string } {
+  if (!occupied && !hasSameDayTurnaround) {
+    let nextRule = "Aucune réservation prochaine";
+    if (nextCheckIn) {
+      nextRule = `Prochain check-in : ${nextCheckIn}`;
+      // Pre-heating logic
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split("T")[0];
+      if (nextCheckIn === tomorrowStr && hour < 15) {
+        nextRule += " — pré-chauffage à 15h";
+      }
+    }
+    return {
+      currentRule: "Pas de réservation — Hors-gel",
+      nextRule,
+    };
+  }
+
+  if (hasSameDayTurnaround && !occupied) {
+    const mode = hour >= 9 && hour < 17 ? "Éco (entre deux réservations)" : "Hors-gel";
+    return {
+      currentRule: `Entre deux réservations — ${mode}`,
+      nextRule: hour < 17 ? "À 17h → Pré-chauffage confort" : "Check-in imminent",
+    };
+  }
+
+  // Occupied
+  if (hour >= 7 && hour < 20) {
+    return {
+      currentRule: "Réservation active — Présence (7h-20h)",
+      nextRule: "À 20h → Confort (nuit)",
+    };
+  }
+  if (hour >= 20) {
+    return {
+      currentRule: "Réservation active — Confort (nuit)",
+      nextRule: "À 0h → Présence RDC / Confort chambres",
+    };
+  }
+  // 0h-5h
+  if (hour < 5) {
+    return {
+      currentRule: "Réservation active — Nuit (RDC présence, chambres confort)",
+      nextRule: "À 5h → Confort partout",
+    };
+  }
+  // 5h-7h
+  return {
+    currentRule: "Réservation active — Confort (5h-7h)",
+    nextRule: "À 7h → Mode présence",
+  };
+}
 
 const GIZWITS_APP_ID = "c70a66ff039d41b4a220e198b0fcc8b3";
 const BASE_URL = "https://euapi.gizwits.com";
@@ -136,6 +227,12 @@ export function getZoneConfig(): HeatzyZoneConfig {
   const raw = readFileSync(filePath, "utf-8");
   zoneConfigCache = JSON.parse(raw) as HeatzyZoneConfig;
   return zoneConfigCache;
+}
+
+export function getLockedDevices(): Set<string> {
+  const env = process.env.LOCKED_DEVICES ?? "";
+  if (!env.trim()) return new Set();
+  return new Set(env.split(",").map((s) => s.trim()).filter(Boolean));
 }
 
 function sleep(ms: number) {

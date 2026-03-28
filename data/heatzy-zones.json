@@ -4,6 +4,7 @@
       "id": "rdc",
       "label": "Rez-de-chaussée",
       "defaultMode": "fro",
+      "nightMode": "presence",
       "cftTemp": 210,
       "ecoTemp": 170,
       "devices": [

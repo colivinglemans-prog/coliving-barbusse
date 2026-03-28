@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import {
   getZoneConfig,
+  getLockedDevices,
   setDeviceMode,
   setDeviceTemperatures,
   getDeviceStatus,
+  getOccupiedMode,
 } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import { sendHeatingAlert } from "@/lib/email";
@@ -45,18 +47,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 7h-20h = presence, 20h-7h = confort (for occupied rooms)
     const currentHour = new Date().getHours();
-    const isDaytime = currentHour >= 7 && currentHour < 20;
-    const occupiedMode = isDaytime ? "presence" : "cft";
 
     const actions: string[] = [];
     const failures: string[] = [];
+    const lockedDevices = getLockedDevices();
 
     for (const zone of config.zones) {
       for (const device of zone.devices) {
+        // Skip locked devices
+        if (lockedDevices.has(device.did)) {
+          actions.push(`${device.name}: ignoré (verrouillé)`);
+          continue;
+        }
+
         const targetMode = occupiedDeviceIds.has(device.did)
-          ? occupiedMode
+          ? getOccupiedMode(zone, currentHour)
           : device.defaultMode;
 
         await setDeviceMode(device.did, targetMode);
