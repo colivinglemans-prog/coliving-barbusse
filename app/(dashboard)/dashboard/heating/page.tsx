@@ -32,13 +32,40 @@ const GLOBAL_MODE_BUTTONS = [
 ];
 
 export default function HeatingPage() {
-  const [role, setRole] = useState<"admin" | "viewer">("admin");
+  const [actualRole, setActualRole] = useState<"admin" | "viewer">("admin");
+  const [viewAsViewer, setViewAsViewer] = useState(false);
+  const role = actualRole === "admin" && viewAsViewer ? "viewer" : actualRole;
   const [data, setData] = useState<HeatingData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tempHistoryRef = useRef<Map<string, number[]>>(new Map());
   const [trends, setTrends] = useState<Map<string, TempTrend>>(new Map());
+  const presenceHistoryRef = useRef<Map<string, { detected: boolean; since: Date }>>(new Map());
+  const [presenceSince, setPresenceSince] = useState<Map<string, Date>>(new Map());
+
+  const updatePresence = useCallback((zones: ZoneData[]) => {
+    const history = presenceHistoryRef.current;
+    const newSince = new Map<string, Date>();
+
+    for (const zone of zones) {
+      for (const device of zone.devices) {
+        if (device.presenceDetected === undefined) continue;
+        const did = device.did;
+        const prev = history.get(did);
+
+        if (!prev || prev.detected !== device.presenceDetected) {
+          // State changed or first time
+          const since = new Date();
+          history.set(did, { detected: device.presenceDetected, since });
+          newSince.set(did, since);
+        } else {
+          newSince.set(did, prev.since);
+        }
+      }
+    }
+    setPresenceSince(newSince);
+  }, []);
 
   const updateTrends = useCallback((zones: ZoneData[]) => {
     const history = tempHistoryRef.current;
@@ -71,17 +98,18 @@ export default function HeatingPage() {
       const json = await res.json();
       setData(json);
       updateTrends(json.zones);
+      updatePresence(json.zones);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
     }
-  }, [updateTrends]);
+  }, [updateTrends, updatePresence]);
 
   useEffect(() => {
     // Fetch role
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then((d) => setRole(d.role ?? "admin"))
+      .then((d) => setActualRole(d.role ?? "admin"))
       .catch(() => {});
 
     // Initial fetch
@@ -162,9 +190,23 @@ export default function HeatingPage() {
 
   return (
     <>
-      <DashboardNav role={role} />
+      <DashboardNav role={actualRole} />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <h1 className="mb-6 text-2xl font-bold text-gray-900">Chauffage</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Chauffage</h1>
+          {actualRole === "admin" && (
+            <button
+              onClick={() => setViewAsViewer((v) => !v)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                viewAsViewer
+                  ? "bg-gray-200 text-gray-700"
+                  : "bg-rose-100 text-rose-700"
+              }`}
+            >
+              {viewAsViewer ? "Vue viewer" : "Vue admin"}
+            </button>
+          )}
+        </div>
 
         {error && (
           <div className="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
@@ -264,6 +306,7 @@ export default function HeatingPage() {
               loading={loading}
               role={role}
               trends={trends}
+              presenceSince={presenceSince}
               onToggleLock={handleToggleLock}
             />
           ))}

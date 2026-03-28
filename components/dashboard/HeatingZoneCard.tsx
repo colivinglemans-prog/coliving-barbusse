@@ -24,6 +24,7 @@ interface HeatingZoneCardProps {
   loading?: boolean;
   role?: "admin" | "viewer";
   trends?: Map<string, TempTrend>;
+  presenceSince?: Map<string, Date>;
 }
 
 export default function HeatingZoneCard({
@@ -37,6 +38,7 @@ export default function HeatingZoneCard({
   loading,
   role = "admin",
   trends,
+  presenceSince,
   onToggleLock,
 }: HeatingZoneCardProps) {
   const alertCount = devices.filter((d) => d.alerts.length > 0).length;
@@ -90,6 +92,7 @@ export default function HeatingZoneCard({
             loading={loading}
             role={role}
             trend={trends?.get(device.did)}
+            presenceSince={presenceSince?.get(device.did)}
           />
         ))}
       </div>

@@ -32,6 +32,15 @@ const MODE_BUTTONS: { mode: string; label: string; color: string }[] = [
 
 export type TempTrend = "up" | "down" | "stable";
 
+function formatDuration(since: Date): string {
+  const diffMs = Date.now() - since.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "à l'instant";
+  if (mins < 60) return `depuis ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  return `depuis ${hours}h${mins % 60 > 0 ? String(mins % 60).padStart(2, "0") : ""}`;
+}
+
 interface HeatingDeviceCardProps {
   device: HeatzyDevice;
   onSetMode: (did: string, mode: string) => void;
@@ -39,6 +48,7 @@ interface HeatingDeviceCardProps {
   loading?: boolean;
   role?: "admin" | "viewer";
   trend?: TempTrend;
+  presenceSince?: Date;
 }
 
 export default function HeatingDeviceCard({
@@ -48,6 +58,7 @@ export default function HeatingDeviceCard({
   loading,
   role = "admin",
   trend,
+  presenceSince,
 }: HeatingDeviceCardProps) {
   const modeLabel = MODE_LABELS[device.mode] ?? device.mode;
   const modeColor = MODE_COLORS[device.mode] ?? "bg-gray-100 text-gray-600";
@@ -133,6 +144,34 @@ export default function HeatingDeviceCard({
           </span>
         )}
       </div>
+
+      {/* Presence indicator */}
+      {device.mode === "presence" && (
+        <div className="flex items-center gap-2 mb-3">
+          {device.presenceDetected ? (
+            <span className="inline-flex items-center gap-1 text-xs text-green-700">
+              <span className="inline-flex h-2 w-2 rounded-full bg-green-400" />
+              Présence {presenceSince && formatDuration(presenceSince)}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+              <span className="inline-flex h-2 w-2 rounded-full bg-gray-300" />
+              Aucune présence {presenceSince && formatDuration(presenceSince)}
+              {device.cftTemp && device.ecoTemp && (
+                <span className="text-blue-500 ml-1">
+                  (-{Math.round(device.cftTemp - device.ecoTemp)}°C)
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+      )}
+      {device.mode !== "presence" && device.isOnline && (
+        <div className="flex items-center gap-1 mb-3 text-xs text-gray-400">
+          <span className="inline-flex h-2 w-2 rounded-full bg-gray-200" />
+          Capteur inactif
+        </div>
+      )}
 
       {/* Mode buttons (admin only, not if locked) */}
       {role === "admin" && !device.isLocked && (

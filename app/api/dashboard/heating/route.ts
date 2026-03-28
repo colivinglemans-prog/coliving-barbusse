@@ -88,6 +88,8 @@ export async function GET() {
         const mode = derogMode === 3 ? "presence" : baseMode;
         const isHeating = (status.Heating_state as number) === 1;
         const isLocked = lockedDevices.has(deviceConfig.did);
+        // Presence detection: only available when derog_mode=3
+        const presenceDetected = derogMode === 3 ? baseMode.startsWith("cft") : undefined;
         const curTemp = typeof status.cur_temp === "number" ? Math.round(status.cur_temp / 10) : undefined;
         const deviceCftTemp = typeof status.cft_temp === "number" ? (status.cft_temp as number) / 10 : undefined;
         const deviceEcoTemp = typeof status.eco_temp === "number" ? (status.eco_temp as number) / 10 : undefined;
@@ -188,6 +190,7 @@ export async function GET() {
           isOnline,
           isHeating,
           isLocked,
+          presenceDetected,
           temperature: curTemp,
           cftTemp: deviceCftTemp,
           ecoTemp: deviceEcoTemp,

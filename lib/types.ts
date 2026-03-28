@@ -64,6 +64,7 @@ export interface HeatzyDevice {
   cftTemp?: number;            // température confort actuelle du device (°C)
   ecoTemp?: number;            // température éco actuelle du device (°C)
   isLocked: boolean;            // true si verrouillé en hors-gel (ignoré par les crons)
+  presenceDetected?: boolean;   // true si capteur détecte quelqu'un (seulement en mode présence)
   expectedMode?: HeatzyMode | string;
   targetTemp?: number;         // consigne attendue en °C
   alerts: HeatzyDeviceAlert[]; // liste des alertes (peut en avoir plusieurs)
