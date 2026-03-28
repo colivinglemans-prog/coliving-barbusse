@@ -113,17 +113,18 @@ export async function GET() {
           });
         }
 
-        if (isOnline && zoneCftTemp && deviceCftTemp && Math.abs(deviceCftTemp - zoneCftTemp) >= 1) {
+        // Only warn if guest INCREASED temperature (decreases are accepted)
+        if (isOnline && zoneCftTemp && deviceCftTemp && deviceCftTemp > zoneCftTemp + 0.5) {
           alerts.push({
             level: "warning",
-            message: `Consigne confort modifiée : ${deviceCftTemp}°C au lieu de ${zoneCftTemp}°C`,
+            message: `Consigne confort augmentée : ${deviceCftTemp}°C au lieu de ${zoneCftTemp}°C`,
           });
         }
 
-        if (isOnline && zoneEcoTemp && deviceEcoTemp && Math.abs(deviceEcoTemp - zoneEcoTemp) >= 1) {
+        if (isOnline && zoneEcoTemp && deviceEcoTemp && deviceEcoTemp > zoneEcoTemp + 0.5) {
           alerts.push({
             level: "warning",
-            message: `Consigne éco modifiée : ${deviceEcoTemp}°C au lieu de ${zoneEcoTemp}°C`,
+            message: `Consigne éco augmentée : ${deviceEcoTemp}°C au lieu de ${zoneEcoTemp}°C`,
           });
         }
 

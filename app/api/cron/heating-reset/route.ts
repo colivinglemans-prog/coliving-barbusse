@@ -69,12 +69,36 @@ export async function GET(request: NextRequest) {
         await sleep(200);
 
         // Reset temperatures to zone defaults
+        // - If occupied: only reset if guest INCREASED the temperature (respect decreases)
+        // - If not occupied (end of reservation): always reset
         if (zone.cftTemp && zone.ecoTemp) {
-          await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+          const isOccupied = occupiedDeviceIds.has(device.did);
+          if (isOccupied) {
+            try {
+              const status = await getDeviceStatus(device.did);
+              const actualCft = status.cft_temp as number | undefined;
+              const actualEco = status.eco_temp as number | undefined;
+              const needsReset =
+                (actualCft !== undefined && actualCft > zone.cftTemp) ||
+                (actualEco !== undefined && actualEco > zone.ecoTemp);
+              if (needsReset) {
+                await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+                actions.push(`${device.name}: ${targetMode} (temp reset — augmentée par voyageur)`);
+              } else {
+                actions.push(`${device.name}: ${targetMode} (temp conservée — diminuée ou identique)`);
+              }
+            } catch {
+              actions.push(`${device.name}: ${targetMode} (impossible de vérifier temp)`);
+            }
+          } else {
+            // Not occupied: always reset to defaults
+            await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+            actions.push(`${device.name}: ${targetMode} (temp reset — fin de réservation)`);
+          }
           await sleep(200);
+        } else {
+          actions.push(`${device.name}: ${targetMode}`);
         }
-
-        actions.push(`${device.name}: ${targetMode}`);
       }
     }
 
