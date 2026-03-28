@@ -311,6 +311,54 @@ export default function HeatingPage() {
             />
           ))}
         </div>
+
+        {/* Scheduling rules reference */}
+        <details className="mt-8 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <summary className="cursor-pointer text-sm font-medium text-gray-600">
+            Règles de chauffage
+          </summary>
+          <div className="mt-3 space-y-3 text-sm text-gray-600">
+            <div>
+              <h4 className="font-medium text-gray-800">Chambres occupées</h4>
+              <ul className="ml-4 list-disc">
+                <li>7h-20h : Mode présence</li>
+                <li>20h-7h : Confort</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800">RDC occupé (espaces communs)</h4>
+              <ul className="ml-4 list-disc">
+                <li>7h-20h : Mode présence</li>
+                <li>20h-0h : Confort</li>
+                <li>0h-5h : Mode présence (éco si personne)</li>
+                <li>5h-7h : Confort</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800">Entre deux réservations (même jour)</h4>
+              <ul className="ml-4 list-disc">
+                <li>9h-17h : Éco</li>
+                <li>Sinon : Hors-gel</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800">Pas de réservation</h4>
+              <p className="ml-4">Hors-gel</p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800">Pré-chauffage</h4>
+              <p className="ml-4">Confort dès 15h le jour du check-in (arrivée 17h)</p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-800">Températures par défaut</h4>
+              <ul className="ml-4 list-disc">
+                <li>Confort : 21°C (22°C dernier étage)</li>
+                <li>Éco : 17°C</li>
+                <li>Reset automatique toutes les 4h</li>
+              </ul>
+            </div>
+          </div>
+        </details>
       </main>
     </>
   );

@@ -115,7 +115,7 @@ vercel.json           # Config Vercel (crons quotidiens)
 
 **Pas de réservation** : hors-gel
 
-**Pré-chauffage** : confort dès 15h la veille d'un check-in
+**Pré-chauffage** : confort dès 15h le jour d'un check-in (arrivée voyageurs à 17h)
 
 ### Fonctions utilitaires (`lib/heatzy.ts`)
 

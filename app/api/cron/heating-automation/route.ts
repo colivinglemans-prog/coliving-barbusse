@@ -75,10 +75,10 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Pre-heating: check-in tomorrow and it's after 15h
-        if (hasCheckInTomorrow && currentHour >= 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
+        // Pre-heating: check-in today and it's after 15h (guests arrive at 17h)
+        if (hasCheckInToday && currentHour >= 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
           await setDeviceMode(did, "cft");
-          actions.push(`${device.name}: pré-chauffage confort (arrivée demain)`);
+          actions.push(`${device.name}: pré-chauffage confort (arrivée aujourd'hui)`);
           await sleep(100);
           continue;
         }
