@@ -41,6 +41,15 @@ function formatDuration(since: Date): string {
   return `depuis ${hours}h${mins % 60 > 0 ? String(mins % 60).padStart(2, "0") : ""}`;
 }
 
+function Spinner() {
+  return (
+    <svg className="inline-block h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
+
 interface HeatingDeviceCardProps {
   device: HeatzyDevice;
   onSetMode: (did: string, mode: string) => void;
@@ -96,7 +105,7 @@ export default function HeatingDeviceCard({
               disabled={loading}
               className="text-xs text-purple-600 underline hover:text-purple-800 disabled:opacity-40"
             >
-              Déverrouiller
+              {loading ? <Spinner /> : "Déverrouiller"}
             </button>
           )}
         </div>
@@ -183,7 +192,7 @@ export default function HeatingDeviceCard({
               disabled={loading || device.mode === btn.mode}
               className={`rounded-lg px-1 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
             >
-              {btn.label}
+              {loading ? <Spinner /> : btn.label}
             </button>
           ))}
         </div>
@@ -196,7 +205,7 @@ export default function HeatingDeviceCard({
           disabled={loading}
           className="mt-2 w-full rounded-lg border border-purple-300 px-2 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-50 transition-colors disabled:opacity-40"
         >
-          Verrouiller en hors-gel
+          {loading ? <Spinner /> : "Verrouiller en hors-gel"}
         </button>
       )}
     </div>

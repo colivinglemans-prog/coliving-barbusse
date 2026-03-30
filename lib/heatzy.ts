@@ -231,18 +231,22 @@ export function getZoneConfig(): HeatzyZoneConfig {
 const LOCKS_BLOB_KEY = "heatzy-locked-devices.json";
 
 export async function getLockedDevices(): Promise<Set<string>> {
-  // 1. Try Vercel Blob (persistent across all containers)
   try {
     const { blobs } = await list({ prefix: LOCKS_BLOB_KEY });
     if (blobs.length > 0) {
-      const res = await fetch(blobs[0].url);
-      const arr = (await res.json()) as string[];
-      return new Set(arr);
+      const token = process.env.BLOB_READ_WRITE_TOKEN;
+      const res = await fetch(blobs[0].url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const arr = (await res.json()) as string[];
+        return new Set(arr);
+      }
     }
   } catch (e) {
     console.error("getLockedDevices blob error:", e);
   }
-  // 2. Fallback to env var
+  // Fallback to env var
   const env = process.env.LOCKED_DEVICES ?? "";
   if (!env.trim()) return new Set();
   return new Set(env.split(",").map((s) => s.trim()).filter(Boolean));
@@ -250,8 +254,9 @@ export async function getLockedDevices(): Promise<Set<string>> {
 
 export async function saveLockedDevices(devices: Set<string>) {
   await put(LOCKS_BLOB_KEY, JSON.stringify([...devices]), {
-    access: "public",
+    access: "private",
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 }
 
