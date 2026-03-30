@@ -1,6 +1,7 @@
 import type { HeatzyMode, HeatzyZone, HeatzyZoneConfig } from "./types";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { list, put } from "@vercel/blob";
 
 // ─── Scheduling logic ───────────────────────────────────────
 
@@ -232,15 +233,14 @@ const LOCKS_BLOB_KEY = "heatzy-locked-devices.json";
 export async function getLockedDevices(): Promise<Set<string>> {
   // 1. Try Vercel Blob (persistent across all containers)
   try {
-    const { list } = await import("@vercel/blob");
     const { blobs } = await list({ prefix: LOCKS_BLOB_KEY });
     if (blobs.length > 0) {
       const res = await fetch(blobs[0].url);
       const arr = (await res.json()) as string[];
       return new Set(arr);
     }
-  } catch {
-    // Blob not configured or error, fall through
+  } catch (e) {
+    console.error("getLockedDevices blob error:", e);
   }
   // 2. Fallback to env var
   const env = process.env.LOCKED_DEVICES ?? "";
@@ -249,7 +249,6 @@ export async function getLockedDevices(): Promise<Set<string>> {
 }
 
 export async function saveLockedDevices(devices: Set<string>) {
-  const { put } = await import("@vercel/blob");
   await put(LOCKS_BLOB_KEY, JSON.stringify([...devices]), {
     access: "public",
     addRandomSuffix: false,
