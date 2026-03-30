@@ -227,10 +227,28 @@ export function getZoneConfig(): HeatzyZoneConfig {
   return zoneConfigCache;
 }
 
+const LOCKS_FILE = "/tmp/heatzy-locked-devices.json";
+
 export function getLockedDevices(): Set<string> {
+  // 1. Try /tmp file (persists within serverless container)
+  try {
+    const raw = readFileSync(LOCKS_FILE, "utf-8");
+    const arr = JSON.parse(raw) as string[];
+    if (arr.length > 0) return new Set(arr);
+  } catch {
+    // File doesn't exist yet, fall through
+  }
+  // 2. Fallback to env var (set in Vercel dashboard for permanent locks)
   const env = process.env.LOCKED_DEVICES ?? "";
   if (!env.trim()) return new Set();
   return new Set(env.split(",").map((s) => s.trim()).filter(Boolean));
+}
+
+export function saveLockedDevices(devices: Set<string>) {
+  const { writeFileSync } = require("fs") as typeof import("fs");
+  writeFileSync(LOCKS_FILE, JSON.stringify([...devices]), "utf-8");
+  // Also update process.env for same-invocation reads
+  process.env.LOCKED_DEVICES = [...devices].join(",");
 }
 
 function sleep(ms: number) {

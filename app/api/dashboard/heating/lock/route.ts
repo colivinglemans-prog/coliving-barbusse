@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLockedDevices, setDeviceMode } from "@/lib/heatzy";
+import { getLockedDevices, saveLockedDevices, setDeviceMode } from "@/lib/heatzy";
 
 export async function GET() {
   const locked = [...getLockedDevices()];
@@ -25,16 +25,12 @@ export async function POST(request: NextRequest) {
       current.delete(deviceId);
     }
 
-    // Update env var (only works for current process, not persistent on Vercel)
-    // For Vercel persistence, update LOCKED_DEVICES in Vercel dashboard
-    process.env.LOCKED_DEVICES = [...current].join(",");
+    // Persist to /tmp (survives within serverless container)
+    saveLockedDevices(current);
 
     return NextResponse.json({
       success: true,
       lockedDevices: [...current],
-      note: lock
-        ? "Device verrouillé en hors-gel. Pour persister après redéploiement, mettre à jour LOCKED_DEVICES sur Vercel."
-        : "Device déverrouillé.",
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
