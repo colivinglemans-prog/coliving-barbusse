@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getLockedDevices, saveLockedDevices, setDeviceMode } from "@/lib/heatzy";
 
 export async function GET() {
-  const locked = [...getLockedDevices()];
+  const locked = [...await getLockedDevices()];
   return NextResponse.json({ lockedDevices: locked });
 }
 
@@ -15,18 +15,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "deviceId required" }, { status: 400 });
     }
 
-    const current = getLockedDevices();
+    const current = await getLockedDevices();
 
     if (lock) {
       current.add(deviceId);
-      // Set device to frost protection immediately
       await setDeviceMode(deviceId, "fro");
     } else {
       current.delete(deviceId);
     }
 
-    // Persist to /tmp (survives within serverless container)
-    saveLockedDevices(current);
+    await saveLockedDevices(current);
 
     return NextResponse.json({
       success: true,

@@ -227,28 +227,33 @@ export function getZoneConfig(): HeatzyZoneConfig {
   return zoneConfigCache;
 }
 
-const LOCKS_FILE = "/tmp/heatzy-locked-devices.json";
+const LOCKS_BLOB_KEY = "heatzy-locked-devices.json";
 
-export function getLockedDevices(): Set<string> {
-  // 1. Try /tmp file (persists within serverless container)
+export async function getLockedDevices(): Promise<Set<string>> {
+  // 1. Try Vercel Blob (persistent across all containers)
   try {
-    const raw = readFileSync(LOCKS_FILE, "utf-8");
-    const arr = JSON.parse(raw) as string[];
-    if (arr.length > 0) return new Set(arr);
+    const { list } = await import("@vercel/blob");
+    const { blobs } = await list({ prefix: LOCKS_BLOB_KEY });
+    if (blobs.length > 0) {
+      const res = await fetch(blobs[0].url);
+      const arr = (await res.json()) as string[];
+      return new Set(arr);
+    }
   } catch {
-    // File doesn't exist yet, fall through
+    // Blob not configured or error, fall through
   }
-  // 2. Fallback to env var (set in Vercel dashboard for permanent locks)
+  // 2. Fallback to env var
   const env = process.env.LOCKED_DEVICES ?? "";
   if (!env.trim()) return new Set();
   return new Set(env.split(",").map((s) => s.trim()).filter(Boolean));
 }
 
-export function saveLockedDevices(devices: Set<string>) {
-  const { writeFileSync } = require("fs") as typeof import("fs");
-  writeFileSync(LOCKS_FILE, JSON.stringify([...devices]), "utf-8");
-  // Also update process.env for same-invocation reads
-  process.env.LOCKED_DEVICES = [...devices].join(",");
+export async function saveLockedDevices(devices: Set<string>) {
+  const { put } = await import("@vercel/blob");
+  await put(LOCKS_BLOB_KEY, JSON.stringify([...devices]), {
+    access: "public",
+    addRandomSuffix: false,
+  });
 }
 
 function sleep(ms: number) {

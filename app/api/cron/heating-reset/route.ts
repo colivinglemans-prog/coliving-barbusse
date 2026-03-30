@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     const actions: string[] = [];
     const failures: string[] = [];
-    const lockedDevices = getLockedDevices();
+    const lockedDevices = await getLockedDevices();
 
     for (const zone of config.zones) {
       for (const device of zone.devices) {

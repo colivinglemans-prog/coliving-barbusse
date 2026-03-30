@@ -73,7 +73,7 @@ export async function GET() {
 
     // Compute heating rules
     const rules = getHeatingRules(occupied, currentHour, hasSameDayTurnaround, nextCheckIn);
-    const lockedDevices = getLockedDevices();
+    const lockedDevices = await getLockedDevices();
 
     // Fetch detailed status for each configured device in parallel
     const statusPromises = allDeviceConfigs.map(async (deviceConfig) => {

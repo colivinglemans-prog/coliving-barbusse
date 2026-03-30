@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     );
 
     const actions: string[] = [];
-    const lockedDevices = getLockedDevices();
+    const lockedDevices = await getLockedDevices();
 
     const hasCheckInToday = allBookings.some((b) => b.arrival === today);
     const hasCheckOutToday = allBookings.some((b) => b.departure === today);
