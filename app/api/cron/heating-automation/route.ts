@@ -3,6 +3,7 @@ import { verifyCronAuth } from "@/lib/cron-auth";
 import {
   getZoneConfig,
   getLockedDevices,
+  saveLockedDevices,
   setDeviceMode,
   getOccupiedMode,
   getBetweenReservationsMode,
@@ -64,6 +65,13 @@ export async function GET(request: NextRequest) {
     );
     // Same-day turnaround: checkout AND checkin on the same day
     const hasSameDayTurnaround = hasCheckOutToday && hasCheckInToday;
+
+    // Unlock all devices at checkout (end of reservation)
+    if (hasCheckOutToday && !isCurrentlyOccupied && lockedDevices.size > 0) {
+      await saveLockedDevices(new Set());
+      actions.push(`Déverrouillage de ${lockedDevices.size} device(s) (fin de réservation)`);
+      lockedDevices.clear();
+    }
 
     for (const zone of config.zones) {
       for (const device of zone.devices) {
