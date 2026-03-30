@@ -19,19 +19,32 @@ export async function POST(request: NextRequest) {
 
     if (lock) {
       current.add(deviceId);
-      await setDeviceMode(deviceId, "fro");
     } else {
       current.delete(deviceId);
     }
 
+    // Save lock state first (most important — persists even if Heatzy API fails)
     await saveLockedDevices(current);
+
+    // Then try to set device mode (best effort)
+    let modeSet = false;
+    if (lock) {
+      try {
+        await setDeviceMode(deviceId, "fro");
+        modeSet = true;
+      } catch (e) {
+        console.error("Lock: failed to set fro mode on", deviceId, e);
+      }
+    }
 
     return NextResponse.json({
       success: true,
       lockedDevices: [...current],
+      modeSet,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Lock route error:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -128,7 +128,8 @@ export async function GET() {
           });
         }
 
-        if (isOnline && !occupied) {
+        // Skip occupancy-based alerts for locked devices (they're intentionally in hors-gel)
+        if (isOnline && !occupied && !isLocked) {
           // === A) PAS DE RÉSERVATION ===
 
           if (isHeating && curTemp !== undefined && curTemp > 10) {
@@ -146,7 +147,7 @@ export async function GET() {
           }
         }
 
-        if (isOnline && occupied) {
+        if (isOnline && occupied && !isLocked) {
           // === B) RÉSERVATION ACTIVE ===
 
           // Check if device is in the expected mode for this zone/hour
