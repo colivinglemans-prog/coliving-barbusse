@@ -209,9 +209,13 @@ export async function setDeviceMode(did: string, mode: HeatzyMode | string) {
       attrs: { derog_mode: 3 },
     });
   } else {
-    // First disable derog_mode if active, then set mode
+    // Send derog_mode and mode as separate commands (sending both at once is ignored by some devices)
     await heatzyFetch("POST", `/app/control/${did}`, {
-      attrs: { derog_mode: 0, mode },
+      attrs: { derog_mode: 0 },
+    });
+    await sleep(100);
+    await heatzyFetch("POST", `/app/control/${did}`, {
+      attrs: { mode },
     });
   }
 }
