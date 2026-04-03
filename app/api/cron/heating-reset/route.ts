@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import {
-  getZoneConfig,
+  getFullZoneConfig,
   getLockedDevices,
   setDeviceMode,
   setDeviceTemperatures,
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const config = getZoneConfig();
+    const config = await getFullZoneConfig();
     const today = todayStr();
 
     const [activeBookings, lockedDevices] = await Promise.all([

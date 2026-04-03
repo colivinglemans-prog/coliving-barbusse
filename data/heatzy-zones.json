@@ -51,6 +51,12 @@
       ]
     }
   ],
+  "excludedDevices": [
+    "FQsuwq9vwneZ27Xs3EyBfb",
+    "e5nHCy6EvUu92bBjccd9Ov",
+    "iUswQReOtV07PY9xcx7ALn",
+    "T5ErkTAlJpYE6FSfxfUCL1"
+  ],
   "roomMapping": {
     "whole-house": {
       "beds24PropertyId": 303771,

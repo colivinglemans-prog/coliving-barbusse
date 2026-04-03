@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDevices, getDeviceStatus, getZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules } from "@/lib/heatzy";
+import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 
@@ -43,7 +43,7 @@ function getTargetTemp(
 
 export async function GET() {
   try {
-    const config = getZoneConfig();
+    const config = await getFullZoneConfig();
     const allDeviceConfigs = config.zones.flatMap((z) =>
       z.devices.map((d) => ({ ...d, zone: z })),
     );
@@ -90,6 +90,7 @@ export async function GET() {
         const isLocked = lockedDevices.has(deviceConfig.did);
         // Presence detection: only available when derog_mode=3
         const presenceDetected = derogMode === 3 ? baseMode.startsWith("cft") : undefined;
+        const pilotLocked = (status.lock_switch as number) === 1;
         const curTemp = typeof status.cur_temp === "number" ? Math.round(status.cur_temp / 10) : undefined;
         const deviceCftTemp = typeof status.cft_temp === "number" ? (status.cft_temp as number) / 10 : undefined;
         const deviceEcoTemp = typeof status.eco_temp === "number" ? (status.eco_temp as number) / 10 : undefined;
@@ -192,6 +193,7 @@ export async function GET() {
           isOnline,
           isHeating,
           isLocked,
+          pilotLocked,
           presenceDetected,
           temperature: curTemp,
           cftTemp: deviceCftTemp,
@@ -209,6 +211,7 @@ export async function GET() {
           isOnline: false,
           isHeating: false,
           isLocked: lockedDevices.has(deviceConfig.did),
+          pilotLocked: false,
           alerts: [{
             level: "error" as const,
             message: "Impossible de récupérer le statut — vérifier la connexion",

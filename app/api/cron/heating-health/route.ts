@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
-import { getDevices, getZoneConfig } from "@/lib/heatzy";
+import { getDevices, getFullZoneConfig } from "@/lib/heatzy";
 import { sendHeatingAlert } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const config = getZoneConfig();
+    const config = await getFullZoneConfig();
     const rawDevices = await getDevices();
 
     // Build a map of configured device IDs to names

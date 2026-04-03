@@ -111,6 +111,13 @@ export default function HeatingDeviceCard({
         </div>
       )}
 
+      {/* Pilot locked badge */}
+      {device.pilotLocked && (
+        <div className="mb-2 text-xs text-indigo-600 flex items-center gap-1">
+          <span>Pilote verrouillé</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h4 className="font-medium text-gray-900 text-sm">{device.name}</h4>

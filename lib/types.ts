@@ -64,6 +64,7 @@ export interface HeatzyDevice {
   cftTemp?: number;            // température confort actuelle du device (°C)
   ecoTemp?: number;            // température éco actuelle du device (°C)
   isLocked: boolean;            // true si verrouillé en hors-gel (ignoré par les crons)
+  pilotLocked: boolean;         // true si boutons physiques du Heatzy verrouillés
   presenceDetected?: boolean;   // true si capteur détecte quelqu'un (seulement en mode présence)
   expectedMode?: HeatzyMode | string;
   targetTemp?: number;         // consigne attendue en °C
@@ -88,6 +89,7 @@ export interface HeatzyZone {
 
 export interface HeatzyZoneConfig {
   zones: HeatzyZone[];
+  excludedDevices?: string[]; // DIDs to ignore in scans (personal devices)
   roomMapping: Record<
     string,
     {

@@ -173,6 +173,7 @@ async function heatzyFetch<T>(
 interface GizwitsBinding {
   did: string;
   dev_alias: string;
+  mac: string;
   is_online: boolean;
   product_name: string;
 }
@@ -223,16 +224,96 @@ export async function setDeviceMode(did: string, mode: HeatzyMode | string) {
   }
 }
 
+export async function setDevicePilotLock(did: string, locked: boolean) {
+  await heatzyFetch("POST", `/app/control/${did}`, {
+    attrs: { lock_switch: locked ? 1 : 0 },
+  });
+}
+
 // ─── Zone operations ────────────────────────────────────────
 
 let zoneConfigCache: HeatzyZoneConfig | null = null;
 
-export function getZoneConfig(): HeatzyZoneConfig {
+function getBaseZoneConfig(): HeatzyZoneConfig {
   if (zoneConfigCache) return zoneConfigCache;
   const filePath = join(process.cwd(), "data", "heatzy-zones.json");
   const raw = readFileSync(filePath, "utf-8");
   zoneConfigCache = JSON.parse(raw) as HeatzyZoneConfig;
   return zoneConfigCache;
+}
+
+const EXTRA_DEVICES_BLOB_KEY = "heatzy-extra-devices.json";
+
+interface ExtraDevice {
+  did: string;
+  name: string;
+  zoneId: string;
+  defaultMode: HeatzyMode;
+}
+
+export async function getExtraDevices(): Promise<ExtraDevice[]> {
+  try {
+    const { blobs } = await list({ prefix: EXTRA_DEVICES_BLOB_KEY });
+    if (blobs.length > 0) {
+      const token = process.env.BLOB_READ_WRITE_TOKEN;
+      const res = await fetch(blobs[0].url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) return (await res.json()) as ExtraDevice[];
+    }
+  } catch (e) {
+    console.error("getExtraDevices blob error:", e);
+  }
+  return [];
+}
+
+export async function saveExtraDevices(devices: ExtraDevice[]) {
+  await put(EXTRA_DEVICES_BLOB_KEY, JSON.stringify(devices), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+  });
+}
+
+export function getZoneConfig(): HeatzyZoneConfig {
+  return getBaseZoneConfig();
+}
+
+/** Merges base config with extra devices from Blob */
+export async function getFullZoneConfig(): Promise<HeatzyZoneConfig> {
+  const base = getBaseZoneConfig();
+  const extras = await getExtraDevices();
+  if (extras.length === 0) return base;
+
+  // Deep clone zones to avoid mutating cache
+  const zones = base.zones.map((z) => ({
+    ...z,
+    devices: [...z.devices],
+  }));
+
+  for (const extra of extras) {
+    const zone = zones.find((z) => z.id === extra.zoneId);
+    if (!zone) continue;
+    // Don't add if already present
+    if (zone.devices.some((d) => d.did === extra.did)) continue;
+    zone.devices.push({
+      did: extra.did,
+      name: extra.name,
+      defaultMode: extra.defaultMode,
+    });
+  }
+
+  // Update roomMapping deviceIds
+  const allDids = zones.flatMap((z) => z.devices.map((d) => d.did));
+  const config = { ...base, zones };
+  for (const key of Object.keys(config.roomMapping)) {
+    config.roomMapping[key] = {
+      ...config.roomMapping[key],
+      deviceIds: allDids,
+    };
+  }
+
+  return config;
 }
 
 const LOCKS_BLOB_KEY = "heatzy-locked-devices.json";

@@ -37,6 +37,13 @@ export default function HeatingPage() {
   const role = actualRole === "admin" && viewAsViewer ? "viewer" : actualRole;
   const [data, setData] = useState<HeatingData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanResult, setScanResult] = useState<{
+    unassigned: { did: string; alias: string; mac: string; isOnline: boolean }[];
+    missing: { did: string; name: string; zone: string }[];
+    zones: { id: string; label: string }[];
+    allOk: boolean;
+  } | null>(null);
+  const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tempHistoryRef = useRef<Map<string, number[]>>(new Map());
@@ -178,6 +185,54 @@ export default function HeatingPage() {
     }
   }
 
+  async function handleScan() {
+    setScanning(true);
+    try {
+      const res = await fetch("/api/dashboard/heating/scan");
+      if (!res.ok) throw new Error("Erreur de scan");
+      setScanResult(await res.json());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur lors du scan");
+    } finally {
+      setScanning(false);
+    }
+  }
+
+  async function handleAddDevice(did: string, name: string, zoneId: string, replaceDid?: string) {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/dashboard/heating/add-device", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ did, name, zoneId, replaceDid }),
+      });
+      if (!res.ok) throw new Error("Erreur lors de l'ajout");
+      setScanResult(null);
+      setTimeout(fetchData, 1500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handlePilotLock(locked: boolean) {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/dashboard/heating/pilot-lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locked }),
+      });
+      if (!res.ok) throw new Error("Erreur");
+      setTimeout(fetchData, 1500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur lock pilotes");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Stats
   const totalDevices = data?.zones.reduce((s, z) => s + z.devices.length, 0) ?? 0;
   const onlineCount =
@@ -268,20 +323,113 @@ export default function HeatingPage() {
 
         {/* Global control (admin only) */}
         {role === "admin" && (
-          <div className="mb-8 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-gray-700 mr-2">
-              Contrôle global :
-            </span>
-            {GLOBAL_MODE_BUTTONS.map((btn) => (
+          <div className="mb-6 space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 mr-2">
+                Contrôle global :
+              </span>
+              {GLOBAL_MODE_BUTTONS.map((btn) => (
+                <button
+                  key={btn.mode}
+                  onClick={() => handleSetAllMode(btn.mode)}
+                  disabled={loading}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                key={btn.mode}
-                onClick={() => handleSetAllMode(btn.mode)}
+                onClick={() => handlePilotLock(true)}
                 disabled={loading}
-                className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-40 ${btn.color}`}
+                className="rounded-lg border border-indigo-300 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors disabled:opacity-40"
               >
-                {btn.label}
+                Verrouiller les Pilotes
               </button>
-            ))}
+              <button
+                onClick={() => handlePilotLock(false)}
+                disabled={loading}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40"
+              >
+                Déverrouiller les Pilotes
+              </button>
+              <button
+                onClick={handleScan}
+                disabled={scanning}
+                className="rounded-lg border border-teal-300 px-4 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50 transition-colors disabled:opacity-40"
+              >
+                {scanning ? "Scan en cours..." : "Scanner les appareils"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Scan results */}
+        {scanResult && !scanResult.allOk && (
+          <div className="mb-6 rounded-2xl border border-teal-200 bg-teal-50 p-4 space-y-4">
+            <h3 className="text-sm font-semibold text-teal-900">Résultat du scan</h3>
+
+            {scanResult.missing.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-red-700 mb-2">
+                  Radiateurs manquants ({scanResult.missing.length}) :
+                </p>
+                {scanResult.missing.map((m) => (
+                  <div key={m.did} className="text-sm text-red-600 ml-2">
+                    {m.name} (zone: {m.zone}) — DID introuvable
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {scanResult.unassigned.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-teal-700 mb-2">
+                  Appareils non assignés ({scanResult.unassigned.length}) :
+                </p>
+                {scanResult.unassigned.map((d) => (
+                  <div key={d.did} className="flex flex-wrap items-center gap-2 mb-2 ml-2 text-sm">
+                    <span className="text-gray-700">
+                      {d.alias} ({d.isOnline ? "en ligne" : "hors ligne"})
+                    </span>
+                    {scanResult.missing.length > 0 ? (
+                      // Replacement mode: assign to a missing device
+                      scanResult.missing.map((m) => (
+                        <button
+                          key={m.did}
+                          onClick={() => handleAddDevice(d.did, m.name, m.zone, m.did)}
+                          disabled={loading}
+                          className="rounded bg-teal-600 px-3 py-1 text-xs text-white hover:bg-teal-700 disabled:opacity-40"
+                        >
+                          Remplacer {m.name}
+                        </button>
+                      ))
+                    ) : (
+                      // New device mode: choose zone
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) handleAddDevice(d.did, d.alias, e.target.value);
+                        }}
+                        defaultValue=""
+                        className="rounded border border-teal-300 px-2 py-1 text-xs"
+                      >
+                        <option value="" disabled>Assigner à une zone...</option>
+                        {scanResult.zones.map((z) => (
+                          <option key={z.id} value={z.id}>{z.label}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {scanResult?.allOk && (
+          <div className="mb-6 rounded-2xl bg-green-50 border border-green-200 p-4 text-sm text-green-700">
+            Tous les radiateurs sont correctement configurés.
           </div>
         )}
 
