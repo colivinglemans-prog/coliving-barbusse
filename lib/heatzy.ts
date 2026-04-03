@@ -45,10 +45,13 @@ export function getHeatingRules(
     let nextRule = "Aucune réservation prochaine";
     if (nextCheckIn) {
       nextRule = `Prochain check-in : ${nextCheckIn}`;
-      // Pre-heating at 15h on day of check-in (guests arrive at 17h)
       const today = new Date().toISOString().split("T")[0];
-      if (nextCheckIn === today && hour < 15) {
-        nextRule += " — pré-chauffage à 15h";
+      if (nextCheckIn === today) {
+        if (hour < 12) {
+          nextRule += " — pré-chauffage éco à 12h, confort à 15h";
+        } else if (hour < 15) {
+          nextRule += " — confort à 15h";
+        }
       }
     }
     return {

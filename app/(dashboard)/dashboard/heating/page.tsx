@@ -347,7 +347,10 @@ export default function HeatingPage() {
             </div>
             <div>
               <h4 className="font-medium text-gray-800">Pré-chauffage</h4>
-              <p className="ml-4">Confort dès 15h le jour du check-in (arrivée 17h)</p>
+              <ul className="ml-4 list-disc">
+                <li>12h : Éco (montée progressive, évite de faire sauter les plombs)</li>
+                <li>15h : Confort (arrivée voyageurs à 17h)</li>
+              </ul>
             </div>
             <div>
               <h4 className="font-medium text-gray-800">Températures par défaut</h4>
