@@ -503,8 +503,8 @@ export default function HeatingPage() {
             <div>
               <h4 className="font-medium text-gray-800">Températures par défaut</h4>
               <ul className="ml-4 list-disc">
-                <li>Confort : 21°C (22°C dernier étage)</li>
-                <li>Éco : 17°C</li>
+                <li>Confort : 19°C (20°C dernier étage)</li>
+                <li>Éco : 15°C</li>
                 <li>Reset automatique toutes les 4h</li>
               </ul>
             </div>

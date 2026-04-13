@@ -91,7 +91,7 @@ vercel.json           # Config Vercel (crons quotidiens)
 - **Auth** : Email/password → token 7 jours (lazy refresh dans `lib/heatzy.ts`)
 - **13 radiateurs** sur 4 zones : RDC (5), Chambre RDC (1), 1er étage (5), Dernier étage (2)
 - **Modes** : `cft` (confort), `eco`, `fro` (hors-gel), `stop`, `presence` (via `derog_mode: 3`)
-- **Températures par défaut** : confort 21°C (22°C dernier étage), éco 17°C
+- **Températures par défaut** : confort 19°C (20°C dernier étage), éco 15°C (printemps)
 - **Température API** : valeurs en dixièmes (179 = 17.9°C), diviser par 10
 - **Config** : `data/heatzy-zones.json` (device IDs, zones, nightMode, mapping Beds24)
 
