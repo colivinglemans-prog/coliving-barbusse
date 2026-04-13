@@ -1,7 +1,41 @@
 import type { HeatzyMode, HeatzyZone, HeatzyZoneConfig } from "./types";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { list, put } from "@vercel/blob";
+import { Redis } from "@upstash/redis";
+
+// ─── Upstash Redis client ───────────────────────────────────
+
+let redisClient: Redis | null = null;
+function getRedis(): Redis {
+  if (!redisClient) {
+    redisClient = new Redis({
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
+    });
+  }
+  return redisClient;
+}
+
+const LOCKS_KEY = "heatzy:locked-devices";
+const EXTRAS_KEY = "heatzy:extra-devices";
+
+// In-memory cache to reduce Redis calls (TTL 60s)
+const cache = new Map<string, { value: unknown; expires: number }>();
+const CACHE_TTL = 60_000;
+
+function getCached<T>(key: string): T | undefined {
+  const entry = cache.get(key);
+  if (entry && entry.expires > Date.now()) return entry.value as T;
+  return undefined;
+}
+
+function setCached(key: string, value: unknown) {
+  cache.set(key, { value, expires: Date.now() + CACHE_TTL });
+}
+
+function invalidateCache(key: string) {
+  cache.delete(key);
+}
 
 // ─── Scheduling logic ───────────────────────────────────────
 
@@ -242,8 +276,6 @@ function getBaseZoneConfig(): HeatzyZoneConfig {
   return zoneConfigCache;
 }
 
-const EXTRA_DEVICES_BLOB_KEY = "heatzy-extra-devices.json";
-
 interface ExtraDevice {
   did: string;
   name: string;
@@ -252,27 +284,23 @@ interface ExtraDevice {
 }
 
 export async function getExtraDevices(): Promise<ExtraDevice[]> {
+  const cached = getCached<ExtraDevice[]>(EXTRAS_KEY);
+  if (cached) return cached;
+
   try {
-    const { blobs } = await list({ prefix: EXTRA_DEVICES_BLOB_KEY });
-    if (blobs.length > 0) {
-      const token = process.env.BLOB_READ_WRITE_TOKEN;
-      const res = await fetch(blobs[0].url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) return (await res.json()) as ExtraDevice[];
-    }
+    const value = await getRedis().get<ExtraDevice[]>(EXTRAS_KEY);
+    const devices = value ?? [];
+    setCached(EXTRAS_KEY, devices);
+    return devices;
   } catch (e) {
-    console.error("getExtraDevices blob error:", e);
+    console.error("getExtraDevices Redis error:", e);
+    return [];
   }
-  return [];
 }
 
 export async function saveExtraDevices(devices: ExtraDevice[]) {
-  await put(EXTRA_DEVICES_BLOB_KEY, JSON.stringify(devices), {
-    access: "private",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
+  await getRedis().set(EXTRAS_KEY, devices);
+  setCached(EXTRAS_KEY, devices);
 }
 
 export function getZoneConfig(): HeatzyZoneConfig {
@@ -316,23 +344,17 @@ export async function getFullZoneConfig(): Promise<HeatzyZoneConfig> {
   return config;
 }
 
-const LOCKS_BLOB_KEY = "heatzy-locked-devices.json";
-
 export async function getLockedDevices(): Promise<Set<string>> {
+  const cached = getCached<string[]>(LOCKS_KEY);
+  if (cached) return new Set(cached);
+
   try {
-    const { blobs } = await list({ prefix: LOCKS_BLOB_KEY });
-    if (blobs.length > 0) {
-      const token = process.env.BLOB_READ_WRITE_TOKEN;
-      const res = await fetch(blobs[0].url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const arr = (await res.json()) as string[];
-        return new Set(arr);
-      }
-    }
+    const value = await getRedis().get<string[]>(LOCKS_KEY);
+    const arr = value ?? [];
+    setCached(LOCKS_KEY, arr);
+    return new Set(arr);
   } catch (e) {
-    console.error("getLockedDevices blob error:", e);
+    console.error("getLockedDevices Redis error:", e);
   }
   // Fallback to env var
   const env = process.env.LOCKED_DEVICES ?? "";
@@ -341,11 +363,9 @@ export async function getLockedDevices(): Promise<Set<string>> {
 }
 
 export async function saveLockedDevices(devices: Set<string>) {
-  await put(LOCKS_BLOB_KEY, JSON.stringify([...devices]), {
-    access: "private",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
+  const arr = [...devices];
+  await getRedis().set(LOCKS_KEY, arr);
+  setCached(LOCKS_KEY, arr);
 }
 
 function sleep(ms: number) {
