@@ -14,20 +14,6 @@ function hasActiveReservation(
   return bookings.some((b) => b.arrival <= today && b.departure > today);
 }
 
-const MODE_LABELS: Record<string, string> = {
-  cft: "confort",
-  cft1: "confort-1",
-  cft2: "confort-2",
-  eco: "éco",
-  fro: "hors-gel",
-  stop: "stop",
-  presence: "présence",
-};
-
-function modeLabel(mode: string) {
-  return MODE_LABELS[mode] ?? mode;
-}
-
 /** Returns the target temperature (°C) for the current mode */
 function getTargetTemp(
   mode: string,
@@ -98,14 +84,12 @@ export async function GET() {
         // Target temp is based on the actual base mode (what the radiator is doing)
         const targetTemp = getTargetTemp(baseMode, deviceCftTemp, deviceEcoTemp);
 
-        // Zone defaults for comparison
-        const zoneCftTemp = deviceConfig.zone.cftTemp ? deviceConfig.zone.cftTemp / 10 : undefined;
-        const zoneEcoTemp = deviceConfig.zone.ecoTemp ? deviceConfig.zone.ecoTemp / 10 : undefined;
-
         // ─── Alert detection ──────────────────────────────────
+        // Only 3 types of alerts = actionable issues requiring on-site intervention:
+        // 1. Radiateur non connecté
+        // 2. Radiateur qui chauffe alors qu'il ne devrait pas
+        // 3. Radiateur qui ne chauffe pas alors qu'il devrait
         const alerts: HeatzyDeviceAlert[] = [];
-
-        // === ALWAYS ===
 
         if (!isOnline) {
           alerts.push({
@@ -114,74 +98,24 @@ export async function GET() {
           });
         }
 
-        // Only warn if guest INCREASED temperature (decreases are accepted)
-        if (isOnline && zoneCftTemp && deviceCftTemp && deviceCftTemp > zoneCftTemp + 0.5) {
-          alerts.push({
-            level: "warning",
-            message: `Consigne confort augmentée : ${deviceCftTemp}°C au lieu de ${zoneCftTemp}°C`,
-          });
-        }
-
-        if (isOnline && zoneEcoTemp && deviceEcoTemp && deviceEcoTemp > zoneEcoTemp + 0.5) {
-          alerts.push({
-            level: "warning",
-            message: `Consigne éco augmentée : ${deviceEcoTemp}°C au lieu de ${zoneEcoTemp}°C`,
-          });
-        }
-
-        // Skip occupancy-based alerts for locked devices (they're intentionally in hors-gel)
-        if (isOnline && !occupied && !isLocked) {
-          // === A) PAS DE RÉSERVATION ===
-
-          if (isHeating && curTemp !== undefined && curTemp > 10) {
-            alerts.push({
-              level: "error",
-              message: `Chauffe sans réservation (${curTemp}°C) — vérifier sur place`,
-            });
-          }
-
-          if (curTemp !== undefined && deviceCftTemp !== undefined && curTemp > deviceCftTemp + 3) {
-            alerts.push({
-              level: "warning",
-              message: `Température anormale (${curTemp}°C pour consigne ${deviceCftTemp}°C)`,
-            });
-          }
-        }
-
-        if (isOnline && occupied && !isLocked) {
-          // === B) RÉSERVATION ACTIVE ===
-
-          // Check if device is in the expected mode for this zone/hour
-          const expectedZoneMode = getOccupiedMode(deviceConfig.zone, currentHour);
-          if (expectedZoneMode === "presence" && derogMode !== 3) {
-            alerts.push({
-              level: "warning",
-              message: `Pas en mode présence — mode actuel : ${modeLabel(baseMode)}`,
-            });
-          }
-
-          // Température trop élevée
-          if (curTemp !== undefined && deviceCftTemp !== undefined && curTemp > deviceCftTemp + 3) {
-            alerts.push({
-              level: "warning",
-              message: `Température anormale (${curTemp}°C pour consigne ${deviceCftTemp}°C)`,
-            });
-          }
-
-          // Chauffe mais n'atteint pas la consigne
-          if (isHeating && curTemp !== undefined && targetTemp !== undefined && curTemp < targetTemp - 5) {
-            alerts.push({
-              level: "warning",
-              message: `Chauffe mais n'atteint pas la consigne (${curTemp}°C pour ${targetTemp}°C) — vérifier sur place`,
-            });
-          }
-
-          // Ne chauffe pas alors que la pièce est froide
-          if (!isHeating && curTemp !== undefined && targetTemp !== undefined && curTemp < targetTemp - 3 && baseMode !== "stop" && baseMode !== "fro") {
-            alerts.push({
-              level: "error",
-              message: `Ne chauffe pas alors que la pièce est froide (${curTemp}°C pour ${targetTemp}°C) — vérifier le radiateur`,
-            });
+        // Skip heating alerts for locked devices (intentionally in hors-gel)
+        if (isOnline && !isLocked) {
+          if (!occupied) {
+            // Pas de réservation : ne devrait PAS chauffer (sauf si temp < 7°C hors-gel)
+            if (isHeating && curTemp !== undefined && curTemp > 10) {
+              alerts.push({
+                level: "error",
+                message: `Chauffe sans réservation (${curTemp}°C) — vérifier le radiateur`,
+              });
+            }
+          } else {
+            // Réservation active : devrait chauffer si la température est basse
+            if (!isHeating && curTemp !== undefined && targetTemp !== undefined && curTemp < targetTemp - 3 && baseMode !== "stop" && baseMode !== "fro") {
+              alerts.push({
+                level: "error",
+                message: `Ne chauffe pas alors que la pièce est froide (${curTemp}°C pour ${targetTemp}°C) — vérifier le radiateur`,
+              });
+            }
           }
         }
 
