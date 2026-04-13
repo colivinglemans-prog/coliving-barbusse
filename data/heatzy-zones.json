@@ -33,6 +33,7 @@
       "ecoTemp": 150,
       "devices": [
         { "did": "luuG0tlc1TvMoBf8LZdciS", "name": "Chambre 2", "defaultMode": "fro" },
+        { "did": "lL8GSwKTtmCOtV97PIJXab", "name": "Chambre 3", "defaultMode": "fro" },
         { "did": "f1ht9FxSWYTmnLUshExCCf", "name": "Chambre 4", "defaultMode": "fro" },
         { "did": "H9spT2Fexf4QTJfUqeJgWe", "name": "Chambre 5", "defaultMode": "fro" },
         { "did": "vRjP8TJMEzeIOZRM5sAqbw", "name": "Chambre 6", "defaultMode": "fro" },
@@ -46,6 +47,7 @@
       "cftTemp": 200,
       "ecoTemp": 150,
       "devices": [
+        { "did": "9haSs9xp64nwJDwZm91vRm", "name": "Chambre 7", "defaultMode": "fro" },
         { "did": "3rva2tiYKhRiut270ompxf", "name": "Chambre 8", "defaultMode": "fro" },
         { "did": "Bf4Zgcjr7A6wJeJzCMZlMf", "name": "Chambre 9", "defaultMode": "fro" }
       ]
@@ -66,9 +68,10 @@
         "7sLDdAyoRXVsBcFnvcqHyt", "TCslYTUi8gdD2QqCNMhVpS",
         "PI4Rfe9cbeLieqQAn6Rp8n", "pjYjbLHneM85rZbJvbnmBs",
         "VKSyryoTXK2GslCxPjoY6O", "qa0uutQPIUTdwqyHeKjFD0",
-        "luuG0tlc1TvMoBf8LZdciS", "f1ht9FxSWYTmnLUshExCCf",
-        "H9spT2Fexf4QTJfUqeJgWe", "vRjP8TJMEzeIOZRM5sAqbw",
-        "IW95TDprLyTDyKFA66make", "3rva2tiYKhRiut270ompxf",
+        "luuG0tlc1TvMoBf8LZdciS", "lL8GSwKTtmCOtV97PIJXab",
+        "f1ht9FxSWYTmnLUshExCCf", "H9spT2Fexf4QTJfUqeJgWe",
+        "vRjP8TJMEzeIOZRM5sAqbw", "IW95TDprLyTDyKFA66make",
+        "9haSs9xp64nwJDwZm91vRm", "3rva2tiYKhRiut270ompxf",
         "Bf4Zgcjr7A6wJeJzCMZlMf"
       ]
     }
