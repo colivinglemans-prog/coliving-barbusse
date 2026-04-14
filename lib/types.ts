@@ -35,6 +35,7 @@ export interface RevenueProjection {
   daysRemaining: number;
   avgDailyRevenue: number;
   realizedRevenue: number;
+  confirmedUpcoming: number;
 }
 
 export interface DashboardStats {

@@ -305,21 +305,39 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     const yearStart = new Date(now.getFullYear(), 0, 1);
     const yearEnd = new Date(now.getFullYear(), 11, 31);
-    const daysSoFar = Math.max(1, daysBetween(yearStart.toISOString().split("T")[0], today));
-    const daysInYear = daysBetween(yearStart.toISOString().split("T")[0], yearEnd.toISOString().split("T")[0]);
+    const yearStartStr = yearStart.toISOString().split("T")[0];
+    const yearEndStr = yearEnd.toISOString().split("T")[0];
+    const daysSoFar = Math.max(1, daysBetween(yearStartStr, today));
+    const daysInYear = daysBetween(yearStartStr, yearEndStr);
     const daysRemaining = daysInYear - daysSoFar;
 
-    // Realized revenue = bookings with arrival < today
+    // Realized = past bookings, Confirmed = future bookings already booked
     const realizedRevenue = bookings
       .filter((b) => b.arrival < today)
       .reduce((sum, b) => sum + b.price, 0);
+    const confirmedUpcoming = bookings
+      .filter((b) => b.arrival >= today)
+      .reduce((sum, b) => sum + b.price, 0);
+
+    // Count future days already covered by confirmed bookings
+    const confirmedFutureNights = bookings
+      .filter((b) => b.departure > today)
+      .reduce((sum, b) => {
+        const start = b.arrival < today ? today : b.arrival;
+        const end = b.departure > yearEndStr ? yearEndStr : b.departure;
+        return sum + Math.max(0, daysBetween(start, end));
+      }, 0);
+    // Uncovered future days = remaining days minus already-booked room-nights / 9 rooms
+    const uncoveredDays = Math.max(0, daysRemaining - Math.round(confirmedFutureNights / TOTAL_ROOMS));
+
     const avgDailyRevenue = daysSoFar > 0 ? realizedRevenue / daysSoFar : 0;
 
     const projection = {
-      projectedRevenue: Math.round(realizedRevenue + avgDailyRevenue * daysRemaining),
+      projectedRevenue: Math.round(realizedRevenue + confirmedUpcoming + avgDailyRevenue * uncoveredDays),
       daysRemaining,
       avgDailyRevenue: Math.round(avgDailyRevenue * 100) / 100,
       realizedRevenue: Math.round(realizedRevenue * 100) / 100,
+      confirmedUpcoming: Math.round(confirmedUpcoming * 100) / 100,
     };
 
     const stats: DashboardStats = {
