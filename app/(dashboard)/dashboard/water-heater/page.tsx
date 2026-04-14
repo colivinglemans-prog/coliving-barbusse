@@ -21,9 +21,8 @@ export default function WaterHeaterPage() {
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch("/api/dashboard/water-heater");
-      if (!res.ok) throw new Error("Erreur de chargement");
       const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      if (!res.ok || json.error) throw new Error(json.error ?? `HTTP ${res.status}`);
       setData(json);
       setError("");
     } catch (e) {

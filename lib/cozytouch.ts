@@ -49,8 +49,8 @@ function invalidateCache(key: string) {
 // ─── Authentication (3-step flow) ───────────────────────────
 
 async function cozytouchLogin(): Promise<string> {
-  const email = process.env.COZYTOUCH_EMAIL;
-  const password = process.env.COZYTOUCH_PASSWORD;
+  const email = process.env.COZYTOUCH_EMAIL?.trim();
+  const password = process.env.COZYTOUCH_PASSWORD?.trim();
   if (!email || !password) {
     throw new Error("COZYTOUCH_EMAIL and COZYTOUCH_PASSWORD must be set");
   }
@@ -246,34 +246,32 @@ function findState<T>(states: OverkizState[], name: string): T | undefined {
   return s?.value as T | undefined;
 }
 
+export async function getRawStates(deviceURL: string): Promise<OverkizState[]> {
+  const encodedURL = encodeURIComponent(deviceURL);
+  return cozytouchFetch<OverkizState[]>("GET", `/setup/devices/${encodedURL}/states`);
+}
+
 export async function getWaterHeaterStatus(): Promise<CozytouchWaterHeaterStatus> {
   const { deviceURL, sensorURL } = await getDeviceURLs();
-  const encodedURL = encodeURIComponent(deviceURL);
-  const states = await cozytouchFetch<OverkizState[]>(
-    "GET",
-    `/setup/devices/${encodedURL}/states`,
-  );
+  const states = await getRawStates(deviceURL);
 
-  const currentTemp = findState<number>(states, "core:TemperatureState") ?? 0;
-  const middleTemp = findState<number>(states, "core:MiddleWaterTemperatureState");
-  const targetTemp = findState<number>(states, "core:TargetTemperatureState") ?? 55;
-  const dhwMode = (findState<string>(states, "io:DHWModeState") ?? "autoMode") as CozytouchDHWMode;
-  const boostDuration = findState<number>(states, "io:BoostModeDurationState") ?? 0;
-  const waterVolume = findState<number>(states, "io:V40WaterVolumeEstimationState");
-  const capacity = findState<number>(states, "io:DHWCapacityState");
-  const error = findState<string>(states, "io:DHWErrorState");
-  const statusState = findState<string>(states, "core:StatusState");
-  const operatingMode = findState<string>(states, "core:OperatingModeState");
+  const bottomTemp = findState<number>(states, "core:BottomTankWaterTemperatureState") ?? 0;
+  const middleTemp = findState<number>(states, "modbuslink:MiddleWaterTemperatureState");
+  const targetTemp = findState<number>(states, "core:TargetDHWTemperatureState") ?? 55;
+  const dhwMode = (findState<string>(states, "modbuslink:DHWModeState") ?? "autoMode") as CozytouchDHWMode;
+  const boostMode = findState<string>(states, "modbuslink:DHWBoostModeState");
+  const heatingStatus = findState<string>(states, "core:HeatingStatusState");
+  const remainingHotWater = findState<number>(states, "core:RemainingHotWaterState");
+  const showersRemaining = findState<number>(states, "core:NumberOfShowerRemainingState");
+  const capacity = findState<number>(states, "modbuslink:DHWCapacityState");
+  const powerHeatPump = findState<number>(states, "modbuslink:PowerHeatPumpState");
+  const powerElectric = findState<number>(states, "modbuslink:PowerHeatElectricalState");
 
   // Energy consumption from sensor
   let energyConsumption: number | undefined;
   if (sensorURL) {
     try {
-      const encodedSensor = encodeURIComponent(sensorURL);
-      const sensorStates = await cozytouchFetch<OverkizState[]>(
-        "GET",
-        `/setup/devices/${encodedSensor}/states`,
-      );
+      const sensorStates = await getRawStates(sensorURL);
       energyConsumption = findState<number>(sensorStates, "core:ElectricEnergyConsumptionState");
     } catch {
       // Sensor read failure is non-critical
@@ -281,17 +279,18 @@ export async function getWaterHeaterStatus(): Promise<CozytouchWaterHeaterStatus
   }
 
   return {
-    currentTemperature: Math.round(currentTemp * 10) / 10,
-    middleTemperature: middleTemp != null ? Math.round(middleTemp * 10) / 10 : undefined,
-    targetTemperature: Math.round(targetTemp * 10) / 10,
+    bottomTemperature: Math.round(bottomTemp * 10) / 10,
+    middleTemperature: middleTemp != null ? Math.round(middleTemp) : undefined,
+    targetTemperature: Math.round(targetTemp),
     mode: dhwMode,
-    isHeating: operatingMode === "boost" || operatingMode === "on",
-    boostDuration,
-    boostActive: boostDuration > 0 || operatingMode === "boost",
-    waterVolume: waterVolume != null ? Math.round(waterVolume) : undefined,
+    isHeating: heatingStatus === "Heating",
+    boostActive: boostMode === "on",
+    remainingHotWater: remainingHotWater != null ? Math.round(remainingHotWater) : undefined,
+    showersRemaining: showersRemaining != null ? showersRemaining : undefined,
     capacity: capacity != null ? Math.round(capacity) : undefined,
-    error: error && error !== "noError" ? error : undefined,
-    isAvailable: statusState === "available",
+    powerHeatPump: powerHeatPump != null ? powerHeatPump : undefined,
+    powerElectric: powerElectric != null ? powerElectric : undefined,
+    isAvailable: states.length > 0,
     energyConsumption: energyConsumption != null ? Math.round(energyConsumption) : undefined,
   };
 }

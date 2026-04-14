@@ -139,16 +139,17 @@ export interface HeatzyZoneConfig {
 export type CozytouchDHWMode = "autoMode" | "manualEcoActive" | "manualEcoInactive";
 
 export interface CozytouchWaterHeaterStatus {
-  currentTemperature: number;
+  bottomTemperature: number;
   middleTemperature?: number;
   targetTemperature: number;
   mode: CozytouchDHWMode;
   isHeating: boolean;
-  boostDuration: number;
   boostActive: boolean;
-  waterVolume?: number;
+  remainingHotWater?: number;
+  showersRemaining?: number;
   capacity?: number;
-  error?: string;
+  powerHeatPump?: number;
+  powerElectric?: number;
   isAvailable: boolean;
   energyConsumption?: number;
 }

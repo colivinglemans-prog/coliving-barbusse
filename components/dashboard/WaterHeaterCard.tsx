@@ -47,6 +47,7 @@ export default function WaterHeaterCard({
       <div className="mb-5 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">
           Ballon thermodynamique
+          <span className="ml-2 text-sm font-normal text-gray-400">{data.capacity ? `${data.capacity}L` : ""}</span>
         </h3>
         <div className="flex items-center gap-2">
           {busy && (
@@ -63,18 +64,11 @@ export default function WaterHeaterCard({
         </div>
       </div>
 
-      {/* Error banner */}
-      {data.error && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          Erreur : {data.error}
-        </div>
-      )}
-
       {/* Metrics */}
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl bg-sky-50 p-4">
-          <p className="text-xs font-medium text-gray-500">Température</p>
-          <p className="mt-1 text-2xl font-bold text-sky-600">{data.currentTemperature}°C</p>
+          <p className="text-xs font-medium text-gray-500">Temp. basse</p>
+          <p className="mt-1 text-2xl font-bold text-sky-600">{data.bottomTemperature}°C</p>
           {data.middleTemperature != null && (
             <p className="text-xs text-gray-400">Milieu : {data.middleTemperature}°C</p>
           )}
@@ -83,12 +77,12 @@ export default function WaterHeaterCard({
           <p className="text-xs font-medium text-gray-500">Consigne</p>
           <p className="mt-1 text-2xl font-bold text-indigo-600">{data.targetTemperature}°C</p>
         </div>
-        {data.waterVolume != null && (
+        {data.showersRemaining != null && (
           <div className="rounded-xl bg-teal-50 p-4">
-            <p className="text-xs font-medium text-gray-500">Volume à 40°C</p>
-            <p className="mt-1 text-2xl font-bold text-teal-600">{data.waterVolume}L</p>
-            {data.capacity != null && (
-              <p className="text-xs text-gray-400">/ {data.capacity}L</p>
+            <p className="text-xs font-medium text-gray-500">Douches restantes</p>
+            <p className="mt-1 text-2xl font-bold text-teal-600">{data.showersRemaining}</p>
+            {data.remainingHotWater != null && (
+              <p className="text-xs text-gray-400">{data.remainingHotWater}L disponibles</p>
             )}
           </div>
         )}
@@ -96,7 +90,7 @@ export default function WaterHeaterCard({
           <div className="rounded-xl bg-amber-50 p-4">
             <p className="text-xs font-medium text-gray-500">Consommation</p>
             <p className="mt-1 text-2xl font-bold text-amber-600">
-              {(data.energyConsumption / 1000).toFixed(1)} kWh
+              {(data.energyConsumption / 1000).toFixed(0)} kWh
             </p>
           </div>
         )}
@@ -108,11 +102,21 @@ export default function WaterHeaterCard({
           <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-sm font-medium text-orange-600">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-orange-500" />
             Chauffe
+            {data.powerHeatPump != null && data.powerElectric != null && data.powerElectric > 0 && (
+              <span className="text-xs text-orange-400 ml-1">
+                (PAC {data.powerHeatPump}W + Élec {data.powerElectric}W)
+              </span>
+            )}
+            {data.powerHeatPump != null && (data.powerElectric == null || data.powerElectric === 0) && (
+              <span className="text-xs text-orange-400 ml-1">
+                (PAC {data.powerHeatPump}W)
+              </span>
+            )}
           </span>
         )}
         {data.boostActive && (
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-600">
-            Boost actif ({data.boostDuration}j)
+            Boost actif
           </span>
         )}
       </div>
@@ -141,23 +145,24 @@ export default function WaterHeaterCard({
         <div className="mb-4">
           <p className="mb-2 text-sm font-medium text-gray-500">Boost</p>
           <div className="flex gap-2">
-            {[1, 2, 3].map((d) => (
-              <button
-                key={d}
-                onClick={() => handleAction(() => onSetBoost(d))}
-                disabled={busy}
-                className="rounded-lg bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200 disabled:opacity-50"
-              >
-                {d}j
-              </button>
-            ))}
-            {data.boostActive && (
+            {!data.boostActive ? (
+              [1, 2, 3].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => handleAction(() => onSetBoost(d))}
+                  disabled={busy}
+                  className="rounded-lg bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200 disabled:opacity-50"
+                >
+                  {d} jour{d > 1 ? "s" : ""}
+                </button>
+              ))
+            ) : (
               <button
                 onClick={() => handleAction(() => onSetBoost(0))}
                 disabled={busy}
                 className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50"
               >
-                Désactiver
+                Désactiver le boost
               </button>
             )}
             <button
