@@ -53,6 +53,7 @@ export default function StatsCards({
       value: `${tjm.global} €`,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
+      tooltip: "Tarif Journalier Moyen : revenu total divisé par le nombre de nuitées vendues",
       split: { house: tjm.house, room: tjm.room, unit: " €" },
     },
     {
@@ -60,6 +61,7 @@ export default function StatsCards({
       value: `${Math.round(revpar.global)} €`,
       color: "text-violet-600",
       bg: "bg-violet-50",
+      tooltip: "Revenue Per Available Room : revenu par chambre disponible (TJM × taux d'occupation). Mesure la rentabilité globale en combinant prix et remplissage",
       split: { house: Math.round(revpar.house), room: Math.round(revpar.room), unit: " €" },
     },
     {
@@ -74,6 +76,7 @@ export default function StatsCards({
       value: `${avgLeadTime.global} jours`,
       color: "text-amber-600",
       bg: "bg-amber-50",
+      tooltip: "Nombre moyen de jours entre la date de réservation et l'arrivée",
       split: { house: avgLeadTime.house, room: avgLeadTime.room, unit: " j" },
     },
   ];
@@ -81,8 +84,11 @@ export default function StatsCards({
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
       {cards.map((card) => (
-        <div key={card.label} className={`rounded-2xl ${card.bg} p-5`}>
-          <p className="text-sm font-medium text-gray-500">{card.label}</p>
+        <div key={card.label} className={`rounded-2xl ${card.bg} p-5`} title={card.tooltip}>
+          <p className="text-sm font-medium text-gray-500">
+            {card.label}
+            {card.tooltip && <span className="ml-1 cursor-help text-gray-300">?</span>}
+          </p>
           <p className={`mt-1 text-2xl font-bold ${card.color}`}>{card.value}</p>
           {"split" in card && card.split && (
             <SplitDetail {...card.split} />
