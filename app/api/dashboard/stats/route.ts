@@ -245,11 +245,14 @@ export async function GET(request: NextRequest) {
     };
 
     // RevPAR (Revenue Per Available Room) — split by type
-    // Same denominator: total available room-nights (house RevPAR + room RevPAR = global RevPAR)
+    // Per-type: revenue per room-night actually consumed, so you can compare modes
+    // House: each night occupies 9 rooms, so divide by houseNights × 9
+    // Room: each booking = 1 room, so divide by roomNights
+    const houseRoomNights = houseNights * TOTAL_ROOMS;
     const revpar: SplitMetric = {
       global: totalRoomNights > 0 ? Math.round((totalRevenue / totalRoomNights) * 100) / 100 : 0,
-      house: totalRoomNights > 0 ? Math.round((houseRevenue / totalRoomNights) * 100) / 100 : 0,
-      room: totalRoomNights > 0 ? Math.round((roomRevenue / totalRoomNights) * 100) / 100 : 0,
+      house: houseRoomNights > 0 ? Math.round((houseRevenue / houseRoomNights) * 100) / 100 : 0,
+      room: roomNights > 0 ? Math.round((roomRevenue / roomNights) * 100) / 100 : 0,
     };
 
     // Durée moyenne de séjour
