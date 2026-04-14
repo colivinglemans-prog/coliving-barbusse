@@ -61,7 +61,7 @@ export default function StatsCards({
       value: `${Math.round(revpar.global)} €`,
       color: "text-violet-600",
       bg: "bg-violet-50",
-      tooltip: "Revenue Per Available Room : revenu par chambre disponible (TJM × taux d'occupation). Mesure la rentabilité globale en combinant prix et remplissage",
+      tooltip: "Revenu moyen de la maison par jour, incluant les jours vides. Compare combien la maison rapporte par jour selon le mode de location (entière vs chambres)",
       split: { house: Math.round(revpar.house), room: Math.round(revpar.room), unit: " €" },
     },
     {

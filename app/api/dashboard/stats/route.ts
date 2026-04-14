@@ -244,15 +244,13 @@ export async function GET(request: NextRequest) {
       room: roomNights > 0 ? Math.round(roomRevenue / roomNights) : 0,
     };
 
-    // RevPAR (Revenue Per Available Room) — split by type
-    // Per-type: revenue per room-night actually consumed, so you can compare modes
-    // House: each night occupies 9 rooms, so divide by houseNights × 9
-    // Room: each booking = 1 room, so divide by roomNights
-    const houseRoomNights = houseNights * TOTAL_ROOMS;
+    // RevPAR — revenue per day for the whole property, split by booking type
+    // "How much does the house earn per day from whole-house vs room bookings?"
+    const totalDays = totalRoomNights / TOTAL_ROOMS; // calendar days in the period
     const revpar: SplitMetric = {
-      global: totalRoomNights > 0 ? Math.round((totalRevenue / totalRoomNights) * 100) / 100 : 0,
-      house: houseRoomNights > 0 ? Math.round((houseRevenue / houseRoomNights) * 100) / 100 : 0,
-      room: roomNights > 0 ? Math.round((roomRevenue / roomNights) * 100) / 100 : 0,
+      global: totalDays > 0 ? Math.round(totalRevenue / totalDays) : 0,
+      house: totalDays > 0 ? Math.round(houseRevenue / totalDays) : 0,
+      room: totalDays > 0 ? Math.round(roomRevenue / totalDays) : 0,
     };
 
     // Durée moyenne de séjour
