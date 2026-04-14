@@ -11,7 +11,7 @@ function hasActiveReservation(
   bookings: { arrival: string; departure: string }[],
 ): boolean {
   const today = todayStr();
-  return bookings.some((b) => b.arrival <= today && b.departure > today);
+  return bookings.some((b) => b.arrival < today && b.departure > today);
 }
 
 /** Returns the target temperature (°C) for the current mode */
@@ -55,7 +55,10 @@ export async function GET() {
     const futureBookings = activeBookings
       .filter((b) => b.arrival > today)
       .sort((a, b) => a.arrival.localeCompare(b.arrival));
-    const nextCheckIn = futureBookings[0]?.arrival;
+    // On check-in day (not yet occupied), treat today as the next check-in for pre-heating display
+    const nextCheckIn = (hasCheckInToday && !occupied)
+      ? today
+      : futureBookings[0]?.arrival;
 
     // Compute heating rules
     const rules = getHeatingRules(occupied, currentHour, hasSameDayTurnaround, nextCheckIn);
@@ -132,7 +135,10 @@ export async function GET() {
           temperature: curTemp,
           cftTemp: deviceCftTemp,
           ecoTemp: deviceEcoTemp,
-          expectedMode: isLocked ? "fro" : (occupied ? getOccupiedMode(deviceConfig.zone, currentHour) : "fro"),
+          expectedMode: isLocked ? "fro" : occupied ? getOccupiedMode(deviceConfig.zone, currentHour)
+            : (hasCheckInToday && currentHour >= 15) ? "cft"
+            : (hasCheckInToday && currentHour >= 12) ? "eco"
+            : "fro",
           targetTemp,
           alerts,
         } as HeatzyDevice;

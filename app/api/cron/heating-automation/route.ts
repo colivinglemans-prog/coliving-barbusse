@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     const hasCheckOutToday = allBookings.some((b) => b.departure === today);
     const hasCheckInTomorrow = allBookings.some((b) => b.arrival === tomorrow);
     const isCurrentlyOccupied = allBookings.some(
-      (b) => b.arrival <= today && b.departure > today,
+      (b) => b.arrival < today && b.departure > today,
     );
     // Same-day turnaround: checkout AND checkin on the same day
     const hasSameDayTurnaround = hasCheckOutToday && hasCheckInToday;
@@ -95,6 +95,13 @@ export async function GET(request: NextRequest) {
         if (hasCheckInToday && currentHour >= 12 && currentHour < 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
           await setDeviceMode(did, "eco");
           actions.push(`${device.name}: pré-chauffage éco (montée progressive)`);
+          await sleep(100);
+          continue;
+        }
+        // Check-in today but before pre-heating window -> frost protection
+        if (hasCheckInToday && currentHour < 12 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
+          await setDeviceMode(did, "fro");
+          actions.push(`${device.name}: hors-gel (arrivée aujourd'hui, avant pré-chauffage)`);
           await sleep(100);
           continue;
         }

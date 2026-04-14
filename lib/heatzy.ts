@@ -76,17 +76,31 @@ export function getHeatingRules(
   nextCheckIn?: string,
 ): { currentRule: string; nextRule: string } {
   if (!occupied && !hasSameDayTurnaround) {
+    const today = new Date().toISOString().split("T")[0];
+    const isCheckInToday = nextCheckIn === today;
+
+    if (isCheckInToday) {
+      if (hour < 12) {
+        return {
+          currentRule: "Arrivée aujourd'hui — Hors-gel",
+          nextRule: "À 12h → Pré-chauffage éco, à 15h → confort",
+        };
+      } else if (hour < 15) {
+        return {
+          currentRule: "Arrivée aujourd'hui — Pré-chauffage éco",
+          nextRule: "À 15h → Confort (arrivée à 17h)",
+        };
+      } else {
+        return {
+          currentRule: "Arrivée aujourd'hui — Pré-chauffage confort",
+          nextRule: "Arrivée prévue à 17h",
+        };
+      }
+    }
+
     let nextRule = "Aucune réservation prochaine";
     if (nextCheckIn) {
       nextRule = `Prochain check-in : ${nextCheckIn}`;
-      const today = new Date().toISOString().split("T")[0];
-      if (nextCheckIn === today) {
-        if (hour < 12) {
-          nextRule += " — pré-chauffage éco à 12h, confort à 15h";
-        } else if (hour < 15) {
-          nextRule += " — confort à 15h";
-        }
-      }
     }
     return {
       currentRule: "Pas de réservation — Hors-gel",

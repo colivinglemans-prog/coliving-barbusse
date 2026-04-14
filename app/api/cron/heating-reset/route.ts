@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const occupiedDeviceIds = new Set<string>();
     for (const mapping of Object.values(config.roomMapping)) {
       const isOccupied = activeBookings.some(
-        (b) => b.arrival <= today && b.departure > today,
+        (b) => b.arrival < today && b.departure > today,
       );
       if (isOccupied) {
         for (const did of mapping.deviceIds) {
