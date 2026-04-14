@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Statistiques", adminOnly: true },
   { href: "/dashboard/calendar", label: "Calendrier", adminOnly: false },
   { href: "/dashboard/heating", label: "Chauffage", adminOnly: false },
+  { href: "/dashboard/water-heater", label: "Eau chaude", adminOnly: false },
 ];
 
 interface DashboardNavProps {

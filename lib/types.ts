@@ -133,3 +133,22 @@ export interface HeatzyZoneConfig {
     }
   >;
 }
+
+// ─── Cozytouch Water Heater ────────────────────────────────
+
+export type CozytouchDHWMode = "autoMode" | "manualEcoActive" | "manualEcoInactive";
+
+export interface CozytouchWaterHeaterStatus {
+  currentTemperature: number;
+  middleTemperature?: number;
+  targetTemperature: number;
+  mode: CozytouchDHWMode;
+  isHeating: boolean;
+  boostDuration: number;
+  boostActive: boolean;
+  waterVolume?: number;
+  capacity?: number;
+  error?: string;
+  isAvailable: boolean;
+  energyConsumption?: number;
+}
