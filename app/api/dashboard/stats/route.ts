@@ -244,13 +244,23 @@ export async function GET(request: NextRequest) {
       room: roomNights > 0 ? Math.round(roomRevenue / roomNights) : 0,
     };
 
-    // RevPAR — revenue per day for the whole property, split by booking type
-    // "How much does the house earn per day from whole-house vs room bookings?"
-    const totalDays = totalRoomNights / TOTAL_ROOMS; // calendar days in the period
+    // Revenue per occupied night — compare house vs room mode
+    // Room: count unique calendar nights with at least one room booked
+    const roomOccupiedDates = new Set<string>();
+    for (const b of roomBookings) {
+      const nights = daysBetween(b.arrival, b.departure);
+      const start = new Date(b.arrival);
+      for (let i = 0; i < nights; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        roomOccupiedDates.add(d.toISOString().split("T")[0]);
+      }
+    }
+
     const revpar: SplitMetric = {
-      global: totalDays > 0 ? Math.round(totalRevenue / totalDays) : 0,
-      house: totalDays > 0 ? Math.round(houseRevenue / totalDays) : 0,
-      room: totalDays > 0 ? Math.round(roomRevenue / totalDays) : 0,
+      global: totalNights > 0 ? Math.round(totalRevenue / totalNights) : 0,
+      house: houseNights > 0 ? Math.round(houseRevenue / houseNights) : 0,
+      room: roomOccupiedDates.size > 0 ? Math.round(roomRevenue / roomOccupiedDates.size) : 0,
     };
 
     // Durée moyenne de séjour
