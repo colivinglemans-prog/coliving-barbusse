@@ -314,17 +314,24 @@ export async function setDHWMode(mode: CozytouchDHWMode) {
   await executeCommand(deviceURL, "setDHWMode", [mode]);
 }
 
-export async function setBoostModeDuration(duration: number) {
+export async function setBoostMode(on: boolean) {
   const { deviceURL } = await getDeviceURLs();
-  await executeCommand(deviceURL, "setBoostModeDuration", [duration]);
+  await executeCommand(deviceURL, "setBoostMode", [on ? "on" : "off"]);
 }
 
 export async function setTargetTemperature(temp: number) {
   const { deviceURL } = await getDeviceURLs();
-  await executeCommand(deviceURL, "setTargetTemperature", [temp]);
+  await executeCommand(deviceURL, "setTargetDHWTemperature", [temp]);
 }
 
 export async function refreshState() {
   const { deviceURL } = await getDeviceURLs();
-  await executeCommand(deviceURL, "refreshState", []);
+  // Refresh key states
+  await executeCommand(deviceURL, "refreshBottomTankWaterTemperature", []);
+  await executeCommand(deviceURL, "refreshMiddleWaterTemperature", []);
+  await executeCommand(deviceURL, "refreshHeatingStatus", []);
+  await executeCommand(deviceURL, "refreshDHWMode", []);
+  await executeCommand(deviceURL, "refreshBoostMode", []);
+  await executeCommand(deviceURL, "refreshRemainingHotWater", []);
+  await executeCommand(deviceURL, "refreshNumberOfShowerRemaining", []);
 }

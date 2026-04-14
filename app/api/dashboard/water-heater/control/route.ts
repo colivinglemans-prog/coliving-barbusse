@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   setDHWMode,
-  setBoostModeDuration,
+  setBoostMode,
   setTargetTemperature,
   refreshState,
 } from "@/lib/cozytouch";
@@ -25,12 +25,9 @@ export async function POST(request: NextRequest) {
       }
 
       case "setBoost": {
-        const duration = Number(body.duration);
-        if (isNaN(duration) || duration < 0 || duration > 7) {
-          return NextResponse.json({ error: "Duration must be 0-7" }, { status: 400 });
-        }
-        await setBoostModeDuration(duration);
-        return NextResponse.json({ success: true, action: "setBoost", duration });
+        const on = body.on !== false && body.on !== 0;
+        await setBoostMode(on);
+        return NextResponse.json({ success: true, action: "setBoost", on });
       }
 
       case "setTemperature": {

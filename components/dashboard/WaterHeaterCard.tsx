@@ -7,7 +7,7 @@ interface WaterHeaterCardProps {
   data: CozytouchWaterHeaterStatus;
   seriesNote: string;
   onSetMode: (mode: CozytouchDHWMode) => void;
-  onSetBoost: (duration: number) => void;
+  onSetBoost: (on: boolean) => void;
   onRefresh: () => void;
   loading: boolean;
   role: "admin" | "viewer";
@@ -146,19 +146,16 @@ export default function WaterHeaterCard({
           <p className="mb-2 text-sm font-medium text-gray-500">Boost</p>
           <div className="flex gap-2">
             {!data.boostActive ? (
-              [1, 2, 3].map((d) => (
-                <button
-                  key={d}
-                  onClick={() => handleAction(() => onSetBoost(d))}
-                  disabled={busy}
-                  className="rounded-lg bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200 disabled:opacity-50"
-                >
-                  {d} jour{d > 1 ? "s" : ""}
-                </button>
-              ))
+              <button
+                onClick={() => handleAction(() => onSetBoost(true))}
+                disabled={busy}
+                className="rounded-lg bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-200 disabled:opacity-50"
+              >
+                Activer le boost
+              </button>
             ) : (
               <button
-                onClick={() => handleAction(() => onSetBoost(0))}
+                onClick={() => handleAction(() => onSetBoost(false))}
                 disabled={busy}
                 className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:opacity-50"
               >

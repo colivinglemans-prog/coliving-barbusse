@@ -93,7 +93,7 @@ export default function WaterHeaterPage() {
             data={data.status}
             seriesNote={data.seriesNote}
             onSetMode={(mode: CozytouchDHWMode) => handleControl({ action: "setMode", mode })}
-            onSetBoost={(duration: number) => handleControl({ action: "setBoost", duration })}
+            onSetBoost={(on: boolean) => handleControl({ action: "setBoost", on })}
             onRefresh={() => handleControl({ action: "refresh" })}
             loading={loading}
             role={effectiveRole}
