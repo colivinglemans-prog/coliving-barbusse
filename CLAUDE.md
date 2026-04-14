@@ -156,6 +156,78 @@ vercel.json           # Config Vercel (crons quotidiens)
 - **Diminution** : affiche l'écart cft_temp - eco_temp quand personne n'est détecté
 - **Comportement normal** : `cur_signal=fro` quand personne ≠ problème fil pilote
 
+## Timezone
+
+- Vercel tourne en **UTC** → toute la logique horaire utilise `lib/time.ts` (Europe/Paris)
+- Fonctions : `currentHourParis()`, `todayParis()`, `tomorrowParis()`, `nowParis()`
+- **Ne jamais utiliser** `new Date().getHours()` ou `toISOString().split("T")[0]` directement
+
+## Logique check-in (transition pré-chauffage → occupé)
+
+Le jour du check-in, la logique est :
+- 0h-12h : hors-gel (pas encore de pré-chauffage)
+- 12h-15h : éco (pré-chauffage progressif)
+- 15h-17h : confort (pré-chauffage final)
+- **17h+** : réservation active (mode présence, occupé)
+
+La condition `isCurrentlyOccupied` utilise `arrival < today || (arrival === today && hour >= 17)`.
+
+## Cozytouch (Ballon thermodynamique Atlantic)
+
+- **API** : Overkiz (`https://ha110-1.overkiz.com/enduser-mobile-web/enduserAPI`)
+- **Auth** : 3 étapes (Atlantic token → JWT → Overkiz session JSESSIONID)
+- **Client ID** : constant dans `lib/cozytouch.ts`
+- **Session** : cachée en Redis (TTL 8h) + in-memory (60s), retry sur 401
+- **Device** : `modbuslink:AtlanticDomesticHotWaterProductionMBLComponent`
+- **Device URL** : `modbuslink://1908-1459-2296/1#1`, sensor `#2`
+
+### Configuration physique
+
+- Ballon thermo Atlantic (250L) **en série** avec un ballon classique Chauffeo 300L (ref 022122)
+- Le thermo **préchauffe** l'eau en amont, le classique sert de tampon/backup
+- Consigne thermo : **58°C** (pour que le classique à ~55°C ne se déclenche quasi jamais)
+- Thermostat classique : position 2 (~55°C), réglage manuel
+
+### Modes Cozytouch
+
+| App Cozytouch | API (`modbuslink:DHWModeState`) | Dashboard |
+|---|---|---|
+| Éco+ | `autoMode` | Auto |
+| Éco | `manualEcoActive` | Éco |
+| Manuel | `manualEcoInactive` | Performance |
+
+### Commandes (préfixe `modbuslink:` / `core:`)
+
+- `setDHWMode` : autoMode / manualEcoActive / manualEcoInactive
+- `setBoostMode` : "on" / "off"
+- `setTargetDHWTemperature` : [temp] (50-65)
+- `setAbsenceMode` : "on" / "off"
+- Refresh : `refreshBottomTankWaterTemperature`, `refreshMiddleWaterTemperature`, etc.
+
+### States clés
+
+- `core:BottomTankWaterTemperatureState` — temp bas du ballon
+- `modbuslink:MiddleWaterTemperatureState` — temp milieu
+- `core:TargetDHWTemperatureState` — consigne
+- `modbuslink:DHWModeState` — mode actuel
+- `modbuslink:DHWBoostModeState` — "on"/"off"
+- `core:HeatingStatusState` — "Heating" quand chauffe
+- `core:RemainingHotWaterState` — litres restants
+- `core:NumberOfShowerRemainingState` — douches estimées
+- `modbuslink:DHWCapacityState` — capacité (250L)
+- `modbuslink:HeatPumpOperatingTimeState` — heures PAC
+- `modbuslink:ElectricBoosterOperatingTimeState` — heures résistance
+
+### Automation eau chaude (planifiée, pas encore implémentée)
+
+| Situation | Mode | Consigne |
+|---|---|---|
+| Pas de réservation | Éco | 50°C |
+| Check-in aujourd'hui | Boost matin → Auto | 58°C |
+| Réservation chambres | Auto | 58°C |
+| Réservation maison entière | Performance | 58°C |
+| Longue vacance (7+ jours) | Mode absence Cozytouch | — |
+
 ## Cron Jobs (via cron-job.org)
 
 | Job | URL | Fréquence |
@@ -181,4 +253,6 @@ CRON_SECRET              # Secret pour les cron jobs
 RESEND_API_KEY           # Clé API Resend (emails)
 ALERT_EMAIL              # Email destination des alertes chauffage
 LOCKED_DEVICES           # Device IDs verrouillés (comma-separated, optionnel)
+COZYTOUCH_EMAIL          # Email du compte Cozytouch/Atlantic
+COZYTOUCH_PASSWORD       # Mot de passe du compte Cozytouch
 ```
