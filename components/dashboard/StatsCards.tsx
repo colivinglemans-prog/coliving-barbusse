@@ -61,7 +61,7 @@ export default function StatsCards({
       value: `${Math.round(revpar.global)} €`,
       color: "text-violet-600",
       bg: "bg-violet-50",
-      tooltip: "Revenu moyen par nuit où la maison est occupée. Compare directement les deux modes de location",
+      tooltip: "Revenu par nuit si la maison est pleine. Compare les deux modes à occupation équivalente (9 chambres)",
       split: { house: Math.round(revpar.house), room: Math.round(revpar.room), unit: " €" },
     },
     {

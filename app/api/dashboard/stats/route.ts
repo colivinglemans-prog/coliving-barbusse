@@ -244,23 +244,13 @@ export async function GET(request: NextRequest) {
       room: roomNights > 0 ? Math.round(roomRevenue / roomNights) : 0,
     };
 
-    // Revenue per occupied night — compare house vs room mode
-    // Room: count unique calendar nights with at least one room booked
-    const roomOccupiedDates = new Set<string>();
-    for (const b of roomBookings) {
-      const nights = daysBetween(b.arrival, b.departure);
-      const start = new Date(b.arrival);
-      for (let i = 0; i < nights; i++) {
-        const d = new Date(start);
-        d.setDate(d.getDate() + i);
-        roomOccupiedDates.add(d.toISOString().split("T")[0]);
-      }
-    }
-
+    // Revenue per night at full occupancy — fair comparison between modes
+    // House: revenue per night (all 9 rooms by definition)
+    // Room: TJM room × 9 (what the house would earn if all 9 rooms were booked)
     const revpar: SplitMetric = {
       global: totalNights > 0 ? Math.round(totalRevenue / totalNights) : 0,
       house: houseNights > 0 ? Math.round(houseRevenue / houseNights) : 0,
-      room: roomOccupiedDates.size > 0 ? Math.round(roomRevenue / roomOccupiedDates.size) : 0,
+      room: tjm.room * TOTAL_ROOMS,
     };
 
     // Durée moyenne de séjour
