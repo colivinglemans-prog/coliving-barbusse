@@ -61,7 +61,9 @@ export async function GET(request: NextRequest) {
     const hasCheckOutToday = allBookings.some((b) => b.departure === today);
     const hasCheckInTomorrow = allBookings.some((b) => b.arrival === tomorrow);
     const isCurrentlyOccupied = allBookings.some(
-      (b) => b.arrival < today && b.departure > today,
+      (b) =>
+        (b.arrival < today && b.departure > today) ||
+        (b.arrival === today && b.departure > today && currentHour >= 17),
     );
     // Same-day turnaround: checkout AND checkin on the same day
     const hasSameDayTurnaround = hasCheckOutToday && hasCheckInToday;

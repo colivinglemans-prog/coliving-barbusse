@@ -11,7 +11,12 @@ function hasActiveReservation(
   bookings: { arrival: string; departure: string }[],
 ): boolean {
   const today = todayStr();
-  return bookings.some((b) => b.arrival < today && b.departure > today);
+  const hour = new Date().getHours();
+  return bookings.some(
+    (b) =>
+      (b.arrival < today && b.departure > today) ||
+      (b.arrival === today && b.departure > today && hour >= 17),
+  );
 }
 
 /** Returns the target temperature (°C) for the current mode */
