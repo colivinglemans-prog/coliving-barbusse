@@ -2,16 +2,13 @@ import { NextResponse } from "next/server";
 import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
-
-function todayStr() {
-  return new Date().toISOString().split("T")[0];
-}
+import { todayParis, currentHourParis } from "@/lib/time";
 
 function hasActiveReservation(
   bookings: { arrival: string; departure: string }[],
 ): boolean {
-  const today = todayStr();
-  const hour = new Date().getHours();
+  const today = todayParis();
+  const hour = currentHourParis();
   return bookings.some(
     (b) =>
       (b.arrival < today && b.departure > today) ||
@@ -43,17 +40,17 @@ export async function GET() {
     const [rawDevices, activeBookings] = await Promise.all([
       getDevices(),
       getBookings({
-        arrivalTo: todayStr(),
-        departureFrom: todayStr(),
+        arrivalTo: todayParis(),
+        departureFrom: todayParis(),
       }).catch(() => []),
     ]);
 
     const occupied = hasActiveReservation(activeBookings);
     const rawDeviceMap = new Map(rawDevices.map((d) => [d.did, d]));
-    const currentHour = new Date().getHours();
+    const currentHour = currentHourParis();
 
     // Check for same-day turnaround and next check-in
-    const today = todayStr();
+    const today = todayParis();
     const hasCheckOutToday = activeBookings.some((b) => b.departure === today);
     const hasCheckInToday = activeBookings.some((b) => b.arrival === today);
     const hasSameDayTurnaround = hasCheckOutToday && hasCheckInToday;
@@ -193,7 +190,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ zones, alertCount, occupied, ...rules });
+    return NextResponse.json({ zones, alertCount, occupied, ...rules, serverTime: `${todayParis()} ${currentHour}h (Paris)` });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import { getDevices, getFullZoneConfig } from "@/lib/heatzy";
 import { sendHeatingAlert } from "@/lib/email";
+import { todayParis, nowParis } from "@/lib/time";
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Send alert if there are issues
     if (offlineDevices.length > 0 || missingDevices.length > 0) {
-      const today = new Date().toISOString().split("T")[0];
+      const today = todayParis();
       const lines: string[] = [];
 
       if (offlineDevices.length > 0) {
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      lines.push(`Vérification effectuée le ${today} à ${new Date().toLocaleTimeString("fr-FR")}`);
+      lines.push(`Vérification effectuée le ${today} à ${nowParis().toLocaleTimeString("fr-FR")}`);
 
       await sendHeatingAlert(
         `${offlineDevices.length + missingDevices.length} radiateur(s) en alerte`,

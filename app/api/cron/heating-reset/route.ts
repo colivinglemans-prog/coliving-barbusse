@@ -10,10 +10,7 @@ import {
 } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import { sendHeatingAlert } from "@/lib/email";
-
-function todayStr() {
-  return new Date().toISOString().split("T")[0];
-}
+import { todayParis, currentHourParis } from "@/lib/time";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,7 +23,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const config = await getFullZoneConfig();
-    const today = todayStr();
+    const today = todayParis();
+    const currentHour = currentHourParis();
 
     const [activeBookings, lockedDevices] = await Promise.all([
       getBookings({ arrivalTo: today, departureFrom: today }),
@@ -47,8 +45,6 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-
-    const currentHour = new Date().getHours();
     const actions: string[] = [];
 
     // Process all devices: set mode + temperatures

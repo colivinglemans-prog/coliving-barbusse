@@ -10,16 +10,7 @@ import {
 } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import { sendHeatingAlert } from "@/lib/email";
-
-function todayStr() {
-  return new Date().toISOString().split("T")[0];
-}
-
-function tomorrowStr() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().split("T")[0];
-}
+import { todayParis, tomorrowParis, currentHourParis } from "@/lib/time";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,9 +23,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const config = await getFullZoneConfig();
-    const today = todayStr();
-    const tomorrow = tomorrowStr();
-    const currentHour = new Date().getHours();
+    const today = todayParis();
+    const tomorrow = tomorrowParis();
+    const currentHour = currentHourParis();
 
     // Fetch bookings for today and tomorrow
     const bookings = await getBookings({

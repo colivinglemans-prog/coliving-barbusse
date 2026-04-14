@@ -1,4 +1,5 @@
 import type { HeatzyMode, HeatzyZone, HeatzyZoneConfig } from "./types";
+import { todayParis } from "./time";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { Redis } from "@upstash/redis";
@@ -76,7 +77,7 @@ export function getHeatingRules(
   nextCheckIn?: string,
 ): { currentRule: string; nextRule: string } {
   if (!occupied && !hasSameDayTurnaround) {
-    const today = new Date().toISOString().split("T")[0];
+    const today = todayParis();
     const isCheckInToday = nextCheckIn === today;
 
     if (isCheckInToday) {
