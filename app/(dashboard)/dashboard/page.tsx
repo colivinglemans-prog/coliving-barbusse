@@ -9,9 +9,11 @@ import OccupancyGauge from "@/components/dashboard/OccupancyGauge";
 import PeriodSelector from "@/components/dashboard/PeriodSelector";
 import RevenueModeSelector from "@/components/dashboard/RevenueModeSelector";
 import DashboardNav from "@/components/dashboard/DashboardNav";
+import BookingsTable from "@/components/dashboard/BookingsTable";
+import RevenueProjection from "@/components/dashboard/RevenueProjection";
 
 export default function Dashboard() {
-  const [period, setPeriod] = useState("3m");
+  const [period, setPeriod] = useState("fiscal");
   const [mode, setMode] = useState<RevenueMode>("averagedPerNight");
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,9 +70,28 @@ export default function Dashboard() {
               totalRevenue={stats.totalRevenue}
               totalBookings={stats.totalBookings}
               occupancyRate={stats.occupancyRate}
+              tjm={stats.tjm}
+              revpar={stats.revpar}
+              avgStay={stats.avgStay}
+              avgLeadTime={stats.avgLeadTime}
             />
 
+            <RevenueProjection projection={stats.projection} />
+
             <RevenueChart data={stats.revenueByMonth} />
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <BookingsTable
+                title="Réservations récentes"
+                bookings={stats.recentBookings}
+                highlightColumn="arrival"
+              />
+              <BookingsTable
+                title="Meilleures réservations (TJM)"
+                bookings={stats.topBookings}
+                highlightColumn="tjm"
+              />
+            </div>
 
             <ChannelPieChart data={stats.channelDistribution} />
 

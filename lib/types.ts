@@ -12,12 +12,44 @@ export interface MonthRevenue {
   occupancyRate: number;
 }
 
+export interface SplitMetric {
+  global: number;
+  house: number;
+  room: number;
+}
+
+export interface BookingSummary {
+  id: number;
+  guest: string;
+  arrival: string;
+  departure: string;
+  nights: number;
+  price: number;
+  tjm: number;
+  channel: string;
+  type: "house" | "room";
+}
+
+export interface RevenueProjection {
+  projectedRevenue: number;
+  daysRemaining: number;
+  avgDailyRevenue: number;
+  realizedRevenue: number;
+}
+
 export interface DashboardStats {
   revenueByMonth: MonthRevenue[];
   occupancyRate: number;
   channelDistribution: { channel: string; count: number; revenue: number }[];
   totalRevenue: number;
   totalBookings: number;
+  tjm: SplitMetric;
+  revpar: number;
+  avgStay: SplitMetric;
+  avgLeadTime: SplitMetric;
+  recentBookings: BookingSummary[];
+  topBookings: BookingSummary[];
+  projection: RevenueProjection;
 }
 
 export interface Beds24Booking {

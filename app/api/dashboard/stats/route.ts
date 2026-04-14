@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBookings, getProperties } from "@/lib/beds24";
-import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking } from "@/lib/types";
+import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
 
 function normalizeChannel(referer: string, channel?: string): string {
   const c = (channel ?? "").toLowerCase();
@@ -221,12 +221,120 @@ export async function GET(request: NextRequest) {
     const totalRoomNights = Array.from(occupancyMap.values()).reduce((s, v) => s + v.total, 0);
     if (totalRoomNights > 0) occupancyRate = Math.round((totalOccupied / totalRoomNights) * 100);
 
+    // ─── Split bookings by type ──────────────────────────────
+    const houseBookings = bookings.filter((b) => b.propertyId === WHOLE_HOUSE_PROPERTY_ID);
+    const roomBookings = bookings.filter((b) => b.propertyId !== WHOLE_HOUSE_PROPERTY_ID);
+
+    function computeNights(list: Beds24Booking[]): number {
+      return list.reduce((sum, b) => sum + daysBetween(b.arrival, b.departure), 0);
+    }
+
+    const totalNights = computeNights(bookings);
+    const houseNights = computeNights(houseBookings);
+    const roomNights = computeNights(roomBookings);
+
+    const totalRevenue = bookings.reduce((sum, b) => sum + b.price, 0);
+    const houseRevenue = houseBookings.reduce((sum, b) => sum + b.price, 0);
+    const roomRevenue = roomBookings.reduce((sum, b) => sum + b.price, 0);
+
+    // TJM (Tarif Journalier Moyen / ADR)
+    const tjm: SplitMetric = {
+      global: totalNights > 0 ? Math.round(totalRevenue / totalNights) : 0,
+      house: houseNights > 0 ? Math.round(houseRevenue / houseNights) : 0,
+      room: roomNights > 0 ? Math.round(roomRevenue / roomNights) : 0,
+    };
+
+    // RevPAR (Revenue Per Available Room)
+    const revpar = totalRoomNights > 0
+      ? Math.round((totalRevenue / totalRoomNights) * 100) / 100
+      : 0;
+
+    // Durée moyenne de séjour
+    const avgStay: SplitMetric = {
+      global: bookings.length > 0 ? Math.round((totalNights / bookings.length) * 10) / 10 : 0,
+      house: houseBookings.length > 0 ? Math.round((houseNights / houseBookings.length) * 10) / 10 : 0,
+      room: roomBookings.length > 0 ? Math.round((roomNights / roomBookings.length) * 10) / 10 : 0,
+    };
+
+    // Délai moyen de réservation (jours entre bookingTime et arrival)
+    function computeAvgLeadTime(list: Beds24Booking[]): number {
+      const withBookingTime = list.filter((b) => b.bookingTime);
+      if (withBookingTime.length === 0) return 0;
+      const totalDays = withBookingTime.reduce((sum, b) => {
+        const bookingDate = b.bookingTime.substring(0, 10);
+        return sum + Math.max(0, daysBetween(bookingDate, b.arrival));
+      }, 0);
+      return Math.round(totalDays / withBookingTime.length);
+    }
+
+    const avgLeadTime: SplitMetric = {
+      global: computeAvgLeadTime(bookings),
+      house: computeAvgLeadTime(houseBookings),
+      room: computeAvgLeadTime(roomBookings),
+    };
+
+    // ─── Booking summaries ───────────────────────────────────
+    function toSummary(b: Beds24Booking): BookingSummary {
+      const nights = daysBetween(b.arrival, b.departure);
+      return {
+        id: b.id,
+        guest: `${b.firstName} ${b.lastName}`.trim() || "—",
+        arrival: b.arrival,
+        departure: b.departure,
+        nights,
+        price: Math.round(b.price * 100) / 100,
+        tjm: nights > 0 ? Math.round(b.price / nights) : 0,
+        channel: normalizeChannel(b.referer, b.channel),
+        type: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? "house" : "room",
+      };
+    }
+
+    // Réservations récentes (10 dernières par arrivée)
+    const recentBookings = [...bookings]
+      .sort((a, b) => b.arrival.localeCompare(a.arrival))
+      .slice(0, 10)
+      .map(toSummary);
+
+    // Top réservations par TJM
+    const topBookings = [...bookings]
+      .map(toSummary)
+      .sort((a, b) => b.tjm - a.tjm)
+      .slice(0, 10);
+
+    // ─── Projection annuelle ─────────────────────────────────
+    const now = new Date();
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+    const yearEnd = new Date(now.getFullYear(), 11, 31);
+    const daysSoFar = Math.max(1, daysBetween(yearStart.toISOString().split("T")[0], today));
+    const daysInYear = daysBetween(yearStart.toISOString().split("T")[0], yearEnd.toISOString().split("T")[0]);
+    const daysRemaining = daysInYear - daysSoFar;
+
+    // Realized revenue = bookings with arrival < today
+    const realizedRevenue = bookings
+      .filter((b) => b.arrival < today)
+      .reduce((sum, b) => sum + b.price, 0);
+    const avgDailyRevenue = daysSoFar > 0 ? realizedRevenue / daysSoFar : 0;
+
+    const projection = {
+      projectedRevenue: Math.round(realizedRevenue + avgDailyRevenue * daysRemaining),
+      daysRemaining,
+      avgDailyRevenue: Math.round(avgDailyRevenue * 100) / 100,
+      realizedRevenue: Math.round(realizedRevenue * 100) / 100,
+    };
+
     const stats: DashboardStats = {
       revenueByMonth,
       occupancyRate,
       channelDistribution,
-      totalRevenue: bookings.reduce((sum, b) => sum + b.price, 0),
+      totalRevenue,
       totalBookings: bookings.length,
+      tjm,
+      revpar,
+      avgStay,
+      avgLeadTime,
+      recentBookings,
+      topBookings,
+      projection,
     };
 
     return NextResponse.json(stats);
