@@ -244,10 +244,13 @@ export async function GET(request: NextRequest) {
       room: roomNights > 0 ? Math.round(roomRevenue / roomNights) : 0,
     };
 
-    // RevPAR (Revenue Per Available Room)
-    const revpar = totalRoomNights > 0
-      ? Math.round((totalRevenue / totalRoomNights) * 100) / 100
-      : 0;
+    // RevPAR (Revenue Per Available Room) — split by type
+    // Same denominator: total available room-nights (house RevPAR + room RevPAR = global RevPAR)
+    const revpar: SplitMetric = {
+      global: totalRoomNights > 0 ? Math.round((totalRevenue / totalRoomNights) * 100) / 100 : 0,
+      house: totalRoomNights > 0 ? Math.round((houseRevenue / totalRoomNights) * 100) / 100 : 0,
+      room: totalRoomNights > 0 ? Math.round((roomRevenue / totalRoomNights) * 100) / 100 : 0,
+    };
 
     // Durée moyenne de séjour
     const avgStay: SplitMetric = {

@@ -45,7 +45,7 @@ export interface DashboardStats {
   totalRevenue: number;
   totalBookings: number;
   tjm: SplitMetric;
-  revpar: number;
+  revpar: SplitMetric;
   avgStay: SplitMetric;
   avgLeadTime: SplitMetric;
   recentBookings: BookingSummary[];

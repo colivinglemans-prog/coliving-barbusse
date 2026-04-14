@@ -5,7 +5,7 @@ interface StatsCardsProps {
   totalBookings: number;
   occupancyRate: number;
   tjm: SplitMetric;
-  revpar: number;
+  revpar: SplitMetric;
   avgStay: SplitMetric;
   avgLeadTime: SplitMetric;
 }
@@ -57,9 +57,10 @@ export default function StatsCards({
     },
     {
       label: "RevPAR",
-      value: `${Math.round(revpar)} €`,
+      value: `${Math.round(revpar.global)} €`,
       color: "text-violet-600",
       bg: "bg-violet-50",
+      split: { house: Math.round(revpar.house), room: Math.round(revpar.room), unit: " €" },
     },
     {
       label: "Durée moy. séjour",
