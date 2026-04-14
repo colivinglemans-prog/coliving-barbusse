@@ -57,11 +57,11 @@ export default function StatsCards({
       split: { house: tjm.house, room: tjm.room, unit: " €" },
     },
     {
-      label: "RevPAR",
+      label: "Revenu / jour",
       value: `${Math.round(revpar.global)} €`,
       color: "text-violet-600",
       bg: "bg-violet-50",
-      tooltip: "Revenu moyen de la maison par jour, incluant les jours vides. Compare combien la maison rapporte par jour selon le mode de location (entière vs chambres)",
+      tooltip: "Revenu moyen de la maison par jour (jours vides inclus). Compare combien la maison rapporte par jour selon le mode de location",
       split: { house: Math.round(revpar.house), room: Math.round(revpar.room), unit: " €" },
     },
     {
