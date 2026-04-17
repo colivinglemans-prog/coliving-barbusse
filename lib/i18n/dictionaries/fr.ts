@@ -171,7 +171,7 @@ Jusqu'à 18 personnes.`,
       {
         title: "Conditions d'annulation",
         items: [
-          "Annulation gratuite jusqu'à 5 jours avant l'arrivée",
+          "Annulation gratuite jusqu'à 14 jours avant l'arrivée",
           "Acompte de 10% à la réservation",
           "Solde intégral avant le check-in",
           "Paiement sécurisé par carte (Visa, Mastercard)",
@@ -184,6 +184,9 @@ Jusqu'à 18 personnes.`,
     contact: "Contact",
     whatsapp: "WhatsApp",
     copyright: "Coliving Barbusse. Tous droits réservés.",
+    paymentTitle: "Paiement par virement",
+    paymentText:
+      "Paiement par virement bancaire possible avec facture. Contactez-nous pour une demande de réservation.",
   },
   gallery: {
     showPhotos: (count) => `Afficher les ${count} photos`,

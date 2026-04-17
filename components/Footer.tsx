@@ -9,7 +9,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-border bg-light-bg">
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="mb-3 text-sm font-semibold text-foreground">Coliving Barbusse</h3>
             <p className="text-sm text-secondary">
@@ -45,6 +45,20 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
+          </div>
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-foreground">
+              {t.footer.paymentTitle}
+            </h3>
+            <p className="text-sm text-secondary">{t.footer.paymentText}</p>
+            <a
+              href="https://wa.me/33620921005"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-sm font-medium text-rose-500 hover:text-rose-600"
+            >
+              {t.footer.whatsapp} →
+            </a>
           </div>
         </div>
         <div className="mt-8 flex items-center justify-center border-t border-border pt-6 text-xs text-secondary">

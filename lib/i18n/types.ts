@@ -104,6 +104,8 @@ export interface Dictionary {
     contact: string;
     whatsapp: string;
     copyright: string;
+    paymentTitle: string;
+    paymentText: string;
   };
   gallery: {
     showPhotos: (count: number) => string;

@@ -171,7 +171,7 @@ Sleeps up to 18 guests.`,
       {
         title: "Cancellation policy",
         items: [
-          "Free cancellation up to 5 days before arrival",
+          "Free cancellation up to 14 days before arrival",
           "10% deposit at booking",
           "Full balance due before check-in",
           "Secure card payment (Visa, Mastercard)",
@@ -184,6 +184,9 @@ Sleeps up to 18 guests.`,
     contact: "Contact",
     whatsapp: "WhatsApp",
     copyright: "Coliving Barbusse. All rights reserved.",
+    paymentTitle: "Bank transfer",
+    paymentText:
+      "Bank transfer accepted (with invoice). Contact us to request a reservation.",
   },
   gallery: {
     showPhotos: (count) => `View all ${count} photos`,
