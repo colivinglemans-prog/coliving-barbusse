@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { I18nProvider } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -100,6 +101,7 @@ export default async function RootLayout({
           {children}
         </I18nProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
