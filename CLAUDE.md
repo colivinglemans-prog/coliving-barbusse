@@ -8,6 +8,7 @@ Site vitrine + dashboard privé pour un coliving au Mans (Airbnb, Booking, Abrit
 - **Styling** : Tailwind CSS v4
 - **Auth** : JWT via `jose` (HS256, cookie httpOnly, 90 jours)
 - **Charts** : Recharts (dashboard)
+- **PDF** : `@react-pdf/renderer` (factures LMNP, dashboard)
 - **Email** : Resend (alertes chauffage)
 - **i18n** : Système custom Context (FR/EN)
 - **API externes** : Beds24 (réservations), Heatzy/Gizwits (chauffage)
@@ -42,6 +43,9 @@ app/
       bookings/       # Réservations Beds24
       calendar/       # Calendrier disponibilité
       properties/     # Propriétés Beds24
+      invoices/       # Factures PDF (prefill depuis Beds24, generate PDF)
+        prefill/      # GET ?bookingId=... → payload pré-rempli
+        generate/     # POST payload édité → PDF téléchargé
     cron/
       heating-automation/  # Check-in/check-out → mode présence/hors-gel
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
@@ -59,6 +63,10 @@ lib/
   email.ts            # Alertes email via Resend
   cron-auth.ts        # Vérification CRON_SECRET pour les cron jobs
   calendar-utils.ts   # Utilitaires calendrier
+  invoice-config.ts   # Config émetteur facture (INVOICE_* env vars)
+  invoice-number.ts   # Numérotation séquentielle annuelle (Upstash INCR)
+  invoice-payload.ts  # Type InvoicePayload, pré-remplissage Beds24, validation
+  invoice-pdf.tsx     # Template React-PDF (bannière logo, LMNP, IBAN)
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
   reviews.json        # 16 avis Airbnb (source: feed SociableKit)
@@ -228,6 +236,31 @@ La condition `isCurrentlyOccupied` utilise `arrival < today || (arrival === toda
 | Réservation maison entière | Performance | 58°C |
 | Longue vacance (7+ jours) | Mode absence Cozytouch | — |
 
+## Factures PDF (LMNP, paiement par virement)
+
+Permet d'émettre une facture PDF pour un client qui veut régler par virement plutôt que par carte (typiquement depuis une inquiry Beds24).
+
+### Flux (admin only)
+
+1. Dashboard → **Factures** → liste des réservations/inquiries avec filtres (Tous / Inquiries / Direct / Airbnb / Booking / Abritel).
+2. Clic « Créer une facture » ou saisie d'un ID Beds24 → page formulaire pré-rempli.
+3. Champs éditables : client (company, nom, adresse, email, tél), séjour (dates, nuits, commentaires), montant (éditable), date limite de paiement.
+4. Clic « Générer le PDF » → le numéro de facture est alloué (`AAAA-NNN` via Upstash `INCR invoice:counter:{year}`) et le PDF est téléchargé.
+
+### Caractéristiques du PDF
+
+- Bannière avec logo SVG (maison rose), « COLIVING BARBUSSE », site web, email.
+- Bloc client (raison sociale si entreprise, adresse complète).
+- Si le champ `title` Beds24 n'est pas une civilité (M., Mme, etc.), il est utilisé comme raison sociale.
+- Mention **« TVA non applicable, art. 293B du CGI »** (LMNP).
+- Coordonnées de virement (IBAN, BIC, banque) avec le n° facture comme **libellé du virement**.
+- `<View wrap={false}>` sur le bloc paiement pour éviter qu'il soit coupé entre deux pages.
+
+### Restrictions
+
+- `/dashboard/invoices/**` et `/api/dashboard/invoices/**` : middleware bloque viewer (redirect / 403).
+- Numérotation séquentielle **continue** (obligation légale FR) : le compteur n'est incrémenté qu'à la génération réelle, pas à l'ouverture du formulaire.
+
 ## Cron Jobs (via cron-job.org)
 
 | Job | URL | Fréquence |
@@ -255,4 +288,13 @@ ALERT_EMAIL              # Email destination des alertes chauffage
 LOCKED_DEVICES           # Device IDs verrouillés (comma-separated, optionnel)
 COZYTOUCH_EMAIL          # Email du compte Cozytouch/Atlantic
 COZYTOUCH_PASSWORD       # Mot de passe du compte Cozytouch
+INVOICE_LEGAL_NAME       # Nom du loueur affiché sur la facture
+INVOICE_ADDRESS_LINE1    # Rue du loueur
+INVOICE_ADDRESS_LINE2    # CP + ville du loueur
+INVOICE_EMAIL            # Email de contact affiché sur la facture
+INVOICE_PHONE            # Téléphone (optionnel)
+INVOICE_IBAN             # IBAN sans espaces (beneficiaire virement)
+INVOICE_BIC              # BIC / SWIFT
+INVOICE_BANK_NAME        # Nom de la banque
+INVOICE_WEBSITE          # URL du site affichée sur la facture (optionnel)
 ```
