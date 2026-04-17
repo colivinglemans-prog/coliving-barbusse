@@ -37,3 +37,56 @@ html {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.prose-article {
+  color: #333333;
+  line-height: 1.75;
+}
+.prose-article .lead {
+  font-size: 1.125rem;
+  color: #555555;
+  margin-bottom: 2rem;
+}
+.prose-article h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #222222;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+.prose-article h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #222222;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+.prose-article p {
+  margin-bottom: 1.25rem;
+}
+.prose-article ul,
+.prose-article ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+.prose-article ul {
+  list-style-type: disc;
+}
+.prose-article ol {
+  list-style-type: decimal;
+}
+.prose-article li {
+  margin-bottom: 0.4rem;
+}
+.prose-article strong {
+  color: #222222;
+  font-weight: 600;
+}
+.prose-article a {
+  color: #FF385C;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-article a:hover {
+  color: #E31C5F;
+}

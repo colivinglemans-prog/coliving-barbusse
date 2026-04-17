@@ -9,6 +9,7 @@ import ReservationCalendar from "@/components/public/ReservationCalendar";
 import LocationSection from "@/components/public/LocationSection";
 import HostSection from "@/components/public/HostSection";
 import AirbnbReviews from "@/components/public/AirbnbReviews";
+import BlogSection from "@/components/public/BlogSection";
 import HouseRules from "@/components/public/HouseRules";
 
 const jsonLd = {
@@ -34,7 +35,7 @@ const jsonLd = {
   numberOfRooms: 9,
   amenityFeature: [
     { "@type": "LocationFeatureSpecification", name: "Wi-Fi", value: true },
-    { "@type": "LocationFeatureSpecification", name: "Parking", value: true },
+    { "@type": "LocationFeatureSpecification", name: "Stationnement gratuit dans la rue", value: true },
     { "@type": "LocationFeatureSpecification", name: "Salle de sport", value: true },
     { "@type": "LocationFeatureSpecification", name: "Espace zen", value: true },
   ],
@@ -64,6 +65,7 @@ export default function Home() {
       <LocationSection />
       <HostSection />
       <AirbnbReviews />
+      <BlogSection />
       <HouseRules />
     </>
   );

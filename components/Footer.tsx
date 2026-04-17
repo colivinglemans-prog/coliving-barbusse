@@ -24,6 +24,7 @@ export default function Footer() {
               <li><Link href="/#equipements" className="hover:text-foreground">{t.header.amenities}</Link></li>
               <li><Link href="/#localisation" className="hover:text-foreground">{t.header.location}</Link></li>
               <li><Link href="/#disponibilite" className="hover:text-foreground">{t.header.book}</Link></li>
+              <li><Link href="/blog" className="hover:text-foreground">Blog</Link></li>
             </ul>
           </div>
           <div>

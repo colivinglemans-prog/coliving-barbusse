@@ -35,6 +35,11 @@ export default function Header() {
             </Link>
           </li>
           <li>
+            <Link href="/blog" className="transition-colors hover:text-foreground">
+              Blog
+            </Link>
+          </li>
+          <li>
             <Link
               href="/#disponibilite"
               className="rounded-full bg-primary px-5 py-2 text-white transition-colors hover:bg-primary-dark"
@@ -99,6 +104,11 @@ export default function Header() {
             <li>
               <Link href="/#localisation" onClick={() => setMenuOpen(false)} className="block hover:text-foreground">
                 {t.header.location}
+              </Link>
+            </li>
+            <li>
+              <Link href="/blog" onClick={() => setMenuOpen(false)} className="block hover:text-foreground">
+                Blog
               </Link>
             </li>
             <li>

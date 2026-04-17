@@ -42,7 +42,7 @@ export const en: Dictionary = {
 
 Quality bedding, storage and real privacy in every room. Each suite features a double bed with storage, a desk with Ethernet connection, a private bathroom, a smart TV, a dressing area and an individual key.
 
-The house is spread over 3 levels with a large living room, a fully equipped dining kitchen, a garden, a terrace, a garage and a fully equipped gym with zen area.
+The house is spread over 3 levels with a large living room, a fully equipped dining kitchen, a garden, a terrace and a fully equipped gym with zen area.
 
 Ideal for mixed groups, colleagues, friends or blended families. This concept allows everyone to live at their own pace while enjoying the pleasure of being together.
 
