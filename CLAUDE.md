@@ -69,7 +69,7 @@ lib/
   invoice-pdf.tsx     # Template React-PDF (bannière logo, LMNP, IBAN)
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
-  reviews.json        # 16 avis Airbnb (source: feed SociableKit)
+  reviews.json        # 17 avis Airbnb (source: feed SociableKit)
   heatzy-zones.json   # Config zones radiateurs + mapping Beds24
 public/images/
   house/              # 12 photos de la maison

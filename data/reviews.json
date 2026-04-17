@@ -1,5 +1,21 @@
 [
   {
+    "name": "Jerome",
+    "location": "France",
+    "date": "2026-04",
+    "rating": 5,
+    "text": "Super logement, à noter que c'est très rare mais une télé dans chaque chambre fait la différence quand on fait des voyages professionnels à plusieurs. Tout était propre comme sur les photos. Personne très facile à joindre et réactif. Je recommande vivement pour des besoin pro ou personnel.",
+    "photo": ""
+  },
+  {
+    "name": "Jean-Michel",
+    "location": "Le Mont-sur-Lausanne, Suisse",
+    "date": "2026-04",
+    "rating": 4,
+    "text": "Très bon logement. Le chauffage était un peu compliqué à régler.",
+    "photo": ""
+  },
+  {
     "name": "Delphine",
     "location": "France",
     "date": "2026-03",
