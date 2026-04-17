@@ -33,15 +33,28 @@ export async function getBookings(params?: {
   arrivalTo?: string;
   departureFrom?: string;
   departureTo?: string;
+  statuses?: string[];
 }): Promise<Beds24Booking[]> {
   const queryParams: Record<string, string> = {};
   if (params?.arrivalFrom) queryParams.arrivalFrom = params.arrivalFrom;
   if (params?.arrivalTo) queryParams.arrivalTo = params.arrivalTo;
   if (params?.departureFrom) queryParams.departureFrom = params.departureFrom;
   if (params?.departureTo) queryParams.departureTo = params.departureTo;
+  if (params?.statuses && params.statuses.length > 0) {
+    queryParams.status = params.statuses.join(",");
+  }
 
   const data = await beds24Fetch<{ data: Beds24Booking[] }>("/bookings", queryParams);
   return data.data ?? [];
+}
+
+export async function getBookingById(id: number): Promise<Beds24Booking | null> {
+  const data = await beds24Fetch<{ data: Beds24Booking[] }>("/bookings", {
+    id: String(id),
+    includeInvoiceItems: "true",
+    includeGuests: "true",
+  });
+  return data.data?.[0] ?? null;
 }
 
 interface AvailabilityRoom {

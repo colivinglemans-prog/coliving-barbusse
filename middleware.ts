@@ -39,6 +39,9 @@ export async function middleware(request: NextRequest) {
       if (role === "viewer" && pathname === "/dashboard") {
         return NextResponse.redirect(new URL("/dashboard/calendar", request.url));
       }
+      if (role === "viewer" && pathname.startsWith("/dashboard/invoices")) {
+        return NextResponse.redirect(new URL("/dashboard/calendar", request.url));
+      }
       if (role === "viewer" && pathname.startsWith("/api/dashboard/stats")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
@@ -57,8 +60,12 @@ export async function middleware(request: NextRequest) {
       const { payload } = await jwtVerify(token, getSecret());
       const role = (payload.role as string) ?? "admin";
 
-      // Viewers cannot access stats API
-      if (role === "viewer" && pathname.startsWith("/api/dashboard/stats")) {
+      // Viewers cannot access admin-only APIs
+      if (
+        role === "viewer" &&
+        (pathname.startsWith("/api/dashboard/stats") ||
+          pathname.startsWith("/api/dashboard/invoices"))
+      ) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     } catch {

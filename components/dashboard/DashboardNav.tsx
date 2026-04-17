@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/calendar", label: "Calendrier", adminOnly: false },
   { href: "/dashboard/heating", label: "Chauffage", adminOnly: false },
   { href: "/dashboard/water-heater", label: "Eau chaude", adminOnly: false },
+  { href: "/dashboard/invoices", label: "Factures", adminOnly: true },
 ];
 
 interface DashboardNavProps {
@@ -34,7 +35,10 @@ export default function DashboardNav({ role = "admin" }: DashboardNavProps) {
             Coliving Barbusse
           </Link>
           {NAV_ITEMS.filter((item) => !item.adminOnly || role === "admin").map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}

@@ -68,6 +68,20 @@ export interface Beds24Booking {
   numAdult: number;
   numChild: number;
   bookingTime: string;
+  // Contact / billing fields (Beds24 v2 /bookings response)
+  title?: string;      // Civilité OU nom de société (souvent mal utilisé par les clients)
+  email?: string;
+  mobile?: string;
+  phone?: string;
+  company?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  comments?: string;   // Guest comments (printed on invoice)
+  notes?: string;      // Internal notes (NOT printed)
+  arrivalTime?: string;
 }
 
 export interface Beds24Property {
