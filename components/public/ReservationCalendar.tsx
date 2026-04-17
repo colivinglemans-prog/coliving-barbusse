@@ -42,10 +42,10 @@ export default function ReservationCalendar() {
 
   const month2 = addMonths(baseYear, baseMonth, 1);
 
-  const fetchAvailability = useCallback(async () => {
+  const fetchAvailability = useCallback(async (force = false) => {
     const key1 = monthKey(baseYear, baseMonth);
     const key2 = monthKey(month2.year, month2.month);
-    if (availCache[key1] && availCache[key2]) return;
+    if (!force && availCache[key1] && availCache[key2]) return;
 
     setLoading(true);
     try {
@@ -53,7 +53,9 @@ export default function ReservationCalendar() {
       const lastDay = daysInMonth(month2.year, month2.month);
       const to = `${key2}-${String(lastDay).padStart(2, "0")}`;
 
-      const res = await fetch(`/api/availability?mode=map&from=${from}&to=${to}`);
+      const res = await fetch(`/api/availability?mode=map&from=${from}&to=${to}`, {
+        cache: force ? "no-store" : "default",
+      });
       const data = await res.json();
 
       if (data.dates) {
@@ -79,6 +81,27 @@ export default function ReservationCalendar() {
 
   useEffect(() => {
     fetchAvailability();
+  }, [fetchAvailability]);
+
+  // Refresh availability when user comes back to the tab (avoid showing stale data)
+  useEffect(() => {
+    const MIN_REFETCH_INTERVAL_MS = 30_000;
+    let lastRefetch = Date.now();
+
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - lastRefetch < MIN_REFETCH_INTERVAL_MS) return;
+      lastRefetch = now;
+      fetchAvailability(true);
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
   }, [fetchAvailability]);
 
   // Navigation

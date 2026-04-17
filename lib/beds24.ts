@@ -13,7 +13,7 @@ async function beds24Fetch<T>(path: string, params?: Record<string, string>): Pr
 
   const res = await fetch(url.toString(), {
     headers: { token },
-    next: { revalidate: 300 },
+    next: { revalidate: 60 },
   });
 
   if (!res.ok) {
