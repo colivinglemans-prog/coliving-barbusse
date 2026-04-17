@@ -1,7 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useTranslation } from "@/lib/i18n";
+
+const LocationMap = dynamic(() => import("./LocationMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[300px] w-full items-center justify-center bg-light-bg">
+      <span className="text-sm text-secondary">Chargement de la carte…</span>
+    </div>
+  ),
+});
 
 const ICONS = ["🚄", "🏁", "🏢", "🌳", "🚊", "🏛️"];
 
@@ -15,16 +25,9 @@ export default function LocationSection() {
         {t.location.address}
       </p>
 
-      {/* Map embed */}
-      <div className="mt-6 overflow-hidden rounded-xl">
-        <iframe
-          title="Localisation Coliving Barbusse"
-          src="https://www.openstreetmap.org/export/embed.html?bbox=0.185%2C47.983%2C0.200%2C47.993&layer=mapnik&marker=47.9881%2C0.1924"
-          width="100%"
-          height="300"
-          className="border-0"
-          loading="lazy"
-        />
+      {/* Map with two markers: house + circuit */}
+      <div className="mt-6 h-[300px] overflow-hidden rounded-xl">
+        <LocationMap />
       </div>
 
       {/* Circuit Bugatti highlight */}

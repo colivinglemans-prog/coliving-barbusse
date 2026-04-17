@@ -64,8 +64,8 @@ export default function Article() {
       </p>
       <ul>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
-        <li>15 min du Circuit Bugatti</li>
-        <li>10 min de la gare TGV (si certains arrivent en train)</li>
+        <li>15-20 min du Circuit Bugatti hors événement (45-60 min les jours de course)</li>
+        <li>10 min à pied de la gare TGV + tram T1 direct vers le circuit (~30 min porte-à-porte, idéal pour éviter les bouchons)</li>
         <li>Cuisine équipée pour dîner ensemble après la course</li>
         <li>Salle de sport pour évacuer les courbatures</li>
         <li>Arrivée autonome dès 17h avec serrure connectée</li>
@@ -82,7 +82,9 @@ export default function Article() {
           contre la pluie (avril = météo imprévisible).
         </li>
         <li>
-          <strong>Partez tôt pour le circuit</strong> le samedi matin (avant 10h).
+          <strong>Partez tôt pour le circuit</strong> le samedi matin (avant 10h), ou prenez
+          le <strong>tramway T1</strong> depuis la gare du Mans (~20 min jusqu'à l'entrée
+          Est du circuit) pour éviter les bouchons et le stress parking.
         </li>
         <li>
           <strong>Gardez une journée tourisme</strong> : Cité Plantagenêt, cathédrale

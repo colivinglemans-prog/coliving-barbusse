@@ -55,7 +55,7 @@ export default function Article() {
 
       <h3>En ville, pour l'accès facile</h3>
       <p>
-        Le Mans centre reste l'option la plus pratique : 15 minutes du circuit, mais loin des
+        Le Mans centre reste l'option la plus pratique : 15-20 minutes du circuit hors événement (30-45 min les jours de course), mais loin des
         bouchons et des campements. Idéal pour les familles et les amateurs qui veulent aussi
         profiter du patrimoine de la Cité Plantagenêt.
       </p>
@@ -76,10 +76,11 @@ export default function Article() {
       <h2>Notre maison : parfaite pour les clubs de collectionneurs</h2>
       <p>
         Nos <strong>9 suites privatives avec salles de bain</strong> accueillent jusqu'à 18
-        personnes dans un cadre calme, à 15 minutes du Circuit Bugatti :
+        personnes dans un cadre calme, à 15-20 minutes du Circuit Bugatti hors événement (30-45 min les jours de course) :
       </p>
       <ul>
         <li>Stationnement gratuit dans une rue résidentielle calme</li>
+        <li>10 min à pied de la gare du Mans + tram T1 direct vers le circuit (~30 min porte-à-porte, idéal pour laisser la voiture de collection à l'abri les jours d'affluence)</li>
         <li>Cuisine équipée pour dîner ensemble en mode "repas d'équipe"</li>
         <li>240 m² d'espaces communs pour se retrouver</li>
         <li>Wi-Fi haut débit, salle de sport, espace zen</li>

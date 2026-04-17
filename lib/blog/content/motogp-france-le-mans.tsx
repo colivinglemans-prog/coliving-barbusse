@@ -44,7 +44,7 @@ export default function Article() {
       <p>
         Les villages autour du circuit (Arnage, Mulsanne) sont saturés et les axes bouchés. En
         ville, vous profitez en plus du centre historique et des restaurants. La distance au
-        circuit reste très raisonnable (10-15 minutes).
+        circuit reste très raisonnable (15-20 minutes hors événement, 45-60 min les jours de course à cause des bouchons).
       </p>
 
       <h3>Durée de séjour recommandée</h3>
@@ -68,10 +68,11 @@ export default function Article() {
       <h2>Notre maison : parfaite pour un week-end MotoGP entre amis</h2>
       <p>
         Notre coliving de <strong>9 suites privatives avec salles de bain</strong> accueille
-        jusqu'à 18 personnes dans le calme, à 15 minutes du Circuit Bugatti :
+        jusqu'à 18 personnes dans le calme, à 15-20 minutes du Circuit Bugatti hors événement (45-60 min les jours de course) :
       </p>
       <ul>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
+        <li>10 min à pied de la gare du Mans + tram T1 direct vers le circuit (~30 min porte-à-porte, sans stress parking)</li>
         <li>240 m² d'espaces communs : salon, cuisine, véranda, terrasse</li>
         <li>Salle de sport et espace zen</li>
         <li>Wi-Fi haut débit pour revoir les essais en replay</li>
@@ -89,8 +90,10 @@ export default function Article() {
           bottines.
         </li>
         <li>
-          <strong>Transport</strong> : évitez la voiture le dimanche matin. Tramway + navette
-          depuis la gare du Mans = la solution la plus rapide.
+          <strong>Transport</strong> : évitez la voiture le dimanche matin. Le{" "}
+          <strong>tramway T1</strong> depuis la gare du Mans rejoint l'entrée Est du circuit
+          en ~20 min (cadence toutes les 4-5 min le jour de course). C'est de loin la solution
+          la plus rapide et la moins stressante.
         </li>
         <li>
           <strong>Anticipez le retour</strong> : le dimanche soir après la course, les axes sont

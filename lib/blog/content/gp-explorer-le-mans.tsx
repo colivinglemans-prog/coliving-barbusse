@@ -74,8 +74,8 @@ export default function Article() {
         jusqu'à 18 personnes :
       </p>
       <ul>
-        <li>15 min du Circuit Bugatti</li>
-        <li>10 min de la gare TGV (parfait pour les groupes qui arrivent de Paris)</li>
+        <li>15-20 min du Circuit Bugatti hors événement (45-60 min les jours de course)</li>
+        <li>10 min à pied de la gare TGV + tram T1 direct vers le circuit (~30 min porte-à-porte, sans bouchon ni souci de parking)</li>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
         <li>240 m² d'espaces communs pour se retrouver</li>
         <li>Wi-Fi haut débit pour regarder le live Twitch si certains ratent une session</li>
@@ -90,8 +90,12 @@ export default function Article() {
           tous les billets sont partis en moins de 30 minutes.
         </li>
         <li>
-          <strong>Anticipez le retour</strong> : comme pour les grandes courses, les axes
-          routiers sont surchargés à la sortie.
+          <strong>Privilégiez le tramway T1</strong> depuis la gare du Mans (~20 min jusqu'au
+          circuit, trams fréquents). Ça évite les bouchons à l'entrée et au retour.
+        </li>
+        <li>
+          <strong>Anticipez le retour en voiture</strong> : comme pour les grandes courses,
+          les axes routiers sont surchargés à la sortie.
         </li>
         <li>
           <strong>Arrivez le vendredi soir</strong> pour profiter du centre-ville avant

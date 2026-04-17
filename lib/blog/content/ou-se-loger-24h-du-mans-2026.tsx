@@ -28,10 +28,10 @@ export default function Article() {
         temps.
       </p>
 
-      <h3>Le Mans ville (10-15 min du circuit)</h3>
+      <h3>Le Mans ville (15-20 min du circuit hors événement)</h3>
       <p>
         Le meilleur compromis. Vous profitez du centre-ville historique (Cité Plantagenêt,
-        cathédrale, restaurants) et rejoignez le circuit en voiture en 10 à 15 minutes hors
+        cathédrale, restaurants) et rejoignez le circuit en voiture en 15 à 20 minutes hors
         embouteillages. C'est la zone idéale pour les groupes et les familles qui veulent
         alterner course et tourisme.
       </p>
@@ -74,15 +74,15 @@ export default function Article() {
         partagée à 15 revient souvent moins cher qu'un hôtel individuel.
       </p>
 
-      <h2>Notre maison — 9 suites privatives à 15 minutes du circuit</h2>
+      <h2>Notre maison — 9 suites privatives à 15-20 minutes du circuit</h2>
       <p>
         Pour les groupes, familles élargies ou entreprises, notre maison de 240 m² offre{" "}
         <strong>9 chambres doubles avec salle de bain privative</strong>. Vous dormez à 18
         dans le calme, chacun dans son espace, sans compromis sur le confort.
       </p>
       <ul>
-        <li>15 min du Circuit Bugatti (hors embouteillages)</li>
-        <li>10 min de la gare TGV Le Mans</li>
+        <li>15-20 min du Circuit Bugatti hors événement (45-60 min les jours de course à cause des bouchons)</li>
+        <li>10 min à pied de la gare TGV Le Mans + tram T1 direct vers le circuit (~30 min porte-à-porte, sans stress parking)</li>
         <li>Stationnement gratuit dans la rue, juste devant la maison</li>
         <li>Cuisine entièrement équipée</li>
         <li>Salle de sport et espace zen sur place</li>
@@ -108,7 +108,9 @@ export default function Article() {
         </li>
         <li>
           <strong>Anticipez les embouteillages</strong> : partez 2h avant le début de la course
-          le samedi.
+          le samedi, ou mieux : prenez le <strong>tramway T1</strong> depuis la gare du
+          Mans (~20 min jusqu'à l'entrée Est du circuit, trams toutes les 4-5 min le jour
+          de course). C'est la solution la plus fiable.
         </li>
       </ol>
 
