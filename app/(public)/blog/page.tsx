@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Conseils et guides pratiques pour séjourner au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.",
   alternates: {
-    canonical: "https://coliving-barbusse.vercel.app/blog",
+    canonical: "https://www.coliving-barbusse.fr/blog",
   },
 };
 

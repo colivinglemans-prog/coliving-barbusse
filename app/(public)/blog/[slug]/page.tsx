@@ -22,7 +22,7 @@ const CONTENT: Record<string, React.ComponentType> = {
   "entreprises-proches-le-mans": ArticleEntreprises,
 };
 
-const SITE_URL = "https://coliving-barbusse.vercel.app";
+const SITE_URL = "https://www.coliving-barbusse.fr";
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((post) => ({ slug: post.slug }));

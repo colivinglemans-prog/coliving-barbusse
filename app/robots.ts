@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard/", "/api/"],
     },
-    sitemap: "https://coliving-barbusse.vercel.app/sitemap.xml",
+    sitemap: "https://www.coliving-barbusse.fr/sitemap.xml",
   };
 }

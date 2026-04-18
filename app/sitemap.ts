@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/lib/blog/posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://coliving-barbusse.vercel.app";
+  const baseUrl = "https://www.coliving-barbusse.fr";
 
   const staticPages: MetadataRoute.Sitemap = [
     {

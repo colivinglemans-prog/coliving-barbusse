@@ -36,6 +36,6 @@
 
 ## Liens
 
-- Site web : https://coliving-barbusse.vercel.app
-- Réservation : https://coliving-barbusse.vercel.app/reservation
-- Chambres : https://coliving-barbusse.vercel.app/chambres
+- Site web : https://www.coliving-barbusse.fr
+- Réservation : https://www.coliving-barbusse.fr/reservation
+- Chambres : https://www.coliving-barbusse.fr/chambres

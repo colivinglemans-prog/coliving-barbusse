@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://coliving-barbusse.vercel.app";
+const SITE_URL = "https://www.coliving-barbusse.fr";
 const TITLE =
   "Coliving Barbusse - Maison premium 9 suites privatives Le Mans Proche circuit";
 const DESCRIPTION =

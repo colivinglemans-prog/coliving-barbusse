@@ -18,8 +18,8 @@ const jsonLd = {
   name: "Coliving Barbusse",
   description:
     "Maison de 240 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV.",
-  url: "https://coliving-barbusse.vercel.app",
-  image: "https://coliving-barbusse.vercel.app/images/house/3-maison-AI.png",
+  url: "https://www.coliving-barbusse.fr",
+  image: "https://www.coliving-barbusse.fr/images/house/3-maison-AI.png",
   address: {
     "@type": "PostalAddress",
     streetAddress: "Rue Henri Barbusse",
