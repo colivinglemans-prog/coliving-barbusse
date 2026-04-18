@@ -10,16 +10,80 @@ interface Props {
 
 type FieldErrors = Partial<Record<keyof InvoicePayload, string>>;
 
+interface GeneratedInvoice {
+  number: string;
+  payload: InvoicePayload;
+}
+
 const inputClass =
   "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-rose-400 focus:outline-none focus:ring-1 focus:ring-rose-300";
 
 const labelClass = "mb-1 block text-xs font-medium text-gray-600";
+
+function formatDateFr(iso: string): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  if (!y || !m || !d) return iso;
+  return `${d}/${m}/${y}`;
+}
+
+function formatEur(n: number): string {
+  const [intPart, decPart] = Math.abs(n).toFixed(2).split(".");
+  const withSep = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const sign = n < 0 ? "-" : "";
+  return `${sign}${withSep},${decPart} €`;
+}
+
+function buildFullEmail(g: GeneratedInvoice): string {
+  const p = g.payload;
+  const firstName = p.firstName || "Madame, Monsieur";
+  return `Objet : Votre demande de réservation — facture n° ${g.number} (paiement par virement)
+
+Bonjour ${firstName},
+
+Merci pour votre demande de réservation du ${formatDateFr(p.arrival)} au ${formatDateFr(p.departure)} au Coliving Barbusse.
+
+Vous trouverez ci-joint la facture correspondante pour un règlement par virement bancaire.
+
+Récapitulatif
+- Montant : ${formatEur(p.amount)}
+- Référence à indiquer dans le libellé du virement : ${g.number}
+- Date limite de paiement : ${formatDateFr(p.paymentDueDate)}
+
+Les coordonnées bancaires (IBAN / BIC) figurent sur la facture.
+
+Dès réception du virement, je vous confirme la réservation et vous transmets les informations pratiques (code d'accès de la serrure connectée, arrivée à partir de 17h, guide d'arrivée).
+
+N'hésitez pas si vous avez la moindre question — par email ou directement sur WhatsApp au +33 6 20 92 10 05.
+
+Bien cordialement,
+Alexandre
+Coliving Barbusse — https://coliving-barbusse.vercel.app`;
+}
+
+function buildShortMessage(g: GeneratedInvoice): string {
+  const p = g.payload;
+  const firstName = p.firstName || "bonjour";
+  return `Bonjour ${firstName}, merci pour votre demande. Vous trouverez ci-joint la facture n° ${g.number} pour un règlement par virement : ${formatEur(p.amount)}, à régler avant le ${formatDateFr(p.paymentDueDate)} en indiquant ${g.number} en libellé. Les IBAN/BIC sont sur la facture. Je confirme la réservation dès réception du virement. Bien cordialement, Alexandre.`;
+}
 
 export default function InvoiceForm({ initial, bookingId }: Props) {
   const [payload, setPayload] = useState<InvoicePayload>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [generated, setGenerated] = useState<GeneratedInvoice | null>(null);
+  const [copied, setCopied] = useState<"full" | "short" | null>(null);
+
+  async function copyToClipboard(text: string, which: "full" | "short") {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(which);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      setError("Impossible de copier dans le presse-papiers");
+    }
+  }
 
   function update<K extends keyof InvoicePayload>(key: K, value: InvoicePayload[K]) {
     setPayload((p) => ({ ...p, [key]: value }));
@@ -64,6 +128,7 @@ export default function InvoiceForm({ initial, bookingId }: Props) {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      setGenerated({ number: invoiceNumber, payload });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
@@ -319,6 +384,65 @@ export default function InvoiceForm({ initial, bookingId }: Props) {
           {submitting ? "Génération…" : "Générer le PDF"}
         </button>
       </div>
+
+      {generated && (
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">
+                Facture n° {generated.number} générée ✓
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-800">
+                Le PDF a été téléchargé. Voici un modèle d&apos;email à envoyer au client.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-xs font-medium text-emerald-900">
+                  Email complet (pièce jointe = facture-{generated.number}.pdf)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(buildFullEmail(generated), "full")}
+                  className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+                >
+                  {copied === "full" ? "Copié ✓" : "Copier"}
+                </button>
+              </div>
+              <textarea
+                className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 font-mono text-xs text-gray-800"
+                rows={14}
+                readOnly
+                value={buildFullEmail(generated)}
+              />
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-xs font-medium text-emerald-900">
+                  Message court (pour la messagerie Beds24)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(buildShortMessage(generated), "short")}
+                  className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+                >
+                  {copied === "short" ? "Copié ✓" : "Copier"}
+                </button>
+              </div>
+              <textarea
+                className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 font-mono text-xs text-gray-800"
+                rows={5}
+                readOnly
+                value={buildShortMessage(generated)}
+              />
+            </div>
+          </div>
+        </section>
+      )}
     </form>
   );
 }
