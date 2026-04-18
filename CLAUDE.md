@@ -30,8 +30,14 @@ npx vercel --prod # Déployer en production
 
 ```
 app/
-  (public)/           # Site vitrine (page d'accueil, chambres, réservation)
-  (dashboard)/        # Dashboard privé (stats, calendrier, chauffage)
+  page.tsx            # Redirige / vers /fr ou /en selon Accept-Language
+  [locale]/           # Site vitrine bilingue (/fr/*, /en/*)
+    layout.tsx        # Wrap I18nProvider avec locale depuis params
+    page.tsx          # Homepage (metadata/JSON-LD localisés)
+    blog/
+    chambres/
+    reservation/
+  (dashboard)/        # Dashboard privé (stats, calendrier, chauffage) — hors [locale]
   api/
     auth/             # Login, logout, me
     availability/     # Disponibilité Beds24 (public)
@@ -56,6 +62,11 @@ components/
     HeatingZoneCard   # Carte zone avec contrôle groupé
     HeatingDeviceCard # Carte device (mode, temp, tendance, présence, alertes)
 lib/
+  blog/
+    posts.ts          # BLOG_POSTS avec locales.fr/en (title, description, excerpt, keywords)
+    content/
+      fr/             # 10 articles FR (Link hrefs préfixés /fr)
+      en/             # 10 articles EN (Link hrefs préfixés /en)
   i18n/               # Traductions FR/EN (dictionaries/, context, types)
   auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
   beds24.ts           # Client API Beds24 (cache 5 min)
@@ -69,12 +80,12 @@ lib/
   invoice-pdf.tsx     # Template React-PDF (bannière logo, LMNP, IBAN)
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
-  reviews.json        # 17 avis Airbnb (source: feed SociableKit)
+  reviews.json        # 18 avis (17 Airbnb + 1 Abritel/Vrbo)
   heatzy-zones.json   # Config zones radiateurs + mapping Beds24
 public/images/
   house/              # 12 photos de la maison
   rooms/              # 9 dossiers chambre (chambre-1 à chambre-9)
-middleware.ts         # Auth JWT + détection locale + contrôle rôles
+middleware.ts         # Auth JWT + 301 redirects anciennes URLs vers /fr/*
 vercel.json           # Config Vercel (crons quotidiens)
 ```
 
