@@ -10,6 +10,8 @@ import ArticleGPExplorer from "@/lib/blog/content/gp-explorer-le-mans";
 import ArticleTourisme from "@/lib/blog/content/que-visiter-le-mans-sarthe";
 import ArticleRestos from "@/lib/blog/content/restos-bars-magasins-le-mans";
 import ArticleEntreprises from "@/lib/blog/content/entreprises-proches-le-mans";
+import ArticleHippodrome from "@/lib/blog/content/hippodrome-des-hunaudieres";
+import Article24hRollers from "@/lib/blog/content/24-heures-rollers-le-mans";
 
 const CONTENT: Record<string, React.ComponentType> = {
   "ou-se-loger-24h-du-mans-2026": Article24hDuMans2026,
@@ -20,6 +22,8 @@ const CONTENT: Record<string, React.ComponentType> = {
   "que-visiter-le-mans-sarthe": ArticleTourisme,
   "restos-bars-magasins-le-mans": ArticleRestos,
   "entreprises-proches-le-mans": ArticleEntreprises,
+  "hippodrome-des-hunaudieres": ArticleHippodrome,
+  "24-heures-rollers-le-mans": Article24hRollers,
 };
 
 const SITE_URL = "https://www.coliving-barbusse.fr";

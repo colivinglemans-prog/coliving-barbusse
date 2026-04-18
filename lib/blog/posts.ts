@@ -10,6 +10,40 @@ export interface BlogPostMeta {
 
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
+    slug: "hippodrome-des-hunaudieres",
+    title: "Hippodrome des Hunaudières : courses, programme et événements au Mans",
+    description:
+      "Hippodrome des Hunaudières au Mans : 13 réunions hippiques en 2026, courses de trot et galop, soirées nocturnes. Notre maison à 20 min de l'hippodrome pour votre week-end.",
+    date: "2026-04-17",
+    excerpt:
+      "Seul hippodrome de la Sarthe, 13 réunions dans l'année, courses de trot sur piste sable de 1 350 m. L'incontournable du monde hippique au Mans.",
+    image: "/images/house/3-maison-AI.png",
+    keywords: [
+      "Hippodrome des Hunaudières",
+      "courses hippiques Le Mans",
+      "hippodrome Le Mans programme",
+      "PMU Le Mans Hunaudières",
+      "soirée hippique Le Mans",
+    ],
+  },
+  {
+    slug: "24-heures-rollers-le-mans",
+    title: "24 Heures Rollers du Mans 2026 : guide de l'événement roller",
+    description:
+      "24 Heures Rollers 2026 au Circuit Bugatti les 11-12 juillet : format, inscriptions, hébergement pour équipes et clubs. Guide complet pour préparer votre week-end.",
+    date: "2026-04-16",
+    excerpt:
+      "Patiner 24 heures sur le circuit mythique : 11-12 juillet 2026. Tout pour préparer votre venue en équipe, club ou solo.",
+    image: "/images/house/3-maison-AI.png",
+    keywords: [
+      "24 Heures Rollers Le Mans",
+      "24H Rollers 2026",
+      "roller Circuit Bugatti",
+      "hébergement 24h rollers",
+      "équipe roller Le Mans",
+    ],
+  },
+  {
     slug: "le-mans-classic",
     title: "Le Mans Classic : guide du rassemblement mondial des voitures anciennes",
     description:
