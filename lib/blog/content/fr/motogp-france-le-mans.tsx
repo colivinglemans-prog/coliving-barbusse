@@ -73,7 +73,7 @@ export default function Article() {
       <ul>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
         <li>10 min à pied de la gare du Mans + tram T1 direct vers le circuit (~30 min porte-à-porte, sans stress parking)</li>
-        <li>240 m² d'espaces communs : salon, cuisine, véranda, terrasse</li>
+        <li>215 m² au total (espaces communs, chambres et annexe sport/zen) : salon, cuisine, véranda, terrasse</li>
         <li>Salle de sport et espace zen</li>
         <li>Wi-Fi haut débit pour revoir les essais en replay</li>
         <li>Serrure connectée, arrivée autonome à partir de 17h</li>

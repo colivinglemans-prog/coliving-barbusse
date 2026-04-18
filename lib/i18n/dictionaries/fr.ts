@@ -15,7 +15,7 @@ export const fr: Dictionary = {
     rooms: "9 chambres",
     beds: "9 lits doubles",
     bathrooms: "9 salles de bain privatives",
-    area: "240 m²",
+    area: "215 m²",
   },
   highlights: {
     selfCheckIn: {
@@ -36,7 +36,7 @@ export const fr: Dictionary = {
     title: "Description",
     readMore: "Lire la suite",
     showLess: "Voir moins",
-    body: `Notre maison de 240 m² offre un niveau de confort introuvable ailleurs en location au Mans.
+    body: `Notre maison de 215 m² offre un niveau de confort introuvable ailleurs en location au Mans.
 
 9 chambres doubles, chacune avec sa salle de douche privative — personne n'a à partager la salle de bain, même dans un grand groupe !
 

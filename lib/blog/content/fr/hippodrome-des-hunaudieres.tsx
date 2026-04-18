@@ -96,7 +96,7 @@ export default function Article() {
       </p>
       <ul>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
-        <li>240 m² d'espaces communs pour se retrouver après les courses</li>
+        <li>215 m² au total (espaces communs, chambres et annexe sport/zen) pour se retrouver après les courses</li>
         <li>Cuisine équipée pour un dîner convivial</li>
         <li>Salle de sport et espace zen</li>
         <li>Wi-Fi haut débit</li>

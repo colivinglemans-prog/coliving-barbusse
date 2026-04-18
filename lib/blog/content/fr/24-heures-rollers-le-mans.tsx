@@ -109,8 +109,8 @@ export default function Article() {
           sur place.
         </li>
         <li>
-          <strong>240 m² d'espaces communs</strong> pour se retrouver entre deux tours de
-          circuit.
+          <strong>215 m² au total</strong> (espaces communs, chambres et annexe sport/zen)
+          pour se retrouver entre deux tours de circuit.
         </li>
         <li>
           <strong>Stationnement gratuit</strong> dans une rue résidentielle calme.

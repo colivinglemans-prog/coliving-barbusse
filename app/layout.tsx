@@ -21,7 +21,7 @@ const SITE_URL = "https://www.coliving-barbusse.fr";
 const TITLE =
   "Coliving Barbusse - Maison premium 9 suites privatives Le Mans Proche circuit";
 const DESCRIPTION =
-  "Maison de 240 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV. Idéal groupes, événements et séjours d'entreprise. Jusqu'à 18 personnes.";
+  "Maison de 215 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV. Idéal groupes, événements et séjours d'entreprise. Jusqu'à 18 personnes.";
 
 export const metadata: Metadata = {
   title: TITLE,

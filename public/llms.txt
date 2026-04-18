@@ -1,12 +1,12 @@
 # Coliving Barbusse
 
-> Maison premium de 240 m² avec 9 suites privatives au Mans, proche du Circuit Bugatti et de la Gare TGV.
+> Maison premium de 215 m² avec 9 suites privatives au Mans, proche du Circuit Bugatti et de la Gare TGV.
 
 ## Informations clés
 
 - **Type** : Maison entière en location courte durée (Airbnb, Booking, Abritel)
 - **Capacité** : 18 personnes (9 chambres doubles avec salle de bain privative)
-- **Surface** : 240 m²
+- **Surface** : 215 m²
 - **Localisation** : Rue Henri Barbusse, 72000 Le Mans, France
 - **Proximité** : Circuit Bugatti (5 min), Gare TGV Le Mans (10 min), Centre-ville (10 min)
 

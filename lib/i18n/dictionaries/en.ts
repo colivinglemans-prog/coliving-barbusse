@@ -15,7 +15,7 @@ export const en: Dictionary = {
     rooms: "9 bedrooms",
     beds: "9 double beds",
     bathrooms: "9 private bathrooms",
-    area: "240 m²",
+    area: "215 m²",
   },
   highlights: {
     selfCheckIn: {
@@ -36,7 +36,7 @@ export const en: Dictionary = {
     title: "Description",
     readMore: "Read more",
     showLess: "Show less",
-    body: `Our 240 m² house offers a level of comfort unmatched elsewhere in Le Mans rentals.
+    body: `Our 215 m² house offers a level of comfort unmatched elsewhere in Le Mans rentals.
 
 9 double bedrooms, each with its own private shower room — no one has to share a bathroom, even in a large group!
 

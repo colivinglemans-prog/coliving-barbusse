@@ -1,32 +1,51 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { BLOG_POSTS, getPostBySlug } from "@/lib/blog/posts";
-import Article24hDuMans2026 from "@/lib/blog/content/ou-se-loger-24h-du-mans-2026";
-import Article24hMoto from "@/lib/blog/content/24-heures-moto-le-mans";
-import ArticleMotoGP from "@/lib/blog/content/motogp-france-le-mans";
-import ArticleLeMansClassic from "@/lib/blog/content/le-mans-classic";
-import ArticleGPExplorer from "@/lib/blog/content/gp-explorer-le-mans";
-import ArticleTourisme from "@/lib/blog/content/que-visiter-le-mans-sarthe";
-import ArticleRestos from "@/lib/blog/content/restos-bars-magasins-le-mans";
-import ArticleEntreprises from "@/lib/blog/content/entreprises-proches-le-mans";
-import ArticleHippodrome from "@/lib/blog/content/hippodrome-des-hunaudieres";
-import Article24hRollers from "@/lib/blog/content/24-heures-rollers-le-mans";
+import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
+import type { Locale } from "@/lib/i18n";
 
-const CONTENT: Record<string, React.ComponentType> = {
-  "ou-se-loger-24h-du-mans-2026": Article24hDuMans2026,
-  "24-heures-moto-le-mans": Article24hMoto,
-  "motogp-france-le-mans": ArticleMotoGP,
-  "le-mans-classic": ArticleLeMansClassic,
-  "gp-explorer-le-mans": ArticleGPExplorer,
-  "que-visiter-le-mans-sarthe": ArticleTourisme,
-  "restos-bars-magasins-le-mans": ArticleRestos,
-  "entreprises-proches-le-mans": ArticleEntreprises,
-  "hippodrome-des-hunaudieres": ArticleHippodrome,
-  "24-heures-rollers-le-mans": Article24hRollers,
-};
+import Article24hDuMans2026 from "@/lib/blog/content/fr/ou-se-loger-24h-du-mans-2026";
+import Article24hMoto from "@/lib/blog/content/fr/24-heures-moto-le-mans";
+import ArticleMotoGP from "@/lib/blog/content/fr/motogp-france-le-mans";
+import ArticleLeMansClassic from "@/lib/blog/content/fr/le-mans-classic";
+import ArticleGPExplorer from "@/lib/blog/content/fr/gp-explorer-le-mans";
+import ArticleTourisme from "@/lib/blog/content/fr/que-visiter-le-mans-sarthe";
+import ArticleRestos from "@/lib/blog/content/fr/restos-bars-magasins-le-mans";
+import ArticleEntreprises from "@/lib/blog/content/fr/entreprises-proches-le-mans";
+import ArticleHippodrome from "@/lib/blog/content/fr/hippodrome-des-hunaudieres";
+import Article24hRollers from "@/lib/blog/content/fr/24-heures-rollers-le-mans";
+
+import ArticleEN24hDuMans2026 from "@/lib/blog/content/en/ou-se-loger-24h-du-mans-2026";
+import ArticleEN24hMoto from "@/lib/blog/content/en/24-heures-moto-le-mans";
+import ArticleENMotoGP from "@/lib/blog/content/en/motogp-france-le-mans";
+import ArticleENLeMansClassic from "@/lib/blog/content/en/le-mans-classic";
+import ArticleENGPExplorer from "@/lib/blog/content/en/gp-explorer-le-mans";
+import ArticleENTourisme from "@/lib/blog/content/en/que-visiter-le-mans-sarthe";
+import ArticleENRestos from "@/lib/blog/content/en/restos-bars-magasins-le-mans";
+import ArticleENEntreprises from "@/lib/blog/content/en/entreprises-proches-le-mans";
+import ArticleENHippodrome from "@/lib/blog/content/en/hippodrome-des-hunaudieres";
+import ArticleEN24hRollers from "@/lib/blog/content/en/24-heures-rollers-le-mans";
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
+
+const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
+  "ou-se-loger-24h-du-mans-2026": { fr: Article24hDuMans2026, en: ArticleEN24hDuMans2026 },
+  "24-heures-moto-le-mans": { fr: Article24hMoto, en: ArticleEN24hMoto },
+  "motogp-france-le-mans": { fr: ArticleMotoGP, en: ArticleENMotoGP },
+  "le-mans-classic": { fr: ArticleLeMansClassic, en: ArticleENLeMansClassic },
+  "gp-explorer-le-mans": { fr: ArticleGPExplorer, en: ArticleENGPExplorer },
+  "que-visiter-le-mans-sarthe": { fr: ArticleTourisme, en: ArticleENTourisme },
+  "restos-bars-magasins-le-mans": { fr: ArticleRestos, en: ArticleENRestos },
+  "entreprises-proches-le-mans": { fr: ArticleEntreprises, en: ArticleENEntreprises },
+  "hippodrome-des-hunaudieres": { fr: ArticleHippodrome, en: ArticleENHippodrome },
+  "24-heures-rollers-le-mans": { fr: Article24hRollers, en: ArticleEN24hRollers },
+};
+
+async function getLocale(): Promise<Locale> {
+  const cookieStore = await cookies();
+  return (cookieStore.get("locale")?.value as Locale) || "fr";
+}
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((post) => ({ slug: post.slug }));
@@ -41,26 +60,28 @@ export async function generateMetadata({
   const post = getPostBySlug(slug);
   if (!post) return { title: "Article introuvable" };
 
+  const locale = await getLocale();
+  const loc = getLocalizedPost(post, locale);
   const url = `${SITE_URL}/blog/${post.slug}`;
   const image = `${SITE_URL}${post.image}`;
 
   return {
-    title: post.title,
-    description: post.description,
-    keywords: post.keywords,
+    title: loc.title,
+    description: loc.description,
+    keywords: loc.keywords,
     alternates: { canonical: url },
     openGraph: {
-      title: post.title,
-      description: post.description,
+      title: loc.title,
+      description: loc.description,
       url,
       type: "article",
       publishedTime: post.date,
-      images: [{ url: image, width: 1200, height: 630, alt: post.title }],
+      images: [{ url: image, width: 1200, height: 630, alt: loc.title }],
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
-      description: post.description,
+      title: loc.title,
+      description: loc.description,
       images: [image],
     },
   };
@@ -75,14 +96,16 @@ export default async function BlogPost({
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
-  const Content = CONTENT[slug];
+  const locale = await getLocale();
+  const loc = getLocalizedPost(post, locale);
+  const Content = CONTENT[slug]?.[locale];
   if (!Content) notFound();
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: post.title,
-    description: post.description,
+    headline: loc.title,
+    description: loc.description,
     image: `${SITE_URL}${post.image}`,
     datePublished: post.date,
     dateModified: post.date,
@@ -97,7 +120,11 @@ export default async function BlogPost({
       url: SITE_URL,
     },
     mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
+    inLanguage: locale,
   };
+
+  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
+  const backLabel = locale === "en" ? "← Back to blog" : "← Retour au blog";
 
   return (
     <article className="mx-auto max-w-3xl px-6 py-12">
@@ -107,22 +134,22 @@ export default async function BlogPost({
       />
       <nav className="text-sm text-secondary">
         <Link href="/blog" className="hover:text-foreground">
-          ← Retour au blog
+          {backLabel}
         </Link>
       </nav>
 
       <header className="mt-6">
         <time className="text-xs font-medium uppercase tracking-wide text-secondary">
-          {new Date(post.date).toLocaleDateString("fr-FR", {
+          {new Date(post.date).toLocaleDateString(dateLocale, {
             day: "numeric",
             month: "long",
             year: "numeric",
           })}
         </time>
         <h1 className="mt-2 text-3xl font-bold leading-tight text-foreground sm:text-4xl">
-          {post.title}
+          {loc.title}
         </h1>
-        <p className="mt-3 text-lg text-secondary">{post.description}</p>
+        <p className="mt-3 text-lg text-secondary">{loc.description}</p>
       </header>
 
       <div

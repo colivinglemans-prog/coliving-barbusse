@@ -77,7 +77,7 @@ export default function Article() {
         <li>15-20 min du Circuit Bugatti hors événement (45-60 min les jours de course)</li>
         <li>10 min à pied de la gare TGV + tram T1 direct vers le circuit (~30 min porte-à-porte, sans bouchon ni souci de parking)</li>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
-        <li>240 m² d'espaces communs pour se retrouver</li>
+        <li>215 m² au total (espaces communs, chambres et annexe sport/zen) pour se retrouver</li>
         <li>Wi-Fi haut débit pour regarder le live Twitch si certains ratent une session</li>
         <li>Cuisine équipée pour pré-dîner avant de sortir</li>
         <li>Serrure connectée, arrivée autonome à partir de 17h</li>

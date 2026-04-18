@@ -89,8 +89,9 @@ export default function Article() {
           son intimité après des journées denses.
         </li>
         <li>
-          <strong>240 m² d'espaces communs</strong> : salon, véranda, cuisine équipée — pour
-          réunions informelles, travail en soirée, repas d'équipe.
+          <strong>215 m² au total</strong> (espaces communs, chambres et annexe sport/zen) :
+          salon, véranda, cuisine équipée — pour réunions informelles, travail en soirée,
+          repas d'équipe.
         </li>
         <li>
           <strong>Wi-Fi haut débit</strong> : télétravail, visios, partage de fichiers sans

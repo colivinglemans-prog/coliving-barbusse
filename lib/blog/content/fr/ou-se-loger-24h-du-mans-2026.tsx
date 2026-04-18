@@ -76,7 +76,7 @@ export default function Article() {
 
       <h2>Notre maison — 9 suites privatives à 15-20 minutes du circuit</h2>
       <p>
-        Pour les groupes, familles élargies ou entreprises, notre maison de 240 m² offre{" "}
+        Pour les groupes, familles élargies ou entreprises, notre maison de 215 m² offre{" "}
         <strong>9 chambres doubles avec salle de bain privative</strong>. Vous dormez à 18
         dans le calme, chacun dans son espace, sans compromis sur le confort.
       </p>
