@@ -335,3 +335,49 @@ export async function refreshState() {
   await executeCommand(deviceURL, "refreshRemainingHotWater", []);
   await executeCommand(deviceURL, "refreshNumberOfShowerRemaining", []);
 }
+
+// ─── Occupancy-based profile ────────────────────────────────
+
+export type WaterHeaterProfile = "vacant" | "low" | "normal" | "high" | "xl";
+
+export interface WaterHeaterProfileSettings {
+  mode: CozytouchDHWMode;
+  targetTemperature: number;
+  boost: boolean;
+}
+
+export function getWaterHeaterProfile(guests: number): WaterHeaterProfile {
+  if (guests <= 0) return "vacant";
+  if (guests <= 4) return "low";
+  if (guests <= 8) return "normal";
+  if (guests <= 12) return "high";
+  return "xl";
+}
+
+// Boost only runs in the warm-ambient window to maximise heat-pump COP.
+// Garage is unheated: air follows outdoor temp, peaks 11h-16h.
+export function getProfileSettings(
+  profile: WaterHeaterProfile,
+  hour: number,
+): WaterHeaterProfileSettings {
+  switch (profile) {
+    case "vacant":
+      return { mode: "manualEcoActive", targetTemperature: 50, boost: false };
+    case "low":
+      return { mode: "autoMode", targetTemperature: 55, boost: false };
+    case "normal":
+      return { mode: "autoMode", targetTemperature: 58, boost: false };
+    case "high":
+      return {
+        mode: "manualEcoInactive",
+        targetTemperature: 60,
+        boost: hour >= 12 && hour < 15,
+      };
+    case "xl":
+      return {
+        mode: "manualEcoInactive",
+        targetTemperature: 60,
+        boost: hour >= 11 && hour < 16,
+      };
+  }
+}

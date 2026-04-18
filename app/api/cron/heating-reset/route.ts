@@ -8,7 +8,7 @@ import {
   getDeviceStatus,
   getOccupiedMode,
 } from "@/lib/heatzy";
-import { getBookings } from "@/lib/beds24";
+import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/email";
 import { todayParis, currentHourParis } from "@/lib/time";
 
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const currentHour = currentHourParis();
 
     const [activeBookings, lockedDevices] = await Promise.all([
-      getBookings({ arrivalTo: today, departureFrom: today }),
+      getActiveBookings(),
       getLockedDevices(),
     ]);
 

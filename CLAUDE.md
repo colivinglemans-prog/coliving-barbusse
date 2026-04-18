@@ -226,15 +226,25 @@ La condition `isCurrentlyOccupied` utilise `arrival < today || (arrival === toda
 - `modbuslink:HeatPumpOperatingTimeState` — heures PAC
 - `modbuslink:ElectricBoosterOperatingTimeState` — heures résistance
 
-### Automation eau chaude (planifiée, pas encore implémentée)
+### Automation eau chaude (cron `water-heater-automation`)
 
-| Situation | Mode | Consigne |
-|---|---|---|
-| Pas de réservation | Éco | 50°C |
-| Check-in aujourd'hui | Boost matin → Auto | 58°C |
-| Réservation chambres | Auto | 58°C |
-| Réservation maison entière | Performance | 58°C |
-| Longue vacance (7+ jours) | Mode absence Cozytouch | — |
+Profil calculé à partir du nombre de personnes présentes (somme `numAdult + numChild` sur les bookings actifs + check-in du jour après 12h) :
+
+| Profil | Personnes | Mode | Consigne | Boost (fenêtre COP max) |
+|---|---|---|---|---|
+| `vacant` | 0 | Éco | 50°C | off |
+| `low` | 1–4 | Auto | 55°C | off |
+| `normal` | 5–8 | Auto | 58°C | off |
+| `high` | 9–12 | Performance | 60°C | on 12h–15h |
+| `xl` | 13+ | Performance | 60°C | on 11h–16h |
+
+**Logique** :
+- Ballon dans un garage non chauffé → COP meilleur en journée (air ambiant chaud), mauvais la nuit. Le Boost est volontairement programmé en milieu de journée uniquement.
+- Plafond 60°C → reste en PAC pure (au-delà, la résistance électrique prend le relais : coût ×3).
+- Pré-chauffe check-in : à partir de 12h si `guests ≥ 5`, le profil cible est appliqué pour que le ballon soit chargé à l'arrivée (17h).
+- Statuts `cancelled` et `black` exclus du comptage (helper partagé `lib/bookings.ts`).
+
+**Cron de santé** `water-heater-health` (toutes les 2h) : alerte email si dérive mode/consigne/boost, ballon hors ligne, ou sous-chauffe (`bottomTemp < consigne - 8°C` avec occupation).
 
 ## Factures PDF (LMNP, paiement par virement)
 
@@ -265,9 +275,11 @@ Permet d'émettre une facture PDF pour un client qui veut régler par virement p
 
 | Job | URL | Fréquence |
 |-----|-----|-----------|
-| Automation | `/api/cron/heating-automation` | `*/15 * * * *` |
-| Reset | `/api/cron/heating-reset` | `0 */4 * * *` |
-| Health | `/api/cron/heating-health` | `*/30 * * * *` |
+| Automation chauffage | `/api/cron/heating-automation` | `*/15 * * * *` |
+| Reset chauffage | `/api/cron/heating-reset` | `0 */4 * * *` |
+| Health chauffage | `/api/cron/heating-health` | `*/30 * * * *` |
+| Automation ECS | `/api/cron/water-heater-automation` | `0 * * * *` |
+| Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
 

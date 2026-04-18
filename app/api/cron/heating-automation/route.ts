@@ -8,7 +8,7 @@ import {
   getOccupiedMode,
   getBetweenReservationsMode,
 } from "@/lib/heatzy";
-import { getBookings } from "@/lib/beds24";
+import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/email";
 import { todayParis, tomorrowParis, currentHourParis } from "@/lib/time";
 
@@ -27,23 +27,7 @@ export async function GET(request: NextRequest) {
     const tomorrow = tomorrowParis();
     const currentHour = currentHourParis();
 
-    // Fetch bookings for today and tomorrow
-    const bookings = await getBookings({
-      arrivalFrom: today,
-      arrivalTo: tomorrow,
-      departureFrom: today,
-      departureTo: tomorrow,
-    });
-
-    // Also fetch active bookings (started before today, ending today or later)
-    const activeBookings = await getBookings({
-      arrivalTo: today,
-      departureFrom: today,
-    });
-
-    const allBookings = [...bookings, ...activeBookings].filter(
-      (b, i, arr) => arr.findIndex((x) => x.id === b.id) === i,
-    );
+    const allBookings = await getActiveBookings();
 
     const actions: string[] = [];
     const lockedDevices = await getLockedDevices();
