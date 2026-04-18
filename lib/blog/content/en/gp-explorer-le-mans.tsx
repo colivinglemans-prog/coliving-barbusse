@@ -110,7 +110,7 @@ export default function Article() {
       <h2>Book for the next GP Explorer</h2>
       <p>
         Planning your GP Explorer weekend in Le Mans? Check{" "}
-        <Link href="/#disponibilite">our availability</Link> and secure your
+        <Link href="/en#disponibilite">our availability</Link> and secure your
         accommodation before everything goes.
       </p>
     </>

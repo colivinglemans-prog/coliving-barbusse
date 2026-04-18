@@ -116,10 +116,10 @@ export default function Article() {
 
       <h2>Prêt à réserver ?</h2>
       <p>
-        Consultez les <Link href="/#disponibilite">dates disponibles</Link> pour les 24 Heures
+        Consultez les <Link href="/fr#disponibilite">dates disponibles</Link> pour les 24 Heures
         du Mans 2026 et sécurisez votre séjour. Vous pouvez aussi découvrir{" "}
-        <Link href="/chambres">les 9 chambres</Link> ou voir{" "}
-        <Link href="/#avis">les avis de nos précédents voyageurs</Link>.
+        <Link href="/fr/chambres">les 9 chambres</Link> ou voir{" "}
+        <Link href="/fr#avis">les avis de nos précédents voyageurs</Link>.
       </p>
     </>
   );

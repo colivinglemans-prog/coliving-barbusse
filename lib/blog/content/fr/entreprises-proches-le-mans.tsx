@@ -133,7 +133,7 @@ export default function Article() {
 
       <h2>Réserver votre séjour professionnel</h2>
       <p>
-        Consultez <Link href="/#disponibilite">nos disponibilités</Link> ou contactez-nous
+        Consultez <Link href="/fr#disponibilite">nos disponibilités</Link> ou contactez-nous
         directement pour toute réservation entreprise. Nos conditions s'adaptent aux besoins
         des professionnels.
       </p>

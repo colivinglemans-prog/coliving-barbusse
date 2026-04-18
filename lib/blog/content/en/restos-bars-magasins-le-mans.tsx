@@ -142,7 +142,7 @@ export default function Article() {
       <p>
         Our coliving is in a lively, well-connected area: TGV station 10 min walk, shops
         and restaurants nearby, a riverside park right next door. Check{" "}
-        <Link href="/#disponibilite">our availability</Link> and enjoy a relaxed stay
+        <Link href="/en#disponibilite">our availability</Link> and enjoy a relaxed stay
         without needing a car for the everyday.
       </p>
     </>

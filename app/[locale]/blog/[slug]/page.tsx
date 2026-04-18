@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
@@ -42,34 +41,39 @@ const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
   "24-heures-rollers-le-mans": { fr: Article24hRollers, en: ArticleEN24hRollers },
 };
 
-async function getLocale(): Promise<Locale> {
-  const cookieStore = await cookies();
-  return (cookieStore.get("locale")?.value as Locale) || "fr";
-}
-
 export function generateStaticParams() {
-  return BLOG_POSTS.map((post) => ({ slug: post.slug }));
+  const locales: Locale[] = ["fr", "en"];
+  return locales.flatMap((locale) =>
+    BLOG_POSTS.map((post) => ({ locale, slug: post.slug })),
+  );
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale: rawLocale, slug } = await params;
+  const locale = rawLocale as Locale;
   const post = getPostBySlug(slug);
   if (!post) return { title: "Article introuvable" };
 
-  const locale = await getLocale();
   const loc = getLocalizedPost(post, locale);
-  const url = `${SITE_URL}/blog/${post.slug}`;
+  const url = `${SITE_URL}/${locale}/blog/${post.slug}`;
   const image = `${SITE_URL}${post.image}`;
 
   return {
     title: loc.title,
     description: loc.description,
     keywords: loc.keywords,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      languages: {
+        fr: `${SITE_URL}/fr/blog/${post.slug}`,
+        en: `${SITE_URL}/en/blog/${post.slug}`,
+        "x-default": `${SITE_URL}/fr/blog/${post.slug}`,
+      },
+    },
     openGraph: {
       title: loc.title,
       description: loc.description,
@@ -77,6 +81,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.date,
       images: [{ url: image, width: 1200, height: 630, alt: loc.title }],
+      locale: locale === "en" ? "en_US" : "fr_FR",
     },
     twitter: {
       card: "summary_large_image",
@@ -90,13 +95,13 @@ export async function generateMetadata({
 export default async function BlogPost({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { locale: rawLocale, slug } = await params;
+  const locale = rawLocale as Locale;
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
-  const locale = await getLocale();
   const loc = getLocalizedPost(post, locale);
   const Content = CONTENT[slug]?.[locale];
   if (!Content) notFound();
@@ -119,7 +124,7 @@ export default async function BlogPost({
       name: "Coliving Barbusse",
       url: SITE_URL,
     },
-    mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
+    mainEntityOfPage: `${SITE_URL}/${locale}/blog/${post.slug}`,
     inLanguage: locale,
   };
 
@@ -133,7 +138,7 @@ export default async function BlogPost({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <nav className="text-sm text-secondary">
-        <Link href="/blog" className="hover:text-foreground">
+        <Link href={`/${locale}/blog`} className="hover:text-foreground">
           {backLabel}
         </Link>
       </nav>

@@ -110,7 +110,7 @@ export default function Article() {
       <h2>Réserver votre séjour Le Mans Classic</h2>
       <p>
         Il nous reste des disponibilités pour la prochaine édition du Mans Classic. Consultez
-        le <Link href="/#disponibilite">calendrier en temps réel</Link> et réservez avant que
+        le <Link href="/fr#disponibilite">calendrier en temps réel</Link> et réservez avant que
         les dernières places ne partent.
       </p>
     </>

@@ -108,15 +108,15 @@ export default function Article() {
         Une journée à l'hippodrome se marie très bien avec :
       </p>
       <ul>
-        <li>Une visite de la <Link href="/blog/que-visiter-le-mans-sarthe">Cité Plantagenêt</Link> et du centre historique</li>
-        <li>Une balade au <Link href="/#localisation">parc du Gué de Maulny</Link></li>
-        <li>Un dîner dans un bon <Link href="/blog/restos-bars-magasins-le-mans">restaurant du quartier</Link></li>
+        <li>Une visite de la <Link href="/fr/blog/que-visiter-le-mans-sarthe">Cité Plantagenêt</Link> et du centre historique</li>
+        <li>Une balade au <Link href="/fr#localisation">parc du Gué de Maulny</Link></li>
+        <li>Un dîner dans un bon <Link href="/fr/blog/restos-bars-magasins-le-mans">restaurant du quartier</Link></li>
         <li>Une visite du Musée des 24h du Mans (juste à côté du circuit)</li>
       </ul>
 
       <h2>Réserver votre séjour</h2>
       <p>
-        Consultez <Link href="/#disponibilite">nos disponibilités</Link> pour préparer votre
+        Consultez <Link href="/fr#disponibilite">nos disponibilités</Link> pour préparer votre
         venue à l'Hippodrome des Hunaudières. Notre maison est idéale pour un groupe qui
         souhaite combiner courses hippiques, tourisme et gastronomie sarthoise.
       </p>

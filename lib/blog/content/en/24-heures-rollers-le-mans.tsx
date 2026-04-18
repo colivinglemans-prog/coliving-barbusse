@@ -149,7 +149,7 @@ export default function Article() {
 
       <h2>Book your 24H Rollers stay</h2>
       <p>
-        Check <Link href="/#disponibilite">our availability</Link> for the 11-12 July 2026
+        Check <Link href="/en#disponibilite">our availability</Link> for the 11-12 July 2026
         weekend. Our house is ideal for clubs, corporate teams and large groups of friends
         coming to take on the roller challenge.
       </p>

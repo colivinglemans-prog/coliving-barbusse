@@ -113,8 +113,8 @@ export default function Article() {
       <p>
         Que vous veniez pour les courses, le patrimoine ou la gastronomie, notre maison vous
         accueille à 10 minutes de la gare TGV Le Mans et au cœur de toutes les attractions.
-        Consultez <Link href="/#disponibilite">nos disponibilités</Link> ou découvrez{" "}
-        <Link href="/chambres">les 9 chambres</Link>.
+        Consultez <Link href="/fr#disponibilite">nos disponibilités</Link> ou découvrez{" "}
+        <Link href="/fr/chambres">les 9 chambres</Link>.
       </p>
     </>
   );

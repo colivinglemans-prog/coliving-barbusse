@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useTranslation } from "@/lib/i18n";
 
 export default function Footer() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const base = `/${locale}`;
 
   return (
     <footer className="border-t border-border bg-light-bg">
@@ -20,11 +21,11 @@ export default function Footer() {
           <div>
             <h3 className="mb-3 text-sm font-semibold text-foreground">{t.footer.navigation}</h3>
             <ul className="space-y-2 text-sm text-secondary">
-              <li><Link href="/#chambres" className="hover:text-foreground">{t.header.rooms}</Link></li>
-              <li><Link href="/#equipements" className="hover:text-foreground">{t.header.amenities}</Link></li>
-              <li><Link href="/#localisation" className="hover:text-foreground">{t.header.location}</Link></li>
-              <li><Link href="/#disponibilite" className="hover:text-foreground">{t.header.book}</Link></li>
-              <li><Link href="/blog" className="hover:text-foreground">Blog</Link></li>
+              <li><Link href={`${base}#chambres`} className="hover:text-foreground">{t.header.rooms}</Link></li>
+              <li><Link href={`${base}#equipements`} className="hover:text-foreground">{t.header.amenities}</Link></li>
+              <li><Link href={`${base}#localisation`} className="hover:text-foreground">{t.header.location}</Link></li>
+              <li><Link href={`${base}#disponibilite`} className="hover:text-foreground">{t.header.book}</Link></li>
+              <li><Link href={`${base}/blog`} className="hover:text-foreground">Blog</Link></li>
             </ul>
           </div>
           <div>

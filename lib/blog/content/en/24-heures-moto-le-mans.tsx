@@ -93,7 +93,7 @@ export default function Article() {
 
       <h2>Book your stay</h2>
       <p>
-        Check <Link href="/#disponibilite">our availability</Link> for the 24 Hours
+        Check <Link href="/en#disponibilite">our availability</Link> for the 24 Hours
         Motorcycle 2026. Our house welcomes up to 18 guests — ideal for clubs and biker
         groups of friends.
       </p>

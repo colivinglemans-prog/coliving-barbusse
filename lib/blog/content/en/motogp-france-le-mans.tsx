@@ -106,7 +106,7 @@ export default function Article() {
       <h2>Book for MotoGP 2026</h2>
       <p>
         We still have some availability for the MotoGP 2026 weekend. Check the{" "}
-        <Link href="/#disponibilite">real-time calendar</Link> and secure your stay
+        <Link href="/en#disponibilite">real-time calendar</Link> and secure your stay
         before it's too late.
       </p>
     </>

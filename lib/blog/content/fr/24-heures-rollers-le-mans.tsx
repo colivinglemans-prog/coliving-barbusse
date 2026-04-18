@@ -151,7 +151,7 @@ export default function Article() {
 
       <h2>Réserver votre séjour 24H Rollers</h2>
       <p>
-        Consultez <Link href="/#disponibilite">nos disponibilités</Link> pour le week-end
+        Consultez <Link href="/fr#disponibilite">nos disponibilités</Link> pour le week-end
         du 11-12 juillet 2026. Notre maison est idéale pour les clubs, équipes
         d'entreprises et grands groupes d'amis qui viennent relever le défi du circuit
         sur roulettes.

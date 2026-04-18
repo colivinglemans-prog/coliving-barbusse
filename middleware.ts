@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "dashboard_token";
-const LOCALE_COOKIE = "locale";
 
 function getSecret() {
   const secret = process.env.DASHBOARD_SECRET;
@@ -10,17 +9,21 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-function detectLocale(request: NextRequest): "fr" | "en" {
-  const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (cookie === "fr" || cookie === "en") return cookie;
-
-  const acceptLang = request.headers.get("accept-language") || "";
-  if (acceptLang.startsWith("fr") || acceptLang.includes("fr-")) return "fr";
-  return "en";
-}
+// Paths that previously lived at the root and now belong under /fr/*
+const LEGACY_PATHS = ["/blog", "/chambres", "/reservation"];
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
+
+  // 301 redirect old non-localized URLs to /fr/*
+  for (const legacy of LEGACY_PATHS) {
+    if (pathname === legacy || pathname.startsWith(`${legacy}/`)) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/fr${pathname}`;
+      url.search = search;
+      return NextResponse.redirect(url, 301);
+    }
+  }
 
   // Dashboard auth
   if (
@@ -60,7 +63,6 @@ export async function middleware(request: NextRequest) {
       const { payload } = await jwtVerify(token, getSecret());
       const role = (payload.role as string) ?? "admin";
 
-      // Viewers cannot access admin-only APIs
       if (
         role === "viewer" &&
         (pathname.startsWith("/api/dashboard/stats") ||
@@ -73,26 +75,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Locale detection for public pages
-  const locale = detectLocale(request);
-  const response = NextResponse.next();
-  response.headers.set("x-locale", locale);
-
-  // Set locale cookie if not already set
-  if (!request.cookies.get(LOCALE_COOKIE)?.value) {
-    response.cookies.set(LOCALE_COOKIE, locale, {
-      path: "/",
-      maxAge: 365 * 24 * 60 * 60,
-      sameSite: "lax",
-    });
-  }
-
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/",
+    "/blog/:path*",
+    "/chambres/:path*",
+    "/reservation/:path*",
     "/dashboard",
     "/dashboard/((?!login).*)",
     "/api/dashboard/:path*",

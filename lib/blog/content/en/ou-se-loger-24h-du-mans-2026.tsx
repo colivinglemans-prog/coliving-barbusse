@@ -113,10 +113,10 @@ export default function Article() {
 
       <h2>Ready to book?</h2>
       <p>
-        Check <Link href="/#disponibilite">our availability</Link> for the 24 Hours of Le
+        Check <Link href="/en#disponibilite">our availability</Link> for the 24 Hours of Le
         Mans 2026 and secure your stay. You can also discover{" "}
-        <Link href="/chambres">the 9 bedrooms</Link> or read{" "}
-        <Link href="/#avis">reviews from our previous guests</Link>.
+        <Link href="/en/chambres">the 9 bedrooms</Link> or read{" "}
+        <Link href="/en#avis">reviews from our previous guests</Link>.
       </p>
     </>
   );

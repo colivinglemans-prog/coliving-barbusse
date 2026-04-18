@@ -104,15 +104,15 @@ export default function Article() {
       <h2>Combining with other activities?</h2>
       <p>A day at the races goes perfectly with:</p>
       <ul>
-        <li>A visit to <Link href="/blog/que-visiter-le-mans-sarthe">Plantagenet City</Link> and the historic centre</li>
-        <li>A walk in the <Link href="/#localisation">Gué de Maulny park</Link></li>
-        <li>Dinner at a great <Link href="/blog/restos-bars-magasins-le-mans">neighbourhood restaurant</Link></li>
+        <li>A visit to <Link href="/en/blog/que-visiter-le-mans-sarthe">Plantagenet City</Link> and the historic centre</li>
+        <li>A walk in the <Link href="/en#localisation">Gué de Maulny park</Link></li>
+        <li>Dinner at a great <Link href="/en/blog/restos-bars-magasins-le-mans">neighbourhood restaurant</Link></li>
         <li>A visit to the 24 Hours of Le Mans Museum (right next to the circuit)</li>
       </ul>
 
       <h2>Book your stay</h2>
       <p>
-        Check <Link href="/#disponibilite">our availability</Link> to plan your visit to
+        Check <Link href="/en#disponibilite">our availability</Link> to plan your visit to
         the Hunaudières Racecourse. Our house is perfect for a group that wants to combine
         horse racing, tourism and Sarthe cuisine.
       </p>

@@ -112,7 +112,7 @@ export default function Article() {
       <h2>Book your Le Mans Classic stay</h2>
       <p>
         We still have availability for the next edition of Le Mans Classic. Check our{" "}
-        <Link href="/#disponibilite">real-time calendar</Link> and secure your stay
+        <Link href="/en#disponibilite">real-time calendar</Link> and secure your stay
         before the last spots go.
       </p>
     </>

@@ -110,7 +110,7 @@ export default function Article() {
       <h2>Réserver pour le prochain GP Explorer</h2>
       <p>
         Vous planifiez votre week-end GP Explorer au Mans ? Consultez dès maintenant{" "}
-        <Link href="/#disponibilite">nos disponibilités</Link> et sécurisez votre hébergement
+        <Link href="/fr#disponibilite">nos disponibilités</Link> et sécurisez votre hébergement
         avant que tout ne parte.
       </p>
     </>

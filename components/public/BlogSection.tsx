@@ -32,7 +32,7 @@ export default function BlogSection() {
           <p className="mt-1 text-sm text-secondary">{texts.sub}</p>
         </div>
         <Link
-          href="/blog"
+          href={`/${locale}/blog`}
           className="hidden shrink-0 text-sm font-medium text-primary hover:text-primary-dark sm:inline"
         >
           {texts.all}
@@ -47,7 +47,7 @@ export default function BlogSection() {
               key={post.slug}
               className="group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md"
             >
-              <Link href={`/blog/${post.slug}`} className="block">
+              <Link href={`/${locale}/blog/${post.slug}`} className="block">
                 <div
                   className="aspect-[16/10] w-full bg-cover bg-center"
                   style={{ backgroundImage: `url(${post.image})` }}
@@ -72,7 +72,7 @@ export default function BlogSection() {
       </ul>
 
       <div className="mt-5 text-center sm:hidden">
-        <Link href="/blog" className="text-sm font-medium text-primary hover:text-primary-dark">
+        <Link href={`/${locale}/blog`} className="text-sm font-medium text-primary hover:text-primary-dark">
           {texts.allMobile}
         </Link>
       </div>

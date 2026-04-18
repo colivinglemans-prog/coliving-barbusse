@@ -146,7 +146,7 @@ export default function Article() {
       <p>
         Notre coliving est situé dans un quartier vivant et bien desservi : gare TGV à 10
         min à pied, commerces et restaurants sur place, parc au bord de l'eau juste à
-        côté. Consultez <Link href="/#disponibilite">nos disponibilités</Link> et profitez
+        côté. Consultez <Link href="/fr#disponibilite">nos disponibilités</Link> et profitez
         d'un séjour serein, sans avoir besoin de voiture pour le quotidien.
       </p>
     </>

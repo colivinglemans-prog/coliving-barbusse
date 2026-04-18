@@ -131,7 +131,7 @@ export default function Article() {
 
       <h2>Book your business stay</h2>
       <p>
-        Check <Link href="/#disponibilite">our availability</Link> or contact us directly
+        Check <Link href="/en#disponibilite">our availability</Link> or contact us directly
         for any company reservation. Our terms adapt to professional needs.
       </p>
     </>

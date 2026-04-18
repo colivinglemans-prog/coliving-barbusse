@@ -1,22 +1,17 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
 import type { Locale } from "@/lib/i18n";
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
-async function getLocale(): Promise<Locale> {
-  const cookieStore = await cookies();
-  return (cookieStore.get("locale")?.value as Locale) || "fr";
-}
-
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
-  const title =
-    locale === "en"
-      ? "Blog — Coliving Barbusse Le Mans"
-      : "Blog — Coliving Barbusse Le Mans";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const title = "Blog — Coliving Barbusse Le Mans";
   const description =
     locale === "en"
       ? "Practical guides and tips for your stay in Le Mans: 24 Hours of Le Mans, MotoGP, Le Mans Classic, Sarthe tourism."
@@ -25,14 +20,26 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `${SITE_URL}/blog` },
+    alternates: {
+      canonical: `${SITE_URL}/${locale}/blog`,
+      languages: {
+        fr: `${SITE_URL}/fr/blog`,
+        en: `${SITE_URL}/en/blog`,
+        "x-default": `${SITE_URL}/fr/blog`,
+      },
+    },
   };
 }
 
-export default async function BlogIndex() {
-  const locale = await getLocale();
+export default async function BlogIndex({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: rawLocale } = await params;
+  const locale = rawLocale as Locale;
   const dateLocale = locale === "en" ? "en-US" : "fr-FR";
-  const heading = locale === "en" ? "Blog" : "Blog";
+  const heading = "Blog";
   const subheading =
     locale === "en"
       ? "Practical guides for your stay in Le Mans and major events."
@@ -51,7 +58,7 @@ export default async function BlogIndex() {
               key={post.slug}
               className="group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md"
             >
-              <Link href={`/blog/${post.slug}`} className="block">
+              <Link href={`/${locale}/blog/${post.slug}`} className="block">
                 <div
                   className="aspect-[16/10] w-full bg-cover bg-center"
                   style={{ backgroundImage: `url(${post.image})` }}

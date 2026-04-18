@@ -111,8 +111,8 @@ export default function Article() {
       <p>
         Whether you come for the races, the heritage or the food, our house welcomes
         you 10 minutes from the Le Mans TGV station and at the heart of every
-        attraction. Check <Link href="/#disponibilite">our availability</Link> or
-        discover <Link href="/chambres">the 9 bedrooms</Link>.
+        attraction. Check <Link href="/en#disponibilite">our availability</Link> or
+        discover <Link href="/en/chambres">the 9 bedrooms</Link>.
       </p>
     </>
   );

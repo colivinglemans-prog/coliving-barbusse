@@ -3,40 +3,44 @@ import { BLOG_POSTS } from "@/lib/blog/posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://www.coliving-barbusse.fr";
+  const locales = ["fr", "en"] as const;
 
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/chambres`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/reservation`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
+  const staticRoutes = [
+    { path: "", changeFrequency: "weekly" as const, priority: 1 },
+    { path: "/chambres", changeFrequency: "monthly" as const, priority: 0.8 },
+    { path: "/reservation", changeFrequency: "daily" as const, priority: 0.9 },
+    { path: "/blog", changeFrequency: "weekly" as const, priority: 0.7 },
   ];
 
-  const blogPages: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+  const staticPages: MetadataRoute.Sitemap = locales.flatMap((locale) =>
+    staticRoutes.map((r) => ({
+      url: `${baseUrl}/${locale}${r.path}`,
+      lastModified: new Date(),
+      changeFrequency: r.changeFrequency,
+      priority: r.priority,
+      alternates: {
+        languages: {
+          fr: `${baseUrl}/fr${r.path}`,
+          en: `${baseUrl}/en${r.path}`,
+        },
+      },
+    })),
+  );
+
+  const blogPages: MetadataRoute.Sitemap = locales.flatMap((locale) =>
+    BLOG_POSTS.map((post) => ({
+      url: `${baseUrl}/${locale}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          fr: `${baseUrl}/fr/blog/${post.slug}`,
+          en: `${baseUrl}/en/blog/${post.slug}`,
+        },
+      },
+    })),
+  );
 
   return [...staticPages, ...blogPages];
 }

@@ -94,7 +94,7 @@ export default function Article() {
 
       <h2>Réserver votre séjour</h2>
       <p>
-        Consultez les <Link href="/#disponibilite">dates disponibles</Link> pour les 24 Heures
+        Consultez les <Link href="/fr#disponibilite">dates disponibles</Link> pour les 24 Heures
         Moto 2026. Notre maison accueille jusqu'à 18 personnes, idéal pour les clubs et
         groupes d'amis motards.
       </p>

@@ -104,7 +104,7 @@ export default function Article() {
       <h2>Réserver pour le MotoGP 2026</h2>
       <p>
         Il nous reste quelques disponibilités pour le week-end du MotoGP 2026. Consultez le{" "}
-        <Link href="/#disponibilite">calendrier en temps réel</Link> et sécurisez votre séjour
+        <Link href="/fr#disponibilite">calendrier en temps réel</Link> et sécurisez votre séjour
         avant qu'il ne soit trop tard.
       </p>
     </>

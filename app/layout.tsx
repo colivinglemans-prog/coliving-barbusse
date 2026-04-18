@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
 import { I18nProvider } from "@/lib/i18n";
-import type { Locale } from "@/lib/i18n";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -81,23 +79,25 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE_URL,
+    languages: {
+      fr: `${SITE_URL}/fr`,
+      en: `${SITE_URL}/en`,
+      "x-default": `${SITE_URL}/fr`,
+    },
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const locale = (cookieStore.get("locale")?.value as Locale) || "fr";
-
   return (
-    <html lang={locale}>
+    <html lang="fr">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <I18nProvider initialLocale={locale}>
+        <I18nProvider initialLocale="fr">
           {children}
         </I18nProvider>
         <Analytics />
