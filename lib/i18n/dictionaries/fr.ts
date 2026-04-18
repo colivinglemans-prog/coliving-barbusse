@@ -142,7 +142,7 @@ Jusqu'à 18 personnes.`,
   },
   reviews: {
     title: "Avis des voyageurs",
-    subtitle: "Ce que disent nos hôtes sur Airbnb",
+    subtitle: "Ce que disent nos hôtes sur Airbnb et Abritel",
   },
   rules: {
     title: "À savoir",
