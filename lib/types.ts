@@ -82,6 +82,19 @@ export interface Beds24Booking {
   comments?: string;   // Guest comments (printed on invoice)
   notes?: string;      // Internal notes (NOT printed)
   arrivalTime?: string;
+  invoiceItems?: Beds24InvoiceItem[];
+}
+
+export interface Beds24InvoiceItem {
+  id?: number;
+  type?: string;          // "charge", "payment", etc.
+  description?: string;
+  qty?: number;
+  amount?: number;        // per unit
+  lineTotal?: number;     // some responses include this pre-computed
+  vatRate?: number;
+  invoiceId?: number | string;
+  status?: string;
 }
 
 export interface Beds24Property {

@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBookings, getProperties } from "@/lib/beds24";
+import { normalizeChannel } from "@/lib/channel";
 import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
-
-function normalizeChannel(referer: string, channel?: string): string {
-  const c = (channel ?? "").toLowerCase();
-  const r = referer.toLowerCase();
-
-  if (c === "airbnb" || r.includes("airbnb")) return "Airbnb";
-  if (c.includes("booking") || r.includes("booking")) return "Booking.com";
-  if (c === "vrbo" || r.includes("abritel") || r.includes("homeaway") || r.includes("vrbo")) return "Abritel";
-  if (c === "direct" || r === "direct" || r === "app" || r === "") return "Direct";
-  return "Direct";
-}
 
 function getDateRange(period: string): { from: string; to: string } {
   const now = new Date();

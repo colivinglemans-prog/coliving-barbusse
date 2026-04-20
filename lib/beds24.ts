@@ -34,6 +34,7 @@ export async function getBookings(params?: {
   departureFrom?: string;
   departureTo?: string;
   statuses?: string[];
+  includeInvoiceItems?: boolean;
 }): Promise<Beds24Booking[]> {
   const queryParams: Record<string, string> = {};
   if (params?.arrivalFrom) queryParams.arrivalFrom = params.arrivalFrom;
@@ -42,6 +43,9 @@ export async function getBookings(params?: {
   if (params?.departureTo) queryParams.departureTo = params.departureTo;
   if (params?.statuses && params.statuses.length > 0) {
     queryParams.status = params.statuses.join(",");
+  }
+  if (params?.includeInvoiceItems) {
+    queryParams.includeInvoiceItems = "true";
   }
 
   const data = await beds24Fetch<{ data: Beds24Booking[] }>("/bookings", queryParams);
