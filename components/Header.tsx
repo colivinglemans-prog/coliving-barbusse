@@ -28,8 +28,10 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-white/80 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href={base} className="text-xl font-bold text-primary">
-          Coliving Barbusse - Maison premium 9 suites privatives Proche Circuit Le Mans
+        <Link href={base} className="flex flex-col leading-tight font-bold text-primary">
+          <span className="text-lg sm:text-xl">Coliving Barbusse</span>
+          <span className="text-[11px] sm:text-xs font-medium text-secondary">Maison premium · 9 suites privatives</span>
+          <span className="text-[11px] sm:text-xs font-medium text-secondary">Proche Circuit Le Mans</span>
         </Link>
 
         {/* Desktop nav */}
@@ -47,6 +49,11 @@ export default function Header() {
           <li>
             <Link href={`${base}#localisation`} className="transition-colors hover:text-foreground">
               {t.header.location}
+            </Link>
+          </li>
+          <li>
+            <Link href={`${base}/seminaires`} className="transition-colors hover:text-foreground">
+              {locale === "en" ? "Seminars" : "Séminaires"}
             </Link>
           </li>
           <li>
@@ -121,6 +128,11 @@ export default function Header() {
             <li>
               <Link href={`${base}#localisation`} onClick={() => setMenuOpen(false)} className="block hover:text-foreground">
                 {t.header.location}
+              </Link>
+            </li>
+            <li>
+              <Link href={`${base}/seminaires`} onClick={() => setMenuOpen(false)} className="block hover:text-foreground">
+                {locale === "en" ? "Seminars" : "Séminaires"}
               </Link>
             </li>
             <li>

@@ -19,6 +19,43 @@ export interface BlogPostMeta {
 
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
+    slug: "seminaire-entreprise-le-mans",
+    date: "2026-04-18",
+    image: "/images/blog/seminaire.jpg",
+    locales: {
+      fr: {
+        title: "Séminaire d'entreprise au Mans : team-building circuit + coliving 9 personnes",
+        description:
+          "Organiser un séminaire au Mans : 9 suites privatives, espaces de réunion modulables, activités team-building au Circuit Bugatti et en Sarthe. Programme type 2 jours et guide complet.",
+        excerpt:
+          "9 personnes, une maison entière, le circuit mythique à 15 min : la formule idéale pour un séminaire qui combine productivité et cohésion.",
+        keywords: [
+          "séminaire entreprise Le Mans",
+          "team building Le Mans",
+          "séminaire Circuit Bugatti",
+          "mise au vert entreprise Sarthe",
+          "location maison séminaire Le Mans",
+          "brainstorm équipe Le Mans",
+        ],
+      },
+      en: {
+        title: "Corporate seminar in Le Mans: circuit team-building + coliving for 9",
+        description:
+          "Organising a seminar in Le Mans: 9 private suites, modular meeting spaces, team-building activities at Bugatti Circuit and in the Sarthe. 2-day example programme and full guide.",
+        excerpt:
+          "9 people, a whole house, the legendary circuit 15 min away: the ideal formula for a seminar that combines productivity and bonding.",
+        keywords: [
+          "Le Mans corporate seminar",
+          "Le Mans team building",
+          "Bugatti Circuit seminar",
+          "company retreat Sarthe",
+          "Le Mans seminar house rental",
+          "team brainstorm Le Mans",
+        ],
+      },
+    },
+  },
+  {
     slug: "hippodrome-des-hunaudieres",
     date: "2026-04-17",
     image: "/images/blog/hippodrome.jpg",

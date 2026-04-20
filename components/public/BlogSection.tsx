@@ -6,7 +6,7 @@ import { useTranslation } from "@/lib/i18n";
 
 export default function BlogSection() {
   const { locale } = useTranslation();
-  const posts = BLOG_POSTS.slice(0, 3);
+  const posts = BLOG_POSTS.slice(0, 6);
   const dateLocale = locale === "en" ? "en-US" : "fr-FR";
 
   const texts = {
@@ -40,12 +40,13 @@ export default function BlogSection() {
       </div>
 
       <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => {
+        {posts.map((post, i) => {
           const loc = getLocalizedPost(post, locale);
+          const mobileHidden = i >= 3 ? "hidden sm:block" : "";
           return (
             <li
               key={post.slug}
-              className="group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md"
+              className={`group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md ${mobileHidden}`}
             >
               <Link href={`/${locale}/blog/${post.slug}`} className="block">
                 <div

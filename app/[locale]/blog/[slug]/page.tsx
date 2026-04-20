@@ -14,6 +14,7 @@ import ArticleRestos from "@/lib/blog/content/fr/restos-bars-magasins-le-mans";
 import ArticleEntreprises from "@/lib/blog/content/fr/entreprises-proches-le-mans";
 import ArticleHippodrome from "@/lib/blog/content/fr/hippodrome-des-hunaudieres";
 import Article24hRollers from "@/lib/blog/content/fr/24-heures-rollers-le-mans";
+import ArticleSeminaire from "@/lib/blog/content/fr/seminaire-entreprise-le-mans";
 
 import ArticleEN24hDuMans2026 from "@/lib/blog/content/en/ou-se-loger-24h-du-mans-2026";
 import ArticleEN24hMoto from "@/lib/blog/content/en/24-heures-moto-le-mans";
@@ -25,6 +26,7 @@ import ArticleENRestos from "@/lib/blog/content/en/restos-bars-magasins-le-mans"
 import ArticleENEntreprises from "@/lib/blog/content/en/entreprises-proches-le-mans";
 import ArticleENHippodrome from "@/lib/blog/content/en/hippodrome-des-hunaudieres";
 import ArticleEN24hRollers from "@/lib/blog/content/en/24-heures-rollers-le-mans";
+import ArticleENSeminaire from "@/lib/blog/content/en/seminaire-entreprise-le-mans";
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
@@ -39,6 +41,7 @@ const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
   "entreprises-proches-le-mans": { fr: ArticleEntreprises, en: ArticleENEntreprises },
   "hippodrome-des-hunaudieres": { fr: ArticleHippodrome, en: ArticleENHippodrome },
   "24-heures-rollers-le-mans": { fr: Article24hRollers, en: ArticleEN24hRollers },
+  "seminaire-entreprise-le-mans": { fr: ArticleSeminaire, en: ArticleENSeminaire },
 };
 
 export function generateStaticParams() {

@@ -84,12 +84,6 @@ export default function AirbnbReviews() {
   const prev = useCallback(() => setPage((p) => (p - 1 + totalPages) % totalPages), []);
   const next = useCallback(() => setPage((p) => (p + 1) % totalPages), []);
 
-  // Auto-advance every 8s
-  useEffect(() => {
-    const timer = setInterval(next, 30000);
-    return () => clearInterval(timer);
-  }, [next]);
-
   const visible = reviews.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
