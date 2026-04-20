@@ -28,14 +28,26 @@ export interface BookingSummary {
   tjm: number;
   channel: string;
   type: "house" | "room";
+  bookingTime?: string;
+  event?: string | null;
 }
 
 export interface RevenueProjection {
+  /** Tendance actuelle = réalisé + confirmé + (TJM moyen × jours non couverts). */
   projectedRevenue: number;
   daysRemaining: number;
   avgDailyRevenue: number;
   realizedRevenue: number;
   confirmedUpcoming: number;
+  /** Garanti = réalisé + confirmé (si aucune nouvelle résa) */
+  minimumRevenue: number;
+  /**
+   * Projection pricing dynamique = réalisé + confirmé + somme(prix Beds24 × taux d'occupation)
+   * sur les jours non couverts. Null si les prix ne sont pas disponibles.
+   */
+  dynamicPricingRevenue: number | null;
+  /** Taux d'occupation annuel utilisé pour le calcul dynamique (ratio 0-1) */
+  occupancyRatio: number;
 }
 
 export interface DashboardStats {

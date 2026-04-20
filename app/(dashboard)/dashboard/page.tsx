@@ -84,12 +84,14 @@ export default function Dashboard() {
               <BookingsTable
                 title="Réservations récentes"
                 bookings={stats.recentBookings}
-                highlightColumn="arrival"
+                highlightColumn="bookingTime"
+                showBookingTime
               />
               <BookingsTable
                 title="Meilleures réservations (TJM)"
                 bookings={stats.topBookings}
                 highlightColumn="tjm"
+                showEvent
               />
             </div>
 

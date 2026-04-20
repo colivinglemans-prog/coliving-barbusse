@@ -92,12 +92,48 @@ interface CalendarEntry {
   from: string;
   to: string;
   minStay?: number;
+  price1?: number;
 }
 
 interface CalendarRoom {
   roomId: number;
   propertyId: number;
   calendar: CalendarEntry[];
+}
+
+/**
+ * Fetch daily prices (price1) across all rooms of a property.
+ * Returns a map of date → total daily price (sum of all rooms' price1 for that date).
+ * Used for dynamic revenue projection.
+ */
+export async function getDailyPrices(
+  propertyId: number,
+  from: string,
+  to: string,
+): Promise<Record<string, number>> {
+  const data = await beds24Fetch<{ data: CalendarRoom[] }>(
+    "/inventory/rooms/calendar",
+    {
+      propertyId: String(propertyId),
+      startDate: from,
+      endDate: to,
+      includePrices: "true",
+    },
+  );
+
+  const sumByDate: Record<string, number> = {};
+  for (const room of data.data ?? []) {
+    for (const entry of room.calendar) {
+      if (entry.price1 === undefined || entry.price1 === null) continue;
+      const start = new Date(entry.from + "T00:00:00");
+      const end = new Date(entry.to + "T00:00:00");
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        sumByDate[dateStr] = (sumByDate[dateStr] ?? 0) + entry.price1;
+      }
+    }
+  }
+  return sumByDate;
 }
 
 export async function getMinStay(

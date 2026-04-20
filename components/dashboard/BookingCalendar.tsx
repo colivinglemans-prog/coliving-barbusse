@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { Beds24Booking } from "@/lib/types";
+import { findEventForStay, findEventOnDay, shortEventLabel } from "@/lib/events";
 
 /* ── Channel colours (same as ChannelPieChart) ────────────────────── */
 const CHANNEL_COLORS: Record<string, string> = {
@@ -142,15 +143,16 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
   const totalCells = firstDow + daysInMonth;
   const weeks = Math.ceil(totalCells / 7);
 
-  // Assign bars to "lanes" (rows within each week) to avoid overlap
+  // Assign bars to "lanes" (rows within each week) to avoid overlap.
+  // Uses half-cell precision so a checkout bar (left half of day N) and a check-in
+  // bar (right half of day N) can share the same lane.
   type BarPlacement = BookingBar & { row: number; weekStart: number; weekEnd: number; isFirstSegment: boolean; isLastSegment: boolean };
   const barPlacements: BarPlacement[] = useMemo(() => {
     const placements: BarPlacement[] = [];
-    // For each week, track used lanes
-    const weekLanes: Map<number, [number, number][][]> = new Map(); // week -> array of [startCol, endCol] per lane
+    // Each lane stores [leftHalf, rightHalf] ranges (in half-cell units: col*2 + 0 left, +1 right)
+    const weekLanes: Map<number, [number, number][][]> = new Map();
 
     for (const bar of bars) {
-      // Find which weeks this bar spans
       const barStartCell = firstDow + bar.startCol;
       const barEndCell = firstDow + bar.endCol;
       const startWeek = Math.floor(barStartCell / 7);
@@ -164,19 +166,25 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         const colInWeek0 = visStart - weekCellStart;
         const colInWeek1 = visEnd - weekCellStart;
 
-        // Find a free lane
+        // Compute visual half-cell boundaries for this segment
+        const showsArrival = w === startWeek && bar.startsInMonth;
+        const showsDeparture = w === endWeek && bar.endsInMonth;
+        const leftHalf = colInWeek0 * 2 + (showsArrival ? 1 : 0);
+        const rightHalf = colInWeek1 * 2 + 1 - (showsDeparture ? 1 : 0);
+
+        // Find a free lane (no half-cell overlap)
         if (!weekLanes.has(w)) weekLanes.set(w, []);
         const lanes = weekLanes.get(w)!;
         let lane = 0;
         for (lane = 0; lane < lanes.length; lane++) {
           const occupied = lanes[lane];
           const conflict = occupied.some(
-            ([s, e]) => colInWeek0 <= e && colInWeek1 >= s,
+            ([s, e]) => leftHalf <= e && rightHalf >= s,
           );
           if (!conflict) break;
         }
         if (lane === lanes.length) lanes.push([]);
-        lanes[lane].push([colInWeek0, colInWeek1]);
+        lanes[lane].push([leftHalf, rightHalf]);
 
         placements.push({
           ...bar,
@@ -287,21 +295,32 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
               const cellDate = isInMonth ? `${year}-${String(mo + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}` : "";
               const isToday = cellDate === today;
 
+              const event = isInMonth ? findEventOnDay(cellDate) : null;
               return (
                 <div
                   key={col}
-                  className={`min-h-[2.5rem] border-r border-gray-50 px-1.5 pt-1 last:border-r-0 ${!isInMonth ? "bg-gray-50/50" : ""}`}
+                  className={`relative min-h-[2.5rem] border-r border-gray-50 px-1.5 pt-1 last:border-r-0 ${!isInMonth ? "bg-gray-50/50" : ""}`}
                 >
                   {isInMonth && (
-                    <span
-                      className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                        isToday
-                          ? "bg-rose-500 font-bold text-white"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      {day}
-                    </span>
+                    <div className="flex items-center justify-between gap-1">
+                      <span
+                        className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                          isToday
+                            ? "bg-rose-500 font-bold text-white"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        {day}
+                      </span>
+                      {event && (
+                        <span
+                          className="truncate rounded bg-indigo-100 px-1 text-[9px] font-semibold uppercase tracking-wide text-indigo-700"
+                          title={event.name}
+                        >
+                          {shortEventLabel(event.name)}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -381,7 +400,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
           />
           <div
             data-popup
-            className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-sm rounded-2xl bg-white p-5 shadow-xl sm:inset-auto sm:absolute sm:mx-0 sm:w-72 sm:rounded-xl sm:p-4 sm:ring-1 sm:ring-gray-200"
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-5 shadow-xl sm:inset-auto sm:absolute sm:left-auto sm:top-auto sm:w-72 sm:translate-x-0 sm:translate-y-0 sm:rounded-xl sm:p-4 sm:ring-1 sm:ring-gray-200"
             style={
               typeof window !== "undefined" && window.innerWidth >= 640 && containerRef.current
                 ? (() => {
@@ -396,14 +415,43 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                 : undefined
             }
           >
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {showChannels && <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: popup.colour }} />}
-                <h4 className="text-base font-semibold text-gray-900">
-                  {popup.booking.firstName} {popup.booking.lastName}
-                </h4>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2">
+                {showChannels && <span className="mt-1.5 inline-block h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: popup.colour }} />}
+                <div>
+                  {showPrices && popup.booking.title && (
+                    <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">
+                      {popup.booking.title}
+                    </p>
+                  )}
+                  <h4 className="text-base font-semibold text-gray-900">
+                    {popup.booking.firstName} {popup.booking.lastName}
+                  </h4>
+                  {showPrices && (popup.booking.email || popup.booking.mobile || popup.booking.phone) && (
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500">
+                      {popup.booking.email && (
+                        <a
+                          href={`mailto:${popup.booking.email}`}
+                          className="hover:text-indigo-600"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          ✉ {popup.booking.email}
+                        </a>
+                      )}
+                      {(popup.booking.mobile || popup.booking.phone) && (
+                        <a
+                          href={`tel:${popup.booking.mobile || popup.booking.phone}`}
+                          className="hover:text-indigo-600"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          ☏ {popup.booking.mobile || popup.booking.phone}
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <button onClick={() => setPopup(null)} className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+              <button onClick={() => setPopup(null)} className="shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -444,6 +492,19 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   <p className="mt-0.5 font-medium text-gray-900">{popup.channel}</p>
                 </div>
               )}
+
+              {(() => {
+                const event = findEventForStay(popup.booking.arrival, popup.booking.departure);
+                if (!event) return null;
+                return (
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-400">Événement</p>
+                    <span className="mt-0.5 inline-block rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                      {event}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </>

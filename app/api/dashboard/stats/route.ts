@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBookings, getProperties } from "@/lib/beds24";
+import { getBookings, getProperties, getDailyPrices } from "@/lib/beds24";
 import { normalizeChannel } from "@/lib/channel";
+import { findEventForStay } from "@/lib/events";
 import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
 
 function getDateRange(period: string): { from: string; to: string } {
@@ -280,12 +281,14 @@ export async function GET(request: NextRequest) {
         tjm: nights > 0 ? Math.round(b.price / nights) : 0,
         channel: normalizeChannel(b.referer, b.channel),
         type: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? "house" : "room",
+        bookingTime: b.bookingTime,
+        event: findEventForStay(b.arrival, b.departure),
       };
     }
 
-    // Réservations récentes (10 dernières par arrivée)
+    // Réservations récentes (10 dernières par date de réservation)
     const recentBookings = [...bookings]
-      .sort((a, b) => b.arrival.localeCompare(a.arrival))
+      .sort((a, b) => (b.bookingTime || "").localeCompare(a.bookingTime || ""))
       .slice(0, 10)
       .map(toSummary);
 
@@ -326,12 +329,55 @@ export async function GET(request: NextRequest) {
 
     const avgDailyRevenue = daysSoFar > 0 ? realizedRevenue / daysSoFar : 0;
 
+    const minimumRevenue = realizedRevenue + confirmedUpcoming;
+    const projectedRevenue = minimumRevenue + avgDailyRevenue * uncoveredDays;
+
+    // Dynamic pricing projection: fetch Beds24 daily prices × occupancy ratio
+    const occupancyRatio = occupancyRate / 100;
+    let dynamicPricingRevenue: number | null = null;
+    if (uncoveredDays > 0) {
+      try {
+        const priceMap = await getDailyPrices(WHOLE_HOUSE_PROPERTY_ID, today, yearEndStr);
+        // Sum daily prices for the rest of the year, weighted by occupancy ratio
+        let futurePricingSum = 0;
+        for (const [dateStr, price] of Object.entries(priceMap)) {
+          if (dateStr >= today && dateStr <= yearEndStr) {
+            futurePricingSum += price;
+          }
+        }
+        // Subtract already-confirmed nights to avoid double-counting
+        const confirmedFuturePricingSum = bookings
+          .filter((b) => b.departure > today)
+          .reduce((sum, b) => {
+            const start = b.arrival < today ? today : b.arrival;
+            const end = b.departure > yearEndStr ? yearEndStr : b.departure;
+            let subtotal = 0;
+            const d = new Date(start + "T00:00:00");
+            const endDate = new Date(end + "T00:00:00");
+            while (d < endDate) {
+              const key = d.toISOString().split("T")[0];
+              subtotal += priceMap[key] ?? 0;
+              d.setDate(d.getDate() + 1);
+            }
+            return sum + subtotal;
+          }, 0);
+        const uncoveredPricingSum = Math.max(0, futurePricingSum - confirmedFuturePricingSum);
+        dynamicPricingRevenue = Math.round(minimumRevenue + uncoveredPricingSum * occupancyRatio);
+      } catch (err) {
+        console.warn("[stats] Dynamic pricing fetch failed:", err);
+        dynamicPricingRevenue = null;
+      }
+    }
+
     const projection = {
-      projectedRevenue: Math.round(realizedRevenue + confirmedUpcoming + avgDailyRevenue * uncoveredDays),
+      projectedRevenue: Math.round(projectedRevenue),
       daysRemaining,
       avgDailyRevenue: Math.round(avgDailyRevenue * 100) / 100,
       realizedRevenue: Math.round(realizedRevenue * 100) / 100,
       confirmedUpcoming: Math.round(confirmedUpcoming * 100) / 100,
+      minimumRevenue: Math.round(minimumRevenue * 100) / 100,
+      dynamicPricingRevenue,
+      occupancyRatio: Math.round(occupancyRatio * 1000) / 1000,
     };
 
     const stats: DashboardStats = {
