@@ -93,7 +93,7 @@ export default async function Home({
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.9",
-      reviewCount: "18",
+      reviewCount: "19",
       bestRating: "5",
     },
     inLanguage: locale,

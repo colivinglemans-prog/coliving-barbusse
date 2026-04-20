@@ -1,5 +1,13 @@
 [
   {
+    "name": "Loic",
+    "location": "France",
+    "date": "2026-04",
+    "rating": 5,
+    "text": "Hôte super, logement au top tout étais parfait pour une équipe de 9 personnes ! Je recommande à 200%. Merci pour votre accueil.",
+    "photo": "https://a0.muscache.com/im/pictures/user/User/original/43648aad-e5bc-4e6f-8c70-395fa4165e84.jpeg?im_w=240"
+  },
+  {
     "name": "Jerome",
     "location": "France",
     "date": "2026-04",
@@ -13,7 +21,7 @@
     "date": "2026-04",
     "rating": 4,
     "text": "Très bon logement. Le chauffage était un peu compliqué à régler.",
-    "photo": ""
+    "photo": "https://a0.muscache.com/im/pictures/user/User/original/89fb654e-ee53-40c1-8b31-07cb67ccc251.jpeg?im_w=240"
   },
   {
     "name": "Blandine",
