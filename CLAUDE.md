@@ -9,6 +9,7 @@ Site vitrine + dashboard privé pour un coliving au Mans (Airbnb, Booking, Abrit
 - **Auth** : JWT via `jose` (HS256, cookie httpOnly, 90 jours)
 - **Charts** : Recharts (dashboard)
 - **PDF** : `@react-pdf/renderer` (factures LMNP, dashboard)
+- **Paiements** : Stripe (lecture seule, utilisée pour générer des factures acquittées)
 - **Email** : Resend (alertes chauffage)
 - **i18n** : Système custom Context (FR/EN)
 - **API externes** : Beds24 (réservations), Heatzy/Gizwits (chauffage)
@@ -49,9 +50,10 @@ app/
       bookings/       # Réservations Beds24
       calendar/       # Calendrier disponibilité
       properties/     # Propriétés Beds24
-      invoices/       # Factures PDF (prefill depuis Beds24, generate PDF)
-        prefill/      # GET ?bookingId=... → payload pré-rempli
-        generate/     # POST payload édité → PDF téléchargé
+      invoices/       # Factures PDF (Beds24 + Stripe)
+        prefill/          # GET ?bookingId=… OU ?stripeId=… → payload pré-rempli
+        generate/         # POST payload édité → PDF téléchargé
+        stripe-payments/  # GET liste des derniers paiements Stripe réussis
     cron/
       heating-automation/  # Check-in/check-out → mode présence/hors-gel
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
@@ -76,8 +78,9 @@ lib/
   calendar-utils.ts   # Utilitaires calendrier
   invoice-config.ts   # Config émetteur facture (INVOICE_* env vars)
   invoice-number.ts   # Numérotation séquentielle annuelle (Upstash INCR)
-  invoice-payload.ts  # Type InvoicePayload, pré-remplissage Beds24, validation
-  invoice-pdf.tsx     # Template React-PDF (bannière logo, LMNP, IBAN)
+  invoice-payload.ts  # Type InvoicePayload, pré-remplissage Beds24/Stripe, validation
+  invoice-pdf.tsx     # Template React-PDF (bannière logo, LMNP, IBAN ou "payé")
+  stripe.ts           # Client Stripe (listRecentPayments, getStripePayment)
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
   reviews.json        # 18 avis (17 Airbnb + 1 Abritel/Vrbo)
@@ -257,15 +260,17 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
 
 **Cron de santé** `water-heater-health` (toutes les 2h) : alerte email si dérive mode/consigne/boost, ballon hors ligne, ou sous-chauffe (`bottomTemp < consigne - 8°C` avec occupation).
 
-## Factures PDF (LMNP, paiement par virement)
+## Factures PDF (LMNP)
 
-Permet d'émettre une facture PDF pour un client qui veut régler par virement plutôt que par carte (typiquement depuis une inquiry Beds24).
+Émet une facture PDF pour un paiement (virement attendu **ou** paiement Stripe déjà reçu). Deux sources de pré-remplissage : **Beds24** (réservations/inquiries) et **Stripe** (paiements réussis).
 
 ### Flux (admin only)
 
-1. Dashboard → **Factures** → liste des réservations/inquiries avec filtres (Tous / Inquiries / Direct / Airbnb / Booking / Abritel).
-2. Clic « Créer une facture » ou saisie d'un ID Beds24 → page formulaire pré-rempli.
-3. Champs éditables : client (company, nom, adresse, email, tél), séjour (dates, nuits, commentaires), montant (éditable), date limite de paiement.
+1. Dashboard → **Factures**. Deux onglets :
+   - **Beds24** : liste des réservations/inquiries avec filtres (Tous / Inquiries / Direct / Airbnb / Booking / Abritel).
+   - **Stripe** : derniers paiements Stripe réussis (90 jours).
+2. Clic « Créer une facture » ou saisie d'un ID → page formulaire pré-rempli.
+3. Champs éditables : client (company, nom, adresse, email, tél), séjour, montant, date limite (virement) ou **case « Déjà payé »** avec date + méthode + référence (Stripe).
 4. Clic « Générer le PDF » → le numéro de facture est alloué (`AAAA-NNN` via Upstash `INCR invoice:counter:{year}`) et le PDF est téléchargé.
 
 ### Caractéristiques du PDF
@@ -274,7 +279,9 @@ Permet d'émettre une facture PDF pour un client qui veut régler par virement p
 - Bloc client (raison sociale si entreprise, adresse complète).
 - Si le champ `title` Beds24 n'est pas une civilité (M., Mme, etc.), il est utilisé comme raison sociale.
 - Mention **« TVA non applicable, art. 293B du CGI »** (LMNP).
-- Coordonnées de virement (IBAN, BIC, banque) avec le n° facture comme **libellé du virement**.
+- **Bloc paiement conditionnel** :
+  - `payload.paid === false` → bloc rose « Paiement par virement » avec IBAN/BIC et n° facture comme libellé de virement. Bandeau rouge « Paiement attendu avant… ».
+  - `payload.paid === true` → bloc vert « ✓ Paiement reçu » avec montant, méthode, date, référence Stripe. Bandeau vert « Merci de votre paiement ». La facture vaut reçu.
 - `<View wrap={false}>` sur le bloc paiement pour éviter qu'il soit coupé entre deux pages.
 
 ### Restrictions
@@ -320,4 +327,5 @@ INVOICE_IBAN             # IBAN sans espaces (beneficiaire virement)
 INVOICE_BIC              # BIC / SWIFT
 INVOICE_BANK_NAME        # Nom de la banque
 INVOICE_WEBSITE          # URL du site affichée sur la facture (optionnel)
+STRIPE_SECRET_KEY        # Clé Stripe (restricted read-only suffit) pour lister les paiements
 ```

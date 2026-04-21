@@ -1,4 +1,5 @@
 import type { Beds24Booking } from "./types";
+import type { StripePaymentDetail } from "./stripe";
 
 export interface InvoicePayload {
   // Client
@@ -26,6 +27,12 @@ export interface InvoicePayload {
   amount: number;
   description: string;
   paymentDueDate: string;
+
+  // Paiement (si déjà réglé — typiquement Stripe)
+  paid: boolean;
+  paidAt: string;         // YYYY-MM-DD
+  paidMethod: string;     // ex: "Carte bancaire via Stripe"
+  paidReference: string;  // ex: pi_3M... / ch_3M...
 }
 
 function nightsBetween(arrival: string, departure: string): number {
@@ -91,6 +98,89 @@ export function beds24ToPayload(booking: Beds24Booking): InvoicePayload {
     amount: Number(booking.price ?? 0),
     description,
     paymentDueDate: defaultPaymentDueDate(booking.arrival),
+
+    paid: false,
+    paidAt: "",
+    paidMethod: "",
+    paidReference: "",
+  };
+}
+
+function splitName(full: string): { firstName: string; lastName: string } {
+  const t = (full ?? "").trim();
+  if (!t) return { firstName: "", lastName: "" };
+  const parts = t.split(/\s+/);
+  if (parts.length === 1) return { firstName: parts[0], lastName: "" };
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
+/**
+ * Construit un payload à partir d'une réservation Beds24 + d'un paiement Stripe.
+ * Beds24 = source principale (séjour, client, adresse). Stripe = info paiement.
+ */
+export function beds24StripeToPayload(
+  booking: Beds24Booking,
+  payment: StripePaymentDetail,
+): InvoicePayload {
+  const base = beds24ToPayload(booking);
+  return {
+    ...base,
+    // Les infos Beds24 priment pour l'adresse/téléphone si elles existent,
+    // sinon on complète avec celles de Stripe.
+    address: base.address || payment.addressLine1 || "",
+    postcode: base.postcode || payment.postcode || "",
+    city: base.city || payment.city || "",
+    state: base.state || payment.state || "",
+    country: base.country || payment.country || "France",
+    email: base.email || payment.customerEmail || "",
+    phone: base.phone || payment.phone || "",
+    // Montant Stripe (montant effectivement réglé)
+    amount: payment.amount,
+    // Paiement déjà effectué
+    paid: true,
+    paidAt: payment.createdAt,
+    paidMethod: "Carte bancaire via Stripe",
+    paidReference: payment.id,
+    paymentDueDate: payment.createdAt,
+  };
+}
+
+export function stripeToPayload(p: StripePaymentDetail): InvoicePayload {
+  const { firstName, lastName } = splitName(p.customerName);
+  const today = new Date().toISOString().split("T")[0];
+
+  // Stripe description often holds the booking ref (e.g. "Booking 85475544")
+  const description = p.description?.trim() ||
+    `Location saisonnière — paiement Stripe du ${formatDateFr(p.createdAt)}`;
+
+  return {
+    company: "",
+    firstName,
+    lastName,
+    address: p.addressLine1 ?? "",
+    postcode: p.postcode ?? "",
+    city: p.city ?? "",
+    state: p.state ?? "",
+    country: p.country ?? "France",
+    email: p.customerEmail ?? "",
+    phone: p.phone ?? "",
+
+    arrival: today,
+    departure: today,
+    arrivalTime: "",
+    numAdult: 1,
+    numChild: 0,
+    reference: p.id,
+    comments: "",
+
+    amount: p.amount,
+    description,
+    paymentDueDate: p.createdAt,
+
+    paid: true,
+    paidAt: p.createdAt,
+    paidMethod: "Carte bancaire via Stripe",
+    paidReference: p.id,
   };
 }
 
@@ -117,6 +207,10 @@ export function emptyPayload(): InvoicePayload {
     amount: 0,
     description: "",
     paymentDueDate: today,
+    paid: false,
+    paidAt: "",
+    paidMethod: "",
+    paidReference: "",
   };
 }
 
@@ -160,6 +254,11 @@ export function validateInvoicePayload(
     return n;
   }
 
+  function bool(field: keyof InvoicePayload): boolean {
+    const v = r[field];
+    return v === true || v === "true";
+  }
+
   function date(field: keyof InvoicePayload, required = false): string {
     const v = str(field, required);
     if (v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) {
@@ -189,13 +288,23 @@ export function validateInvoicePayload(
     amount: num("amount", true),
     description: str("description", true),
     paymentDueDate: date("paymentDueDate", true),
+    paid: bool("paid"),
+    paidAt: "",
+    paidMethod: "",
+    paidReference: "",
   };
+
+  if (payload.paid) {
+    payload.paidAt = date("paidAt", true);
+    payload.paidMethod = str("paidMethod", true);
+    payload.paidReference = str("paidReference");
+  }
 
   if (payload.amount <= 0) {
     errors.push({ field: "amount", message: "Le montant doit être supérieur à 0" });
   }
 
-  if (payload.arrival && payload.departure && payload.arrival >= payload.departure) {
+  if (!payload.paid && payload.arrival && payload.departure && payload.arrival >= payload.departure) {
     errors.push({ field: "departure", message: "La date de départ doit être après l'arrivée" });
   }
 

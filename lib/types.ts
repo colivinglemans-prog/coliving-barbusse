@@ -95,6 +95,13 @@ export interface Beds24Booking {
   notes?: string;      // Internal notes (NOT printed)
   arrivalTime?: string;
   invoiceItems?: Beds24InvoiceItem[];
+  infoItems?: Beds24InfoItem[];
+}
+
+export interface Beds24InfoItem {
+  id?: number;
+  code: string;
+  text: string;
 }
 
 export interface Beds24InvoiceItem {

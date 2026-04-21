@@ -6,6 +6,7 @@ import type { InvoicePayload } from "@/lib/invoice-payload";
 interface Props {
   initial: InvoicePayload;
   bookingId?: string;
+  stripeId?: string;
 }
 
 type FieldErrors = Partial<Record<keyof InvoicePayload, string>>;
@@ -37,6 +38,25 @@ function formatEur(n: number): string {
 function buildFullEmail(g: GeneratedInvoice): string {
   const p = g.payload;
   const firstName = p.firstName || "Madame, Monsieur";
+
+  if (p.paid) {
+    return `Objet : Votre facture n° ${g.number} — Coliving Barbusse
+
+Bonjour ${firstName},
+
+Merci pour votre réservation au Coliving Barbusse.
+
+Vous trouverez ci-joint votre facture acquittée (n° ${g.number}) correspondant à votre paiement de ${formatEur(p.amount)} reçu le ${formatDateFr(p.paidAt)}.
+
+Cette facture vaut reçu — aucun règlement supplémentaire n'est attendu.
+
+N'hésitez pas si vous avez la moindre question — par email ou directement sur WhatsApp au +33 6 20 92 10 05.
+
+Bien cordialement,
+Alexandre
+Coliving Barbusse — https://coliving-barbusse.vercel.app`;
+  }
+
   return `Objet : Votre demande de réservation — facture n° ${g.number} (paiement par virement)
 
 Bonjour ${firstName},
@@ -64,10 +84,15 @@ Coliving Barbusse — https://coliving-barbusse.vercel.app`;
 function buildShortMessage(g: GeneratedInvoice): string {
   const p = g.payload;
   const firstName = p.firstName || "bonjour";
+
+  if (p.paid) {
+    return `Bonjour ${firstName}, vous trouverez ci-joint votre facture acquittée n° ${g.number} (${formatEur(p.amount)}, réglée par carte le ${formatDateFr(p.paidAt)}). Merci pour votre réservation. Bien cordialement, Alexandre.`;
+  }
+
   return `Bonjour ${firstName}, merci pour votre demande. Vous trouverez ci-joint la facture n° ${g.number} pour un règlement par virement : ${formatEur(p.amount)}, à régler avant le ${formatDateFr(p.paymentDueDate)} en indiquant ${g.number} en libellé. Les IBAN/BIC sont sur la facture. Je confirme la réservation dès réception du virement. Bien cordialement, Alexandre.`;
 }
 
-export default function InvoiceForm({ initial, bookingId }: Props) {
+export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
   const [payload, setPayload] = useState<InvoicePayload>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -345,24 +370,79 @@ export default function InvoiceForm({ initial, bookingId }: Props) {
               <p className="mt-1 text-xs text-red-600">{fieldErrors.amount}</p>
             )}
           </div>
-          <div>
-            <label className={labelClass}>Date limite de paiement *</label>
-            <input
-              className={inputClass}
-              type="date"
-              value={payload.paymentDueDate}
-              onChange={(e) => update("paymentDueDate", e.target.value)}
-              required
-            />
-            {fieldErrors.paymentDueDate && (
-              <p className="mt-1 text-xs text-red-600">{fieldErrors.paymentDueDate}</p>
-            )}
-          </div>
+          {!payload.paid && (
+            <div>
+              <label className={labelClass}>Date limite de paiement *</label>
+              <input
+                className={inputClass}
+                type="date"
+                value={payload.paymentDueDate}
+                onChange={(e) => update("paymentDueDate", e.target.value)}
+                required
+              />
+              {fieldErrors.paymentDueDate && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.paymentDueDate}</p>
+              )}
+            </div>
+          )}
         </div>
+
+        <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-rose-500 focus:ring-rose-400"
+              checked={payload.paid}
+              onChange={(e) => update("paid", e.target.checked)}
+            />
+            Déjà payé (facture acquittée — reçu)
+          </label>
+
+          {payload.paid && (
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label className={labelClass}>Date de paiement *</label>
+                <input
+                  className={inputClass}
+                  type="date"
+                  value={payload.paidAt}
+                  onChange={(e) => update("paidAt", e.target.value)}
+                  required
+                />
+                {fieldErrors.paidAt && (
+                  <p className="mt-1 text-xs text-red-600">{fieldErrors.paidAt}</p>
+                )}
+              </div>
+              <div>
+                <label className={labelClass}>Méthode *</label>
+                <input
+                  className={inputClass}
+                  value={payload.paidMethod}
+                  onChange={(e) => update("paidMethod", e.target.value)}
+                  placeholder="Ex : Carte bancaire via Stripe"
+                  required
+                />
+                {fieldErrors.paidMethod && (
+                  <p className="mt-1 text-xs text-red-600">{fieldErrors.paidMethod}</p>
+                )}
+              </div>
+              <div>
+                <label className={labelClass}>Référence transaction</label>
+                <input
+                  className={inputClass}
+                  value={payload.paidReference}
+                  onChange={(e) => update("paidReference", e.target.value)}
+                  placeholder="Ex : pi_3M..."
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         <p className="mt-3 text-xs text-gray-500">
           TVA non applicable (art. 293B du CGI — LMNP). Le numéro de facture sera
-          utilisé comme libellé du virement, et sera alloué séquentiellement à la
-          génération.
+          alloué séquentiellement à la génération. Pour une facture virement, il
+          sert aussi de libellé de virement.
         </p>
       </section>
 
@@ -374,6 +454,11 @@ export default function InvoiceForm({ initial, bookingId }: Props) {
         {bookingId && (
           <span className="text-xs text-gray-500">
             Pré-rempli depuis Beds24 #{bookingId}
+          </span>
+        )}
+        {stripeId && (
+          <span className="text-xs text-gray-500">
+            Pré-rempli depuis Stripe {stripeId}
           </span>
         )}
         <button

@@ -10,13 +10,19 @@ import { emptyPayload, type InvoicePayload } from "@/lib/invoice-payload";
 function NewInvoiceContent() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("bookingId") ?? "";
+  const stripeId = searchParams.get("stripeId") ?? "";
+  const source: "beds24" | "stripe" | "empty" = bookingId
+    ? "beds24"
+    : stripeId
+      ? "stripe"
+      : "empty";
 
   const [payload, setPayload] = useState<InvoicePayload | null>(null);
-  const [loading, setLoading] = useState(Boolean(bookingId));
+  const [loading, setLoading] = useState(source !== "empty");
   const [prefillError, setPrefillError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!bookingId) {
+    if (source === "empty") {
       setPayload(emptyPayload());
       return;
     }
@@ -25,9 +31,10 @@ function NewInvoiceContent() {
       try {
         setLoading(true);
         setPrefillError(null);
-        const res = await fetch(
-          `/api/dashboard/invoices/prefill?bookingId=${encodeURIComponent(bookingId)}`,
-        );
+        const query = source === "beds24"
+          ? `bookingId=${encodeURIComponent(bookingId)}`
+          : `stripeId=${encodeURIComponent(stripeId)}`;
+        const res = await fetch(`/api/dashboard/invoices/prefill?${query}`);
         const body = await res.json().catch(() => null);
         if (!res.ok) {
           throw new Error(body?.error ?? "Échec du pré-remplissage");
@@ -41,7 +48,17 @@ function NewInvoiceContent() {
       }
     }
     fetchPrefill();
-  }, [bookingId]);
+  }, [source, bookingId, stripeId]);
+
+  const title =
+    source === "beds24"
+      ? `Nouvelle facture — Beds24 #${bookingId}`
+      : source === "stripe"
+        ? `Nouvelle facture — Stripe ${stripeId}`
+        : "Nouvelle facture";
+
+  const prefillLabel =
+    source === "beds24" ? "Pré-remplissage Beds24 impossible" : "Pré-remplissage Stripe impossible";
 
   return (
     <>
@@ -52,9 +69,7 @@ function NewInvoiceContent() {
             ← Factures
           </Link>
         </div>
-        <h1 className="mb-6 text-2xl font-bold text-gray-900">
-          {bookingId ? `Nouvelle facture — Beds24 #${bookingId}` : "Nouvelle facture"}
-        </h1>
+        <h1 className="mb-6 text-2xl font-bold text-gray-900">{title}</h1>
 
         {loading && (
           <div className="flex items-center justify-center py-12">
@@ -64,7 +79,7 @@ function NewInvoiceContent() {
 
         {prefillError && (
           <div className="mb-6 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
-            <p className="font-medium">Pré-remplissage Beds24 impossible</p>
+            <p className="font-medium">{prefillLabel}</p>
             <p className="mt-1">{prefillError}</p>
             <p className="mt-2 text-xs">
               Le formulaire reste utilisable : remplis les champs manuellement.
@@ -73,7 +88,11 @@ function NewInvoiceContent() {
         )}
 
         {!loading && payload && (
-          <InvoiceForm initial={payload} bookingId={bookingId || undefined} />
+          <InvoiceForm
+            initial={payload}
+            bookingId={source === "beds24" ? bookingId : undefined}
+            stripeId={source === "stripe" ? stripeId : undefined}
+          />
         )}
       </div>
     </>

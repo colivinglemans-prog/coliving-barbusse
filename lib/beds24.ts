@@ -57,8 +57,46 @@ export async function getBookingById(id: number): Promise<Beds24Booking | null> 
     id: String(id),
     includeInvoiceItems: "true",
     includeGuests: "true",
+    includeInfoItems: "true",
   });
   return data.data?.[0] ?? null;
+}
+
+/**
+ * Cherche une réservation Beds24 qui contient un des IDs Stripe dans ses infoItems.
+ * Beds24 stocke typiquement le charge id (ch_…) sous le code "STRIPEPAYMENT"
+ * avec un texte du genre "Payment 123.45 EUR, ch_3M…".
+ */
+export async function findBookingByStripeIds(
+  stripeIds: string[],
+): Promise<Beds24Booking | null> {
+  const targets = stripeIds
+    .map((s) => s?.trim())
+    .filter((s): s is string => Boolean(s));
+  if (targets.length === 0) return null;
+
+  const now = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+  const to = new Date(now.getFullYear() + 2, now.getMonth(), 0);
+  const arrivalFrom = from.toISOString().split("T")[0];
+  const arrivalTo = to.toISOString().split("T")[0];
+
+  const data = await beds24Fetch<{ data: Beds24Booking[] }>("/bookings", {
+    arrivalFrom,
+    arrivalTo,
+    includeInfoItems: "true",
+    includeGuests: "true",
+  });
+
+  const bookings = data.data ?? [];
+  const match = bookings.find((b) =>
+    b.infoItems?.some(
+      (i) =>
+        (i.code ?? "").toUpperCase() === "STRIPEPAYMENT" &&
+        targets.some((t) => (i.text ?? "").includes(t)),
+    ),
+  );
+  return match ?? null;
 }
 
 interface AvailabilityRoom {

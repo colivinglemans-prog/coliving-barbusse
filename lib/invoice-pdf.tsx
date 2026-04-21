@@ -182,6 +182,29 @@ const styles = StyleSheet.create({
     color: "#e11d48",
     marginBottom: 6,
   },
+  paidBox: {
+    border: "1px solid #059669",
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: "#ecfdf5",
+  },
+  paidTitle: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 11,
+    color: "#059669",
+    marginBottom: 6,
+  },
+  paidThanks: {
+    marginTop: 12,
+    padding: 8,
+    backgroundColor: "#d1fae5",
+    borderRadius: 4,
+    fontSize: 10,
+    color: "#065f46",
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+  },
   paymentRow: { flexDirection: "row", marginBottom: 2 },
   paymentLabel: { width: 110, color: "#6b7280", fontSize: 9 },
   paymentValue: { fontSize: 10 },
@@ -368,35 +391,63 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
           TVA non applicable, art. 293B du CGI (location meublée non professionnelle).
         </Text>
 
-        <View wrap={false}>
-          <View style={styles.paymentBox}>
-            <Text style={styles.paymentTitle}>Paiement par virement bancaire</Text>
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Bénéficiaire</Text>
-              <Text style={styles.paymentValue}>{issuer.legalName}</Text>
+        {payload.paid ? (
+          <View wrap={false}>
+            <View style={styles.paidBox}>
+              <Text style={styles.paidTitle}>✓ Paiement reçu</Text>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Montant payé</Text>
+                <Text style={styles.paymentValueBold}>{formatEur(payload.amount)}</Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Méthode</Text>
+                <Text style={styles.paymentValue}>{payload.paidMethod || "Carte bancaire"}</Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Date de paiement</Text>
+                <Text style={styles.paymentValue}>{formatDateFr(payload.paidAt)}</Text>
+              </View>
+              {payload.paidReference ? (
+                <View style={styles.paymentRow}>
+                  <Text style={styles.paymentLabel}>Référence</Text>
+                  <Text style={styles.paymentValueBold}>{payload.paidReference}</Text>
+                </View>
+              ) : null}
             </View>
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Banque</Text>
-              <Text style={styles.paymentValue}>{issuer.bankName}</Text>
-            </View>
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>IBAN</Text>
-              <Text style={styles.paymentValueBold}>{formatIban(issuer.iban)}</Text>
-            </View>
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>BIC / SWIFT</Text>
-              <Text style={styles.paymentValueBold}>{issuer.bic}</Text>
-            </View>
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Libellé virement</Text>
-              <Text style={styles.paymentValueBold}>{invoiceNumber}</Text>
-            </View>
-          </View>
 
-          <Text style={styles.dueNotice}>
-            Paiement attendu avant le {formatDateFr(payload.paymentDueDate)}
-          </Text>
-        </View>
+            <Text style={styles.paidThanks}>Merci de votre paiement</Text>
+          </View>
+        ) : (
+          <View wrap={false}>
+            <View style={styles.paymentBox}>
+              <Text style={styles.paymentTitle}>Paiement par virement bancaire</Text>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Bénéficiaire</Text>
+                <Text style={styles.paymentValue}>{issuer.legalName}</Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Banque</Text>
+                <Text style={styles.paymentValue}>{issuer.bankName}</Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>IBAN</Text>
+                <Text style={styles.paymentValueBold}>{formatIban(issuer.iban)}</Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>BIC / SWIFT</Text>
+                <Text style={styles.paymentValueBold}>{issuer.bic}</Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Libellé virement</Text>
+                <Text style={styles.paymentValueBold}>{invoiceNumber}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.dueNotice}>
+              Paiement attendu avant le {formatDateFr(payload.paymentDueDate)}
+            </Text>
+          </View>
+        )}
 
         <Text style={styles.footer} fixed>
           Coliving Barbusse — {issuer.legalName} — {issuer.addressLine2}
