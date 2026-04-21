@@ -23,6 +23,21 @@ async function beds24Fetch<T>(path: string, params?: Record<string, string>): Pr
   return res.json();
 }
 
+export async function updateBookingNotes(id: number, notes: string): Promise<void> {
+  const token = process.env.BEDS24_API_TOKEN;
+  if (!token) throw new Error("BEDS24_API_TOKEN is not set");
+  const res = await fetch(`${BEDS24_API_URL}/bookings`, {
+    method: "POST",
+    headers: { token, "Content-Type": "application/json" },
+    body: JSON.stringify([{ id, notes }]),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Beds24 updateBookingNotes failed: ${res.status} ${body}`);
+  }
+}
+
 export async function getProperties(): Promise<Beds24Property[]> {
   const data = await beds24Fetch<{ data: Beds24Property[] }>("/properties");
   return data.data ?? [];
@@ -124,6 +139,40 @@ export async function getAvailability(
     }
   }
   return merged;
+}
+
+/**
+ * Returns dates where the WHOLE house is booked (all rooms unavailable).
+ * Used for sold-out detection on blog articles.
+ */
+export async function getFullyBookedDates(
+  propertyId: number,
+  from: string,
+  to: string,
+): Promise<Set<string>> {
+  const data = await beds24Fetch<{ data: AvailabilityRoom[] }>(
+    "/inventory/rooms/availability",
+    { startDate: from, endDate: to, propertyId: String(propertyId) },
+  );
+  const rooms = data.data ?? [];
+  if (rooms.length === 0) return new Set();
+
+  // Count for each date how many rooms are unavailable
+  const unavailableCount: Record<string, number> = {};
+  const totalRooms = rooms.length;
+  for (const room of rooms) {
+    for (const [date, available] of Object.entries(room.availability)) {
+      if (!available) {
+        unavailableCount[date] = (unavailableCount[date] ?? 0) + 1;
+      }
+    }
+  }
+  // Fully booked = all rooms unavailable that day
+  const fullyBooked = new Set<string>();
+  for (const [date, count] of Object.entries(unavailableCount)) {
+    if (count === totalRooms) fullyBooked.add(date);
+  }
+  return fullyBooked;
 }
 
 interface CalendarEntry {

@@ -51,18 +51,31 @@ export default async function BlogIndex({
       <p className="mt-3 text-secondary">{subheading}</p>
 
       <ul className="mt-10 grid gap-6 sm:grid-cols-2">
-        {BLOG_POSTS.map((post) => {
+        {[...BLOG_POSTS]
+          .sort((a, b) => Number(!!a.soldOut) - Number(!!b.soldOut))
+          .map((post) => {
           const loc = getLocalizedPost(post, locale);
+          const soldOut = !!post.soldOut;
           return (
             <li
               key={post.slug}
-              className="group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md"
+              className={`group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md ${
+                soldOut ? "opacity-75" : ""
+              }`}
             >
               <Link href={`/${locale}/blog/${post.slug}`} className="block">
                 <div
-                  className="aspect-[16/10] w-full bg-cover bg-center"
+                  className={`relative aspect-[16/10] w-full bg-cover bg-center ${
+                    soldOut ? "grayscale" : ""
+                  }`}
                   style={{ backgroundImage: `url(${post.image})` }}
-                />
+                >
+                  {soldOut && (
+                    <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
+                      {locale === "en" ? "Sold out" : "Complet"}
+                    </span>
+                  )}
+                </div>
                 <div className="p-5">
                   <time className="text-xs font-medium uppercase tracking-wide text-secondary">
                     {new Date(post.date).toLocaleDateString(dateLocale, {

@@ -11,6 +11,10 @@ export interface BlogPostMeta {
   slug: string;
   date: string;
   image: string;
+  /** Si true, affiche un bandeau "Complet — rendez-vous en {nextEdition}" + grayscale */
+  soldOut?: boolean;
+  /** Ex: "2027" — affiché quand soldOut=true */
+  nextEdition?: string;
   locales: {
     fr: LocalizedPost;
     en: LocalizedPost;
@@ -18,6 +22,45 @@ export interface BlogPostMeta {
 }
 
 export const BLOG_POSTS: BlogPostMeta[] = [
+  {
+    slug: "sws-karting-finals-le-mans",
+    date: "2026-04-20",
+    image: "/images/blog/sws-karting.jpg",
+    soldOut: false,
+    nextEdition: "2027",
+    locales: {
+      fr: {
+        title: "Où se loger pour les SWS Karting Finals au Mans (20-23 mai 2026) ?",
+        description:
+          "SWS International Finals 2026 au Le Mans Karting Circuit : dates, format (dont 24h endurance inédite), hébergement pour équipes. Notre maison à 15 min du circuit.",
+        excerpt:
+          "Le plus grand rendez-vous du karting amateur débarque au Mans du 20 au 23 mai 2026 avec une 24h endurance inédite. Voici comment préparer votre séjour.",
+        keywords: [
+          "SWS Karting Finals 2026",
+          "Le Mans International Karting Circuit",
+          "hébergement SWS Le Mans",
+          "karting endurance 24h Le Mans",
+          "team karting Le Mans logement",
+          "Sodikart SWS Finals",
+        ],
+      },
+      en: {
+        title: "Where to stay for the SWS Karting Finals in Le Mans (20-23 May 2026)?",
+        description:
+          "SWS International Finals 2026 at Le Mans Karting Circuit: dates, format (including a new 24h endurance race), accommodation for teams. Our house 15 min from the circuit.",
+        excerpt:
+          "Europe's biggest amateur karting event lands in Le Mans on 20-23 May 2026 with a new 24-hour endurance race. Here's how to plan your stay.",
+        keywords: [
+          "SWS Karting Finals 2026",
+          "Le Mans International Karting Circuit",
+          "SWS Le Mans accommodation",
+          "24h endurance karting Le Mans",
+          "karting team Le Mans stay",
+          "Sodikart SWS Finals",
+        ],
+      },
+    },
+  },
   {
     slug: "seminaire-entreprise-le-mans",
     date: "2026-04-18",
@@ -94,6 +137,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "24-heures-rollers-le-mans",
     date: "2026-04-16",
     image: "/images/blog/24h-rollers.jpg",
+    soldOut: false,
+    nextEdition: "2027",
     locales: {
       fr: {
         title: "24 Heures Rollers du Mans 2026 : guide de l'événement roller",
@@ -129,6 +174,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "le-mans-classic",
     date: "2026-04-17",
     image: "/images/blog/le-mans-classic.jpg",
+    soldOut: false,
+    nextEdition: "2027",
     locales: {
       fr: {
         title: "Le Mans Classic : guide du rassemblement mondial des voitures anciennes",
@@ -236,6 +283,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "ou-se-loger-24h-du-mans-2026",
     date: "2026-03-28",
     image: "/images/blog/24h-du-mans.jpg",
+    soldOut: false,
+    nextEdition: "2027",
     locales: {
       fr: {
         title: "Où se loger pour les 24 Heures du Mans 2026 ?",
@@ -271,6 +320,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "motogp-france-le-mans",
     date: "2026-03-17",
     image: "/images/blog/motogp.jpg",
+    soldOut: false,
+    nextEdition: "2027",
     locales: {
       fr: {
         title: "MotoGP France 2026 au Mans : hébergement et conseils pratiques",
@@ -306,6 +357,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "24-heures-moto-le-mans",
     date: "2026-03-05",
     image: "/images/blog/24h-moto.png",
+    soldOut: false,
+    nextEdition: "2027",
     locales: {
       fr: {
         title: "24 Heures Moto Le Mans : guide hébergement et parking",

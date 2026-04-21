@@ -74,6 +74,108 @@ interface BookingCalendarProps {
   showChannels?: boolean;
 }
 
+/* ── Notes editor (admin editable, viewer read-only) ────────────── */
+function NotesEditor({
+  bookingId,
+  initialNotes,
+  editable,
+  onSaved,
+}: {
+  bookingId: number;
+  initialNotes: string;
+  editable: boolean;
+  onSaved: (notes: string) => void;
+}) {
+  const [value, setValue] = useState(initialNotes);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  // Reset when opening a different booking
+  useEffect(() => {
+    setValue(initialNotes);
+    setStatus("idle");
+  }, [bookingId, initialNotes]);
+
+  if (!editable) {
+    // Viewer mode: read-only display
+    if (!initialNotes.trim()) return null;
+    return (
+      <div className="col-span-2">
+        <p className="text-xs text-gray-400">Note interne</p>
+        <p className="mt-0.5 whitespace-pre-wrap rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          {initialNotes}
+        </p>
+      </div>
+    );
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setStatus("idle");
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: value }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      onSaved(value);
+      setStatus("saved");
+      setTimeout(() => setStatus("idle"), 2000);
+    } catch {
+      setStatus("error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const dirty = value !== initialNotes;
+
+  return (
+    <div className="col-span-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-400">Note interne (ménage, infos…)</p>
+        {status === "saved" && <span className="text-[10px] text-emerald-600">✓ enregistré</span>}
+        {status === "error" && <span className="text-[10px] text-red-600">✗ erreur</span>}
+      </div>
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Ex: ménage samedi et mercredi…"
+        rows={3}
+        className="mt-1 w-full resize-y rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 placeholder-amber-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+        onClick={(e) => e.stopPropagation()}
+      />
+      {dirty && (
+        <div className="mt-2 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setValue(initialNotes);
+            }}
+            disabled={saving}
+            className="rounded-md px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSave();
+            }}
+            disabled={saving}
+            className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {saving ? "…" : "Enregistrer"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BookingCalendar({ bookings, showPrices = true, showChannels = true }: BookingCalendarProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
@@ -400,9 +502,9 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
           />
           <div
             data-popup
-            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-5 shadow-xl sm:inset-auto sm:absolute sm:left-auto sm:top-auto sm:w-72 sm:translate-x-0 sm:translate-y-0 sm:rounded-xl sm:p-4 sm:ring-1 sm:ring-gray-200"
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-5 shadow-xl lg:inset-auto lg:absolute lg:left-auto lg:top-auto lg:w-72 lg:translate-x-0 lg:translate-y-0 lg:rounded-xl lg:p-4 lg:ring-1 lg:ring-gray-200"
             style={
-              typeof window !== "undefined" && window.innerWidth >= 640 && containerRef.current
+              typeof window !== "undefined" && window.innerWidth >= 1024 && containerRef.current
                 ? (() => {
                     const cr = containerRef.current!.getBoundingClientRect();
                     const relTop = popup.rect.bottom - cr.top + 8;
@@ -505,6 +607,15 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   </div>
                 );
               })()}
+
+              <NotesEditor
+                bookingId={popup.booking.id}
+                initialNotes={popup.booking.notes ?? ""}
+                editable={showPrices}
+                onSaved={(newNotes) => {
+                  setPopup((p) => (p ? { ...p, booking: { ...p.booking, notes: newNotes } } : p));
+                }}
+              />
             </div>
           </div>
         </>

@@ -15,6 +15,7 @@ import ArticleEntreprises from "@/lib/blog/content/fr/entreprises-proches-le-man
 import ArticleHippodrome from "@/lib/blog/content/fr/hippodrome-des-hunaudieres";
 import Article24hRollers from "@/lib/blog/content/fr/24-heures-rollers-le-mans";
 import ArticleSeminaire from "@/lib/blog/content/fr/seminaire-entreprise-le-mans";
+import ArticleSWSKarting from "@/lib/blog/content/fr/sws-karting-finals-le-mans";
 
 import ArticleEN24hDuMans2026 from "@/lib/blog/content/en/ou-se-loger-24h-du-mans-2026";
 import ArticleEN24hMoto from "@/lib/blog/content/en/24-heures-moto-le-mans";
@@ -27,6 +28,7 @@ import ArticleENEntreprises from "@/lib/blog/content/en/entreprises-proches-le-m
 import ArticleENHippodrome from "@/lib/blog/content/en/hippodrome-des-hunaudieres";
 import ArticleEN24hRollers from "@/lib/blog/content/en/24-heures-rollers-le-mans";
 import ArticleENSeminaire from "@/lib/blog/content/en/seminaire-entreprise-le-mans";
+import ArticleENSWSKarting from "@/lib/blog/content/en/sws-karting-finals-le-mans";
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
@@ -42,6 +44,7 @@ const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
   "hippodrome-des-hunaudieres": { fr: ArticleHippodrome, en: ArticleENHippodrome },
   "24-heures-rollers-le-mans": { fr: Article24hRollers, en: ArticleEN24hRollers },
   "seminaire-entreprise-le-mans": { fr: ArticleSeminaire, en: ArticleENSeminaire },
+  "sws-karting-finals-le-mans": { fr: ArticleSWSKarting, en: ArticleENSWSKarting },
 };
 
 export function generateStaticParams() {
@@ -133,6 +136,7 @@ export default async function BlogPost({
 
   const dateLocale = locale === "en" ? "en-US" : "fr-FR";
   const backLabel = locale === "en" ? "← Back to blog" : "← Retour au blog";
+  const isSoldOut = !!post.soldOut;
 
   return (
     <article className="mx-auto max-w-3xl px-6 py-12">
@@ -159,6 +163,25 @@ export default async function BlogPost({
         </h1>
         <p className="mt-3 text-lg text-secondary">{loc.description}</p>
       </header>
+
+      {isSoldOut && (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+          <p className="font-semibold text-amber-900">
+            {locale === "en"
+              ? "Sold out for this edition"
+              : "Complet pour cette édition"}
+          </p>
+          <p className="mt-1 text-sm text-amber-800">
+            {locale === "en"
+              ? `Thank you to everyone who booked! We'll welcome new travellers for the ${
+                  post.nextEdition ?? "next"
+                } edition.`
+              : `Merci à tous nos voyageurs ! Rendez-vous pour l'édition ${
+                  post.nextEdition ?? "suivante"
+                }.`}
+          </p>
+        </div>
+      )}
 
       <div
         className="mt-8 aspect-[16/9] w-full rounded-xl bg-cover bg-center"
