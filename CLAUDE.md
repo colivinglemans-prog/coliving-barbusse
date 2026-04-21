@@ -54,6 +54,7 @@ app/
         prefill/          # GET ?bookingId=… OU ?stripeId=… → payload pré-rempli
         generate/         # POST payload édité → PDF téléchargé
         stripe-payments/  # GET liste des derniers paiements Stripe réussis
+      bookings/[id]/notes/  # POST notes internes (admin only) → Beds24
     cron/
       heating-automation/  # Check-in/check-out → mode présence/hors-gel
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
@@ -65,10 +66,11 @@ components/
     HeatingDeviceCard # Carte device (mode, temp, tendance, présence, alertes)
 lib/
   blog/
-    posts.ts          # BLOG_POSTS avec locales.fr/en (title, description, excerpt, keywords)
+    posts.ts          # BLOG_POSTS avec locales.fr/en + soldOut manual flag + nextEdition
     content/
-      fr/             # 10 articles FR (Link hrefs préfixés /fr)
-      en/             # 10 articles EN (Link hrefs préfixés /en)
+      fr/             # 12 articles FR (Link hrefs préfixés /fr)
+      en/             # 12 articles EN (Link hrefs préfixés /en)
+  events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
   i18n/               # Traductions FR/EN (dictionaries/, context, types)
   auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
   beds24.ts           # Client API Beds24 (cache 5 min)
@@ -83,7 +85,7 @@ lib/
   stripe.ts           # Client Stripe (listRecentPayments, getStripePayment)
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
-  reviews.json        # 18 avis (17 Airbnb + 1 Abritel/Vrbo)
+  reviews.json        # 19 avis (18 Airbnb + 1 Abritel/Vrbo)
   heatzy-zones.json   # Config zones radiateurs + mapping Beds24
 public/images/
   house/              # 12 photos de la maison
@@ -159,6 +161,46 @@ vercel.json           # Config Vercel (crons quotidiens)
 - temp > cft_temp + 3°C → "Température anormale"
 
 **Toujours** : offline, consigne modifiée par voyageur
+
+## Dashboard stats (`/dashboard`)
+
+- **StatsCards** : revenus totaux, TJM, RevPAR, occupation, lead time (global/maison/chambre)
+- **RevenueProjection annuelle** :
+  - Bloc "garanti" : réalisé + confirmé = total, avec barre progress
+  - 3 scénarios : Minimum garanti / Tendance actuelle (TJM moyen) / Pricing dynamique (prix BeyondPricing × taux occupation)
+  - Pricing dynamique via `getDailyPrices` (Beds24 `/inventory/rooms/calendar?includePrices`)
+- **RevenueChart** : Recharts par mois, split réalisé/prévu
+- **BookingsTable** (2 tableaux) :
+  - Réservations récentes : triées par **date de réservation** (bookingTime) avec colonne "Réservée"
+  - Meilleures réservations (TJM) : triées par TJM avec colonne **Événement** (badge indigo via `findEventForStay`)
+  - Colonne "Type" supprimée (toujours maison)
+- **ChannelPieChart** : revenus par canal (Airbnb, Booking, Abritel, Direct)
+- **OccupancyGauge** : jauge circulaire de taux d'occupation
+
+## Dashboard calendrier (`/dashboard/calendar`)
+
+- **Grille mois** avec navigation prev/next, jour férié marqué, aujourd'hui en rose
+- **Événements Le Mans** : badge court (24h Mans, MotoGP, Hippodrome…) sur chaque cellule jour via `findEventOnDay`
+- **Barres de réservation** : couleur par canal (admin), demi-cellules pour checkout/check-in → permet aux résas back-to-back (même jour) de partager une ligne
+- **Popup réservation** : dates, nuits, voyageurs, prix/canal (admin)
+  - Admin : titre/société + email (mailto) + téléphone (tel) cliquables + édition inline des notes internes (Beds24)
+  - Viewer : notes en lecture seule (fond ambre)
+  - Événement associé affiché en bas (badge indigo)
+  - Mobile : popup centré (fix seuil `lg:` pour éviter hors-écran)
+- **Toggle admin/viewer** : bouton prévisualiser la vue viewer (comme /heating)
+
+## Événements Le Mans (`lib/events.ts`)
+
+- `LE_MANS_EVENTS` : 20+ événements du circuit (2025-2027) : 24h Moto, MotoGP, SWS Karting, 24h du Mans, Le Mans Classic, 24h Rollers, 24h Camions, Rotax, Mini OGP, Superbike, Rallye Sarthe, 23H60, 24h Vélo, Porsche/F4, Championnat Monde Karting KZ, Euro IAME, Marathon, Slalom ACO, TTE, Fun Cup, Hunaudières Réunions hippiques
+- `findEventForStay(arrival, departure)` : retourne le nom du 1er événement qui overlap (±2 jours margin). Utilisé dans stats + calendrier popup
+- `findEventOnDay(dateStr)` : retourne l'événement qui contient ce jour (sans margin). Utilisé dans calendrier
+- `shortEventLabel(name)` : label court pour affichage compact (ex: "24h Mans", "MotoGP", "Classic")
+
+## Blog sold-out
+
+- Flag manuel `soldOut: true` dans `posts.ts` par article
+- Si soldOut : grayscale image + badge "Complet" + trié en bas de liste + bandeau article "Rendez-vous pour l'édition {nextEdition}"
+- Pas d'auto-détection Beds24 (Turbopack avait des issues de compilation)
 
 ### Dashboard chauffage (`/dashboard/heating`)
 
