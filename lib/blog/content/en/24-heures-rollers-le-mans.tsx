@@ -67,6 +67,37 @@ export default function Article() {
         </li>
       </ul>
 
+      <h2>Getting to the circuit by tram (T1)</h2>
+      <p>
+        A major asset from central Le Mans: the <strong>T1 tram</strong> goes directly to
+        the Circuit (stop <em>Antarès / MMArena</em>, southern terminus of the line). The
+        ride takes <strong>~30 min</strong> from the TGV station, with service every{" "}
+        <strong>4-5 min</strong> on race weekend.
+      </p>
+      <ul>
+        <li>
+          <strong>Zero parking hassle</strong>: leave the car in town, avoid the jams and
+          the walk from the circuit&apos;s outer car parks.
+        </li>
+        <li>
+          <strong>Convenient for gear</strong>: skates, helmet and backpack fit easily
+          in the tram.
+        </li>
+        <li>
+          <strong>Easy return after a relay</strong>: after a night or early-morning
+          session, coming back by tram is much less tiring than driving.
+        </li>
+        <li>
+          <strong>Single ticket or day pass</strong>: around €1.60 per ride,
+          €4 for a day pass (SETRAM rates, indicative).
+        </li>
+      </ul>
+      <p>
+        From our house, it&apos;s a <strong>10-minute walk to the station</strong>,
+        then a direct tram: <strong>~40 min door-to-door</strong>, no parking stress on
+        the circuit side.
+      </p>
+
       <h2>Where to stay during 24H Rollers?</h2>
       <p>
         The event is in mid-July, coinciding with school holidays: book your accommodation

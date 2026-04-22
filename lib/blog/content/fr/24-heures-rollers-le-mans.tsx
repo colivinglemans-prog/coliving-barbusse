@@ -67,6 +67,38 @@ export default function Article() {
         </li>
       </ul>
 
+      <h2>Aller au circuit en tramway (T1)</h2>
+      <p>
+        Un atout majeur depuis le centre du Mans : le{" "}
+        <strong>tramway T1</strong> dessert directement le Circuit (arrêt{" "}
+        <em>Antarès / MMArena</em>, terminus sud de la ligne). Le trajet dure{" "}
+        <strong>~30 min</strong> depuis la gare TGV, avec une cadence renforcée{" "}
+        <strong>toutes les 4-5 min</strong> le week-end de course.
+      </p>
+      <ul>
+        <li>
+          <strong>Zéro stress parking</strong> : laissez la voiture en ville, évitez les
+          bouchons et la marche depuis les parkings périphériques du circuit.
+        </li>
+        <li>
+          <strong>Pratique pour le matériel</strong> : patins, casque et sac à dos
+          passent sans problème dans le tram.
+        </li>
+        <li>
+          <strong>Retour facile après relais</strong> : après une session nocturne ou
+          très matinale, rentrer en tram est bien moins fatigant qu'en voiture.
+        </li>
+        <li>
+          <strong>Ticket simple ou Pass Journée</strong> : ~1,60 € le trajet,
+          ~4 € la journée (tarifs SETRAM indicatifs).
+        </li>
+      </ul>
+      <p>
+        Depuis notre maison, comptez <strong>10 min à pied jusqu'à la gare</strong>, puis
+        tram direct : <strong>~40 min porte-à-porte</strong>, sans souci de stationnement
+        côté circuit.
+      </p>
+
       <h2>Où se loger pendant les 24H Rollers ?</h2>
       <p>
         L'événement étant en plein été (mi-juillet), il coïncide avec les vacances

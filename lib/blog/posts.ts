@@ -23,6 +23,80 @@ export interface BlogPostMeta {
 
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
+    slug: "championnat-monde-karting-kz-le-mans",
+    date: "2026-04-22",
+    image: "/images/blog/mondial-karting-kz.jpg",
+    locales: {
+      fr: {
+        title: "Championnat du Monde de Karting KZ 2026 au Mans : guide complet",
+        description:
+          "Mondial Karting KZ 2026 au Le Mans International Karting Circuit (16-20 sept) : catégorie reine, format, hébergement pour teams internationales. Notre maison à moins de 5 km du circuit.",
+        excerpt:
+          "Les meilleurs pilotes de karting de la planète se retrouvent au Mans du 16 au 20 septembre 2026. Guide complet pour teams et accompagnants.",
+        keywords: [
+          "Championnat du Monde Karting KZ 2026",
+          "Mondial Karting Le Mans",
+          "Le Mans International Karting Circuit",
+          "hébergement team karting Le Mans",
+          "CIK-FIA KZ World Championship",
+          "karting boîte Le Mans",
+        ],
+      },
+      en: {
+        title: "KZ World Karting Championship 2026 in Le Mans: full guide",
+        description:
+          "KZ World Karting Championship 2026 at Le Mans International Karting Circuit (16-20 Sept): flagship category, format, accommodation for international teams. House less than 5 km from the track.",
+        excerpt:
+          "The best karting drivers in the world gather in Le Mans from 16 to 20 September 2026. Complete guide for teams and support staff.",
+        keywords: [
+          "KZ World Karting Championship 2026",
+          "World Karting Le Mans",
+          "Le Mans International Karting Circuit",
+          "karting team accommodation Le Mans",
+          "CIK-FIA KZ World Championship",
+          "gearbox karting Le Mans",
+        ],
+      },
+    },
+  },
+  {
+    slug: "24-heures-camions-le-mans",
+    date: "2026-04-22",
+    image: "/images/blog/24h-camions.jpg",
+    locales: {
+      fr: {
+        title: "24 Heures Camions 2026 au Mans : guide du week-end",
+        description:
+          "24 Heures Camions 2026 au Circuit Bugatti les 26-27 septembre : programme, tarifs, animations, hébergement en famille ou entre amis. Notre maison à moins de 5 km du circuit.",
+        excerpt:
+          "Un spectacle accessible, familial et bon marché : les 24h Camions au Mans sont le week-end idéal en famille. Dates, programme et conseils pratiques.",
+        keywords: [
+          "24 Heures Camions Le Mans",
+          "24H Camions 2026",
+          "camion course Circuit Bugatti",
+          "hébergement 24h camions",
+          "week-end famille Le Mans camions",
+          "truck racing Le Mans",
+        ],
+      },
+      en: {
+        title: "24 Hours Truck Race 2026 in Le Mans: weekend guide",
+        description:
+          "24 Hours Truck Race 2026 at Bugatti Circuit on 26-27 September: schedule, prices, entertainment, accommodation for families and friends. House less than 5 km from the circuit.",
+        excerpt:
+          "An accessible, family-friendly and affordable spectacle: the 24h Truck Race in Le Mans is the ideal family weekend. Dates, schedule and practical tips.",
+        keywords: [
+          "24 Hours Truck Race Le Mans",
+          "24H Truck 2026",
+          "truck racing Bugatti circuit",
+          "24h truck accommodation",
+          "family weekend Le Mans truck",
+          "truck racing Le Mans",
+        ],
+      },
+    },
+  },
+  {
     slug: "sws-karting-finals-le-mans",
     date: "2026-04-20",
     image: "/images/blog/sws-karting.jpg",
@@ -32,7 +106,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       fr: {
         title: "Où se loger pour les SWS Karting Finals au Mans (20-23 mai 2026) ?",
         description:
-          "SWS International Finals 2026 au Le Mans Karting Circuit : dates, format (dont 24h endurance inédite), hébergement pour équipes. Notre maison à 15 min du circuit.",
+          "SWS International Finals 2026 au Le Mans Karting Circuit : dates, format (dont 24h endurance inédite), hébergement pour équipes. Notre maison à moins de 5 km du circuit.",
         excerpt:
           "Le plus grand rendez-vous du karting amateur débarque au Mans du 20 au 23 mai 2026 avec une 24h endurance inédite. Voici comment préparer votre séjour.",
         keywords: [
@@ -47,7 +121,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
         title: "Where to stay for the SWS Karting Finals in Le Mans (20-23 May 2026)?",
         description:
-          "SWS International Finals 2026 at Le Mans Karting Circuit: dates, format (including a new 24h endurance race), accommodation for teams. Our house 15 min from the circuit.",
+          "SWS International Finals 2026 at Le Mans Karting Circuit: dates, format (including a new 24h endurance race), accommodation for teams. Our house less than 5 km from the circuit.",
         excerpt:
           "Europe's biggest amateur karting event lands in Le Mans on 20-23 May 2026 with a new 24-hour endurance race. Here's how to plan your stay.",
         keywords: [
@@ -71,7 +145,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         description:
           "Organiser un séminaire au Mans : 9 suites privatives, espaces de réunion modulables, activités team-building au Circuit Bugatti et en Sarthe. Programme type 2 jours et guide complet.",
         excerpt:
-          "9 personnes, une maison entière, le circuit mythique à 15 min : la formule idéale pour un séminaire qui combine productivité et cohésion.",
+          "9 personnes, une maison entière, le circuit mythique à moins de 5 km : la formule idéale pour un séminaire qui combine productivité et cohésion.",
         keywords: [
           "séminaire entreprise Le Mans",
           "team building Le Mans",
@@ -86,7 +160,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         description:
           "Organising a seminar in Le Mans: 9 private suites, modular meeting spaces, team-building activities at Bugatti Circuit and in the Sarthe. 2-day example programme and full guide.",
         excerpt:
-          "9 people, a whole house, the legendary circuit 15 min away: the ideal formula for a seminar that combines productivity and bonding.",
+          "9 people, a whole house, the legendary circuit less than 5 km away: the ideal formula for a seminar that combines productivity and bonding.",
         keywords: [
           "Le Mans corporate seminar",
           "Le Mans team building",
@@ -290,7 +364,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       fr: {
         title: "Où se loger pour les 24 Heures du Mans 2026 ?",
         description:
-          "Guide complet pour choisir son hébergement pendant les 24h du Mans 2026 : zones, prix, conseils pour grands groupes et familles. Notre maison de 9 suites à 15 min du circuit.",
+          "Guide complet pour choisir son hébergement pendant les 24h du Mans 2026 : zones, prix, conseils pour grands groupes et familles. Notre maison de 9 suites à moins de 5 km du circuit.",
         excerpt:
           "Où dormir pendant les 24h du Mans ? Zones, tarifs, disponibilités — tout ce qu'il faut savoir pour réserver son hébergement avant que tout soit pris.",
         keywords: [
@@ -304,7 +378,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
         title: "Where to stay for the 24 Hours of Le Mans 2026?",
         description:
-          "Complete guide to choosing your accommodation for the 24 Hours of Le Mans 2026: areas, prices, tips for large groups and families. Our 9-suite house 15 min from the circuit.",
+          "Complete guide to choosing your accommodation for the 24 Hours of Le Mans 2026: areas, prices, tips for large groups and families. Our 9-suite house less than 5 km from the circuit.",
         excerpt:
           "Where to sleep during the 24 Hours of Le Mans? Areas, prices, availability — everything you need to book before it's all taken.",
         keywords: [

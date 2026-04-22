@@ -27,10 +27,11 @@ export default function Article() {
         circuit — otherwise jams will cost you a lot of time.
       </p>
 
-      <h3>Le Mans city (15-20 min from the circuit off-event)</h3>
+      <h3>Le Mans city (20 min from the circuit off-event, 45-60 min on race days)</h3>
       <p>
         The best compromise. You get to enjoy the historic centre (Plantagenet City,
-        cathedral, restaurants) and reach the circuit by car in 15-20 minutes off-event.
+        cathedral, restaurants) and reach the circuit by car in 20 minutes off-event
+        (45-60 min on race days due to traffic).
         Ideal for groups and families wanting to mix the race with sightseeing.
       </p>
 
@@ -71,14 +72,14 @@ export default function Article() {
         comes out cheaper than individual hotel rooms.
       </p>
 
-      <h2>Our house — 9 private suites 15-20 minutes from the circuit</h2>
+      <h2>Our house — 9 private suites 20 minutes from the circuit</h2>
       <p>
         For groups, large families or businesses, our 215 m² house offers{" "}
         <strong>9 twin bedrooms with en-suite bathrooms</strong>. Up to 18 guests sleep
         in peace, each in their own space, with no compromise on comfort.
       </p>
       <ul>
-        <li>15-20 min from the Bugatti Circuit off-event (45-60 min on race days due to traffic)</li>
+        <li>20 min from the Bugatti Circuit off-event (45-60 min on race days due to traffic)</li>
         <li>10 min walk from Le Mans TGV station + direct tram T1 to the circuit (~30 min door-to-door, no parking stress)</li>
         <li>Free street parking right in front of the house</li>
         <li>Fully equipped kitchen</li>

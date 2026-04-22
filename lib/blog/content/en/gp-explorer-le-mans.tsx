@@ -74,7 +74,7 @@ export default function Article() {
         guests:
       </p>
       <ul>
-        <li>15-20 min from the Bugatti Circuit off-event (45-60 min on race days)</li>
+        <li>20 min from the Bugatti Circuit off-event (45-60 min on race days)</li>
         <li>10 min walk from the TGV station + direct tram T1 to the circuit (~30 min door-to-door, no parking hassle)</li>
         <li>Free street parking in a quiet residential area</li>
         <li>215 m² total (common areas, bedrooms and gym/zen annex) to gather</li>

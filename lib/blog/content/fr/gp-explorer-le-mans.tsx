@@ -74,7 +74,7 @@ export default function Article() {
         jusqu'à 18 personnes :
       </p>
       <ul>
-        <li>15-20 min du Circuit Bugatti hors événement (45-60 min les jours de course)</li>
+        <li>20 min du Circuit Bugatti hors événement (45-60 min les jours de course)</li>
         <li>10 min à pied de la gare TGV + tram T1 direct vers le circuit (~30 min porte-à-porte, sans bouchon ni souci de parking)</li>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
         <li>215 m² au total (espaces communs, chambres et annexe sport/zen) pour se retrouver</li>

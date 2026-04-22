@@ -63,7 +63,7 @@ export default function Article() {
       </p>
       <ul>
         <li>Free street parking in a quiet residential area</li>
-        <li>15-20 min from the Bugatti Circuit off-event (45-60 min on race days)</li>
+        <li>20 min from the Bugatti Circuit off-event (45-60 min on race days)</li>
         <li>10 min walk from the TGV station + direct tram T1 to the circuit (~30 min door-to-door, ideal to avoid jams)</li>
         <li>Equipped kitchen for team dinners after the race</li>
         <li>Gym to shake off sore muscles</li>

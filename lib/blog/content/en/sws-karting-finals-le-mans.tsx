@@ -68,7 +68,7 @@ export default function Article() {
 
       <h3>Le Mans city</h3>
       <p>
-        The best compromise: 15-20 minutes from the circuit off-peak, historic centre for
+        The best compromise: 20 minutes from the circuit off-event (45-60 min on race days), historic centre for
         evening downtime, strong dining options, excellent TGV access.
       </p>
 
@@ -95,7 +95,7 @@ export default function Article() {
           site.
         </li>
         <li>
-          <strong>15-20 min from the circuit</strong> off-event (expect more on peak
+          <strong>20 min from the circuit</strong> off-event (expect more on peak
           event days).
         </li>
         <li>

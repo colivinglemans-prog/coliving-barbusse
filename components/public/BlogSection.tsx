@@ -53,13 +53,16 @@ export default function BlogSection() {
               className={`group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md ${mobileHidden} ${soldOut ? "opacity-75" : ""}`}
             >
               <Link href={`/${locale}/blog/${post.slug}`} className="block">
-                <div
-                  className={`relative aspect-[16/10] w-full bg-cover bg-center ${soldOut ? "grayscale" : ""}`}
-                  style={{ backgroundImage: `url(${post.image})` }}
-                >
+                <div className="relative aspect-[16/10] w-full overflow-hidden">
+                  <div
+                    className={`absolute inset-0 bg-cover bg-center ${soldOut ? "grayscale" : ""}`}
+                    style={{ backgroundImage: `url(${post.image})` }}
+                  />
                   {soldOut && (
-                    <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
-                      {locale === "en" ? "Sold out" : "Complet"}
+                    <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
+                      {locale === "en"
+                        ? `Sold out for ${post.date.slice(0, 4)}`
+                        : `Complet pour l'édition ${post.date.slice(0, 4)}`}
                     </span>
                   )}
                 </div>

@@ -44,7 +44,7 @@ export default function Article() {
       <p>
         Les villages autour du circuit (Arnage, Mulsanne) sont saturés et les axes bouchés. En
         ville, vous profitez en plus du centre historique et des restaurants. La distance au
-        circuit reste très raisonnable (15-20 minutes hors événement, 45-60 min les jours de course à cause des bouchons).
+        circuit reste très raisonnable (20 minutes hors événement, 45-60 min les jours de course à cause des bouchons).
       </p>
 
       <h3>Durée de séjour recommandée</h3>
@@ -68,7 +68,7 @@ export default function Article() {
       <h2>Notre maison : parfaite pour un week-end MotoGP entre amis</h2>
       <p>
         Notre coliving de <strong>9 suites privatives avec salles de bain</strong> accueille
-        jusqu'à 18 personnes dans le calme, à 15-20 minutes du Circuit Bugatti hors événement (45-60 min les jours de course) :
+        jusqu'à 18 personnes dans le calme, à 20 minutes du Circuit Bugatti hors événement (45-60 min les jours de course) :
       </p>
       <ul>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>

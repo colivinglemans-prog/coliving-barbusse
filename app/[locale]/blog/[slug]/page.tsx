@@ -16,6 +16,8 @@ import ArticleHippodrome from "@/lib/blog/content/fr/hippodrome-des-hunaudieres"
 import Article24hRollers from "@/lib/blog/content/fr/24-heures-rollers-le-mans";
 import ArticleSeminaire from "@/lib/blog/content/fr/seminaire-entreprise-le-mans";
 import ArticleSWSKarting from "@/lib/blog/content/fr/sws-karting-finals-le-mans";
+import Article24hCamions from "@/lib/blog/content/fr/24-heures-camions-le-mans";
+import ArticleMondialKarting from "@/lib/blog/content/fr/championnat-monde-karting-kz-le-mans";
 
 import ArticleEN24hDuMans2026 from "@/lib/blog/content/en/ou-se-loger-24h-du-mans-2026";
 import ArticleEN24hMoto from "@/lib/blog/content/en/24-heures-moto-le-mans";
@@ -29,6 +31,8 @@ import ArticleENHippodrome from "@/lib/blog/content/en/hippodrome-des-hunaudiere
 import ArticleEN24hRollers from "@/lib/blog/content/en/24-heures-rollers-le-mans";
 import ArticleENSeminaire from "@/lib/blog/content/en/seminaire-entreprise-le-mans";
 import ArticleENSWSKarting from "@/lib/blog/content/en/sws-karting-finals-le-mans";
+import ArticleEN24hCamions from "@/lib/blog/content/en/24-heures-camions-le-mans";
+import ArticleENMondialKarting from "@/lib/blog/content/en/championnat-monde-karting-kz-le-mans";
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
@@ -45,6 +49,8 @@ const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
   "24-heures-rollers-le-mans": { fr: Article24hRollers, en: ArticleEN24hRollers },
   "seminaire-entreprise-le-mans": { fr: ArticleSeminaire, en: ArticleENSeminaire },
   "sws-karting-finals-le-mans": { fr: ArticleSWSKarting, en: ArticleENSWSKarting },
+  "24-heures-camions-le-mans": { fr: Article24hCamions, en: ArticleEN24hCamions },
+  "championnat-monde-karting-kz-le-mans": { fr: ArticleMondialKarting, en: ArticleENMondialKarting },
 };
 
 export function generateStaticParams() {

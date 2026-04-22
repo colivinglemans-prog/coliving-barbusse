@@ -64,7 +64,7 @@ export default function Article() {
       </p>
       <ul>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
-        <li>15-20 min du Circuit Bugatti hors événement (45-60 min les jours de course)</li>
+        <li>20 min du Circuit Bugatti hors événement (45-60 min les jours de course)</li>
         <li>10 min à pied de la gare TGV + tram T1 direct vers le circuit (~30 min porte-à-porte, idéal pour éviter les bouchons)</li>
         <li>Cuisine équipée pour dîner ensemble après la course</li>
         <li>Salle de sport pour évacuer les courbatures</li>

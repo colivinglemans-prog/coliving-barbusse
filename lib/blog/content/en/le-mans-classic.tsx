@@ -56,7 +56,7 @@ export default function Article() {
 
       <h3>In town, for easy access</h3>
       <p>
-        Le Mans centre remains the most practical option: 15-20 minutes from the circuit
+        Le Mans centre remains the most practical option: 20 minutes from the circuit
         off-event (30-45 min on race days), but away from the jams and campsites. Ideal
         for families and enthusiasts who also want to enjoy the heritage of Plantagenet
         City.
@@ -77,7 +77,7 @@ export default function Article() {
       <h2>Our house: perfect for collector clubs</h2>
       <p>
         Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 18
-        guests in a quiet setting, 15-20 minutes from the Bugatti Circuit off-event
+        guests in a quiet setting, 20 minutes from the Bugatti Circuit off-event
         (30-45 min on race days):
       </p>
       <ul>

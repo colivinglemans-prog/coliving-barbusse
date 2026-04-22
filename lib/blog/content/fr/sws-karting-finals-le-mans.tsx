@@ -76,7 +76,7 @@ export default function Article() {
 
       <h3>Le Mans ville</h3>
       <p>
-        Le meilleur compromis : 15-20 minutes du circuit hors pic de trafic, centre
+        Le meilleur compromis : 20 minutes du circuit hors événement (45-60 min les jours de course), centre
         historique pour se détendre le soir, bonne offre de restauration, desserte TGV
         efficace.
       </p>
@@ -105,7 +105,7 @@ export default function Article() {
           récupération active sur place.
         </li>
         <li>
-          <strong>15-20 min du circuit</strong> hors événement (prévoir plus les jours de
+          <strong>20 min du circuit</strong> hors événement (prévoir plus les jours de
           forte affluence).
         </li>
         <li>

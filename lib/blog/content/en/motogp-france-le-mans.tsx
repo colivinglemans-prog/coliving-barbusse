@@ -44,7 +44,7 @@ export default function Article() {
       <p>
         The villages around the circuit (Arnage, Mulsanne) are saturated and roads are
         blocked. In the city, you also benefit from the historic centre and restaurants.
-        The drive to the circuit is still very reasonable (15-20 min off-event, 45-60
+        The drive to the circuit is still very reasonable (20 min off-event, 45-60
         min on race days due to traffic).
       </p>
 
@@ -69,7 +69,7 @@ export default function Article() {
       <h2>Our house: perfect for a MotoGP weekend with friends</h2>
       <p>
         Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 18
-        guests in a quiet setting, 15-20 minutes from the Bugatti Circuit off-event
+        guests in a quiet setting, 20 minutes from the Bugatti Circuit off-event
         (45-60 min on race days):
       </p>
       <ul>

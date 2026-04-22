@@ -28,11 +28,11 @@ export default function Article() {
         temps.
       </p>
 
-      <h3>Le Mans ville (15-20 min du circuit hors événement)</h3>
+      <h3>Le Mans ville (20 min du circuit hors événement, 45-60 min les jours de course)</h3>
       <p>
         Le meilleur compromis. Vous profitez du centre-ville historique (Cité Plantagenêt,
-        cathédrale, restaurants) et rejoignez le circuit en voiture en 15 à 20 minutes hors
-        embouteillages. C'est la zone idéale pour les groupes et les familles qui veulent
+        cathédrale, restaurants) et rejoignez le circuit en voiture en 20 minutes hors
+        embouteillages (compter 45-60 min les jours de course). C'est la zone idéale pour les groupes et les familles qui veulent
         alterner course et tourisme.
       </p>
 
@@ -74,14 +74,14 @@ export default function Article() {
         partagée à 15 revient souvent moins cher qu'un hôtel individuel.
       </p>
 
-      <h2>Notre maison — 9 suites privatives à 15-20 minutes du circuit</h2>
+      <h2>Notre maison — 9 suites privatives à 20 minutes du circuit</h2>
       <p>
         Pour les groupes, familles élargies ou entreprises, notre maison de 215 m² offre{" "}
         <strong>9 chambres doubles avec salle de bain privative</strong>. Vous dormez à 18
         dans le calme, chacun dans son espace, sans compromis sur le confort.
       </p>
       <ul>
-        <li>15-20 min du Circuit Bugatti hors événement (45-60 min les jours de course à cause des bouchons)</li>
+        <li>20 min du Circuit Bugatti hors événement (45-60 min les jours de course à cause des bouchons)</li>
         <li>10 min à pied de la gare TGV Le Mans + tram T1 direct vers le circuit (~30 min porte-à-porte, sans stress parking)</li>
         <li>Stationnement gratuit dans la rue, juste devant la maison</li>
         <li>Cuisine entièrement équipée</li>
