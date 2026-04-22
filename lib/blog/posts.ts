@@ -431,7 +431,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   {
     slug: "24-heures-moto-le-mans",
     date: "2026-03-05",
-    image: "/images/blog/24h-moto.png",
+    image: "/images/blog/24h-moto.jpg",
     soldOut: true,
     nextEdition: "2027",
     locales: {
