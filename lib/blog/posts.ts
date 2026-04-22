@@ -26,7 +26,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "sws-karting-finals-le-mans",
     date: "2026-04-20",
     image: "/images/blog/sws-karting.jpg",
-    soldOut: false,
+    soldOut: true,
     nextEdition: "2027",
     locales: {
       fr: {
@@ -138,6 +138,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     date: "2026-04-16",
     image: "/images/blog/24h-rollers.jpg",
     soldOut: false,
+
     nextEdition: "2027",
     locales: {
       fr: {
@@ -174,7 +175,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "le-mans-classic",
     date: "2026-04-17",
     image: "/images/blog/le-mans-classic.jpg",
-    soldOut: false,
+    soldOut: true,
     nextEdition: "2027",
     locales: {
       fr: {
@@ -283,7 +284,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "ou-se-loger-24h-du-mans-2026",
     date: "2026-03-28",
     image: "/images/blog/24h-du-mans.jpg",
-    soldOut: false,
+    soldOut: true,
     nextEdition: "2027",
     locales: {
       fr: {
@@ -320,7 +321,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "motogp-france-le-mans",
     date: "2026-03-17",
     image: "/images/blog/motogp.jpg",
-    soldOut: false,
+    soldOut: true,
     nextEdition: "2027",
     locales: {
       fr: {
@@ -357,7 +358,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "24-heures-moto-le-mans",
     date: "2026-03-05",
     image: "/images/blog/24h-moto.png",
-    soldOut: false,
+    soldOut: true,
     nextEdition: "2027",
     locales: {
       fr: {
