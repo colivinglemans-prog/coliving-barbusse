@@ -42,7 +42,7 @@ export const fr: Dictionary = {
 
 Literie de qualité, rangements et vraie intimité dans chaque chambre. Chaque suite dispose d'un lit double avec rangements, d'un bureau avec prise Ethernet, d'une salle de bain privative, d'une smart TV, d'un dressing et d'une clé individuelle.
 
-La maison est répartie sur 3 niveaux avec un grand salon, une cuisine-salle à manger entièrement équipée, un jardin, une terrasse et une salle de sport complète avec espace zen.
+La maison est répartie sur 3 niveaux avec un grand salon, une cuisine-salle à manger entièrement équipée, un jardin clos de 90 m² et une salle de sport complète avec espace zen.
 
 Idéal pour groupes mixtes, collaborateurs, amis ou familles recomposées. Ce concept permet à chacun de vivre à son rythme, tout en profitant du plaisir d'être ensemble.
 
@@ -66,6 +66,16 @@ Jusqu'à 18 personnes.`,
     zen: "Salle zen",
     zenDesc: "Un espace détente pour se ressourcer : yoga, méditation et relaxation.",
   },
+  garden: {
+    title: "Jardin",
+    subtitle: "Jardin privatif de 90 m², clos de toute part et sécurisé, exposé plein sud. 25 m² de plantations et espace gravillonné avec salon de jardin 8 places — idéal pour les apéros entre amis.",
+    features: [
+      "Sécurisé et clos de toute part",
+      "90 m² au total : 25 m² de plantations + espace gravillonné",
+      "Exposition sud toute la journée",
+      "Salon de jardin 8 places, parfait pour les apéros",
+    ],
+  },
   amenities: {
     title: "Ce que propose ce logement",
     showAll: (count) => `Afficher les ${count} équipements`,
@@ -81,8 +91,7 @@ Jusqu'à 18 personnes.`,
       "Lave-linge",
       "Sèche-linge",
       "Salle de sport privée",
-      "Jardin",
-      "Terrasse / Véranda",
+      "Jardin clos 90 m²",
       "Serrure sur chaque chambre",
       "Entrée privée",
       "Chauffage",

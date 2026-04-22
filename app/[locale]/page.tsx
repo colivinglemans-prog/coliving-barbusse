@@ -5,6 +5,7 @@ import Highlights from "@/components/public/Highlights";
 import Description from "@/components/public/Description";
 import SleepingArrangement from "@/components/public/SleepingArrangement";
 import CommonSpaces from "@/components/public/CommonSpaces";
+import Garden from "@/components/public/Garden";
 import Amenities from "@/components/public/Amenities";
 import ReservationCalendar from "@/components/public/ReservationCalendar";
 import LocationSection from "@/components/public/LocationSection";
@@ -111,6 +112,7 @@ export default async function Home({
       <Description />
       <SleepingArrangement />
       <CommonSpaces />
+      <Garden />
       <Amenities />
       <ReservationCalendar />
       <LocationSection />

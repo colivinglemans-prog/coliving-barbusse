@@ -42,7 +42,7 @@ export const en: Dictionary = {
 
 Quality bedding, storage and real privacy in every room. Each suite features a double bed with storage, a desk with Ethernet connection, a private bathroom, a smart TV, a dressing area and an individual key.
 
-The house is spread over 3 levels with a large living room, a fully equipped dining kitchen, a garden, a terrace and a fully equipped gym with zen area.
+The house is spread over 3 levels with a large living room, a fully equipped dining kitchen, a 90 m² enclosed garden and a fully equipped gym with zen area.
 
 Ideal for mixed groups, colleagues, friends or blended families. This concept allows everyone to live at their own pace while enjoying the pleasure of being together.
 
@@ -66,6 +66,16 @@ Sleeps up to 18 guests.`,
     zen: "Zen room",
     zenDesc: "A relaxation space to recharge: yoga, meditation and relaxation.",
   },
+  garden: {
+    title: "Garden",
+    subtitle: "90 m² private garden, fully enclosed and secure, south-facing. 25 m² of planting plus a gravelled area with 8-seater garden furniture — perfect for aperitifs with friends.",
+    features: [
+      "Secure, fully enclosed",
+      "90 m² total: 25 m² planted + gravelled area",
+      "South-facing all day",
+      "8-seater garden furniture, perfect for aperitifs",
+    ],
+  },
   amenities: {
     title: "What this place offers",
     showAll: (count) => `Show all ${count} amenities`,
@@ -81,8 +91,7 @@ Sleeps up to 18 guests.`,
       "Washing machine",
       "Tumble dryer",
       "Private gym",
-      "Garden",
-      "Terrace / Veranda",
+      "Enclosed garden 90 m²",
       "Lock on each room",
       "Private entrance",
       "Heating",

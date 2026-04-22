@@ -8,7 +8,7 @@ const PHOTOS = [
   { src: "/images/house/2-cuisineAI 2.png", alt: "Cuisine — vue 2" },
   { src: "/images/house/2-cuisineAI.png", alt: "Cuisine équipée" },
   { src: "/images/house/3-maison-AI.png", alt: "Vue extérieure de la maison" },
-  { src: "/images/house/3-salon donnant sur la terrasse.JPG", alt: "Salon donnant sur la terrasse" },
+  { src: "/images/house/3-salon donnant sur la terrasse.JPG", alt: "Salon" },
   { src: "/images/house/4-salonAI.png", alt: "Salon" },
   { src: "/images/house/Salon.png", alt: "Salon — vue 2" },
   { src: "/images/house/entrée + buanderie.JPG", alt: "Entrée et buanderie" },

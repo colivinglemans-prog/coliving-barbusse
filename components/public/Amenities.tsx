@@ -15,7 +15,6 @@ const ICONS: React.ReactNode[] = [
   <DryerIcon key="dryer" />,
   <GymIcon key="gym" />,
   <GardenIcon key="garden" />,
-  <VerandaIcon key="veranda" />,
   <LockIcon key="lock" />,
   <EntranceIcon key="entrance" />,
   <HeatingIcon key="heating" />,

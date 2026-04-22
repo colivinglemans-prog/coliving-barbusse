@@ -44,6 +44,11 @@ export interface Dictionary {
     zen: string;
     zenDesc: string;
   };
+  garden: {
+    title: string;
+    subtitle: string;
+    features: string[];
+  };
   amenities: {
     title: string;
     showAll: (count: number) => string;
