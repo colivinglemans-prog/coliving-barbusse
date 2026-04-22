@@ -4,9 +4,9 @@ import Image from "next/image";
 import { useTranslation } from "@/lib/i18n";
 
 const PHOTOS = [
-  { src: "/images/house/5-sportAI.png", alt: "Salle de sport" },
+  { src: "/images/house/5-sportAI.jpg", alt: "Salle de sport" },
   { src: "/images/house/5-sportAI-2.JPG", alt: "Salle de sport — équipements" },
-  { src: "/images/house/Salle Zen AI.png", alt: "Salle zen" },
+  { src: "/images/house/Salle Zen AI.jpg", alt: "Salle zen" },
 ];
 
 export default function CommonSpaces() {

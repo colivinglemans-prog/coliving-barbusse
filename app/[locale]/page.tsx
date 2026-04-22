@@ -59,7 +59,7 @@ export default async function Home({
         ? "215 m² house with 9 twin bedrooms and en-suite bathrooms in Le Mans. Near Bugatti Circuit and TGV station."
         : "Maison de 215 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV.",
     url: `${SITE_URL}/${locale}`,
-    image: `${SITE_URL}/images/house/3-maison-AI.png`,
+    image: `${SITE_URL}/images/house/3-maison-AI.jpg`,
     address: {
       "@type": "PostalAddress",
       streetAddress: "Rue Henri Barbusse",

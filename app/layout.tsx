@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `${SITE_URL}/images/house/3-maison-AI.png`,
+        url: `${SITE_URL}/images/house/3-maison-AI.jpg`,
         width: 1200,
         height: 630,
         alt: "Coliving Barbusse - Maison premium au Mans",
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: [`${SITE_URL}/images/house/3-maison-AI.png`],
+    images: [`${SITE_URL}/images/house/3-maison-AI.jpg`],
   },
   verification: {
     google: [
