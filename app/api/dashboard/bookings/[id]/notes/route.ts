@@ -45,6 +45,7 @@ export async function POST(
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[notes] update failed:", err);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Update failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

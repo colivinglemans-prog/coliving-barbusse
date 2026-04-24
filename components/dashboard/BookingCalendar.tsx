@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { Beds24Booking } from "@/lib/types";
-import { findEventForStay, findEventOnDay, shortEventLabel } from "@/lib/events";
+import { findEventForStay, LE_MANS_EVENTS, shortEventLabel, type LeMansEvent } from "@/lib/events";
 
 /* ── Channel colours (same as ChannelPieChart) ────────────────────── */
 const CHANNEL_COLORS: Record<string, string> = {
@@ -59,6 +59,15 @@ interface BookingBar {
   label: string;
 }
 
+interface EventBar {
+  event: LeMansEvent;
+  startCol: number;
+  endCol: number;
+  startsInMonth: boolean;
+  endsInMonth: boolean;
+  label: string;
+}
+
 interface PopupData {
   booking: Beds24Booking;
   channel: string;
@@ -72,6 +81,7 @@ interface BookingCalendarProps {
   bookings: Beds24Booking[];
   showPrices?: boolean;
   showChannels?: boolean;
+  onNotesUpdated?: (bookingId: number, notes: string) => void;
 }
 
 /* ── Notes editor (admin editable, viewer read-only) ────────────── */
@@ -89,11 +99,18 @@ function NotesEditor({
   const [value, setValue] = useState(initialNotes);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const prevBookingIdRef = useRef(bookingId);
 
-  // Reset when opening a different booking
+  // Reset only when opening a *different* booking — not when our own onSaved
+  // bubbles up and changes initialNotes (otherwise the ✓ vert flashes off)
   useEffect(() => {
-    setValue(initialNotes);
-    setStatus("idle");
+    if (prevBookingIdRef.current !== bookingId) {
+      prevBookingIdRef.current = bookingId;
+      setValue(initialNotes);
+      setStatus("idle");
+      setErrorMsg("");
+    }
   }, [bookingId, initialNotes]);
 
   if (!editable) {
@@ -112,18 +129,23 @@ function NotesEditor({
   async function handleSave() {
     setSaving(true);
     setStatus("idle");
+    setErrorMsg("");
     try {
       const res = await fetch(`/api/dashboard/bookings/${bookingId}/notes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes: value }),
       });
-      if (!res.ok) throw new Error("save failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
       onSaved(value);
       setStatus("saved");
       setTimeout(() => setStatus("idle"), 2000);
-    } catch {
+    } catch (e) {
       setStatus("error");
+      setErrorMsg(e instanceof Error ? e.message : "erreur inconnue");
     } finally {
       setSaving(false);
     }
@@ -141,11 +163,13 @@ function NotesEditor({
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Ex: ménage samedi et mercredi…"
         rows={3}
         className="mt-1 w-full resize-y rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 placeholder-amber-400 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
         onClick={(e) => e.stopPropagation()}
       />
+      {status === "error" && errorMsg && (
+        <p className="mt-1 text-[10px] text-red-600">{errorMsg}</p>
+      )}
       {dirty && (
         <div className="mt-2 flex justify-end gap-2">
           <button
@@ -176,7 +200,7 @@ function NotesEditor({
   );
 }
 
-export default function BookingCalendar({ bookings, showPrices = true, showChannels = true }: BookingCalendarProps) {
+export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, onNotesUpdated }: BookingCalendarProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -334,6 +358,73 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
     return map;
   }, [barPlacements, firstDow]);
 
+  /* ── Compute event bars (Le Mans events, indigo) ─────────────────── */
+  const eventBars: EventBar[] = useMemo(() => {
+    return LE_MANS_EVENTS
+      .filter((ev) => ev.start <= lastDateStr && ev.end >= firstDateStr)
+      .map((ev) => {
+        const startsInMonth = ev.start >= firstDateStr;
+        const endsInMonth = ev.end <= lastDateStr;
+        const startDay = startsInMonth ? Number(ev.start.slice(8, 10)) : 1;
+        const endDay = endsInMonth ? Number(ev.end.slice(8, 10)) : daysInMonth;
+        return {
+          event: ev,
+          startCol: startDay - 1,
+          endCol: Math.max(startDay - 1, endDay - 1),
+          startsInMonth,
+          endsInMonth,
+          label: shortEventLabel(ev.name),
+        };
+      })
+      .sort((a, b) => a.startCol - b.startCol);
+  }, [firstDateStr, lastDateStr, daysInMonth]);
+
+  type EventPlacement = EventBar & { row: number; weekStart: number; weekEnd: number; isFirstSegment: boolean; isLastSegment: boolean };
+  const eventPlacementsByWeek: Map<number, EventPlacement[]> = useMemo(() => {
+    const map = new Map<number, EventPlacement[]>();
+    // Each lane stores occupied [col0, col1] ranges (full-cell precision)
+    const weekLanes: Map<number, [number, number][][]> = new Map();
+
+    for (const bar of eventBars) {
+      const barStartCell = firstDow + bar.startCol;
+      const barEndCell = firstDow + bar.endCol;
+      const startWeek = Math.floor(barStartCell / 7);
+      const endWeek = Math.floor(barEndCell / 7);
+
+      for (let w = startWeek; w <= endWeek; w++) {
+        const weekCellStart = w * 7;
+        const weekCellEnd = weekCellStart + 6;
+        const visStart = Math.max(barStartCell, weekCellStart);
+        const visEnd = Math.min(barEndCell, weekCellEnd);
+        const colInWeek0 = visStart - weekCellStart;
+        const colInWeek1 = visEnd - weekCellStart;
+
+        if (!weekLanes.has(w)) weekLanes.set(w, []);
+        const lanes = weekLanes.get(w)!;
+        let lane = 0;
+        for (lane = 0; lane < lanes.length; lane++) {
+          const conflict = lanes[lane].some(
+            ([s, e]) => colInWeek0 <= e && colInWeek1 >= s,
+          );
+          if (!conflict) break;
+        }
+        if (lane === lanes.length) lanes.push([]);
+        lanes[lane].push([colInWeek0, colInWeek1]);
+
+        if (!map.has(w)) map.set(w, []);
+        map.get(w)!.push({
+          ...bar,
+          row: lane,
+          weekStart: colInWeek0,
+          weekEnd: colInWeek1,
+          isFirstSegment: w === startWeek,
+          isLastSegment: w === endWeek,
+        });
+      }
+    }
+    return map;
+  }, [eventBars, firstDow]);
+
   function handleBarClick(bar: BookingBar, e: React.MouseEvent) {
     e.stopPropagation();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -385,6 +476,9 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         const weekBars = placementsByWeek.get(w) ?? [];
         const maxLane = weekBars.reduce((m, b) => Math.max(m, b.row), -1);
         const barRows = maxLane + 1;
+        const weekEvents = eventPlacementsByWeek.get(w) ?? [];
+        const maxEventLane = weekEvents.reduce((m, b) => Math.max(m, b.row), -1);
+        const eventRows = maxEventLane + 1;
 
         return (
           <div key={w} className="grid grid-cols-7 border-b border-gray-100">
@@ -397,38 +491,61 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
               const cellDate = isInMonth ? `${year}-${String(mo + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}` : "";
               const isToday = cellDate === today;
 
-              const event = isInMonth ? findEventOnDay(cellDate) : null;
               return (
                 <div
                   key={col}
                   className={`relative min-h-[2.5rem] border-r border-gray-50 px-1.5 pt-1 last:border-r-0 ${!isInMonth ? "bg-gray-50/50" : ""}`}
                 >
                   {isInMonth && (
-                    <div className="flex items-center justify-between gap-1">
-                      <span
-                        className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                          isToday
-                            ? "bg-rose-500 font-bold text-white"
-                            : "text-gray-700"
-                        }`}
-                      >
-                        {day}
-                      </span>
-                      {event && (
-                        <span
-                          className="truncate rounded bg-indigo-100 px-1 text-[9px] font-semibold uppercase tracking-wide text-indigo-700"
-                          title={event.name}
-                        >
-                          {shortEventLabel(event.name)}
-                        </span>
-                      )}
-                    </div>
+                    <span
+                      className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                        isToday
+                          ? "bg-rose-500 font-bold text-white"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {day}
+                    </span>
                   )}
                 </div>
               );
             })}
 
-            {/* Bar rows */}
+            {/* Event bars (indigo) */}
+            {eventRows > 0 && (
+              <div className="col-span-7 px-0.5 pt-0.5">
+                {Array.from({ length: eventRows }, (_, lane) => {
+                  const laneEvents = weekEvents.filter((e) => e.row === lane);
+                  return (
+                    <div key={lane} className="relative mt-0.5 h-5">
+                      {laneEvents.map((ep) => {
+                        const cellW = 100 / 7;
+                        const left = `${ep.weekStart * cellW}%`;
+                        const width = `${(ep.weekEnd - ep.weekStart + 1) * cellW}%`;
+                        const roundLeft = ep.isFirstSegment && ep.startsInMonth;
+                        const roundRight = ep.isLastSegment && ep.endsInMonth;
+                        return (
+                          <div
+                            key={`${ep.event.name}-${ep.event.start}-${ep.weekStart}`}
+                            className={`absolute top-0 h-full overflow-hidden truncate px-1.5 text-left text-[10px] font-semibold uppercase tracking-wide text-white bg-indigo-500 ${
+                              roundLeft && roundRight ? "rounded-full" :
+                              roundLeft ? "rounded-l-full" :
+                              roundRight ? "rounded-r-full" : ""
+                            }`}
+                            style={{ left, width }}
+                            title={ep.event.name}
+                          >
+                            {ep.isFirstSegment && ep.label}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Booking bar rows */}
             {barRows > 0 && (
               <div className="col-span-7 px-0.5 pb-1.5">
                 {Array.from({ length: barRows }, (_, lane) => {
@@ -463,10 +580,16 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                               width,
                               backgroundColor: bp.colour,
                             }}
-                            title={bp.label}
+                            title={bp.booking.notes ? `${bp.label} · 📝 ${bp.booking.notes}` : bp.label}
                           >
                             {isStart && (
-                              <span className="hidden sm:inline">{bp.label}</span>
+                              <span className="hidden sm:inline">
+                                {bp.booking.notes ? "📝 " : ""}
+                                {bp.label}
+                              </span>
+                            )}
+                            {!isStart && bp.booking.notes && (
+                              <span className="hidden sm:inline">📝</span>
                             )}
                           </button>
                         );
@@ -502,7 +625,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
           />
           <div
             data-popup
-            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-5 shadow-xl lg:inset-auto lg:absolute lg:left-auto lg:top-auto lg:w-72 lg:translate-x-0 lg:translate-y-0 lg:rounded-xl lg:p-4 lg:ring-1 lg:ring-gray-200"
+            className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-5 shadow-xl lg:inset-auto lg:absolute lg:left-auto lg:top-auto lg:w-72 lg:translate-x-0 lg:translate-y-0 lg:overflow-visible lg:rounded-xl lg:p-4 lg:ring-1 lg:ring-gray-200"
             style={
               typeof window !== "undefined" && window.innerWidth >= 1024 && containerRef.current
                 ? (() => {
@@ -568,7 +691,10 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   {" → "}
                   {new Date(popup.booking.departure).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                 </p>
-                <p className="text-xs text-gray-400">{popup.nights} nuit{popup.nights > 1 ? "s" : ""}</p>
+                <p className="text-xs text-gray-400">
+                  {popup.nights} nuit{popup.nights > 1 ? "s" : ""}
+                  {popup.booking.arrivalTime && ` · arr. ${popup.booking.arrivalTime}`}
+                </p>
               </div>
 
               <div>
@@ -608,12 +734,22 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                 );
               })()}
 
+              {popup.channel === "Direct" && popup.booking.comments && popup.booking.comments.trim() && (
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-400">Remarque voyageur</p>
+                  <p className="mt-0.5 whitespace-pre-wrap rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900">
+                    {popup.booking.comments}
+                  </p>
+                </div>
+              )}
+
               <NotesEditor
                 bookingId={popup.booking.id}
                 initialNotes={popup.booking.notes ?? ""}
                 editable={showPrices}
                 onSaved={(newNotes) => {
                   setPopup((p) => (p ? { ...p, booking: { ...p.booking, notes: newNotes } } : p));
+                  onNotesUpdated?.(popup.booking.id, newNotes);
                 }}
               />
             </div>

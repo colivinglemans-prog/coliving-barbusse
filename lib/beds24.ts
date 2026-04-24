@@ -23,18 +23,61 @@ async function beds24Fetch<T>(path: string, params?: Record<string, string>): Pr
   return res.json();
 }
 
+// Access token cache (24h TTL from Beds24) — write ops use refresh-token flow
+// because long-life tokens only support read scopes.
+let writeTokenCache: { token: string; expiresAt: number } | null = null;
+
+async function getBeds24WriteToken(): Promise<string> {
+  const now = Date.now();
+  if (writeTokenCache && writeTokenCache.expiresAt > now + 60_000) {
+    return writeTokenCache.token;
+  }
+  const refreshToken = process.env.BEDS24_REFRESH_TOKEN;
+  if (!refreshToken) {
+    throw new Error("BEDS24_REFRESH_TOKEN non défini (requis pour l'écriture)");
+  }
+  const res = await fetch(`${BEDS24_API_URL}/authentication/token`, {
+    headers: { refreshToken },
+    cache: "no-store",
+  });
+  const body = await res.text();
+  if (!res.ok) {
+    throw new Error(`Beds24 auth ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const data = JSON.parse(body) as { token?: string; expiresIn?: number };
+  if (!data.token) throw new Error(`Beds24 auth: token manquant dans la réponse`);
+  writeTokenCache = {
+    token: data.token,
+    expiresAt: now + (data.expiresIn ?? 86_400) * 1000,
+  };
+  return data.token;
+}
+
 export async function updateBookingNotes(id: number, notes: string): Promise<void> {
-  const token = process.env.BEDS24_API_TOKEN;
-  if (!token) throw new Error("BEDS24_API_TOKEN is not set");
+  const token = await getBeds24WriteToken();
   const res = await fetch(`${BEDS24_API_URL}/bookings`, {
     method: "POST",
     headers: { token, "Content-Type": "application/json" },
     body: JSON.stringify([{ id, notes }]),
     cache: "no-store",
   });
+  const body = await res.text();
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Beds24 updateBookingNotes failed: ${res.status} ${body}`);
+    // Invalidate cache on 401 so next call refreshes
+    if (res.status === 401) writeTokenCache = null;
+    throw new Error(`Beds24 ${res.status}: ${body.slice(0, 300)}`);
+  }
+  // Beds24 v2 can return 200 with success:false inside the array
+  try {
+    const parsed = JSON.parse(body) as Array<{ success?: boolean; errors?: unknown; error?: unknown }>;
+    const first = Array.isArray(parsed) ? parsed[0] : null;
+    if (first && first.success === false) {
+      const detail = JSON.stringify(first.errors ?? first.error ?? first).slice(0, 300);
+      throw new Error(`Beds24 refus: ${detail}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.startsWith("Beds24 refus:")) throw e;
+    // JSON parse errors = unexpected format, but 200 OK → continue silently
   }
 }
 

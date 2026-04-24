@@ -352,7 +352,10 @@ Le reset vérifie après application que les devices ont bien pris les changemen
 DASHBOARD_PASSWORD       # Mot de passe admin
 DASHBOARD_PASSWORD_VIEWER # Mot de passe viewer (calendrier + chauffage)
 DASHBOARD_SECRET         # Secret JWT (HS256)
-BEDS24_API_TOKEN         # Token API Beds24
+BEDS24_API_TOKEN         # Long life token Beds24 (read-only, scopes read:bookings*)
+BEDS24_REFRESH_TOKEN     # Refresh token Beds24 (long life, scope write:bookings) pour l'édition des notes.
+                         # Obtenu via: invite code (Settings → API → Invites) → scripts/beds24-setup.mjs
+                         # Les long life tokens ne supportent que les scopes read.
 HEATZY_EMAIL             # Email du compte Heatzy
 HEATZY_PASSWORD          # Mot de passe du compte Heatzy
 CRON_SECRET              # Secret pour les cron jobs
