@@ -78,7 +78,6 @@ export const metadata: Metadata = {
     ],
   },
   alternates: {
-    canonical: SITE_URL,
     languages: {
       fr: `${SITE_URL}/fr`,
       en: `${SITE_URL}/en`,

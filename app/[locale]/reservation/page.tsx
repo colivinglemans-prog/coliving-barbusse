@@ -1,4 +1,36 @@
+import type { Metadata } from "next";
 import ReservationCalendar from "@/components/public/ReservationCalendar";
+
+const SITE_URL = "https://www.coliving-barbusse.fr";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const title =
+    locale === "en"
+      ? "Booking — Coliving Barbusse Le Mans"
+      : "Réservation — Coliving Barbusse Le Mans";
+  const description =
+    locale === "en"
+      ? "Book the entire house (9 private suites) for your group in Le Mans. Airbnb, Booking.com or direct booking — best rate guaranteed."
+      : "Réservez la maison entière (9 suites privatives) pour votre groupe au Mans. Airbnb, Booking.com ou réservation directe — meilleur tarif garanti.";
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${SITE_URL}/${locale}/reservation`,
+      languages: {
+        fr: `${SITE_URL}/fr/reservation`,
+        en: `${SITE_URL}/en/reservation`,
+        "x-default": `${SITE_URL}/fr/reservation`,
+      },
+    },
+  };
+}
 
 export default function Reservation() {
   return (
