@@ -34,10 +34,12 @@ app/
   page.tsx            # Redirige / vers /fr ou /en selon Accept-Language
   [locale]/           # Site vitrine bilingue (/fr/*, /en/*)
     layout.tsx        # Wrap I18nProvider avec locale depuis params
-    page.tsx          # Homepage (metadata/JSON-LD localisés)
+    page.tsx          # Homepage (metadata/JSON-LD localisés, inclut ReservationCalendar)
     blog/
-    chambres/
-    reservation/
+    chambres/         # Suites + ReservationCalendar
+    seminaires/
+    # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via middleware.
+    # Le calendrier de dispo est sur la homepage (#disponibilite) et /chambres.
   (dashboard)/        # Dashboard privé (stats, calendrier, chauffage) — hors [locale]
   api/
     auth/             # Login, logout, me
@@ -124,6 +126,35 @@ vercel.json           # Config Vercel (crons quotidiens)
 - **Beds24** : Property ID `303771`, Room ID `633259`
 - **Avis Airbnb** : Feed SociableKit `https://data.accentapi.com/feed/25659332.json` (filtrer pour ne garder que les avis Le Mans, exclure montagne/Paris)
 
+## Beds24 API (v2)
+
+Deux tokens coexistent, selon le besoin en écriture :
+
+**`BEDS24_API_TOKEN`** — Long life token (read-only, ~91 jours)
+- Les long life tokens Beds24 ne supportent **que les scopes read** (limitation plateforme).
+- Généré via *Beds24 → Settings → Account → API → Long life token* avec les scopes :
+  - `read:bookings`, `read:bookings-personal`, `read:bookings-financial`
+  - `read:inventory` (requis pour `/inventory/rooms/availability` — calendrier public, dispo)
+  - `read:properties` (requis pour `/properties`)
+- Utilisé directement dans le header `token:` par `beds24Fetch()` ([lib/beds24.ts](lib/beds24.ts)).
+
+**`BEDS24_REFRESH_TOKEN`** — Refresh token (utilisé uniquement pour les writes)
+- Obtenu via un *Invite code* (à usage unique, ~20 min de validité) avec scopes read + `write:bookings`.
+- Échange invite code → refresh token via `scripts/beds24-setup.mjs <INVITE_CODE>` OU via curl direct :
+  ```bash
+  curl -H 'code: <INVITE_CODE>' -H 'deviceName: coliving-barbusse' \
+    https://api.beds24.com/v2/authentication/setup
+  ```
+- À chaque write, `getBeds24WriteToken()` échange le refresh token contre un access token (24h, caché en mémoire) via `/authentication/token`.
+- Utilisé uniquement par `updateBookingNotes()` (édition notes internes Beds24 depuis le dashboard).
+
+**Vérifier les scopes d'un token** :
+```bash
+curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
+```
+
+**Vercel** : les deux tokens doivent être configurés sur Production + Development (Preview est bloqué par le wrapper plugin Vercel — non critique vu le workflow `vercel --prod` direct).
+
 ## Heatzy Pilote Pro
 
 - **API** : Gizwits (`https://euapi.gizwits.com`), App ID `c70a66ff039d41b4a220e198b0fcc8b3`
@@ -195,14 +226,22 @@ vercel.json           # Config Vercel (crons quotidiens)
 ## Dashboard calendrier (`/dashboard/calendar`)
 
 - **Grille mois** avec navigation prev/next, jour férié marqué, aujourd'hui en rose
-- **Événements Le Mans** : badge court (24h Mans, MotoGP, Hippodrome…) sur chaque cellule jour via `findEventOnDay`
+- **Événements Le Mans** : affichés en **barres continues indigo** au-dessus des barres de réservation (une seule fois par event, même sur plusieurs jours). Label court via `shortEventLabel`, nom complet en tooltip. Plusieurs events qui overlappent → lanes séparés.
 - **Barres de réservation** : couleur par canal (admin), demi-cellules pour checkout/check-in → permet aux résas back-to-back (même jour) de partager une ligne
-- **Popup réservation** : dates, nuits, voyageurs, prix/canal (admin)
+- **Indicateur 📝** sur la barre quand la résa a une note interne (visible admin ET viewer)
+- **Popup réservation** : dates, **heure d'arrivée** (`arrivalTime`), nuits, voyageurs, prix/canal (admin)
   - Admin : titre/société + email (mailto) + téléphone (tel) cliquables + édition inline des notes internes (Beds24)
-  - Viewer : notes en lecture seule (fond ambre)
+  - Viewer : notes en lecture seule (fond ambre), reste visible le 📝, l'heure d'arrivée et les remarques voyageur
+  - **Remarque voyageur** (`comments`) affichée uniquement pour le canal `Direct` (sur Airbnb/Booking/Abritel ce champ contient des métadonnées OTA inutiles : "prepaid", rate codes…)
   - Événement associé affiché en bas (badge indigo)
-  - Mobile : popup centré (fix seuil `lg:` pour éviter hors-écran)
+  - Mobile : `max-h-[calc(100vh-2rem)] overflow-y-auto` pour garder le popup dans l'écran
 - **Toggle admin/viewer** : bouton prévisualiser la vue viewer (comme /heating)
+
+### Notes internes (ménage, infos)
+
+- Stockées dans le champ `notes` de Beds24 (non imprimé sur factures, contrairement à `comments`).
+- API : `POST /api/dashboard/bookings/[id]/notes` (admin only via JWT) → `updateBookingNotes()` dans [lib/beds24.ts](lib/beds24.ts) utilise le **refresh token** (`BEDS24_REFRESH_TOKEN`) car les long life tokens Beds24 ne supportent pas `write:bookings`.
+- Le state `bookings` côté page calendrier est mis à jour via la callback `onNotesUpdated` pour éviter un refetch.
 
 ## Événements Le Mans (`lib/events.ts`)
 

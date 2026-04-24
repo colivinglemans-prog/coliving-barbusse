@@ -10,10 +10,28 @@ function getSecret() {
 }
 
 // Paths that previously lived at the root and now belong under /fr/*
-const LEGACY_PATHS = ["/blog", "/chambres", "/reservation"];
+const LEGACY_PATHS = ["/blog", "/chambres"];
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // 301 redirect removed /:locale/reservation pages to the locale homepage
+  // (which already embeds the reservation calendar in the disponibility section)
+  const reservationMatch = pathname.match(/^\/(fr|en)\/reservation(?:\/.*)?$/);
+  if (reservationMatch) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${reservationMatch[1]}`;
+    url.search = search;
+    return NextResponse.redirect(url, 301);
+  }
+
+  // Also redirect bare /reservation → /fr (old pre-i18n URL)
+  if (pathname === "/reservation" || pathname.startsWith("/reservation/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/fr";
+    url.search = search;
+    return NextResponse.redirect(url, 301);
+  }
 
   // 301 redirect old non-localized URLs to /fr/*
   for (const legacy of LEGACY_PATHS) {
@@ -91,6 +109,8 @@ export const config = {
     "/blog/:path*",
     "/chambres/:path*",
     "/reservation/:path*",
+    "/fr/reservation/:path*",
+    "/en/reservation/:path*",
     "/dashboard",
     "/dashboard/((?!login).*)",
     "/api/dashboard/:path*",
