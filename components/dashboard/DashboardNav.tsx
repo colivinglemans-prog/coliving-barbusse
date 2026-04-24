@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/water-heater", label: "Eau chaude", adminOnly: false },
   { href: "/dashboard/invoices", label: "Factures", adminOnly: true },
   { href: "/dashboard/taxe-sejour", label: "Taxe de séjour", adminOnly: true },
+  { href: "/dashboard/fiscal", label: "Fiscalité", adminOnly: true },
 ];
 
 interface DashboardNavProps {

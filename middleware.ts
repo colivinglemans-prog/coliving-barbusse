@@ -48,6 +48,9 @@ export async function middleware(request: NextRequest) {
       if (role === "viewer" && pathname.startsWith("/dashboard/taxe-sejour")) {
         return NextResponse.redirect(new URL("/dashboard/calendar", request.url));
       }
+      if (role === "viewer" && pathname.startsWith("/dashboard/fiscal")) {
+        return NextResponse.redirect(new URL("/dashboard/calendar", request.url));
+      }
       if (role === "viewer" && pathname.startsWith("/api/dashboard/stats")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
@@ -70,7 +73,8 @@ export async function middleware(request: NextRequest) {
         role === "viewer" &&
         (pathname.startsWith("/api/dashboard/stats") ||
           pathname.startsWith("/api/dashboard/invoices") ||
-          pathname.startsWith("/api/dashboard/taxe-sejour"))
+          pathname.startsWith("/api/dashboard/taxe-sejour") ||
+          pathname.startsWith("/api/dashboard/fiscal"))
       ) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }

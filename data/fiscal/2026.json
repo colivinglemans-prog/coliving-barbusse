@@ -1,0 +1,48 @@
+{
+  "annee": 2026,
+  "biens": [
+    {
+      "id": "barbusse",
+      "nom": "Coliving Barbusse",
+      "source": "beds24",
+      "propertyIds": [303771, 310268],
+      "classeMeubleTourisme": false,
+      "amortissementAnnuel": 25800,
+      "amortissementsReportes": 38007,
+      "chargesDeductibles": {
+        "interetsEmprunt": 4400,
+        "taxeFonciere": 1400,
+        "assurance": 4600,
+        "cfe": 400,
+        "fraisComptable": 800,
+        "entretien": 2000,
+        "chargesCopro": 0,
+        "autres": 3500
+      }
+    },
+    {
+      "id": "dahlias",
+      "nom": "Appartement Dahlias (vendu)",
+      "source": "manuel",
+      "caHT": 1344.35,
+      "classeMeubleTourisme": false,
+      "amortissementAnnuel": 0,
+      "chargesDeductibles": {
+        "interetsEmprunt": 0,
+        "taxeFonciere": 0,
+        "assurance": 0,
+        "cfe": 0,
+        "fraisComptable": 0,
+        "entretien": 0,
+        "chargesCopro": 0,
+        "autres": 0
+      },
+      "vendu": true
+    }
+  ],
+  "constantes": {
+    "seuilSSIMeubleTourisme": 23000,
+    "tauxPrelevementsSociaux": 0.172,
+    "tauxSSIEstime": 0.40
+  }
+}
