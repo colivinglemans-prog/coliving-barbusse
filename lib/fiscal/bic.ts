@@ -5,6 +5,11 @@ export interface ResultatBICBien {
   bienId: string;
   bienNom: string;
   ca: number;
+  /** Charges saisies manuellement dans le JSON fiscal */
+  chargesManuelles: number;
+  /** Commissions plateformes calculées depuis invoiceItems Beds24 */
+  commissionsPlateformes: number;
+  /** Total des charges = manuelles + commissions */
   charges: number;
   amortissement: number;
   /** Bénéfice avant amortissement (CA − charges) */
@@ -25,6 +30,8 @@ export interface ResultatBICBien {
 
 export interface ResultatBICTotaux {
   ca: number;
+  chargesManuelles: number;
+  commissionsPlateformes: number;
   charges: number;
   amortissementDeduit: number;
   amortissementReporte: number;
@@ -57,7 +64,11 @@ export function computeBICBien(
   useProjected: boolean,
 ): ResultatBICBien {
   const ca = useProjected ? revenus.projectedTotal : revenus.realized + revenus.confirmedUpcoming;
-  const charges = sumCharges(bien.chargesDeductibles);
+  const chargesManuelles = sumCharges(bien.chargesDeductibles);
+  const commissionsPlateformes = useProjected
+    ? revenus.commissionsProjected
+    : revenus.commissionsRealized;
+  const charges = chargesManuelles + commissionsPlateformes;
   const amortissement = bien.amortissementAnnuel;
   const ardStockEntree = bien.amortissementsReportes ?? 0;
   const beneficeAvantAmort = ca - charges;
@@ -83,6 +94,8 @@ export function computeBICBien(
     bienId: bien.id,
     bienNom: bien.nom,
     ca: round2(ca),
+    chargesManuelles: round2(chargesManuelles),
+    commissionsPlateformes: round2(commissionsPlateformes),
     charges: round2(charges),
     amortissement: round2(amortissement),
     beneficeAvantAmort: round2(beneficeAvantAmort),
@@ -99,6 +112,8 @@ export function sumResultatsBIC(results: ResultatBICBien[]): ResultatBICTotaux {
   const totaux = results.reduce(
     (acc, r) => ({
       ca: acc.ca + r.ca,
+      chargesManuelles: acc.chargesManuelles + r.chargesManuelles,
+      commissionsPlateformes: acc.commissionsPlateformes + r.commissionsPlateformes,
       charges: acc.charges + r.charges,
       amortissementDeduit: acc.amortissementDeduit + r.amortissementDeduit,
       amortissementReporte: acc.amortissementReporte + r.amortissementReporte,
@@ -109,7 +124,7 @@ export function sumResultatsBIC(results: ResultatBICBien[]): ResultatBICTotaux {
       resultat: acc.resultat + r.resultat,
     }),
     {
-      ca: 0, charges: 0,
+      ca: 0, chargesManuelles: 0, commissionsPlateformes: 0, charges: 0,
       amortissementDeduit: 0, amortissementReporte: 0,
       ardStockEntree: 0, ardImpute: 0, ardStockSortie: 0,
       beneficeAvantAmort: 0, resultat: 0,
@@ -117,6 +132,8 @@ export function sumResultatsBIC(results: ResultatBICBien[]): ResultatBICTotaux {
   );
   return {
     ca: round2(totaux.ca),
+    chargesManuelles: round2(totaux.chargesManuelles),
+    commissionsPlateformes: round2(totaux.commissionsPlateformes),
     charges: round2(totaux.charges),
     amortissementDeduit: round2(totaux.amortissementDeduit),
     amortissementReporte: round2(totaux.amortissementReporte),

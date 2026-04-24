@@ -591,7 +591,8 @@ function DetailParBien({ biens }: { biens: FiscalBienDetail[] }) {
               <th className="px-4 py-3 text-right">CA projeté</th>
               <th className="px-4 py-3 text-right">Réalisé</th>
               <th className="px-4 py-3 text-right">Confirmé</th>
-              <th className="px-4 py-3 text-right">Charges</th>
+              <th className="px-4 py-3 text-right">Charges manuelles</th>
+              <th className="px-4 py-3 text-right">Commissions</th>
               <th className="px-4 py-3 text-right">Amort. déduit</th>
               <th className="px-4 py-3 text-right">ARD imputés</th>
               <th className="px-4 py-3 text-right">Résultat BIC</th>
@@ -632,7 +633,18 @@ function DetailParBien({ biens }: { biens: FiscalBienDetail[] }) {
                     `Autres : ${formatEur(b.charges.autres)}`,
                   ].join("\n")}
                 >
-                  {formatEur(b.charges.total)}
+                  {formatEur(b.bic.chargesManuelles)}
+                </td>
+                <td
+                  className="px-4 py-3 text-right text-gray-700"
+                  title={`Commissions Airbnb/Booking détectées dans les invoiceItems Beds24\nYTD : ${formatEur(b.revenus.commissionsRealized)}\nProjection année : ${formatEur(b.revenus.commissionsProjected)}`}
+                >
+                  {formatEur(b.bic.commissionsPlateformes)}
+                  {b.bic.ca > 0 && (
+                    <div className="text-[10px] text-gray-500">
+                      {((b.bic.commissionsPlateformes / b.bic.ca) * 100).toFixed(1).replace(".", ",")} % du CA
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-right text-gray-700">
                   {formatEur(b.bic.amortissementDeduit)}
