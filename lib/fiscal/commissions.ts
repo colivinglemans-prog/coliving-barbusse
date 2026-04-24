@@ -52,16 +52,18 @@ export function sumCommissions(bookings: Beds24Booking[]): number {
  * Extrait le CA brut (revenus d'accommodation) d'une réservation à partir des
  * invoiceItems Beds24.
  *
- * Somme les items POSITIFS qui ne sont ni taxe de séjour, ni commission, ni
- * ligne informative (payout, total récapitulatif). Ça donne le CA à déclarer
- * fiscalement, c.-à-d. Base Price + Linen + Cleaning + suppléments éventuels.
+ * Somme les items qui ne sont ni taxe de séjour, ni commission plateforme, ni
+ * ligne informative (payout, total récapitulatif). Inclut les lignes positives
+ * (Base Price, Linen, Cleaning, suppléments) ET les lignes négatives qui sont
+ * de vraies diminutions de CA (remises commerciales, ex. « Réduction
+ * Réservation Directe -5% »).
  *
  * Retourne null si aucun item exploitable (fallback nécessaire sur b.price).
  */
 export function computeCAFromInvoiceItems(b: Beds24Booking): number | null {
   if (!b.invoiceItems || b.invoiceItems.length === 0) return null;
   let total = 0;
-  let hasPositive = false;
+  let hasAny = false;
   for (const item of b.invoiceItems) {
     const type = (item.type ?? "").toLowerCase();
     if (type === "payment") continue;
@@ -71,12 +73,11 @@ export function computeCAFromInvoiceItems(b: Beds24Booking): number | null {
     if (COMMISSION_INCLUDE_RE.test(desc)) continue;
     if (INFO_ITEM_RE.test(desc)) continue;
     const line = getItemLine(item);
-    if (line > 0) {
-      total += line;
-      hasPositive = true;
-    }
+    if (line === 0) continue;
+    total += line;
+    hasAny = true;
   }
-  return hasPositive ? Math.round(total * 100) / 100 : null;
+  return hasAny ? Math.round(total * 100) / 100 : null;
 }
 
 /**
