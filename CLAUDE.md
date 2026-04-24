@@ -54,6 +54,8 @@ app/
         prefill/          # GET ?bookingId=… OU ?stripeId=… → payload pré-rempli
         generate/         # POST payload édité → PDF téléchargé
         stripe-payments/  # GET liste des derniers paiements Stripe réussis
+      taxe-sejour/    # Taxe de séjour (Le Mans Métropole, trimestres + canaux)
+      fiscal/         # Estimation IR + PS/SSI + test LMP
       bookings/[id]/notes/  # POST notes internes (admin only) → Beds24
     cron/
       heating-automation/  # Check-in/check-out → mode présence/hors-gel
@@ -83,10 +85,22 @@ lib/
   invoice-payload.ts  # Type InvoicePayload, pré-remplissage Beds24/Stripe, validation
   invoice-pdf.tsx     # Template React-PDF (bannière logo, LMNP, IBAN ou "payé")
   stripe.ts           # Client Stripe (listRecentPayments, getStripePayment)
+  taxe-sejour.ts      # Calcul taxe Le Mans + groupement trimestres/canaux
+  fiscal/             # Moteur fiscal LMNP/LMP (dashboard Fiscalité)
+    config.ts         # Types + loader JSON annuel + env vars foyer
+    revenus.ts        # Agrégation CA brut Beds24 (via invoiceItems) + projection
+    commissions.ts    # Extraction CA brut + commissions plateforme depuis invoiceItems
+    bic.ts            # Résultat BIC : CA − charges − amort − ARD imputés
+    ir.ts             # Barème IR 2025 + quotient familial plafonné
+    lmp-test.ts       # Test bascule LMP (art. 155-IV CGI)
+    cotisations.ts    # PS 17,2 % ou SSI ~40 % selon régime
+    orientations.ts   # Alertes (seuil 23k€, LMP, classement) + échéances
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
   reviews.json        # 19 avis (18 Airbnb + 1 Abritel/Vrbo)
   heatzy-zones.json   # Config zones radiateurs + mapping Beds24
+  fiscal/
+    2026.json         # Config annuelle : biens (Barbusse + Dahlias vendu), amortissements, ARD, charges
 public/images/
   house/              # 12 photos de la maison
   rooms/              # 9 dossiers chambre (chambre-1 à chambre-9)
@@ -332,6 +346,120 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
 - `/dashboard/invoices/**` et `/api/dashboard/invoices/**` : middleware bloque viewer (redirect / 403).
 - Numérotation séquentielle **continue** (obligation légale FR) : le compteur n'est incrémenté qu'à la génération réelle, pas à l'ouverture du formulaire.
 
+## Dashboard Fiscalité LMNP / LMP (`/dashboard/fiscal`)
+
+Estimation indicative de l'imposition (IR + PS/SSI) et du test de bascule LMP,
+à partir des résas Beds24 + charges saisies + données foyer. **Ne remplace pas
+le travail du comptable** (SAS CONTALIM pour ce dossier).
+
+### Contexte utilisateur (fiscalité 2026)
+
+- **Régime** : LMNP au **réel simplifié** (pas de TVA — art. 293B CGI).
+- **Comptable** : SAS CONTALIM (Ruy-Montceau 38300) — dossier 260083, SIREN 535 071 757.
+- **Adresse activité** : à transférer du 23 Allée des Dahlias, 92320 Châtillon (bien vendu) vers 42 rue Henri Barbusse, 72100 Le Mans (bien actif). Via formalites.entreprises.gouv.fr.
+- **RP** : Châtillon 92320 (≠ adresse de l'activité).
+- **Foyer** : couple marié + 2 enfants = **3 parts fiscales**. TMI 2026 estimée **30 %** (bascule depuis 11 % en 2024).
+- **Biens 2026** :
+  - `barbusse` (Beds24, mis en service 26/11/2025, première année pleine 2026) : propertyIds [303771, 310268]
+  - `dahlias` (manuel, vendu début 2026, CA janvier 1 344,35 €)
+- **Premier dépassement du seuil 23 k€** en 2026 → affiliation SSI obligatoire (art. L611-1 CSS).
+
+### Règles fiscales codées
+
+| Règle | Valeur | Source |
+|---|---|---|
+| Seuil affiliation SSI (meublé tourisme) | 23 000 € recettes annuelles | Art. L611-1 CSS |
+| Test LMP | recettes > 23 k€ **ET** recettes > autres revenus d'activité foyer | Art. 155-IV CGI |
+| Amortissement LMNP non pro | plafonné au bénéfice avant amort. ; excédent = ARD imputables sans limite de durée sur bénéfices futurs | Art. 39 C CGI |
+| Prélèvements sociaux LMNP | 17,2 % sur résultat BIC positif | CGI |
+| Cotisations SSI LMP | ~40 % effectif (remplace PS) | Barème SSI 2026 |
+| Barème IR 2025 (imposé 2026) | 0/11/30/41/45 % seuils 11 497 / 29 315 / 83 823 / 180 294 | Art. 197 CGI |
+| Quotient familial | Plafonné 1 791 €/demi-part | Art. 197-I-2 CGI |
+| CFE meublé tourisme classé | Exonération art. 1459-3° CGI, **sauf délibération contraire** | Non vérifié pour Le Mans Métropole — contacter le SIE |
+
+### Extraction CA brut depuis Beds24 (important)
+
+Le CA à déclarer fiscalement en LMNP est le **brut** (avant déduction des commissions Airbnb/Booking). Beds24 retourne un champ `price` dont la sémantique varie (net ou brut) selon la config, donc le moteur fiscal reconstruit le CA depuis les `invoiceItems` :
+
+- **Inclus dans le CA** : toutes les lignes positives ET négatives (remises) qui ne sont **ni taxe**, **ni commission**, **ni info**
+- **Exclu du CA** :
+  - Taxes de séjour / additionnelles (regex `\btax(es?)?\b` — collectées/reversées par plateforme)
+  - Commissions (`Host Fee`, `commission`, `service fee`, `channel fee`, `platform fee`) — traitées séparément comme charge
+  - Lignes informatives (`Expected Payout`, `Total`, `Balance`, `Grand Total`)
+- **Fallback** : `b.price` si `invoiceItems` absent (résa directe ancienne sans détail)
+
+Exemple résa Airbnb (83154502) : Base 2 550 + Linen 160 + Cleaning 350 = **3 060 € CA**, Host Fee **−569,16 € commission**, taxes 43,82 € exclues.
+
+Exemple résa Direct (85615323) : Σ(daily rates) + Ménage 250 + Draps 140 **− Réduction RD −677,02 €** (incluse car remise commerciale non-commission, non-taxe).
+
+**Commissions projetées** : `taux = commissionsRealized / caRealized` (YTD) × projectedCA. Naturellement pondéré par le mix direct / OTA.
+
+### Configuration par année (`data/fiscal/YYYY.json`)
+
+```json
+{
+  "annee": 2026,
+  "biens": [
+    {
+      "id": "barbusse",
+      "nom": "Coliving Barbusse",
+      "source": "beds24",
+      "propertyIds": [303771, 310268],
+      "classeMeubleTourisme": false,
+      "amortissementAnnuel": 25800,
+      "amortissementsReportes": 38007,       // Stock ARD début exercice
+      "chargesDeductibles": {
+        "interetsEmprunt": 4400,
+        "taxeFonciere": 1400,
+        "assurance": 4600,                   // PNO + assurance prêt
+        "cfe": 400,
+        "fraisComptable": 800,
+        "entretien": 2000,
+        "chargesCopro": 0,
+        "autres": 0                          // NE PAS y mettre les commissions (auto depuis Beds24)
+      }
+    },
+    {
+      "id": "dahlias",
+      "nom": "Appartement Dahlias (vendu)",
+      "source": "manuel",
+      "caHT": 1344.35,
+      "vendu": true,
+      ...
+    }
+  ],
+  "constantes": {
+    "seuilSSIMeubleTourisme": 23000,
+    "tauxPrelevementsSociaux": 0.172,
+    "tauxSSIEstime": 0.40
+  }
+}
+```
+
+### UI (`app/(dashboard)/dashboard/fiscal/page.tsx`)
+
+1. **SummaryCards** — 5 KPI : Recettes, Résultat BIC, IR supp, PS/SSI, Impôt total
+2. **AmortissementsReportesCard** — chaîne visuelle : Stock entrée → Amort année → ARD imputés → Stock sortie
+3. **StatusLMNPvsLMP** — 2 jauges (seuil 23k€ + recettes vs autres revenus)
+4. **OrientationsAlerts** — alertes triées par criticité (critical/warning/info) avec actions + liens externes
+5. **SimulateurWhatIf** — sliders CA / charges / amortissement avec recalcul temps réel (inclut ARD)
+6. **DetailParBien** — tableau : CA, charges manuelles, commissions (% CA), amort déduit, ARD imputés, résultat BIC
+7. **TimelineEcheances** — CFE 15/12, 2031-SD mai, DSI URSSAF juin (LMP), acomptes PS (LMNP)
+
+### Données clés du dossier fiscal 2025 (référence)
+
+- Résultat fiscal 2025 : +3 511 € (bénéfice BIC après amortissements plafonnés)
+- Amortissement 2025 : 12 168 € (écarté car plafonné au bénéfice avant amort)
+- **Stock ARD fin 2025 : 38 007 €** (cumul amortissements non déduits 2023-2025)
+- Emprunt CE : 403 872 € au 31/12/2025, intérêts 4 383 €
+- Base amortissable Le Mans pleine année (2026) : ~25 800 € (construction 5 % + travaux 10 % + mobilier 20 %)
+
+### Restrictions
+
+- `/dashboard/fiscal/**` et `/api/dashboard/fiscal/**` : middleware bloque viewer.
+- Le moteur ne gère que l'année en cours + config JSON correspondante.
+- Le barème IR coded est celui 2025 (revenus 2025 imposés 2026). À mettre à jour au moment du PLF 2026 définitif.
+
 ## Cron Jobs (via cron-job.org)
 
 | Job | URL | Fréquence |
@@ -374,4 +502,12 @@ INVOICE_BIC              # BIC / SWIFT
 INVOICE_BANK_NAME        # Nom de la banque
 INVOICE_WEBSITE          # URL du site affichée sur la facture (optionnel)
 STRIPE_SECRET_KEY        # Clé Stripe (restricted read-only suffit) pour lister les paiements
+
+# Fiscalité (dashboard /dashboard/fiscal)
+FISCAL_TMI                               # Taux marginal d'imposition (ex 0.30 pour 30 %) — utilisé dans le simulateur
+FISCAL_NB_PARTS                          # Parts fiscales foyer (ex 3 pour couple + 2 enfants)
+FISCAL_REVENU_IMPOSABLE_MONSIEUR         # Net imposable annuel M. (case 1AJ, AVANT abattement 10 %)
+FISCAL_REVENU_IMPOSABLE_MADAME           # Net imposable annuel Mme (case 1BJ)
+FISCAL_REVENU_IMPOSABLE_FOYER            # Fallback si M./Mme non renseignés individuellement
+FISCAL_AUTRES_REVENUS_ACTIVITE_FOYER     # Net imposable APRÈS abattement 10 % (M. + Mme) pour test LMP
 ```
