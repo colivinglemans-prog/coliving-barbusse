@@ -582,14 +582,14 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                             }}
                             title={bp.booking.notes ? `${bp.label} · 📝 ${bp.booking.notes}` : bp.label}
                           >
+                            {bp.booking.notes && (
+                              <span className="inline" aria-label="Note interne">📝</span>
+                            )}
                             {isStart && (
                               <span className="hidden sm:inline">
-                                {bp.booking.notes ? "📝 " : ""}
+                                {bp.booking.notes ? " " : ""}
                                 {bp.label}
                               </span>
-                            )}
-                            {!isStart && bp.booking.notes && (
-                              <span className="hidden sm:inline">📝</span>
                             )}
                           </button>
                         );
