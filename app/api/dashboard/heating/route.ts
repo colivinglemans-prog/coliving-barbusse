@@ -12,7 +12,8 @@ function hasActiveReservation(
   return bookings.some(
     (b) =>
       (b.arrival < today && b.departure > today) ||
-      (b.arrival === today && b.departure > today && hour >= 17),
+      (b.arrival === today && b.departure > today && hour >= 17) ||
+      (b.departure === today && hour < 10),
   );
 }
 

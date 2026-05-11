@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
       const isOccupied = activeBookings.some(
         (b) =>
           (b.arrival < today && b.departure > today) ||
-          (b.arrival === today && b.departure > today && currentHour >= 17),
+          (b.arrival === today && b.departure > today && currentHour >= 17) ||
+          (b.departure === today && currentHour < 10),
       );
       if (isOccupied) {
         for (const did of mapping.deviceIds) {
