@@ -280,15 +280,28 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 - Fonctions : `currentHourParis()`, `todayParis()`, `tomorrowParis()`, `nowParis()`
 - **Ne jamais utiliser** `new Date().getHours()` ou `toISOString().split("T")[0]` directement
 
-## Logique check-in (transition pré-chauffage → occupé)
+## Logique check-in/check-out (transitions)
 
-Le jour du check-in, la logique est :
+**Jour du check-in** :
 - 0h-12h : hors-gel (pas encore de pré-chauffage)
 - 12h-15h : éco (pré-chauffage progressif)
 - 15h-17h : confort (pré-chauffage final)
 - **17h+** : réservation active (mode présence, occupé)
 
-La condition `isCurrentlyOccupied` utilise `arrival < today || (arrival === today && hour >= 17)`.
+**Jour du check-out** :
+- **0h-10h** : encore considéré occupé (voyageur sur place, prépare ses affaires)
+- **10h+** : transition vers le mode suivant :
+  - Check-in même jour → "entre deux réservations" (éco 9h-17h, sinon hors-gel)
+  - Sinon → "pas de réservation" (hors-gel)
+
+La condition `isCurrentlyOccupied` :
+```
+(arrival < today && departure > today)
+|| (arrival === today && departure > today && hour >= 17)
+|| (departure === today && hour < 10)
+```
+
+Appliquée dans : `heating-automation`, `heating-reset`, et `dashboard/heating` (alertes + règles affichées).
 
 ## Cozytouch (Ballon thermodynamique Atlantic)
 
