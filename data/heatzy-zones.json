@@ -47,6 +47,7 @@
       "cftTemp": 200,
       "ecoTemp": 150,
       "devices": [
+        { "did": "9haSs9xp64nwJDwZm91vRm", "name": "Chambre 7", "defaultMode": "fro" },
         { "did": "3rva2tiYKhRiut270ompxf", "name": "Chambre 8", "defaultMode": "fro" },
         { "did": "Bf4Zgcjr7A6wJeJzCMZlMf", "name": "Chambre 9", "defaultMode": "fro" }
       ]
@@ -70,7 +71,7 @@
         "luuG0tlc1TvMoBf8LZdciS", "lL8GSwKTtmCOtV97PIJXab",
         "f1ht9FxSWYTmnLUshExCCf", "H9spT2Fexf4QTJfUqeJgWe",
         "vRjP8TJMEzeIOZRM5sAqbw", "IW95TDprLyTDyKFA66make",
-        "3rva2tiYKhRiut270ompxf",
+        "9haSs9xp64nwJDwZm91vRm", "3rva2tiYKhRiut270ompxf",
         "Bf4Zgcjr7A6wJeJzCMZlMf"
       ]
     }
