@@ -51,6 +51,8 @@ export async function GET(request: NextRequest) {
       lockedDevices.clear();
     }
 
+    const failures: string[] = [];
+
     for (const zone of config.zones) {
       for (const device of zone.devices) {
         const did = device.did;
@@ -61,53 +63,60 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Pre-heating: check-in today (guests arrive at 17h)
-        // 12h-15h: éco (progressive warm-up, avoids tripping breakers)
-        // 15h+: confort (final warm-up before arrival)
-        if (hasCheckInToday && currentHour >= 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
-          await setDeviceMode(did, "cft");
-          actions.push(`${device.name}: pré-chauffage confort (arrivée aujourd'hui)`);
-          await sleep(100);
-          continue;
-        }
-        if (hasCheckInToday && currentHour >= 12 && currentHour < 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
-          await setDeviceMode(did, "eco");
-          actions.push(`${device.name}: pré-chauffage éco (montée progressive)`);
-          await sleep(100);
-          continue;
-        }
-        // Check-in today but before pre-heating window -> frost protection
-        if (hasCheckInToday && currentHour < 12 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
-          await setDeviceMode(did, "fro");
-          actions.push(`${device.name}: hors-gel (arrivée aujourd'hui, avant pré-chauffage)`);
-          await sleep(100);
-          continue;
-        }
+        try {
+          // Pre-heating: check-in today (guests arrive at 17h)
+          // 12h-15h: éco (progressive warm-up, avoids tripping breakers)
+          // 15h+: confort (final warm-up before arrival)
+          if (hasCheckInToday && currentHour >= 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
+            await setDeviceMode(did, "cft");
+            actions.push(`${device.name}: pré-chauffage confort (arrivée aujourd'hui)`);
+            await sleep(100);
+            continue;
+          }
+          if (hasCheckInToday && currentHour >= 12 && currentHour < 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
+            await setDeviceMode(did, "eco");
+            actions.push(`${device.name}: pré-chauffage éco (montée progressive)`);
+            await sleep(100);
+            continue;
+          }
+          // Check-in today but before pre-heating window -> frost protection
+          if (hasCheckInToday && currentHour < 12 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
+            await setDeviceMode(did, "fro");
+            actions.push(`${device.name}: hors-gel (arrivée aujourd'hui, avant pré-chauffage)`);
+            await sleep(100);
+            continue;
+          }
 
-        // Currently occupied -> zone-aware mode (nightMode for RDC 0h-5h)
-        if (isCurrentlyOccupied) {
-          const mode = getOccupiedMode(zone, currentHour);
-          await setDeviceMode(did, mode);
-          actions.push(`${device.name}: ${mode} (occupé)`);
-          await sleep(100);
-          continue;
-        }
+          // Currently occupied -> zone-aware mode (nightMode for RDC 0h-5h)
+          if (isCurrentlyOccupied) {
+            const mode = getOccupiedMode(zone, currentHour);
+            await setDeviceMode(did, mode);
+            actions.push(`${device.name}: ${mode} (occupé)`);
+            await sleep(100);
+            continue;
+          }
 
-        // Same-day turnaround: éco during 9h-17h, fro otherwise
-        if (hasSameDayTurnaround) {
-          const mode = getBetweenReservationsMode(currentHour);
-          await setDeviceMode(did, mode);
-          actions.push(`${device.name}: ${mode} (entre deux réservations)`);
-          await sleep(100);
-          continue;
-        }
+          // Same-day turnaround: éco during 9h-17h, fro otherwise
+          if (hasSameDayTurnaround) {
+            const mode = getBetweenReservationsMode(currentHour);
+            await setDeviceMode(did, mode);
+            actions.push(`${device.name}: ${mode} (entre deux réservations)`);
+            await sleep(100);
+            continue;
+          }
 
-        // Check-out today, no following check-in -> frost protection
-        if (hasCheckOutToday) {
-          await setDeviceMode(did, "fro");
-          actions.push(`${device.name}: hors-gel (départ)`);
+          // Check-out today, no following check-in -> frost protection
+          if (hasCheckOutToday) {
+            await setDeviceMode(did, "fro");
+            actions.push(`${device.name}: hors-gel (départ)`);
+            await sleep(100);
+            continue;
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Unknown error";
+          failures.push(`${device.name}: ${msg}`);
+          console.error(`Heating automation error for ${device.name}:`, e);
           await sleep(100);
-          continue;
         }
       }
     }
@@ -115,6 +124,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       actions,
+      failures,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

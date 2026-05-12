@@ -48,6 +48,8 @@ export async function GET(request: NextRequest) {
     }
     const actions: string[] = [];
 
+    const failures: string[] = [];
+
     // Process all devices: set mode + temperatures
     for (const zone of config.zones) {
       for (const device of zone.devices) {
@@ -56,41 +58,47 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        const isOccupied = occupiedDeviceIds.has(device.did);
-        const targetMode = isOccupied
-          ? getOccupiedMode(zone, currentHour)
-          : device.defaultMode;
+        try {
+          const isOccupied = occupiedDeviceIds.has(device.did);
+          const targetMode = isOccupied
+            ? getOccupiedMode(zone, currentHour)
+            : device.defaultMode;
 
-        // Set mode
-        await setDeviceMode(device.did, targetMode);
+          // Set mode
+          await setDeviceMode(device.did, targetMode);
 
-        // Reset temperatures
-        if (zone.cftTemp && zone.ecoTemp) {
-          if (isOccupied) {
-            // Only reset if guest INCREASED the temperature
-            try {
-              const status = await getDeviceStatus(device.did);
-              const actualCft = status.cft_temp as number | undefined;
-              const actualEco = status.eco_temp as number | undefined;
-              if (
-                (actualCft !== undefined && actualCft > zone.cftTemp) ||
-                (actualEco !== undefined && actualEco > zone.ecoTemp)
-              ) {
-                await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
-                actions.push(`${device.name}: ${targetMode} (temp reset)`);
-              } else {
+          // Reset temperatures
+          if (zone.cftTemp && zone.ecoTemp) {
+            if (isOccupied) {
+              // Only reset if guest INCREASED the temperature
+              try {
+                const status = await getDeviceStatus(device.did);
+                const actualCft = status.cft_temp as number | undefined;
+                const actualEco = status.eco_temp as number | undefined;
+                if (
+                  (actualCft !== undefined && actualCft > zone.cftTemp) ||
+                  (actualEco !== undefined && actualEco > zone.ecoTemp)
+                ) {
+                  await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+                  actions.push(`${device.name}: ${targetMode} (temp reset)`);
+                } else {
+                  actions.push(`${device.name}: ${targetMode}`);
+                }
+              } catch {
                 actions.push(`${device.name}: ${targetMode}`);
               }
-            } catch {
-              actions.push(`${device.name}: ${targetMode}`);
+            } else {
+              // Not occupied: always reset
+              await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
+              actions.push(`${device.name}: ${targetMode} (temp reset)`);
             }
           } else {
-            // Not occupied: always reset
-            await setDeviceTemperatures(device.did, zone.cftTemp, zone.ecoTemp);
-            actions.push(`${device.name}: ${targetMode} (temp reset)`);
+            actions.push(`${device.name}: ${targetMode}`);
           }
-        } else {
-          actions.push(`${device.name}: ${targetMode}`);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Unknown error";
+          failures.push(`${device.name}: ${msg}`);
+          console.error(`Heating reset error for ${device.name}:`, e);
         }
 
         await sleep(100);
@@ -100,6 +108,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       actions,
+      failures,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
