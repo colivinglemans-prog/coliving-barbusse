@@ -39,10 +39,13 @@ const T = {
     s3Item1Note: "Le code vous a été envoyé par message — vérifiez votre boîte de réception.",
     s3Item2T: "Boîtes à clés (optionnel)",
     s3Item2: "Par défaut, toutes les chambres sont accessibles librement. Si vous le souhaitez, chaque chambre peut être fermée à clé. Demandez-nous les codes des boîtes à clés.",
-    s4Title: "Verrouillage de la porte",
+    s4Title: "Verrouillage depuis l'intérieur",
     s4Step1: "Relevez fermement la poignée vers le haut.",
     s4Step2: "Tournez doucement le bouton rond vers la droite (sens horaire).",
     s4Note: "Cette action est silencieuse, mais elle active bien le verrouillage. La porte est verrouillée lorsque l'anneau lumineux est entièrement allumé. Tourner le bouton dans l'autre sens permet de déverrouiller.",
+    s4OutTitle: "Verrouillage en sortant de la maison",
+    s4OutStep1: "Relevez fermement la poignée vers le haut depuis l'extérieur.",
+    s4OutStep2: "Appuyez sur la touche retour (la touche en bas à droite du clavier).",
     s5Title: "Wi-Fi",
     s5Sub: "Connectez tout le groupe en un instant.",
     s6Title: "Chauffage",
@@ -132,10 +135,13 @@ const T = {
     s3Item1Note: "Your code was sent to you in a message — check your inbox.",
     s3Item2T: "Bedroom lockboxes (optional)",
     s3Item2: "By default, all bedrooms are freely accessible. If you'd like, each room can be locked individually. Just ask us for the lockbox codes.",
-    s4Title: "Locking the door",
+    s4Title: "Locking the door from inside",
     s4Step1: "Lift the door handle firmly upward.",
     s4Step2: "Then gently turn the round lock to the right (clockwise).",
     s4Note: "This action is silent but engages the lock. The door is locked when the light ring is fully illuminated. Turning the lock in the opposite direction unlocks the door.",
+    s4OutTitle: "Locking when leaving the house",
+    s4OutStep1: "Lift the door handle firmly upward from the outside.",
+    s4OutStep2: 'Press the "return key" (bottom-right key of the keypad).',
     s5Title: "Wi-Fi",
     s5Sub: "Get the whole group connected in one go.",
     s6Title: "Heating",
@@ -415,6 +421,37 @@ export default async function GuideArrivee({
           </div>
         </div>
         <p className="mt-4 text-sm text-secondary">{t.s4Note}</p>
+      </section>
+
+      {/* 4.bis Verrouillage depuis l'extérieur */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold text-foreground">🚪 {t.s4OutTitle}</h2>
+        <div className="mt-5 grid gap-5 sm:grid-cols-[180px_1fr] sm:items-start">
+          <div className="overflow-hidden rounded-xl border border-border bg-light-bg">
+            <Image
+              src="/images/guide/keypad.png"
+              alt={t.s4OutTitle}
+              width={225}
+              height={302}
+              className="h-auto w-full object-contain"
+              sizes="(max-width: 640px) 100vw, 180px"
+            />
+          </div>
+          <ol className="space-y-2 text-sm text-foreground">
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+                1
+              </span>
+              <span>{t.s4OutStep1}</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+                2
+              </span>
+              <span>{t.s4OutStep2}</span>
+            </li>
+          </ol>
+        </div>
       </section>
 
       {/* 5. WiFi */}
