@@ -9,6 +9,7 @@ export default async function RootPage() {
   let target = "fr";
   if (first.startsWith("it")) target = "it";
   else if (first.startsWith("de")) target = "de";
+  else if (first.startsWith("es")) target = "es";
   else if (first.startsWith("en")) target = "en";
   redirect(`/${target}`);
 }

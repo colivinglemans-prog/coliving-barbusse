@@ -33,6 +33,12 @@ const TEXTS: Record<Locale, { aria: string; scan: string; network: string; passw
     network: "Netzwerk:",
     password: "Passwort:",
   },
+  es: {
+    aria: "Código QR Wi-Fi",
+    scan: "Escanea este código QR con la cámara del teléfono para conectarte automáticamente.",
+    network: "Red:",
+    password: "Contraseña:",
+  },
 };
 
 export default function WifiQRCode({ locale }: Props) {

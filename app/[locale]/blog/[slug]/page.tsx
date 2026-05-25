@@ -64,6 +64,21 @@ import ArticleDESWSKarting from "@/lib/blog/content/de/sws-karting-finals-le-man
 import ArticleDE24hCamions from "@/lib/blog/content/de/24-heures-camions-le-mans";
 import ArticleDEMondialKarting from "@/lib/blog/content/de/championnat-monde-karting-kz-le-mans";
 
+import ArticleES24hDuMans2026 from "@/lib/blog/content/es/ou-se-loger-24h-du-mans-2026";
+import ArticleES24hMoto from "@/lib/blog/content/es/24-heures-moto-le-mans";
+import ArticleESMotoGP from "@/lib/blog/content/es/motogp-france-le-mans";
+import ArticleESLeMansClassic from "@/lib/blog/content/es/le-mans-classic";
+import ArticleESGPExplorer from "@/lib/blog/content/es/gp-explorer-le-mans";
+import ArticleESTourisme from "@/lib/blog/content/es/que-visiter-le-mans-sarthe";
+import ArticleESRestos from "@/lib/blog/content/es/restos-bars-magasins-le-mans";
+import ArticleESEntreprises from "@/lib/blog/content/es/entreprises-proches-le-mans";
+import ArticleESHippodrome from "@/lib/blog/content/es/hippodrome-des-hunaudieres";
+import ArticleES24hRollers from "@/lib/blog/content/es/24-heures-rollers-le-mans";
+import ArticleESSeminaire from "@/lib/blog/content/es/seminaire-entreprise-le-mans";
+import ArticleESSWSKarting from "@/lib/blog/content/es/sws-karting-finals-le-mans";
+import ArticleES24hCamions from "@/lib/blog/content/es/24-heures-camions-le-mans";
+import ArticleESMondialKarting from "@/lib/blog/content/es/championnat-monde-karting-kz-le-mans";
+
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
 const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
@@ -72,84 +87,98 @@ const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
     en: ArticleEN24hDuMans2026,
     it: ArticleIT24hDuMans2026,
     de: ArticleDE24hDuMans2026,
+    es: ArticleES24hDuMans2026,
   },
   "24-heures-moto-le-mans": {
     fr: Article24hMoto,
     en: ArticleEN24hMoto,
     it: ArticleIT24hMoto,
     de: ArticleDE24hMoto,
+    es: ArticleES24hMoto,
   },
   "motogp-france-le-mans": {
     fr: ArticleMotoGP,
     en: ArticleENMotoGP,
     it: ArticleITMotoGP,
     de: ArticleDEMotoGP,
+    es: ArticleESMotoGP,
   },
   "le-mans-classic": {
     fr: ArticleLeMansClassic,
     en: ArticleENLeMansClassic,
     it: ArticleITLeMansClassic,
     de: ArticleDELeMansClassic,
+    es: ArticleESLeMansClassic,
   },
   "gp-explorer-le-mans": {
     fr: ArticleGPExplorer,
     en: ArticleENGPExplorer,
     it: ArticleITGPExplorer,
     de: ArticleDEGPExplorer,
+    es: ArticleESGPExplorer,
   },
   "que-visiter-le-mans-sarthe": {
     fr: ArticleTourisme,
     en: ArticleENTourisme,
     it: ArticleITTourisme,
     de: ArticleDETourisme,
+    es: ArticleESTourisme,
   },
   "restos-bars-magasins-le-mans": {
     fr: ArticleRestos,
     en: ArticleENRestos,
     it: ArticleITRestos,
     de: ArticleDERestos,
+    es: ArticleESRestos,
   },
   "entreprises-proches-le-mans": {
     fr: ArticleEntreprises,
     en: ArticleENEntreprises,
     it: ArticleITEntreprises,
     de: ArticleDEEntreprises,
+    es: ArticleESEntreprises,
   },
   "hippodrome-des-hunaudieres": {
     fr: ArticleHippodrome,
     en: ArticleENHippodrome,
     it: ArticleITHippodrome,
     de: ArticleDEHippodrome,
+    es: ArticleESHippodrome,
   },
   "24-heures-rollers-le-mans": {
     fr: Article24hRollers,
     en: ArticleEN24hRollers,
     it: ArticleIT24hRollers,
     de: ArticleDE24hRollers,
+    es: ArticleES24hRollers,
   },
   "seminaire-entreprise-le-mans": {
     fr: ArticleSeminaire,
     en: ArticleENSeminaire,
     it: ArticleITSeminaire,
     de: ArticleDESeminaire,
+    es: ArticleESSeminaire,
   },
   "sws-karting-finals-le-mans": {
     fr: ArticleSWSKarting,
     en: ArticleENSWSKarting,
     it: ArticleITSWSKarting,
     de: ArticleDESWSKarting,
+    es: ArticleESSWSKarting,
   },
   "24-heures-camions-le-mans": {
     fr: Article24hCamions,
     en: ArticleEN24hCamions,
     it: ArticleIT24hCamions,
     de: ArticleDE24hCamions,
+    es: ArticleES24hCamions,
   },
   "championnat-monde-karting-kz-le-mans": {
     fr: ArticleMondialKarting,
     en: ArticleENMondialKarting,
     it: ArticleITMondialKarting,
     de: ArticleDEMondialKarting,
+    es: ArticleESMondialKarting,
   },
 };
 
@@ -158,6 +187,7 @@ const OG_LOCALES: Record<Locale, string> = {
   en: "en_US",
   it: "it_IT",
   de: "de_DE",
+  es: "es_ES",
 };
 
 const DATE_LOCALE: Record<Locale, string> = {
@@ -165,6 +195,7 @@ const DATE_LOCALE: Record<Locale, string> = {
   en: "en-US",
   it: "it-IT",
   de: "de-DE",
+  es: "es-ES",
 };
 
 const BACK_LABEL: Record<Locale, string> = {
@@ -172,6 +203,7 @@ const BACK_LABEL: Record<Locale, string> = {
   en: "← Back to blog",
   it: "← Torna al blog",
   de: "← Zurück zum Blog",
+  es: "← Volver al blog",
 };
 
 const SOLD_OUT_TITLE: Record<Locale, string> = {
@@ -179,6 +211,7 @@ const SOLD_OUT_TITLE: Record<Locale, string> = {
   en: "Sold out for this edition",
   it: "Tutto esaurito per questa edizione",
   de: "Für diese Edition ausgebucht",
+  es: "Completo para esta edición",
 };
 
 const SOLD_OUT_BODY: Record<Locale, (nextEdition: string) => string> = {
@@ -186,10 +219,11 @@ const SOLD_OUT_BODY: Record<Locale, (nextEdition: string) => string> = {
   en: (e) => `Thank you to everyone who booked! We'll welcome new travellers for the ${e} edition.`,
   it: (e) => `Grazie a tutti i nostri viaggiatori! Appuntamento all'edizione ${e}.`,
   de: (e) => `Danke an alle unsere Reisenden! Wir freuen uns auf die Edition ${e}.`,
+  es: (e) => `¡Gracias a todos nuestros viajeros! Nos vemos en la edición ${e}.`,
 };
 
 export function generateStaticParams() {
-  const locales: Locale[] = ["fr", "en", "it", "de"];
+  const locales: Locale[] = ["fr", "en", "it", "de", "es"];
   return locales.flatMap((locale) =>
     BLOG_POSTS.map((post) => ({ locale, slug: post.slug })),
   );
@@ -220,6 +254,7 @@ export async function generateMetadata({
         en: `${SITE_URL}/en/blog/${post.slug}`,
         it: `${SITE_URL}/it/blog/${post.slug}`,
         de: `${SITE_URL}/de/blog/${post.slug}`,
+        es: `${SITE_URL}/es/blog/${post.slug}`,
         "x-default": `${SITE_URL}/fr/blog/${post.slug}`,
       },
     },

@@ -6,12 +6,13 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
-const LOCALES: Locale[] = ["fr", "en", "it", "de"];
+const LOCALES: Locale[] = ["fr", "en", "it", "de", "es"];
 const LOCALE_LABELS: Record<Locale, string> = {
   fr: "FR",
   en: "EN",
   it: "IT",
   de: "DE",
+  es: "ES",
 };
 
 function swapLocale(pathname: string, target: Locale): string {

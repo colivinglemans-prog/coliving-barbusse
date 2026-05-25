@@ -1,4 +1,4 @@
-export type Locale = "fr" | "en" | "it" | "de";
+export type Locale = "fr" | "en" | "it" | "de" | "es";
 
 export interface Dictionary {
   header: {

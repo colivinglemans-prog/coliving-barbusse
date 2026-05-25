@@ -10,6 +10,7 @@ const DESCRIPTIONS: Record<Locale, string> = {
   en: "Practical guides and tips for your stay in Le Mans: 24 Hours of Le Mans, MotoGP, Le Mans Classic, Sarthe tourism.",
   it: "Consigli e guide pratiche per soggiornare a Le Mans: 24 Ore di Le Mans, MotoGP, Le Mans Classic, turismo nella Sarthe.",
   de: "Praktische Guides und Tipps für Ihren Aufenthalt in Le Mans: 24 Stunden von Le Mans, MotoGP, Le Mans Classic, Tourismus in der Sarthe.",
+  es: "Consejos y guías prácticas para tu estancia en Le Mans: 24 Horas de Le Mans, MotoGP, Le Mans Classic, turismo en la Sarthe.",
 };
 
 const SUBHEADINGS: Record<Locale, string> = {
@@ -17,6 +18,7 @@ const SUBHEADINGS: Record<Locale, string> = {
   en: "Practical guides for your stay in Le Mans and major events.",
   it: "Guide pratiche per soggiornare a Le Mans e godersi i grandi eventi.",
   de: "Praktische Guides für Ihren Aufenthalt in Le Mans und die großen Events.",
+  es: "Guías prácticas para tu estancia en Le Mans y para disfrutar de los grandes eventos.",
 };
 
 const SOLD_OUT_LABEL: Record<Locale, (year: string) => string> = {
@@ -24,6 +26,7 @@ const SOLD_OUT_LABEL: Record<Locale, (year: string) => string> = {
   en: (y) => `Sold out for ${y}`,
   it: (y) => `Tutto esaurito per l'edizione ${y}`,
   de: (y) => `Ausgebucht für die Edition ${y}`,
+  es: (y) => `Completo para la edición ${y}`,
 };
 
 const DATE_LOCALE: Record<Locale, string> = {
@@ -31,6 +34,7 @@ const DATE_LOCALE: Record<Locale, string> = {
   en: "en-US",
   it: "it-IT",
   de: "de-DE",
+  es: "es-ES",
 };
 
 export async function generateMetadata({
@@ -53,6 +57,7 @@ export async function generateMetadata({
         en: `${SITE_URL}/en/blog`,
         it: `${SITE_URL}/it/blog`,
         de: `${SITE_URL}/de/blog`,
+        es: `${SITE_URL}/es/blog`,
         "x-default": `${SITE_URL}/fr/blog`,
       },
     },

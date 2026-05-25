@@ -31,6 +31,12 @@ const T: Record<Locale, { title: string; sub: string; metaTitle: string; metaDes
     metaTitle: "Unsere 9 privaten Suiten — Coliving Barbusse Le Mans",
     metaDesc: "9 private Suiten mit Doppelbett, eigenem Bad, Smart-TV, Ethernet-Schreibtisch und individuellem Schlüssel. Bis zu 18 Gäste in Le Mans.",
   },
+  es: {
+    title: "Nuestras 9 suites privadas",
+    sub: "Cada habitación dispone de cama doble, baño privado, smart TV, escritorio con Ethernet, vestidor y llave individual.",
+    metaTitle: "Nuestras 9 suites privadas — Coliving Barbusse Le Mans",
+    metaDesc: "9 suites privadas con cama doble, baño privado, smart TV, escritorio con Ethernet y llave individual. Hasta 18 personas en Le Mans.",
+  },
 };
 
 export async function generateMetadata({

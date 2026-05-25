@@ -162,6 +162,44 @@ const T: Record<Lang, Record<string, string>> = {
     ctaEmail: "Per E-Mail schreiben",
     guideLink: "Den detaillierten Guide lesen",
   },
+  es: {
+    titleTag: "Seminarios de empresa en Le Mans — Coliving Barbusse",
+    desc: "Organiza tu seminario de empresa en Le Mans: 9 suites privadas, espacios modulables, actividades de team-building en el Circuito Bugatti y la Sarthe. Presupuesto personalizado.",
+    heroKicker: "Estancias de empresa",
+    heroTitle: "Tu seminario en Le Mans, llave en mano",
+    heroSub: "9 suites privadas, espacios de trabajo modulables, a 15 min del Circuito Bugatti y 10 min de la estación TGV. París en 55 min.",
+    heroCta: "Solicitar presupuesto",
+    heroCta2: "Leer la guía completa",
+    reasonsTitle: "Por qué elegir nuestro coliving",
+    reason1T: "Una casa, un equipo",
+    reason1D: "9 suites privadas con baño para 9 colaboradores. Cohesión reforzada, privacidad total.",
+    reason2T: "Espacios modulables",
+    reason2D: "Cocina con isla central (8-10 personas sentadas), sala zen como sala de reuniones, salón con calefacción para los debriefs.",
+    reason3T: "Actividades de team-building al lado",
+    reason3D: "Circuito Bugatti (karting, conducción, simuladores), EVA Le Mans (VR), Arche de la Nature, escape rooms.",
+    reason4T: "Check-in temprano posible",
+    reason4D: "Llegada a la estación a las 9:00 posible, instalación desde las 9:30 sujeto a disponibilidad. Inicio del seminario sin perder tiempo.",
+    whatTitle: "Lo que está incluido",
+    whatItems: "9 suites privadas·215 m² (espacios comunes + habitaciones + anexo deporte/zen)·Wi-Fi alta velocidad, toma Ethernet por habitación·Cocina totalmente equipada·Gimnasio + espacio zen·Cerradura conectada (self check-in)·Factura profesional, pago por transferencia·Soporte WhatsApp 7 días a la semana",
+    extrasTitle: "Bajo petición",
+    extrasItems: "Material de reunión (proyector, paperboards, pizarra)·Catering local (desayuno, almuerzo, cena)·Traslados taxi estación/circuito/casa·Contacto con ACO y proveedores de team-building",
+    programTitle: "Programa tipo — 2 días",
+    day1T: "Día 1 — Llegada y cohesión",
+    day1Body: "9:00 llegada a la estación · 9:30 instalación y café · 11:00-13:00 sesión de trabajo · 13:00 almuerzo en casa · 14:00-17:00 brainstorming estratégico · 17:30-19:00 actividad team-building (karting / simulador F1 / EVA) · 20:00 cena juntos",
+    day2T: "Día 2 — Talleres y cierre",
+    day2Body: "8:00-9:00 desayuno · 9:00-12:00 talleres (design thinking, OKR) · 12:30 almuerzo en la ciudad · 14:00-16:00 bautismo de pista o Museo 24 Horas · 16:00-17:00 debrief final · 17:00 salida TGV",
+    pricingTitle: "Tarifa orientativa",
+    pricingBody: "~150-250 €/noche/persona (equipo de 9) según temporada, sin actividades ni restauración. Más económico que 9 habitaciones de hotel 3-4★.",
+    testimonialTitle: "Ya han estado con nosotros",
+    testimonialQuote: "Anfitrión genial, alojamiento de primera, ¡todo perfecto para un equipo de 9 personas! Lo recomiendo al 200 %. Gracias por la acogida.",
+    testimonialAuthor: "Loic",
+    testimonialContext: "Estancia de unas noches · Abril de 2026",
+    ctaTitle: "Hablemos de tu seminario",
+    ctaSub: "Cuéntanos tus fechas, tus objetivos, tu equipo — construimos juntos una estancia a medida.",
+    ctaWA: "Contactar por WhatsApp",
+    ctaEmail: "Escribir por email",
+    guideLink: "Leer la guía detallada",
+  },
 };
 
 export async function generateMetadata({
@@ -179,6 +217,7 @@ export async function generateMetadata({
     en: "en_US",
     it: "it_IT",
     de: "de_DE",
+    es: "es_ES",
   };
 
   return {
@@ -191,6 +230,7 @@ export async function generateMetadata({
         en: `${SITE_URL}/en/seminaires`,
         it: `${SITE_URL}/it/seminaires`,
         de: `${SITE_URL}/de/seminaires`,
+        es: `${SITE_URL}/es/seminaires`,
         "x-default": `${SITE_URL}/fr/seminaires`,
       },
     },
@@ -373,7 +413,7 @@ export default async function Seminaires({
           </a>
           <a
             href={`mailto:${EMAIL}?subject=${encodeURIComponent(
-              { fr: "Demande séminaire", en: "Seminar request", it: "Richiesta seminario", de: "Seminar-Anfrage" }[locale],
+              { fr: "Demande séminaire", en: "Seminar request", it: "Richiesta seminario", de: "Seminar-Anfrage", es: "Solicitud de seminario" }[locale],
             )}`}
             className="inline-flex items-center justify-center rounded-full border border-white px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >

@@ -21,6 +21,7 @@ const DESCRIPTIONS: Record<string, string> = {
   en: "215 m² house with 9 twin bedrooms and en-suite bathrooms in Le Mans. Near Bugatti Circuit and TGV station. Ideal for groups, events and corporate stays. Up to 18 guests.",
   it: "Casa di 215 m² con 9 camere matrimoniali e bagni privati a Le Mans. Vicino al Circuito Bugatti e alla stazione TGV. Ideale per gruppi, eventi e soggiorni aziendali. Fino a 18 ospiti.",
   de: "215 m² großes Haus mit 9 Doppelzimmern und eigenen Bädern in Le Mans. In der Nähe der Bugatti-Rennstrecke und des TGV-Bahnhofs. Ideal für Gruppen, Events und Firmenaufenthalte. Bis zu 18 Gäste.",
+  es: "Casa de 215 m² con 9 habitaciones dobles y baños privados en Le Mans. Cerca del Circuito Bugatti y la estación TGV. Ideal para grupos, eventos y estancias de empresa. Hasta 18 personas.",
 };
 
 const OG_LOCALES: Record<string, string> = {
@@ -28,6 +29,7 @@ const OG_LOCALES: Record<string, string> = {
   en: "en_US",
   it: "it_IT",
   de: "de_DE",
+  es: "es_ES",
 };
 
 export async function generateMetadata({
@@ -51,6 +53,7 @@ export async function generateMetadata({
         en: `${SITE_URL}/en`,
         it: `${SITE_URL}/it`,
         de: `${SITE_URL}/de`,
+        es: `${SITE_URL}/es`,
         "x-default": `${SITE_URL}/fr`,
       },
     },
@@ -68,12 +71,14 @@ export default async function Home({
     en: "215 m² house with 9 twin bedrooms and en-suite bathrooms in Le Mans. Near Bugatti Circuit and TGV station.",
     it: "Casa di 215 m² con 9 camere matrimoniali e bagni privati a Le Mans. Vicino al Circuito Bugatti e alla stazione TGV.",
     de: "215 m² großes Haus mit 9 Doppelzimmern und eigenen Bädern in Le Mans. In der Nähe der Bugatti-Rennstrecke und des TGV-Bahnhofs.",
+    es: "Casa de 215 m² con 9 habitaciones dobles y baños privados en Le Mans. Cerca del Circuito Bugatti y la estación TGV.",
   };
   const AMENITY: Record<string, { parking: string; gym: string; zen: string }> = {
     fr: { parking: "Stationnement gratuit dans la rue", gym: "Salle de sport", zen: "Espace zen" },
     en: { parking: "Free street parking", gym: "Gym", zen: "Zen space" },
     it: { parking: "Parcheggio gratuito in strada", gym: "Palestra", zen: "Spazio zen" },
     de: { parking: "Kostenloses Parken auf der Straße", gym: "Fitnessraum", zen: "Zen-Bereich" },
+    es: { parking: "Aparcamiento gratuito en la calle", gym: "Gimnasio", zen: "Espacio zen" },
   };
   const amenity = AMENITY[locale] ?? AMENITY.fr;
   const jsonLd = {

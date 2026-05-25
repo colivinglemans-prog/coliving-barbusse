@@ -11,12 +11,14 @@ export const PROPERTY_INFO = {
     en: "5:00 PM — 11:00 PM",
     it: "17:00 — 23:00",
     de: "17:00 — 23:00 Uhr",
+    es: "17:00 — 23:00",
   },
   checkOut: {
     fr: "avant 11h00",
     en: "before 11:00 AM",
     it: "entro le 11:00",
     de: "vor 11:00 Uhr",
+    es: "antes de las 11:00",
   },
   maxGuests: 18,
   wifi: {

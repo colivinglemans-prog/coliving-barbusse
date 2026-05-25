@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import { I18nProvider } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
-const SUPPORTED: Locale[] = ["fr", "en", "it", "de"];
+const SUPPORTED: Locale[] = ["fr", "en", "it", "de", "es"];
 
 export function generateStaticParams() {
   return SUPPORTED.map((locale) => ({ locale }));

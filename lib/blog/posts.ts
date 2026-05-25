@@ -84,6 +84,21 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Schaltkart Le Mans",
         ],
       },
+      es: {
+        title: "Campeonato del Mundo de Karting KZ 2026 en Le Mans: guía completa",
+        description:
+          "Mundial de Karting KZ 2026 en el Le Mans International Karting Circuit (16-20 sept): categoría reina, formato, alojamiento para equipos internacionales. Nuestra casa a menos de 5 km del circuito.",
+        excerpt:
+          "Los mejores pilotos de karting del planeta se reúnen en Le Mans del 16 al 20 de septiembre de 2026. Guía completa para equipos y acompañantes.",
+        keywords: [
+          "Campeonato del Mundo Karting KZ 2026",
+          "Mundial Karting Le Mans",
+          "Le Mans International Karting Circuit",
+          "alojamiento equipo karting Le Mans",
+          "CIK-FIA KZ World Championship",
+          "karting con cambio Le Mans",
+        ],
+      },
     },
   },
   {
@@ -149,6 +164,21 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Unterkunft 24h Truck",
           "Familienwochenende Le Mans Truck",
           "Truck Racing Le Mans",
+        ],
+      },
+      es: {
+        title: "24 Horas de Camiones 2026 en Le Mans: guía del fin de semana",
+        description:
+          "24 Horas de Camiones 2026 en el Circuito Bugatti los 26-27 de septiembre: programa, precios, animaciones, alojamiento en familia o entre amigos. Nuestra casa a menos de 5 km del circuito.",
+        excerpt:
+          "Un espectáculo accesible, familiar y económico: las 24 Horas de Camiones de Le Mans son el fin de semana ideal en familia. Fechas, programa y consejos prácticos.",
+        keywords: [
+          "24 Horas de Camiones Le Mans",
+          "24H Camiones 2026",
+          "carrera camiones Circuito Bugatti",
+          "alojamiento 24h camiones",
+          "fin de semana familia Le Mans camiones",
+          "truck racing Le Mans",
         ],
       },
     },
@@ -220,6 +250,21 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Sodikart SWS Finals",
         ],
       },
+      es: {
+        title: "¿Dónde alojarse para las SWS Karting Finals en Le Mans (20-23 may 2026)?",
+        description:
+          "SWS International Finals 2026 en el Le Mans Karting Circuit: fechas, formato (incluida una 24h de resistencia inédita), alojamiento para equipos. Nuestra casa a menos de 5 km del circuito.",
+        excerpt:
+          "La mayor cita del karting amateur llega a Le Mans del 20 al 23 de mayo de 2026 con una 24h de resistencia inédita. Así puede preparar su estancia.",
+        keywords: [
+          "SWS Karting Finals 2026",
+          "Le Mans International Karting Circuit",
+          "alojamiento SWS Le Mans",
+          "karting resistencia 24h Le Mans",
+          "equipo karting Le Mans alojamiento",
+          "Sodikart SWS Finals",
+        ],
+      },
     },
   },
   {
@@ -287,6 +332,21 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Team Brainstorming Le Mans",
         ],
       },
+      es: {
+        title: "Seminario de empresa en Le Mans: team-building en el circuito + coliving 9 personas",
+        description:
+          "Organizar un seminario en Le Mans: 9 suites privadas con baño, espacios de reunión modulables, actividades de team-building en el Circuito Bugatti y en Sarthe. Programa tipo de 2 días y guía completa.",
+        excerpt:
+          "9 personas, una casa entera, el mítico circuito a menos de 5 km: la fórmula ideal para un seminario que combina productividad y cohesión.",
+        keywords: [
+          "seminario empresa Le Mans",
+          "team building Le Mans",
+          "seminario Circuito Bugatti",
+          "retiro empresa Sarthe",
+          "alquiler casa seminario Le Mans",
+          "brainstorming equipo Le Mans",
+        ],
+      },
     },
   },
   {
@@ -348,6 +408,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Rennbahn Le Mans Programm",
           "Trabrennen Le Mans",
           "Abendrennen Le Mans",
+        ],
+      },
+      es: {
+        title: "Hippodrome des Hunaudières: carreras, programa y eventos en Le Mans",
+        description:
+          "Hippodrome des Hunaudières en Le Mans: 13 reuniones hípicas en 2026, carreras al trote y al galope, veladas nocturnas. Nuestra casa a 20 min del hipódromo para su fin de semana.",
+        excerpt:
+          "Único hipódromo de la Sarthe, 13 reuniones al año, carreras al trote en pista de arena de 1.350 m. La cita imprescindible del mundo hípico en Le Mans.",
+        keywords: [
+          "Hippodrome des Hunaudières",
+          "carreras hípicas Le Mans",
+          "hipódromo Le Mans programa",
+          "trote Le Mans",
+          "velada hípica Le Mans",
         ],
       },
     },
@@ -416,6 +490,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Inliner-Team Le Mans",
         ],
       },
+      es: {
+        title: "24 Horas Rollers de Le Mans 2026: guía del evento de patinaje",
+        description:
+          "24 Horas Rollers 2026 en el Circuito Bugatti los 11-12 de julio: formato, inscripciones, alojamiento para equipos y clubes. Guía completa para preparar su fin de semana.",
+        excerpt:
+          "Patinar 24 horas sobre el mítico circuito: 11-12 de julio de 2026. Todo para preparar su llegada en equipo, club o en solitario.",
+        keywords: [
+          "24 Horas Rollers Le Mans",
+          "24H Rollers 2026",
+          "patinaje Circuito Bugatti",
+          "alojamiento 24h rollers",
+          "equipo patinaje Le Mans",
+        ],
+      },
     },
   },
   {
@@ -481,6 +569,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Haus mieten Le Mans Classic",
         ],
       },
+      es: {
+        title: "Le Mans Classic: guía del mayor encuentro mundial de coches clásicos de carreras",
+        description:
+          "Le Mans Classic, el mayor encuentro mundial de coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
+        excerpt:
+          "700 coches míticos de 1923 a 1993, 24 horas de carrera, 235.000 espectadores. Prepare su estancia para la mayor fiesta del automovilismo de colección.",
+        keywords: [
+          "Le Mans Classic 2027",
+          "alojamiento Le Mans Classic",
+          "encuentro coches clásicos Le Mans",
+          "club coleccionistas Le Mans",
+          "alquiler casa Le Mans Classic",
+        ],
+      },
     },
   },
   {
@@ -542,6 +644,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "wo essen Le Mans",
           "Supermarkt Le Mans",
           "Bäckerei Le Mans",
+        ],
+      },
+      es: {
+        title: "Restaurantes, bares y tiendas cerca de la casa",
+        description:
+          "Nuestra selección de restaurantes, bares, supermercados, panaderías y buenas direcciones a pocos minutos a pie de nuestro coliving en Le Mans.",
+        excerpt:
+          "Todo lo necesario a pie: restaurantes tradicionales y del mundo, bares acogedores, supermercados y panaderías. Nuestra selección probada.",
+        keywords: [
+          "restaurantes Le Mans",
+          "bares Le Mans centro",
+          "dónde comer Le Mans",
+          "supermercado Le Mans",
+          "panadería Le Mans",
         ],
       },
     },
@@ -611,6 +727,21 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Team-Unterkunft Le Mans",
         ],
       },
+      es: {
+        title: "Coliving profesional en Le Mans: empresas cercanas y ventajas para sus viajes de negocios",
+        description:
+          "¿Viaje de negocios o seminario en Le Mans? Nuestra casa está cerca de MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor y del tecnopolo Novaxis/Novaxud.",
+        excerpt:
+          "Novaxis, Renault, CLAAS, MMA: nuestro coliving está idealmente ubicado para estancias profesionales, seminarios y formaciones en Le Mans.",
+        keywords: [
+          "alojamiento empresa Le Mans",
+          "seminario Le Mans casa",
+          "estancia profesional Le Mans",
+          "alojamiento Novaxis Le Mans",
+          "alquiler casa Renault Le Mans",
+          "alojamiento equipo Le Mans",
+        ],
+      },
     },
   },
   {
@@ -674,6 +805,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "wo wohnen Le Mans Rennen",
           "Haus mieten 24h Le Mans",
           "Unterkunft nahe Circuit Bugatti",
+        ],
+      },
+      es: {
+        title: "¿Dónde alojarse para las 24 Horas de Le Mans 2026?",
+        description:
+          "Guía completa para elegir su alojamiento durante las 24 Horas de Le Mans 2026: zonas, precios, consejos para grupos grandes y familias. Nuestra casa de 9 suites a menos de 5 km del circuito.",
+        excerpt:
+          "¿Dónde dormir durante las 24 Horas de Le Mans? Zonas, tarifas, disponibilidad: todo lo que hay que saber para reservar antes de que se agote.",
+        keywords: [
+          "24 Horas de Le Mans 2026",
+          "alojamiento 24h de Le Mans",
+          "dónde alojarse Le Mans carrera",
+          "alquiler casa 24h de Le Mans",
+          "alojamiento cerca Circuito Bugatti",
         ],
       },
     },
@@ -741,6 +886,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "MotoGP-Wochenende Circuit Bugatti",
         ],
       },
+      es: {
+        title: "MotoGP de Francia 2026 en Le Mans: alojamiento y consejos prácticos",
+        description:
+          "Gran Premio de Francia MotoGP 2026 en el Circuito Bugatti: fechas, tarifas de alojamiento, transporte, consejos para un fin de semana logrado en familia o entre amigos.",
+        excerpt:
+          "La cita más concurrida del campeonato: prepare su fin de semana de MotoGP en Le Mans con nuestra guía completa.",
+        keywords: [
+          "MotoGP Francia 2026",
+          "Gran Premio Francia MotoGP Le Mans",
+          "alojamiento MotoGP Le Mans",
+          "alquiler casa MotoGP Francia",
+          "fin de semana MotoGP Circuito Bugatti",
+        ],
+      },
     },
   },
   {
@@ -806,6 +965,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Motorrad-Wochenende Le Mans",
         ],
       },
+      es: {
+        title: "24 Horas Moto Le Mans: guía de alojamiento y parking",
+        description:
+          "Todo para organizar su fin de semana de las 24 Horas Moto en Le Mans: zonas de alojamiento, precios, parking moto, consejos para grupos de moteros.",
+        excerpt:
+          "100.000 espectadores, un ambiente motero único y un alojamiento bien ubicado: eso es lo que necesita. Así puede preparar su fin de semana.",
+        keywords: [
+          "24 Horas Moto Le Mans",
+          "alojamiento 24h moto",
+          "parking moto circuito Le Mans",
+          "alquiler casa 24h moto",
+          "fin de semana moto Le Mans",
+        ],
+      },
     },
   },
   {
@@ -869,6 +1042,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "GP Explorer Haus mieten",
         ],
       },
+      es: {
+        title: "GP Explorer en Le Mans: todo sobre el evento de Squeezie",
+        description:
+          "GP Explorer de Squeezie en el Circuito Bugatti: formato, entradas, alojamiento, consejos para vivir el mayor evento de Twitch francófono en las mejores condiciones.",
+        excerpt:
+          "60.000 espectadores, más de 1 millón de viewers en Twitch: el GP Explorer se ha convertido en el evento ineludible del Circuito Bugatti. Así puede preparar su fin de semana.",
+        keywords: [
+          "GP Explorer",
+          "GP Explorer Squeezie",
+          "alojamiento GP Explorer Le Mans",
+          "entrada GP Explorer",
+          "alquiler casa GP Explorer",
+        ],
+      },
     },
   },
   {
@@ -930,6 +1117,20 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "Cité Plantagenêt Le Mans",
           "Le Mans mit Familie",
           "Wochenende Le Mans Tourismus",
+        ],
+      },
+      es: {
+        title: "Le Mans en familia: ¿qué visitar en Sarthe?",
+        description:
+          "Guía de viaje para descubrir Le Mans y Sarthe en familia: Cité Plantagenêt, Abadía de Épau, Zoo de la Flèche, gastronomía, eventos culturales.",
+        excerpt:
+          "Entre patrimonio medieval, zoo de renombre y gastronomía sartesa, Le Mans ofrece mucho más que un circuito. Estos son los imprescindibles.",
+        keywords: [
+          "visitar Le Mans",
+          "turismo Sarthe",
+          "Cité Plantagenêt Le Mans",
+          "Le Mans en familia",
+          "fin de semana Le Mans turismo",
         ],
       },
     },

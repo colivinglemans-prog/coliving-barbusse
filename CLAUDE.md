@@ -11,7 +11,7 @@ Site vitrine + dashboard privé pour un coliving au Mans (Airbnb, Booking, Abrit
 - **PDF** : `@react-pdf/renderer` (factures LMNP, dashboard)
 - **Paiements** : Stripe (lecture seule, utilisée pour générer des factures acquittées)
 - **Email** : Resend (alertes chauffage)
-- **i18n** : Système custom Context (FR/EN/IT/DE)
+- **i18n** : Système custom Context (FR/EN/IT/DE/ES)
 - **API externes** : Beds24 (réservations), Heatzy/Gizwits (chauffage)
 - **Déploiement** : Vercel (deploy via CLI `npx vercel --prod`)
 - **Cron externe** : cron-job.org (plan Hobby Vercel limité aux crons quotidiens)
@@ -31,9 +31,9 @@ npx vercel --prod # Déployer en production
 
 ```
 app/
-  page.tsx            # Redirige / vers /fr /en /it ou /de selon Accept-Language
-  [locale]/           # Site vitrine 4 langues (/fr/*, /en/*, /it/*, /de/*)
-    layout.tsx        # Wrap I18nProvider avec locale depuis params (SUPPORTED = fr/en/it/de)
+  page.tsx            # Redirige / vers /fr /en /it /de ou /es selon Accept-Language
+  [locale]/           # Site vitrine 5 langues (/fr/*, /en/*, /it/*, /de/*, /es/*)
+    layout.tsx        # Wrap I18nProvider avec locale depuis params (SUPPORTED = fr/en/it/de/es)
     page.tsx          # Homepage (metadata/JSON-LD localisés, inclut ReservationCalendar)
     blog/
     chambres/         # Suites + ReservationCalendar
@@ -72,14 +72,15 @@ components/
     HeatingDeviceCard # Carte device (mode, temp, tendance, présence, alertes)
 lib/
   blog/
-    posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de) + soldOut + nextEdition
+    posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de/es) + soldOut + nextEdition
     content/
       fr/             # 14 articles FR (Link hrefs préfixés /fr)
       en/             # 14 articles EN (Link hrefs préfixés /en)
       it/             # 14 articles IT (Link hrefs préfixés /it)
       de/             # 14 articles DE (Link hrefs préfixés /de)
+      es/             # 14 articles ES (Link hrefs préfixés /es)
   events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
-  i18n/               # Traductions FR/EN/IT/DE (dictionaries/, context, types)
+  i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
   auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
   beds24.ts           # Client API Beds24 (cache 5 min)
@@ -126,16 +127,16 @@ vercel.json           # Config Vercel (crons quotidiens)
 - **Commits** : penser à commit/push régulièrement
 - **Deploy** : `npx vercel --prod` (auto-deploy GitHub cassé)
 
-## i18n (4 langues : fr / en / it / de)
+## i18n (5 langues : fr / en / it / de / es)
 
-- `Locale` type : `"fr" | "en" | "it" | "de"` ([lib/i18n/types.ts](lib/i18n/types.ts))
-- Dictionnaires dans `lib/i18n/dictionaries/{fr,en,it,de}.ts` — structure typée par `Dictionary`. Toute nouvelle clé doit être ajoutée aux 4 dicos.
-- Layout `app/[locale]/layout.tsx` valide la locale contre `SUPPORTED = ["fr", "en", "it", "de"]`.
+- `Locale` type : `"fr" | "en" | "it" | "de" | "es"` ([lib/i18n/types.ts](lib/i18n/types.ts))
+- Dictionnaires dans `lib/i18n/dictionaries/{fr,en,it,de,es}.ts` — structure typée par `Dictionary`. Toute nouvelle clé doit être ajoutée aux 5 dicos.
+- Layout `app/[locale]/layout.tsx` valide la locale contre `SUPPORTED = ["fr", "en", "it", "de", "es"]`.
 - Root `app/page.tsx` redirige `/` vers la locale détectée via `Accept-Language` (fallback `fr`).
-- Header (`components/Header.tsx`) : dropdown 4 langues + swap pathname `/{old}/...` → `/{new}/...`.
-- Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 4 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
-- Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 4 entrées dans le `Record<Locale, ...>`.
-- Quand on ajoute une 5ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED`, ajouter au Header, créer les 14 articles de blog + traduire `BLOG_POSTS.locales` + T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`.
+- Header (`components/Header.tsx`) : dropdown 5 langues + swap pathname `/{old}/...` → `/{new}/...`.
+- Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 5 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
+- Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 5 entrées dans le `Record<Locale, ...>`.
+- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 14 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale.
 
 ## Données externes
 

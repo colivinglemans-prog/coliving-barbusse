@@ -10,7 +10,7 @@ export default function BlogSection() {
   const posts = [...BLOG_POSTS]
     .sort((a, b) => Number(!!a.soldOut) - Number(!!b.soldOut))
     .slice(0, 6);
-  const dateLocaleMap = { fr: "fr-FR", en: "en-US", it: "it-IT", de: "de-DE" } as const;
+  const dateLocaleMap = { fr: "fr-FR", en: "en-US", it: "it-IT", de: "de-DE", es: "es-ES" } as const;
   const dateLocale = dateLocaleMap[locale];
 
   const TEXTS = {
@@ -41,6 +41,13 @@ export default function BlogSection() {
       all: "Alle Artikel →",
       allMobile: "Alle Artikel anzeigen →",
       soldOut: (year: string) => `Ausgebucht für die Edition ${year}`,
+    },
+    es: {
+      heading: "Nuestros artículos para preparar tu estancia",
+      sub: "Guías prácticas: grandes eventos en Le Mans, turismo, buenas direcciones del barrio.",
+      all: "Todos los artículos →",
+      allMobile: "Ver todos los artículos →",
+      soldOut: (year: string) => `Completo para la edición ${year}`,
     },
   };
   const texts = TEXTS[locale];
