@@ -5,17 +5,43 @@ import type { Locale } from "@/lib/i18n";
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
+const DESCRIPTIONS: Record<Locale, string> = {
+  fr: "Conseils et guides pratiques pour séjourner au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.",
+  en: "Practical guides and tips for your stay in Le Mans: 24 Hours of Le Mans, MotoGP, Le Mans Classic, Sarthe tourism.",
+  it: "Consigli e guide pratiche per soggiornare a Le Mans: 24 Ore di Le Mans, MotoGP, Le Mans Classic, turismo nella Sarthe.",
+  de: "Praktische Guides und Tipps für Ihren Aufenthalt in Le Mans: 24 Stunden von Le Mans, MotoGP, Le Mans Classic, Tourismus in der Sarthe.",
+};
+
+const SUBHEADINGS: Record<Locale, string> = {
+  fr: "Guides pratiques pour séjourner au Mans et profiter des grands événements.",
+  en: "Practical guides for your stay in Le Mans and major events.",
+  it: "Guide pratiche per soggiornare a Le Mans e godersi i grandi eventi.",
+  de: "Praktische Guides für Ihren Aufenthalt in Le Mans und die großen Events.",
+};
+
+const SOLD_OUT_LABEL: Record<Locale, (year: string) => string> = {
+  fr: (y) => `Complet pour l'édition ${y}`,
+  en: (y) => `Sold out for ${y}`,
+  it: (y) => `Tutto esaurito per l'edizione ${y}`,
+  de: (y) => `Ausgebucht für die Edition ${y}`,
+};
+
+const DATE_LOCALE: Record<Locale, string> = {
+  fr: "fr-FR",
+  en: "en-US",
+  it: "it-IT",
+  de: "de-DE",
+};
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = rawLocale as Locale;
   const title = "Blog — Coliving Barbusse Le Mans";
-  const description =
-    locale === "en"
-      ? "Practical guides and tips for your stay in Le Mans: 24 Hours of Le Mans, MotoGP, Le Mans Classic, Sarthe tourism."
-      : "Conseils et guides pratiques pour séjourner au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.";
+  const description = DESCRIPTIONS[locale] ?? DESCRIPTIONS.fr;
 
   return {
     title,
@@ -25,6 +51,8 @@ export async function generateMetadata({
       languages: {
         fr: `${SITE_URL}/fr/blog`,
         en: `${SITE_URL}/en/blog`,
+        it: `${SITE_URL}/it/blog`,
+        de: `${SITE_URL}/de/blog`,
         "x-default": `${SITE_URL}/fr/blog`,
       },
     },
@@ -38,12 +66,10 @@ export default async function BlogIndex({
 }) {
   const { locale: rawLocale } = await params;
   const locale = rawLocale as Locale;
-  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
+  const dateLocale = DATE_LOCALE[locale] ?? "fr-FR";
   const heading = "Blog";
-  const subheading =
-    locale === "en"
-      ? "Practical guides for your stay in Le Mans and major events."
-      : "Guides pratiques pour séjourner au Mans et profiter des grands événements.";
+  const subheading = SUBHEADINGS[locale] ?? SUBHEADINGS.fr;
+  const soldOutLabel = SOLD_OUT_LABEL[locale] ?? SOLD_OUT_LABEL.fr;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -73,9 +99,7 @@ export default async function BlogIndex({
                   />
                   {soldOut && (
                     <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
-                      {locale === "en"
-                        ? `Sold out for ${post.date.slice(0, 4)}`
-                        : `Complet pour l'édition ${post.date.slice(0, 4)}`}
+                      {soldOutLabel(post.date.slice(0, 4))}
                     </span>
                   )}
                 </div>

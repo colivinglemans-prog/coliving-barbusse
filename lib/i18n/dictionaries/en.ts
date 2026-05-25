@@ -6,6 +6,10 @@ export const en: Dictionary = {
     amenities: "Amenities",
     location: "Location",
     book: "Book",
+    seminars: "Seminars",
+    blog: "Blog",
+    tagline1: "Premium house · 9 private suites",
+    tagline2: "Near the Le Mans Circuit",
   },
   propertyHeader: {
     title: "Premium house 9 private suites Near the Circuit Le Mans",

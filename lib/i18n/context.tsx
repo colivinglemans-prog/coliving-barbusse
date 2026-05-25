@@ -4,8 +4,10 @@ import { createContext, useContext, useState, useCallback, useEffect } from "rea
 import type { Locale, Dictionary } from "./types";
 import { fr } from "./dictionaries/fr";
 import { en } from "./dictionaries/en";
+import { it } from "./dictionaries/it";
+import { de } from "./dictionaries/de";
 
-const dictionaries: Record<Locale, Dictionary> = { fr, en };
+const dictionaries: Record<Locale, Dictionary> = { fr, en, it, de };
 
 interface I18nContextValue {
   locale: Locale;

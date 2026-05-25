@@ -2,36 +2,57 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
+const LOCALES: Locale[] = ["fr", "en", "it", "de"];
+const LOCALE_LABELS: Record<Locale, string> = {
+  fr: "FR",
+  en: "EN",
+  it: "IT",
+  de: "DE",
+};
+
 function swapLocale(pathname: string, target: Locale): string {
-  if (pathname.startsWith(`/fr/`) || pathname === "/fr") {
-    return pathname.replace(/^\/fr(?=\/|$)/, `/${target}`);
-  }
-  if (pathname.startsWith(`/en/`) || pathname === "/en") {
-    return pathname.replace(/^\/en(?=\/|$)/, `/${target}`);
+  for (const l of LOCALES) {
+    if (pathname === `/${l}` || pathname.startsWith(`/${l}/`)) {
+      return pathname.replace(new RegExp(`^/${l}(?=/|$)`), `/${target}`);
+    }
   }
   return `/${target}`;
 }
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langDesktopRef = useRef<HTMLLIElement>(null);
+  const langMobileRef = useRef<HTMLDivElement>(null);
   const { locale, t } = useTranslation();
   const pathname = usePathname();
 
   const base = `/${locale}`;
-  const otherLocale: Locale = locale === "fr" ? "en" : "fr";
-  const otherUrl = swapLocale(pathname || "/", otherLocale);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      const target = e.target as Node;
+      const inDesktop = langDesktopRef.current?.contains(target);
+      const inMobile = langMobileRef.current?.contains(target);
+      if (!inDesktop && !inMobile) setLangOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const otherLocales = LOCALES.filter((l) => l !== locale);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-white/80 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href={base} className="flex flex-col leading-tight font-bold text-primary">
           <span className="text-lg sm:text-xl">Coliving Barbusse</span>
-          <span className="text-[11px] sm:text-xs font-medium text-secondary">Maison premium · 9 suites privatives</span>
-          <span className="text-[11px] sm:text-xs font-medium text-secondary">Proche Circuit Le Mans</span>
+          <span className="text-[11px] sm:text-xs font-medium text-secondary">{t.header.tagline1}</span>
+          <span className="text-[11px] sm:text-xs font-medium text-secondary">{t.header.tagline2}</span>
         </Link>
 
         {/* Desktop nav */}
@@ -53,12 +74,12 @@ export default function Header() {
           </li>
           <li>
             <Link href={`${base}/seminaires`} className="transition-colors hover:text-foreground">
-              {locale === "en" ? "Seminars" : "Séminaires"}
+              {t.header.seminars}
             </Link>
           </li>
           <li>
             <Link href={`${base}/blog`} className="transition-colors hover:text-foreground">
-              Blog
+              {t.header.blog}
             </Link>
           </li>
           <li>
@@ -69,36 +90,72 @@ export default function Header() {
               {t.header.book}
             </Link>
           </li>
-          <li>
-            <Link
-              href={otherUrl}
+          <li ref={langDesktopRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setLangOpen((v) => !v)}
               className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-secondary transition-colors hover:bg-light-bg hover:text-foreground"
               aria-label="Switch language"
-              hrefLang={otherLocale}
+              aria-expanded={langOpen}
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
               </svg>
-              {otherLocale.toUpperCase()}
-            </Link>
+              {LOCALE_LABELS[locale]}
+            </button>
+            {langOpen && (
+              <ul className="absolute right-0 mt-2 w-28 overflow-hidden rounded-xl border border-border bg-white shadow-lg">
+                {otherLocales.map((l) => (
+                  <li key={l}>
+                    <Link
+                      href={swapLocale(pathname || "/", l)}
+                      hrefLang={l}
+                      onClick={() => setLangOpen(false)}
+                      className="block px-4 py-2 text-xs font-semibold text-secondary transition-colors hover:bg-light-bg hover:text-foreground"
+                    >
+                      {LOCALE_LABELS[l]}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
         </ul>
 
         {/* Mobile hamburger */}
         <div className="flex items-center gap-3 md:hidden">
-          <Link
-            href={otherUrl}
-            className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-semibold text-secondary"
-            aria-label="Switch language"
-            hrefLang={otherLocale}
-          >
-            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-            </svg>
-            {otherLocale.toUpperCase()}
-          </Link>
+          <div ref={langMobileRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setLangOpen((v) => !v)}
+              className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-semibold text-secondary"
+              aria-label="Switch language"
+              aria-expanded={langOpen}
+            >
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              {LOCALE_LABELS[locale]}
+            </button>
+            {langOpen && (
+              <ul className="absolute right-0 mt-2 w-24 overflow-hidden rounded-xl border border-border bg-white shadow-lg z-50">
+                {otherLocales.map((l) => (
+                  <li key={l}>
+                    <Link
+                      href={swapLocale(pathname || "/", l)}
+                      hrefLang={l}
+                      onClick={() => setLangOpen(false)}
+                      className="block px-3 py-2 text-xs font-semibold text-secondary transition-colors hover:bg-light-bg hover:text-foreground"
+                    >
+                      {LOCALE_LABELS[l]}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex flex-col gap-1.5"
@@ -132,12 +189,12 @@ export default function Header() {
             </li>
             <li>
               <Link href={`${base}/seminaires`} onClick={() => setMenuOpen(false)} className="block hover:text-foreground">
-                {locale === "en" ? "Seminars" : "Séminaires"}
+                {t.header.seminars}
               </Link>
             </li>
             <li>
               <Link href={`${base}/blog`} onClick={() => setMenuOpen(false)} className="block hover:text-foreground">
-                Blog
+                {t.header.blog}
               </Link>
             </li>
             <li>

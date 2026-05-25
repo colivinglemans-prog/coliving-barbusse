@@ -10,22 +10,40 @@ export default function BlogSection() {
   const posts = [...BLOG_POSTS]
     .sort((a, b) => Number(!!a.soldOut) - Number(!!b.soldOut))
     .slice(0, 6);
-  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
+  const dateLocaleMap = { fr: "fr-FR", en: "en-US", it: "it-IT", de: "de-DE" } as const;
+  const dateLocale = dateLocaleMap[locale];
 
-  const texts = {
+  const TEXTS = {
     fr: {
       heading: "Nos articles pour préparer votre séjour",
       sub: "Guides pratiques : grands événements au Mans, tourisme, bonnes adresses du quartier.",
       all: "Tous les articles →",
       allMobile: "Voir tous les articles →",
+      soldOut: (year: string) => `Complet pour l'édition ${year}`,
     },
     en: {
       heading: "Articles to help you plan your stay",
       sub: "Practical guides: major events in Le Mans, tourism, local tips.",
       all: "All articles →",
       allMobile: "See all articles →",
+      soldOut: (year: string) => `Sold out for ${year}`,
     },
-  }[locale === "en" ? "en" : "fr"];
+    it: {
+      heading: "I nostri articoli per preparare il tuo soggiorno",
+      sub: "Guide pratiche: grandi eventi a Le Mans, turismo, indirizzi del quartiere.",
+      all: "Tutti gli articoli →",
+      allMobile: "Vedi tutti gli articoli →",
+      soldOut: (year: string) => `Tutto esaurito per l'edizione ${year}`,
+    },
+    de: {
+      heading: "Unsere Artikel zur Vorbereitung Ihres Aufenthalts",
+      sub: "Praktische Guides: große Events in Le Mans, Tourismus, lokale Adressen.",
+      all: "Alle Artikel →",
+      allMobile: "Alle Artikel anzeigen →",
+      soldOut: (year: string) => `Ausgebucht für die Edition ${year}`,
+    },
+  };
+  const texts = TEXTS[locale];
 
   return (
     <section className="mx-auto max-w-6xl border-b border-border px-6 py-10">
@@ -60,9 +78,7 @@ export default function BlogSection() {
                   />
                   {soldOut && (
                     <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
-                      {locale === "en"
-                        ? `Sold out for ${post.date.slice(0, 4)}`
-                        : `Complet pour l'édition ${post.date.slice(0, 4)}`}
+                      {texts.soldOut(post.date.slice(0, 4))}
                     </span>
                   )}
                 </div>

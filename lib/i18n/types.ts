@@ -1,4 +1,4 @@
-export type Locale = "fr" | "en";
+export type Locale = "fr" | "en" | "it" | "de";
 
 export interface Dictionary {
   header: {
@@ -6,6 +6,10 @@ export interface Dictionary {
     amenities: string;
     location: string;
     book: string;
+    seminars: string;
+    blog: string;
+    tagline1: string;
+    tagline2: string;
   };
   propertyHeader: {
     title: string;

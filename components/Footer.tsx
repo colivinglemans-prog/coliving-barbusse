@@ -25,8 +25,8 @@ export default function Footer() {
               <li><Link href={`${base}#equipements`} className="hover:text-foreground">{t.header.amenities}</Link></li>
               <li><Link href={`${base}#localisation`} className="hover:text-foreground">{t.header.location}</Link></li>
               <li><Link href={`${base}#disponibilite`} className="hover:text-foreground">{t.header.book}</Link></li>
-              <li><Link href={`${base}/seminaires`} className="hover:text-foreground">{locale === "en" ? "Seminars" : "Séminaires"}</Link></li>
-              <li><Link href={`${base}/blog`} className="hover:text-foreground">Blog</Link></li>
+              <li><Link href={`${base}/seminaires`} className="hover:text-foreground">{t.header.seminars}</Link></li>
+              <li><Link href={`${base}/blog`} className="hover:text-foreground">{t.header.blog}</Link></li>
             </ul>
           </div>
           <div>

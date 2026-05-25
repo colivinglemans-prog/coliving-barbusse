@@ -86,6 +86,82 @@ const T: Record<Lang, Record<string, string>> = {
     ctaEmail: "Write by email",
     guideLink: "Read the detailed guide",
   },
+  it: {
+    titleTag: "Seminari aziendali a Le Mans — Coliving Barbusse",
+    desc: "Organizza il tuo ritiro aziendale a Le Mans: 9 suite private, spazi modulabili, attività di team-building al Circuito Bugatti e nella Sarthe. Preventivo personalizzato.",
+    heroKicker: "Soggiorni aziendali",
+    heroTitle: "Il tuo seminario a Le Mans, chiavi in mano",
+    heroSub: "9 suite private, spazi di lavoro modulabili, a 15 min dal Circuito Bugatti e 10 min dalla stazione TGV. Parigi in 55 min.",
+    heroCta: "Richiedi un preventivo",
+    heroCta2: "Leggi la guida completa",
+    reasonsTitle: "Perché scegliere il nostro coliving",
+    reason1T: "Una casa, un team",
+    reason1D: "9 suite private con bagno per 9 collaboratori. Coesione rafforzata, privacy totale.",
+    reason2T: "Spazi modulabili",
+    reason2D: "Cucina con isola centrale (8-10 posti seduti), sala zen come sala riunioni, soggiorno riscaldato per i debrief.",
+    reason3T: "Attività di team-building vicine",
+    reason3D: "Circuito Bugatti (karting, guida, simulatori), EVA Le Mans (VR), Arche de la Nature, escape game.",
+    reason4T: "Check-in anticipato possibile",
+    reason4D: "Arrivo in stazione alle 9 possibile, installazione dalle 9:30 secondo disponibilità. Avvio del seminario senza perdere tempo.",
+    whatTitle: "Cosa è incluso",
+    whatItems: "9 suite private·215 m² (spazi comuni + camere + annesso sport/zen)·Wi-Fi ad alta velocità, presa Ethernet per camera·Cucina completamente attrezzata·Palestra + spazio zen·Serratura connessa (self check-in)·Fattura professionale, pagamento con bonifico·Supporto WhatsApp 7 giorni su 7",
+    extrasTitle: "Su richiesta",
+    extrasItems: "Materiale per riunioni (videoproiettore, lavagne a fogli mobili, lavagna bianca)·Catering locali (colazione, pranzo, cena)·Trasferimenti taxi stazione/circuito/casa·Contatti con ACO e fornitori team-building",
+    programTitle: "Programma tipo — 2 giorni",
+    day1T: "Giorno 1 — Arrivo e coesione",
+    day1Body: "ore 9 arrivo in stazione · 9:30 installazione e caffè · 11-13 sessione di lavoro · 13 pranzo in casa · 14-17 brainstorming strategico · 17:30-19 attività team-building (karting / simulatore F1 / EVA) · 20 cena insieme",
+    day2T: "Giorno 2 — Workshop e chiusura",
+    day2Body: "8-9 colazione · 9-12 workshop (design thinking, OKR) · 12:30 pranzo in città · 14-16 battesimo della pista o Museo 24 Ore · 16-17 debrief finale · 17 partenza TGV",
+    pricingTitle: "Tariffa indicativa",
+    pricingBody: "~150-250 €/notte/persona (team di 9) a seconda della stagione, escluse attività e ristorazione. Più conveniente di 9 camere d'hotel 3-4★.",
+    testimonialTitle: "Sono già stati con noi",
+    testimonialQuote: "Host fantastico, alloggio al top, tutto perfetto per un team di 9 persone! Lo consiglio al 200%. Grazie per l'accoglienza.",
+    testimonialAuthor: "Loic",
+    testimonialContext: "Soggiorno di alcune notti · Aprile 2026",
+    ctaTitle: "Parliamo del tuo seminario",
+    ctaSub: "Raccontaci le tue date, i tuoi obiettivi, il tuo team — costruiamo insieme un soggiorno su misura.",
+    ctaWA: "Contatta su WhatsApp",
+    ctaEmail: "Scrivi via email",
+    guideLink: "Leggi la guida dettagliata",
+  },
+  de: {
+    titleTag: "Firmenseminare in Le Mans — Coliving Barbusse",
+    desc: "Organisieren Sie Ihre Firmenklausur in Le Mans: 9 private Suiten, modulare Räume, Teambuilding-Aktivitäten auf der Rennstrecke Bugatti und in der Sarthe. Individuelles Angebot.",
+    heroKicker: "Firmenaufenthalte",
+    heroTitle: "Ihr Seminar in Le Mans, schlüsselfertig",
+    heroSub: "9 private Suiten, modulare Arbeitsbereiche, 15 Min. von der Rennstrecke Bugatti und 10 Min. vom TGV-Bahnhof. Paris in 55 Min.",
+    heroCta: "Angebot anfragen",
+    heroCta2: "Den ausführlichen Guide lesen",
+    reasonsTitle: "Warum unser Coliving wählen",
+    reason1T: "Ein Haus, ein Team",
+    reason1D: "9 private Suiten mit eigenem Bad für 9 Mitarbeitende. Stärkerer Zusammenhalt, völlige Privatsphäre.",
+    reason2T: "Modulare Arbeitsbereiche",
+    reason2D: "Küche mit Mittelinsel (8-10 Sitzplätze), Zen-Raum als Konferenzraum, beheiztes Wohnzimmer für Debriefings.",
+    reason3T: "Teambuilding-Aktivitäten in der Nähe",
+    reason3D: "Rennstrecke Bugatti (Karting, Fahrtraining, Simulatoren), EVA Le Mans (VR), Arche de la Nature, Escape Games.",
+    reason4T: "Frühes Check-in möglich",
+    reason4D: "Ankunft am Bahnhof um 9 Uhr möglich, Bezug ab 9:30 Uhr je nach Verfügbarkeit. Seminarstart ohne Zeitverlust.",
+    whatTitle: "Was inbegriffen ist",
+    whatItems: "9 private Suiten·215 m² (Gemeinschaftsräume + Zimmer + Sport-/Zen-Annex)·Highspeed-WLAN, Ethernet-Anschluss pro Zimmer·Voll ausgestattete Küche·Fitnessraum + Zen-Bereich·Smart Lock (Self-Check-in)·Professionelle Rechnung, Zahlung per Überweisung·WhatsApp-Support 7 Tage die Woche",
+    extrasTitle: "Auf Anfrage",
+    extrasItems: "Konferenzmaterial (Beamer, Flipcharts, Whiteboard)·Lokale Caterer (Frühstück, Mittag-, Abendessen)·Taxitransfers Bahnhof/Rennstrecke/Haus·Vermittlung mit dem ACO und Teambuilding-Anbietern",
+    programTitle: "Beispielprogramm — 2 Tage",
+    day1T: "Tag 1 — Ankunft & Teambuilding",
+    day1Body: "9 Uhr Ankunft Bahnhof · 9:30 Uhr Bezug & Kaffee · 11-13 Uhr Arbeitssession · 13 Uhr Mittagessen im Haus · 14-17 Uhr strategisches Brainstorming · 17:30-19 Uhr Teambuilding (Karting / F1-Simulator / EVA) · 20 Uhr gemeinsames Abendessen",
+    day2T: "Tag 2 — Workshops & Abschluss",
+    day2Body: "8-9 Uhr Frühstück · 9-12 Uhr Workshops (Design Thinking, OKRs) · 12:30 Uhr Mittagessen in der Stadt · 14-16 Uhr Streckenbaptismus oder 24-Stunden-Museum · 16-17 Uhr abschließendes Debriefing · 17 Uhr TGV-Abreise",
+    pricingTitle: "Richtpreis",
+    pricingBody: "~150-250 €/Nacht/Person (Team von 9) je nach Saison, ohne Aktivitäten und Verpflegung. Günstiger als 9 entsprechende 3-4★-Hotelzimmer.",
+    testimonialTitle: "Sie waren schon bei uns",
+    testimonialQuote: "Großartiger Gastgeber, top Unterkunft, alles perfekt für ein Team von 9 Personen! Absolute Empfehlung. Danke für den herzlichen Empfang.",
+    testimonialAuthor: "Loic",
+    testimonialContext: "Aufenthalt einige Nächte · April 2026",
+    ctaTitle: "Sprechen wir über Ihr Seminar",
+    ctaSub: "Nennen Sie uns Ihre Daten, Ihre Ziele, Ihr Team — wir gestalten gemeinsam einen maßgeschneiderten Aufenthalt.",
+    ctaWA: "Auf WhatsApp kontaktieren",
+    ctaEmail: "Per E-Mail schreiben",
+    guideLink: "Den detaillierten Guide lesen",
+  },
 };
 
 export async function generateMetadata({
@@ -98,6 +174,13 @@ export async function generateMetadata({
   const t = T[locale];
   const url = `${SITE_URL}/${locale}/seminaires`;
 
+  const ogLocaleMap: Record<Lang, string> = {
+    fr: "fr_FR",
+    en: "en_US",
+    it: "it_IT",
+    de: "de_DE",
+  };
+
   return {
     title: t.titleTag,
     description: t.desc,
@@ -106,6 +189,8 @@ export async function generateMetadata({
       languages: {
         fr: `${SITE_URL}/fr/seminaires`,
         en: `${SITE_URL}/en/seminaires`,
+        it: `${SITE_URL}/it/seminaires`,
+        de: `${SITE_URL}/de/seminaires`,
         "x-default": `${SITE_URL}/fr/seminaires`,
       },
     },
@@ -113,7 +198,7 @@ export async function generateMetadata({
       title: t.titleTag,
       description: t.desc,
       url,
-      locale: locale === "en" ? "en_US" : "fr_FR",
+      locale: ogLocaleMap[locale],
       type: "website",
     },
   };
@@ -288,7 +373,7 @@ export default async function Seminaires({
           </a>
           <a
             href={`mailto:${EMAIL}?subject=${encodeURIComponent(
-              locale === "en" ? "Seminar request" : "Demande séminaire",
+              { fr: "Demande séminaire", en: "Seminar request", it: "Richiesta seminario", de: "Seminar-Anfrage" }[locale],
             )}`}
             className="inline-flex items-center justify-center rounded-full border border-white px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >

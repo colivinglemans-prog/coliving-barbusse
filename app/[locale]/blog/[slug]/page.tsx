@@ -34,27 +34,162 @@ import ArticleENSWSKarting from "@/lib/blog/content/en/sws-karting-finals-le-man
 import ArticleEN24hCamions from "@/lib/blog/content/en/24-heures-camions-le-mans";
 import ArticleENMondialKarting from "@/lib/blog/content/en/championnat-monde-karting-kz-le-mans";
 
+import ArticleIT24hDuMans2026 from "@/lib/blog/content/it/ou-se-loger-24h-du-mans-2026";
+import ArticleIT24hMoto from "@/lib/blog/content/it/24-heures-moto-le-mans";
+import ArticleITMotoGP from "@/lib/blog/content/it/motogp-france-le-mans";
+import ArticleITLeMansClassic from "@/lib/blog/content/it/le-mans-classic";
+import ArticleITGPExplorer from "@/lib/blog/content/it/gp-explorer-le-mans";
+import ArticleITTourisme from "@/lib/blog/content/it/que-visiter-le-mans-sarthe";
+import ArticleITRestos from "@/lib/blog/content/it/restos-bars-magasins-le-mans";
+import ArticleITEntreprises from "@/lib/blog/content/it/entreprises-proches-le-mans";
+import ArticleITHippodrome from "@/lib/blog/content/it/hippodrome-des-hunaudieres";
+import ArticleIT24hRollers from "@/lib/blog/content/it/24-heures-rollers-le-mans";
+import ArticleITSeminaire from "@/lib/blog/content/it/seminaire-entreprise-le-mans";
+import ArticleITSWSKarting from "@/lib/blog/content/it/sws-karting-finals-le-mans";
+import ArticleIT24hCamions from "@/lib/blog/content/it/24-heures-camions-le-mans";
+import ArticleITMondialKarting from "@/lib/blog/content/it/championnat-monde-karting-kz-le-mans";
+
+import ArticleDE24hDuMans2026 from "@/lib/blog/content/de/ou-se-loger-24h-du-mans-2026";
+import ArticleDE24hMoto from "@/lib/blog/content/de/24-heures-moto-le-mans";
+import ArticleDEMotoGP from "@/lib/blog/content/de/motogp-france-le-mans";
+import ArticleDELeMansClassic from "@/lib/blog/content/de/le-mans-classic";
+import ArticleDEGPExplorer from "@/lib/blog/content/de/gp-explorer-le-mans";
+import ArticleDETourisme from "@/lib/blog/content/de/que-visiter-le-mans-sarthe";
+import ArticleDERestos from "@/lib/blog/content/de/restos-bars-magasins-le-mans";
+import ArticleDEEntreprises from "@/lib/blog/content/de/entreprises-proches-le-mans";
+import ArticleDEHippodrome from "@/lib/blog/content/de/hippodrome-des-hunaudieres";
+import ArticleDE24hRollers from "@/lib/blog/content/de/24-heures-rollers-le-mans";
+import ArticleDESeminaire from "@/lib/blog/content/de/seminaire-entreprise-le-mans";
+import ArticleDESWSKarting from "@/lib/blog/content/de/sws-karting-finals-le-mans";
+import ArticleDE24hCamions from "@/lib/blog/content/de/24-heures-camions-le-mans";
+import ArticleDEMondialKarting from "@/lib/blog/content/de/championnat-monde-karting-kz-le-mans";
+
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
 const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
-  "ou-se-loger-24h-du-mans-2026": { fr: Article24hDuMans2026, en: ArticleEN24hDuMans2026 },
-  "24-heures-moto-le-mans": { fr: Article24hMoto, en: ArticleEN24hMoto },
-  "motogp-france-le-mans": { fr: ArticleMotoGP, en: ArticleENMotoGP },
-  "le-mans-classic": { fr: ArticleLeMansClassic, en: ArticleENLeMansClassic },
-  "gp-explorer-le-mans": { fr: ArticleGPExplorer, en: ArticleENGPExplorer },
-  "que-visiter-le-mans-sarthe": { fr: ArticleTourisme, en: ArticleENTourisme },
-  "restos-bars-magasins-le-mans": { fr: ArticleRestos, en: ArticleENRestos },
-  "entreprises-proches-le-mans": { fr: ArticleEntreprises, en: ArticleENEntreprises },
-  "hippodrome-des-hunaudieres": { fr: ArticleHippodrome, en: ArticleENHippodrome },
-  "24-heures-rollers-le-mans": { fr: Article24hRollers, en: ArticleEN24hRollers },
-  "seminaire-entreprise-le-mans": { fr: ArticleSeminaire, en: ArticleENSeminaire },
-  "sws-karting-finals-le-mans": { fr: ArticleSWSKarting, en: ArticleENSWSKarting },
-  "24-heures-camions-le-mans": { fr: Article24hCamions, en: ArticleEN24hCamions },
-  "championnat-monde-karting-kz-le-mans": { fr: ArticleMondialKarting, en: ArticleENMondialKarting },
+  "ou-se-loger-24h-du-mans-2026": {
+    fr: Article24hDuMans2026,
+    en: ArticleEN24hDuMans2026,
+    it: ArticleIT24hDuMans2026,
+    de: ArticleDE24hDuMans2026,
+  },
+  "24-heures-moto-le-mans": {
+    fr: Article24hMoto,
+    en: ArticleEN24hMoto,
+    it: ArticleIT24hMoto,
+    de: ArticleDE24hMoto,
+  },
+  "motogp-france-le-mans": {
+    fr: ArticleMotoGP,
+    en: ArticleENMotoGP,
+    it: ArticleITMotoGP,
+    de: ArticleDEMotoGP,
+  },
+  "le-mans-classic": {
+    fr: ArticleLeMansClassic,
+    en: ArticleENLeMansClassic,
+    it: ArticleITLeMansClassic,
+    de: ArticleDELeMansClassic,
+  },
+  "gp-explorer-le-mans": {
+    fr: ArticleGPExplorer,
+    en: ArticleENGPExplorer,
+    it: ArticleITGPExplorer,
+    de: ArticleDEGPExplorer,
+  },
+  "que-visiter-le-mans-sarthe": {
+    fr: ArticleTourisme,
+    en: ArticleENTourisme,
+    it: ArticleITTourisme,
+    de: ArticleDETourisme,
+  },
+  "restos-bars-magasins-le-mans": {
+    fr: ArticleRestos,
+    en: ArticleENRestos,
+    it: ArticleITRestos,
+    de: ArticleDERestos,
+  },
+  "entreprises-proches-le-mans": {
+    fr: ArticleEntreprises,
+    en: ArticleENEntreprises,
+    it: ArticleITEntreprises,
+    de: ArticleDEEntreprises,
+  },
+  "hippodrome-des-hunaudieres": {
+    fr: ArticleHippodrome,
+    en: ArticleENHippodrome,
+    it: ArticleITHippodrome,
+    de: ArticleDEHippodrome,
+  },
+  "24-heures-rollers-le-mans": {
+    fr: Article24hRollers,
+    en: ArticleEN24hRollers,
+    it: ArticleIT24hRollers,
+    de: ArticleDE24hRollers,
+  },
+  "seminaire-entreprise-le-mans": {
+    fr: ArticleSeminaire,
+    en: ArticleENSeminaire,
+    it: ArticleITSeminaire,
+    de: ArticleDESeminaire,
+  },
+  "sws-karting-finals-le-mans": {
+    fr: ArticleSWSKarting,
+    en: ArticleENSWSKarting,
+    it: ArticleITSWSKarting,
+    de: ArticleDESWSKarting,
+  },
+  "24-heures-camions-le-mans": {
+    fr: Article24hCamions,
+    en: ArticleEN24hCamions,
+    it: ArticleIT24hCamions,
+    de: ArticleDE24hCamions,
+  },
+  "championnat-monde-karting-kz-le-mans": {
+    fr: ArticleMondialKarting,
+    en: ArticleENMondialKarting,
+    it: ArticleITMondialKarting,
+    de: ArticleDEMondialKarting,
+  },
+};
+
+const OG_LOCALES: Record<Locale, string> = {
+  fr: "fr_FR",
+  en: "en_US",
+  it: "it_IT",
+  de: "de_DE",
+};
+
+const DATE_LOCALE: Record<Locale, string> = {
+  fr: "fr-FR",
+  en: "en-US",
+  it: "it-IT",
+  de: "de-DE",
+};
+
+const BACK_LABEL: Record<Locale, string> = {
+  fr: "← Retour au blog",
+  en: "← Back to blog",
+  it: "← Torna al blog",
+  de: "← Zurück zum Blog",
+};
+
+const SOLD_OUT_TITLE: Record<Locale, string> = {
+  fr: "Complet pour cette édition",
+  en: "Sold out for this edition",
+  it: "Tutto esaurito per questa edizione",
+  de: "Für diese Edition ausgebucht",
+};
+
+const SOLD_OUT_BODY: Record<Locale, (nextEdition: string) => string> = {
+  fr: (e) => `Merci à tous nos voyageurs ! Rendez-vous pour l'édition ${e}.`,
+  en: (e) => `Thank you to everyone who booked! We'll welcome new travellers for the ${e} edition.`,
+  it: (e) => `Grazie a tutti i nostri viaggiatori! Appuntamento all'edizione ${e}.`,
+  de: (e) => `Danke an alle unsere Reisenden! Wir freuen uns auf die Edition ${e}.`,
 };
 
 export function generateStaticParams() {
-  const locales: Locale[] = ["fr", "en"];
+  const locales: Locale[] = ["fr", "en", "it", "de"];
   return locales.flatMap((locale) =>
     BLOG_POSTS.map((post) => ({ locale, slug: post.slug })),
   );
@@ -83,6 +218,8 @@ export async function generateMetadata({
       languages: {
         fr: `${SITE_URL}/fr/blog/${post.slug}`,
         en: `${SITE_URL}/en/blog/${post.slug}`,
+        it: `${SITE_URL}/it/blog/${post.slug}`,
+        de: `${SITE_URL}/de/blog/${post.slug}`,
         "x-default": `${SITE_URL}/fr/blog/${post.slug}`,
       },
     },
@@ -93,7 +230,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.date,
       images: [{ url: image, width: 1200, height: 630, alt: loc.title }],
-      locale: locale === "en" ? "en_US" : "fr_FR",
+      locale: OG_LOCALES[locale] ?? "fr_FR",
     },
     twitter: {
       card: "summary_large_image",
@@ -140,8 +277,8 @@ export default async function BlogPost({
     inLanguage: locale,
   };
 
-  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
-  const backLabel = locale === "en" ? "← Back to blog" : "← Retour au blog";
+  const dateLocale = DATE_LOCALE[locale] ?? "fr-FR";
+  const backLabel = BACK_LABEL[locale] ?? BACK_LABEL.fr;
   const isSoldOut = !!post.soldOut;
 
   return (
@@ -173,18 +310,10 @@ export default async function BlogPost({
       {isSoldOut && (
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
           <p className="font-semibold text-amber-900">
-            {locale === "en"
-              ? "Sold out for this edition"
-              : "Complet pour cette édition"}
+            {SOLD_OUT_TITLE[locale] ?? SOLD_OUT_TITLE.fr}
           </p>
           <p className="mt-1 text-sm text-amber-800">
-            {locale === "en"
-              ? `Thank you to everyone who booked! We'll welcome new travellers for the ${
-                  post.nextEdition ?? "next"
-                } edition.`
-              : `Merci à tous nos voyageurs ! Rendez-vous pour l'édition ${
-                  post.nextEdition ?? "suivante"
-                }.`}
+            {(SOLD_OUT_BODY[locale] ?? SOLD_OUT_BODY.fr)(post.nextEdition ?? "")}
           </p>
         </div>
       )}

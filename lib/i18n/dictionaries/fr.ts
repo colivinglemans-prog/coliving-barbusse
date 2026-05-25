@@ -6,6 +6,10 @@ export const fr: Dictionary = {
     amenities: "Équipements",
     location: "Localisation",
     book: "Réserver",
+    seminars: "Séminaires",
+    blog: "Blog",
+    tagline1: "Maison premium · 9 suites privatives",
+    tagline2: "Proche Circuit Le Mans",
   },
   propertyHeader: {
     title: "Maison premium 9 suites privatives Proche Circuit Le Mans",
