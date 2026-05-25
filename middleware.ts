@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
 
   // 301 redirect removed /:locale/reservation pages to the locale homepage
   // (which already embeds the reservation calendar in the disponibility section)
-  const reservationMatch = pathname.match(/^\/(fr|en)\/reservation(?:\/.*)?$/);
+  const reservationMatch = pathname.match(/^\/(fr|en|it|de)\/reservation(?:\/.*)?$/);
   if (reservationMatch) {
     const url = request.nextUrl.clone();
     url.pathname = `/${reservationMatch[1]}`;
