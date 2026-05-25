@@ -221,7 +221,7 @@ export default function HeatingPage() {
     if (
       enabled &&
       !window.confirm(
-        "Activer le mode été ? Cela passe tous les radiateurs en STOP et désactive l'automatisation jusqu'à réactivation manuelle.",
+        "Activer le mode été ? Cela passe tous les radiateurs en STOP (fallback hors-gel si non supporté) et désactive l'automatisation jusqu'à réactivation manuelle.",
       )
     ) {
       return;
@@ -233,9 +233,19 @@ export default function HeatingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled }),
       });
+      const json = await res.json();
       if (!res.ok) {
-        const json = await res.json();
         throw new Error(json.error ?? "Erreur");
+      }
+      if (enabled && json.failed && json.failed.length > 0) {
+        const names = json.failed.map((f: { name: string }) => f.name).join(", ");
+        setError(`Mode été activé, mais ${json.failed.length} radiateur(s) en échec : ${names}. Stop=${json.stopped}, fallback hors-gel=${json.fallbackFro}.`);
+      } else if (enabled && json.fallbackFro > 0) {
+        setError(null);
+        // Use info-level message via console; UI just shows banner
+        console.log(`Mode été activé : ${json.stopped} en stop, ${json.fallbackFro} en hors-gel (fallback).`);
+      } else {
+        setError(null);
       }
       setTimeout(fetchData, 1500);
     } catch (e) {
