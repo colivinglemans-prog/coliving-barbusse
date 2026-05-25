@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules } from "@/lib/heatzy";
+import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules, getSummerMode } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 import { todayParis, currentHourParis } from "@/lib/time";
@@ -65,7 +65,10 @@ export async function GET() {
 
     // Compute heating rules
     const rules = getHeatingRules(occupied, currentHour, hasSameDayTurnaround, nextCheckIn);
-    const lockedDevices = await getLockedDevices();
+    const [lockedDevices, summerMode] = await Promise.all([
+      getLockedDevices(),
+      getSummerMode(),
+    ]);
 
     // Fetch detailed status for each configured device in parallel
     const statusPromises = allDeviceConfigs.map(async (deviceConfig) => {
@@ -104,8 +107,8 @@ export async function GET() {
           });
         }
 
-        // Skip heating alerts for locked devices (intentionally in hors-gel)
-        if (isOnline && !isLocked) {
+        // Skip heating alerts for locked devices (intentionally in hors-gel) or summer mode (everything stopped)
+        if (isOnline && !isLocked && !summerMode) {
           if (!occupied) {
             // Pas de réservation : ne devrait PAS chauffer (sauf si temp < 7°C hors-gel)
             if (isHeating && curTemp !== undefined && curTemp > 10) {
@@ -191,7 +194,14 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ zones, alertCount, occupied, ...rules, serverTime: `${todayParis()} ${currentHour}h (Paris)` });
+    const finalRules = summerMode
+      ? {
+          currentRule: "Mode été activé — automatisation suspendue, radiateurs en stop",
+          nextRule: "Réactiver le chauffage avant les premiers froids",
+        }
+      : rules;
+
+    return NextResponse.json({ zones, alertCount, occupied, summerMode, ...finalRules, serverTime: `${todayParis()} ${currentHour}h (Paris)` });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

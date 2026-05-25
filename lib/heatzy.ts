@@ -19,6 +19,7 @@ function getRedis(): Redis {
 
 const LOCKS_KEY = "heatzy:locked-devices";
 const EXTRAS_KEY = "heatzy:extra-devices";
+const SUMMER_MODE_KEY = "heatzy:summer-mode";
 
 // In-memory cache to reduce Redis calls (TTL 60s)
 const cache = new Map<string, { value: unknown; expires: number }>();
@@ -381,6 +382,26 @@ export async function saveLockedDevices(devices: Set<string>) {
   const arr = [...devices];
   await getRedis().set(LOCKS_KEY, arr);
   setCached(LOCKS_KEY, arr);
+}
+
+export async function getSummerMode(): Promise<boolean> {
+  const cached = getCached<boolean>(SUMMER_MODE_KEY);
+  if (cached !== undefined) return cached;
+
+  try {
+    const value = await getRedis().get<boolean>(SUMMER_MODE_KEY);
+    const enabled = value === true;
+    setCached(SUMMER_MODE_KEY, enabled);
+    return enabled;
+  } catch (e) {
+    console.error("getSummerMode Redis error:", e);
+    return false;
+  }
+}
+
+export async function saveSummerMode(enabled: boolean) {
+  await getRedis().set(SUMMER_MODE_KEY, enabled);
+  setCached(SUMMER_MODE_KEY, enabled);
 }
 
 function sleep(ms: number) {

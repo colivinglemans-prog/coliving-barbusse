@@ -19,6 +19,7 @@ interface HeatingData {
   zones: ZoneData[];
   alertCount: number;
   occupied: boolean;
+  summerMode: boolean;
   currentRule?: string;
   nextRule?: string;
 }
@@ -216,6 +217,34 @@ export default function HeatingPage() {
     }
   }
 
+  async function handleToggleSummerMode(enabled: boolean) {
+    if (
+      enabled &&
+      !window.confirm(
+        "Activer le mode été ? Cela passe tous les radiateurs en STOP et désactive l'automatisation jusqu'à réactivation manuelle.",
+      )
+    ) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/dashboard/heating/summer-mode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error ?? "Erreur");
+      }
+      setTimeout(fetchData, 1500);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur mode été");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handlePilotLock(locked: boolean) {
     setLoading(true);
     try {
@@ -266,6 +295,29 @@ export default function HeatingPage() {
         {error && (
           <div className="mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
             {error}
+          </div>
+        )}
+
+        {/* Summer mode banner */}
+        {data?.summerMode && (
+          <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-amber-900">
+                Mode été activé — chauffage à l&apos;arrêt
+              </div>
+              <div className="text-xs text-amber-700 mt-1">
+                L&apos;automatisation est suspendue (crons en pause). Tous les radiateurs sont en mode STOP.
+              </div>
+            </div>
+            {role === "admin" && (
+              <button
+                onClick={() => handleToggleSummerMode(false)}
+                disabled={loading}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 transition-colors disabled:opacity-40"
+              >
+                Désactiver le mode été
+              </button>
+            )}
           </div>
         )}
 
@@ -340,6 +392,15 @@ export default function HeatingPage() {
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {!data?.summerMode && (
+                <button
+                  onClick={() => handleToggleSummerMode(true)}
+                  disabled={loading}
+                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 transition-colors disabled:opacity-40"
+                >
+                  Activer le mode été
+                </button>
+              )}
               <button
                 onClick={() => handlePilotLock(true)}
                 disabled={loading}

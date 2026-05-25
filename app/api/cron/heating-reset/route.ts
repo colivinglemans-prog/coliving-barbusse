@@ -7,6 +7,7 @@ import {
   setDeviceTemperatures,
   getDeviceStatus,
   getOccupiedMode,
+  getSummerMode,
 } from "@/lib/heatzy";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/email";
@@ -22,6 +23,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (await getSummerMode()) {
+      return NextResponse.json({
+        success: true,
+        skipped: "summer-mode",
+        actions: [],
+        failures: [],
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     const config = await getFullZoneConfig();
     const today = todayParis();
     const currentHour = currentHourParis();
