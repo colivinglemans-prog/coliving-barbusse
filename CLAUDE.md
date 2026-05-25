@@ -11,7 +11,7 @@ Site vitrine + dashboard privé pour un coliving au Mans (Airbnb, Booking, Abrit
 - **PDF** : `@react-pdf/renderer` (factures LMNP, dashboard)
 - **Paiements** : Stripe (lecture seule, utilisée pour générer des factures acquittées)
 - **Email** : Resend (alertes chauffage)
-- **i18n** : Système custom Context (FR/EN)
+- **i18n** : Système custom Context (FR/EN/IT/DE)
 - **API externes** : Beds24 (réservations), Heatzy/Gizwits (chauffage)
 - **Déploiement** : Vercel (deploy via CLI `npx vercel --prod`)
 - **Cron externe** : cron-job.org (plan Hobby Vercel limité aux crons quotidiens)
@@ -31,14 +31,15 @@ npx vercel --prod # Déployer en production
 
 ```
 app/
-  page.tsx            # Redirige / vers /fr ou /en selon Accept-Language
-  [locale]/           # Site vitrine bilingue (/fr/*, /en/*)
-    layout.tsx        # Wrap I18nProvider avec locale depuis params
+  page.tsx            # Redirige / vers /fr /en /it ou /de selon Accept-Language
+  [locale]/           # Site vitrine 4 langues (/fr/*, /en/*, /it/*, /de/*)
+    layout.tsx        # Wrap I18nProvider avec locale depuis params (SUPPORTED = fr/en/it/de)
     page.tsx          # Homepage (metadata/JSON-LD localisés, inclut ReservationCalendar)
     blog/
     chambres/         # Suites + ReservationCalendar
+    guide-arrivee/    # Guide voyageurs noindex (accès, Wi-Fi QR, chauffage, checkout)
     seminaires/
-    # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via middleware.
+    # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via middleware (4 locales).
     # Le calendrier de dispo est sur la homepage (#disponibilite) et /chambres.
   (dashboard)/        # Dashboard privé (stats, calendrier, chauffage) — hors [locale]
   api/
@@ -48,6 +49,7 @@ app/
       heating/        # GET status radiateurs, POST contrôle mode
         control/      # POST changer mode device/zone/global
         lock/         # GET/POST verrouiller/déverrouiller devices
+        summer-mode/  # GET/POST toggle mode été (suspend automation, all stop)
       stats/          # Statistiques revenus
       bookings/       # Réservations Beds24
       calendar/       # Calendrier disponibilité
@@ -70,12 +72,15 @@ components/
     HeatingDeviceCard # Carte device (mode, temp, tendance, présence, alertes)
 lib/
   blog/
-    posts.ts          # BLOG_POSTS avec locales.fr/en + soldOut manual flag + nextEdition
+    posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de) + soldOut + nextEdition
     content/
-      fr/             # 12 articles FR (Link hrefs préfixés /fr)
-      en/             # 12 articles EN (Link hrefs préfixés /en)
+      fr/             # 14 articles FR (Link hrefs préfixés /fr)
+      en/             # 14 articles EN (Link hrefs préfixés /en)
+      it/             # 14 articles IT (Link hrefs préfixés /it)
+      de/             # 14 articles DE (Link hrefs préfixés /de)
   events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
-  i18n/               # Traductions FR/EN (dictionaries/, context, types)
+  i18n/               # Traductions FR/EN/IT/DE (dictionaries/, context, types)
+  property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
   auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
   beds24.ts           # Client API Beds24 (cache 5 min)
   heatzy.ts           # Client API Heatzy + logique scheduling
@@ -120,6 +125,17 @@ vercel.json           # Config Vercel (crons quotidiens)
 - **Photos** : triées par ordre alphabétique des noms de fichiers
 - **Commits** : penser à commit/push régulièrement
 - **Deploy** : `npx vercel --prod` (auto-deploy GitHub cassé)
+
+## i18n (4 langues : fr / en / it / de)
+
+- `Locale` type : `"fr" | "en" | "it" | "de"` ([lib/i18n/types.ts](lib/i18n/types.ts))
+- Dictionnaires dans `lib/i18n/dictionaries/{fr,en,it,de}.ts` — structure typée par `Dictionary`. Toute nouvelle clé doit être ajoutée aux 4 dicos.
+- Layout `app/[locale]/layout.tsx` valide la locale contre `SUPPORTED = ["fr", "en", "it", "de"]`.
+- Root `app/page.tsx` redirige `/` vers la locale détectée via `Accept-Language` (fallback `fr`).
+- Header (`components/Header.tsx`) : dropdown 4 langues + swap pathname `/{old}/...` → `/{new}/...`.
+- Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 4 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
+- Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 4 entrées dans le `Record<Locale, ...>`.
+- Quand on ajoute une 5ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED`, ajouter au Header, créer les 14 articles de blog + traduire `BLOG_POSTS.locales` + T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`.
 
 ## Données externes
 
@@ -273,6 +289,17 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 - **Limitation** : capteur ne remonte son état que en mode présence (`derog_mode=3`)
 - **Diminution** : affiche l'écart cft_temp - eco_temp quand personne n'est détecté
 - **Comportement normal** : `cur_signal=fro` quand personne ≠ problème fil pilote
+
+### Mode été (chauffage suspendu)
+
+- **Toggle** : bouton "Activer le mode été" dans `/dashboard/heating` (admin only). Bandeau ambre persistant tant qu'actif avec bouton "Désactiver".
+- **Effet** : tous les radiateurs passent en `stop` (fallback `fro` si firmware ne supporte pas stop ou device offline). Les crons `heating-automation` et `heating-reset` deviennent no-op (`{ skipped: "summer-mode" }`). Les alertes "chauffe sans réservation" / "ne chauffe pas" sont masquées.
+- **Cron `heating-health` reste actif** : surveillance connectivité conservée (utile pour repérer un device tombé avant l'automne).
+- **Flag** : stocké en Redis (`heatzy:summer-mode`), cache 60s.
+- **API** :
+  - `GET /api/dashboard/heating/summer-mode` → `{ enabled }`
+  - `POST /api/dashboard/heating/summer-mode { enabled: true|false }` → si `true`, tente `stop` puis fallback `fro` device par device, tolérant aux pannes individuelles (continue si un radiateur est offline). Retourne `{ success, enabled, stopped, fallbackFro, failed: [{name, reason}] }`.
+- **Helpers `lib/heatzy.ts`** : `getSummerMode()`, `saveSummerMode(enabled)`.
 
 ## Timezone
 
