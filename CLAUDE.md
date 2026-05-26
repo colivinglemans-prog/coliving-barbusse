@@ -136,6 +136,7 @@ vercel.json           # Config Vercel (crons quotidiens)
 - Header (`components/Header.tsx`) : dropdown 5 langues + swap pathname `/{old}/...` → `/{new}/...`.
 - Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 5 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
 - Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 5 entrées dans le `Record<Locale, ...>`.
+- **Liens vers Beds24** : l'URL `booking2.php` doit porter `&lang=${locale}` pour que la page de paiement ET les Auto Actions soient dans la bonne langue. Les codes `Locale` (fr/en/it/de/es) sont déjà au format ISO 639-1 attendu par Beds24, pas de mapping nécessaire. Voir [components/public/ReservationCalendar.tsx](components/public/ReservationCalendar.tsx). Prérequis Beds24 : langues activées sur la booking page (Settings → Properties → Booking Page → Languages).
 - Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 14 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale.
 
 ## Données externes
