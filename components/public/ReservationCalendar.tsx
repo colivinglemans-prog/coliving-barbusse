@@ -29,7 +29,7 @@ type DayCellState =
 export default function ReservationCalendar() {
   const now = new Date();
   const todayStr = formatDate(now);
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const [baseYear, setBaseYear] = useState(now.getFullYear());
   const [baseMonth, setBaseMonth] = useState(now.getMonth());
@@ -251,7 +251,7 @@ export default function ReservationCalendar() {
 
   const bookingUrl =
     checkIn && checkOut
-      ? `https://beds24.com/booking2.php?propid=${PROPERTY_ID}&layout=1&checkin=${checkIn}&checkout=${checkOut}`
+      ? `https://beds24.com/booking2.php?propid=${PROPERTY_ID}&layout=1&lang=${locale}&checkin=${checkIn}&checkout=${checkOut}`
       : null;
 
   const [showBookingModal, setShowBookingModal] = useState(false);
