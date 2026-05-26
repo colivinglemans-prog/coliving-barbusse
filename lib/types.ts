@@ -100,6 +100,8 @@ export interface Beds24Booking {
 
 export interface Beds24InfoItem {
   id?: number;
+  bookingId?: number;
+  createTime?: string; // ISO 8601 UTC, ex "2026-05-19T12:59:05Z"
   code: string;
   text: string;
 }

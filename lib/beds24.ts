@@ -93,6 +93,7 @@ export async function getBookings(params?: {
   departureTo?: string;
   statuses?: string[];
   includeInvoiceItems?: boolean;
+  includeInfoItems?: boolean;
 }): Promise<Beds24Booking[]> {
   const queryParams: Record<string, string> = {};
   if (params?.arrivalFrom) queryParams.arrivalFrom = params.arrivalFrom;
@@ -104,6 +105,9 @@ export async function getBookings(params?: {
   }
   if (params?.includeInvoiceItems) {
     queryParams.includeInvoiceItems = "true";
+  }
+  if (params?.includeInfoItems) {
+    queryParams.includeInfoItems = "true";
   }
 
   const data = await beds24Fetch<{ data: Beds24Booking[] }>("/bookings", queryParams);
