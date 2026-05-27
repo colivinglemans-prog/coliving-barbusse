@@ -156,6 +156,10 @@ Sleeps up to 18 guests.`,
   reviews: {
     title: "Guest reviews",
     subtitle: "What our guests say on Airbnb and Abritel",
+    hostReplyLabel: "Reply from Alexandre",
+    autoTranslated: "Automatically translated",
+    showOriginal: "See original",
+    hideOriginal: "Hide original",
   },
   rules: {
     title: "Things to know",

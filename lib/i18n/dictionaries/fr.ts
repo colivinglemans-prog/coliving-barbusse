@@ -156,6 +156,10 @@ Jusqu'à 18 personnes.`,
   reviews: {
     title: "Avis des voyageurs",
     subtitle: "Ce que disent nos hôtes sur Airbnb et Abritel",
+    hostReplyLabel: "Réponse d'Alexandre",
+    autoTranslated: "Traduit automatiquement",
+    showOriginal: "Voir l'original",
+    hideOriginal: "Masquer l'original",
   },
   rules: {
     title: "À savoir",

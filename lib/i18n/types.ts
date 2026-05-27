@@ -100,6 +100,10 @@ export interface Dictionary {
   reviews: {
     title: string;
     subtitle: string;
+    hostReplyLabel: string;
+    autoTranslated: string;
+    showOriginal: string;
+    hideOriginal: string;
   };
   rules: {
     title: string;

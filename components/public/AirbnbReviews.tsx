@@ -3,23 +3,115 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslation } from "@/lib/i18n";
-import reviews from "@/data/reviews.json";
+import type { Locale } from "@/lib/i18n/types";
+import reviewsData from "@/data/reviews.json";
 
 const PAGE_SIZE = 3;
+
+interface Review {
+  name: string;
+  location: string;
+  date: string;
+  rating: number;
+  text: string;
+  photo: string;
+  sourceLang?: Locale;
+  translations?: Partial<Record<Locale, string>>;
+  hostReply?: string;
+  hostReplyTranslations?: Partial<Record<Locale, string>>;
+}
+
+const reviews = reviewsData as Review[];
 const totalPages = Math.ceil(reviews.length / PAGE_SIZE);
 
-function ReviewCard({ review }: { review: (typeof reviews)[number] }) {
+const DATE_LOCALE: Record<Locale, string> = {
+  fr: "fr-FR",
+  en: "en-GB",
+  it: "it-IT",
+  de: "de-DE",
+  es: "es-ES",
+};
+
+function ExpandableText({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [clamped, setClamped] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
-  const date = new Date(review.date + "-01");
-  const month = date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const { t } = useTranslation();
 
-  // Detect if text is actually overflowing
   useEffect(() => {
     const el = textRef.current;
     if (el) setClamped(el.scrollHeight > el.clientHeight + 1);
-  }, [review.text]);
+  }, [text]);
+
+  return (
+    <>
+      <p
+        ref={textRef}
+        className={`text-sm leading-relaxed text-secondary ${!expanded ? "line-clamp-4" : ""} ${className ?? ""}`}
+      >
+        {text}
+      </p>
+      {clamped && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 self-start text-xs font-medium text-foreground underline underline-offset-2"
+        >
+          {expanded ? t.description.showLess : t.description.readMore}
+        </button>
+      )}
+    </>
+  );
+}
+
+function TranslatableText({
+  text,
+  translation,
+  sourceLang,
+  currentLocale,
+}: {
+  text: string;
+  translation?: string;
+  sourceLang?: Locale;
+  currentLocale: Locale;
+}) {
+  const { t } = useTranslation();
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  const hasTranslation = !!translation && sourceLang && sourceLang !== currentLocale;
+  const displayText = hasTranslation && !showOriginal ? (translation as string) : text;
+
+  return (
+    <div className="flex flex-col">
+      <ExpandableText text={displayText} />
+      {hasTranslation && (
+        <button
+          onClick={() => setShowOriginal((v) => !v)}
+          className="mt-2 self-start text-xs text-secondary"
+        >
+          <span className="italic">{t.reviews.autoTranslated}</span>
+          {" · "}
+          <span className="underline underline-offset-2">
+            {showOriginal ? t.reviews.hideOriginal : t.reviews.showOriginal}
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ReviewCard({ review }: { review: Review }) {
+  const { locale, t } = useTranslation();
+  const date = new Date(review.date + "-01");
+  const month = date.toLocaleDateString(DATE_LOCALE[locale], {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="flex flex-col rounded-xl border border-border p-5">
@@ -59,19 +151,30 @@ function ReviewCard({ review }: { review: (typeof reviews)[number] }) {
         <span className="text-xs capitalize text-secondary">· {month}</span>
       </div>
 
-      <p
-        ref={textRef}
-        className={`mt-3 text-sm leading-relaxed text-secondary ${!expanded ? "line-clamp-4" : ""}`}
-      >
-        {review.text}
-      </p>
-      {clamped && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="mt-1 self-start text-xs font-medium text-foreground underline underline-offset-2"
-        >
-          {expanded ? "Voir moins" : "Lire la suite"}
-        </button>
+      <div className="mt-3">
+        <TranslatableText
+          text={review.text}
+          translation={review.translations?.[locale]}
+          sourceLang={review.sourceLang}
+          currentLocale={locale}
+        />
+      </div>
+
+      {review.hostReply && (
+        <div className="mt-4 rounded-lg bg-light-bg p-3">
+          <p className="text-xs font-medium text-foreground">
+            {t.reviews.hostReplyLabel}
+            <span className="capitalize text-secondary"> · {month}</span>
+          </p>
+          <div className="mt-2">
+            <TranslatableText
+              text={review.hostReply}
+              translation={review.hostReplyTranslations?.[locale]}
+              sourceLang={review.sourceLang}
+              currentLocale={locale}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

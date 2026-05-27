@@ -105,7 +105,7 @@ lib/
     orientations.ts   # Alertes (seuil 23k€, LMP, classement) + échéances
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
-  reviews.json        # 21 avis (20 Airbnb + 1 Abritel/Vrbo)
+  reviews.json        # 21 avis (20 Airbnb + 1 Abritel/Vrbo). Champs: text + hostReply optionnel + sourceLang + translations/hostReplyTranslations pré-générées par DeepL
   heatzy-zones.json   # Config zones radiateurs + mapping Beds24
   fiscal/
     2026.json         # Config annuelle : biens (Barbusse + Dahlias vendu), amortissements, ARD, charges
@@ -143,6 +143,15 @@ vercel.json           # Config Vercel (crons quotidiens)
 
 - **Beds24** : Property ID `303771`, Room ID `633259`
 - **Avis Airbnb** : Feed SociableKit `https://data.accentapi.com/feed/25659332.json` (filtrer pour ne garder que les avis Le Mans, exclure montagne/Paris)
+
+### Traduction des avis (DeepL)
+
+- Les avis sont pré-traduits **statiquement** dans toutes les locales du site via le script `npm run translate-reviews` (cf. [scripts/translate-reviews.mjs](scripts/translate-reviews.mjs)).
+- Champs ajoutés par le script dans chaque entrée de [data/reviews.json](data/reviews.json) : `sourceLang` (langue détectée par DeepL), `translations` (map locale → texte), et idem pour `hostReply` → `hostReplyTranslations` quand l'avis a une réponse de l'hôte.
+- Le composant [components/public/AirbnbReviews.tsx](components/public/AirbnbReviews.tsx) affiche la traduction quand `sourceLang !== locale courante` et propose un toggle « Traduit automatiquement · Voir l'original » (UX Airbnb-like). Si l'avis est dans la langue du visiteur, le texte original s'affiche sans bouton.
+- À relancer après chaque ajout/modif d'avis (mode incrémental — ne retraduit que ce qui manque). `--force` pour tout retraduire.
+- Variable env locale **`DEEPL_API_KEY`** (compte Free DeepL, suffixe `:fx`). N'est pas déployée sur Vercel (script local uniquement).
+- Pour ajouter une réponse d'hôte : éditer manuellement le champ `hostReply` dans l'avis concerné, puis relancer le script.
 
 ## Beds24 API (v2)
 
