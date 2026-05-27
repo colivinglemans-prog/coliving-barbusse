@@ -20,6 +20,83 @@ export interface BlogPostMeta {
 
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
+    slug: "le-mans-classic",
+    date: "2026-05-27",
+    image: "/images/blog/le-mans-classic.jpg",
+    locales: {
+      fr: {
+        title: "Le Mans Classic : guide du rassemblement mondial des voitures anciennes",
+        description:
+          "Le Mans Classic, plus grand rassemblement mondial de voitures de course anciennes : dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
+        excerpt:
+          "700 voitures mythiques de 1923 à 1993, 24 heures de course, 235 000 spectateurs. Préparez votre séjour pour la plus grande fête de l'automobile de collection.",
+        keywords: [
+          "Le Mans Classic 2026",
+          "Le Mans Classic hébergement",
+          "rassemblement voitures anciennes Le Mans",
+          "club collectionneurs Le Mans",
+          "location maison Le Mans Classic",
+        ],
+      },
+      en: {
+        title: "Le Mans Classic: a guide to the world's largest vintage racing gathering",
+        description:
+          "Le Mans Classic, the world's largest gathering of vintage racing cars: dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
+        excerpt:
+          "700 legendary cars from 1923 to 1993, 24 hours of racing, 235,000 spectators. Plan your stay for the greatest vintage motoring celebration.",
+        keywords: [
+          "Le Mans Classic 2026",
+          "Le Mans Classic accommodation",
+          "vintage car gathering Le Mans",
+          "collector club Le Mans",
+          "house rental Le Mans Classic",
+        ],
+      },
+      it: {
+        title: "Le Mans Classic: guida al più grande raduno mondiale di auto d'epoca",
+        description:
+          "Le Mans Classic, il più grande raduno mondiale di auto da corsa d'epoca: date, programma, alloggio e consigli pratici per appassionati e club.",
+        excerpt:
+          "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa, 235.000 spettatori. Preparate il vostro soggiorno per la più grande festa dell'automobile d'epoca.",
+        keywords: [
+          "Le Mans Classic 2026",
+          "alloggio Le Mans Classic",
+          "raduno auto d'epoca Le Mans",
+          "club collezionisti Le Mans",
+          "affitto casa Le Mans Classic",
+        ],
+      },
+      de: {
+        title: "Le Mans Classic: Guide zum weltgrößten Oldtimer-Rennsporttreffen",
+        description:
+          "Le Mans Classic, das weltgrößte Treffen historischer Rennwagen: Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
+        excerpt:
+          "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen, 235.000 Zuschauer. Planen Sie Ihren Aufenthalt für das größte Fest des klassischen Automobilsports.",
+        keywords: [
+          "Le Mans Classic 2026",
+          "Le Mans Classic Unterkunft",
+          "Oldtimer-Treffen Le Mans",
+          "Sammlerclub Le Mans",
+          "Haus mieten Le Mans Classic",
+        ],
+      },
+      es: {
+        title: "Le Mans Classic: guía del mayor encuentro mundial de coches clásicos de carreras",
+        description:
+          "Le Mans Classic, el mayor encuentro mundial de coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
+        excerpt:
+          "700 coches míticos de 1923 a 1993, 24 horas de carrera, 235.000 espectadores. Prepare su estancia para la mayor fiesta del automovilismo de colección.",
+        keywords: [
+          "Le Mans Classic 2026",
+          "alojamiento Le Mans Classic",
+          "encuentro coches clásicos Le Mans",
+          "club coleccionistas Le Mans",
+          "alquiler casa Le Mans Classic",
+        ],
+      },
+    },
+  },
+  {
     slug: "championnat-monde-karting-kz-le-mans",
     date: "2026-04-22",
     image: "/images/blog/mondial-karting-kz.jpg",
@@ -502,85 +579,6 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "patinaje Circuito Bugatti",
           "alojamiento 24h rollers",
           "equipo patinaje Le Mans",
-        ],
-      },
-    },
-  },
-  {
-    slug: "le-mans-classic",
-    date: "2026-04-17",
-    image: "/images/blog/le-mans-classic.jpg",
-    soldOut: true,
-    nextEdition: "2027",
-    locales: {
-      fr: {
-        title: "Le Mans Classic : guide du rassemblement mondial des voitures anciennes",
-        description:
-          "Le Mans Classic, plus grand rassemblement mondial de voitures de course anciennes : dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
-        excerpt:
-          "700 voitures mythiques de 1923 à 1993, 24 heures de course, 235 000 spectateurs. Préparez votre séjour pour la plus grande fête de l'automobile de collection.",
-        keywords: [
-          "Le Mans Classic 2027",
-          "Le Mans Classic hébergement",
-          "rassemblement voitures anciennes Le Mans",
-          "club collectionneurs Le Mans",
-          "location maison Le Mans Classic",
-        ],
-      },
-      en: {
-        title: "Le Mans Classic: a guide to the world's largest vintage racing gathering",
-        description:
-          "Le Mans Classic, the world's largest gathering of vintage racing cars: dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
-        excerpt:
-          "700 legendary cars from 1923 to 1993, 24 hours of racing, 235,000 spectators. Plan your stay for the greatest vintage motoring celebration.",
-        keywords: [
-          "Le Mans Classic 2027",
-          "Le Mans Classic accommodation",
-          "vintage car gathering Le Mans",
-          "collector club Le Mans",
-          "house rental Le Mans Classic",
-        ],
-      },
-      it: {
-        title: "Le Mans Classic: guida al più grande raduno mondiale di auto d'epoca",
-        description:
-          "Le Mans Classic, il più grande raduno mondiale di auto da corsa d'epoca: date, programma, alloggio e consigli pratici per appassionati e club.",
-        excerpt:
-          "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa, 235.000 spettatori. Preparate il vostro soggiorno per la più grande festa dell'automobile d'epoca.",
-        keywords: [
-          "Le Mans Classic 2027",
-          "alloggio Le Mans Classic",
-          "raduno auto d'epoca Le Mans",
-          "club collezionisti Le Mans",
-          "affitto casa Le Mans Classic",
-        ],
-      },
-      de: {
-        title: "Le Mans Classic: Guide zum weltgrößten Oldtimer-Rennsporttreffen",
-        description:
-          "Le Mans Classic, das weltgrößte Treffen historischer Rennwagen: Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
-        excerpt:
-          "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen, 235.000 Zuschauer. Planen Sie Ihren Aufenthalt für das größte Fest des klassischen Automobilsports.",
-        keywords: [
-          "Le Mans Classic 2027",
-          "Le Mans Classic Unterkunft",
-          "Oldtimer-Treffen Le Mans",
-          "Sammlerclub Le Mans",
-          "Haus mieten Le Mans Classic",
-        ],
-      },
-      es: {
-        title: "Le Mans Classic: guía del mayor encuentro mundial de coches clásicos de carreras",
-        description:
-          "Le Mans Classic, el mayor encuentro mundial de coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
-        excerpt:
-          "700 coches míticos de 1923 a 1993, 24 horas de carrera, 235.000 espectadores. Prepare su estancia para la mayor fiesta del automovilismo de colección.",
-        keywords: [
-          "Le Mans Classic 2027",
-          "alojamiento Le Mans Classic",
-          "encuentro coches clásicos Le Mans",
-          "club coleccionistas Le Mans",
-          "alquiler casa Le Mans Classic",
         ],
       },
     },
