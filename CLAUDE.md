@@ -105,7 +105,7 @@ lib/
     orientations.ts   # Alertes (seuil 23k€, LMP, classement) + échéances
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
-  reviews.json        # 19 avis (18 Airbnb + 1 Abritel/Vrbo)
+  reviews.json        # 21 avis (20 Airbnb + 1 Abritel/Vrbo)
   heatzy-zones.json   # Config zones radiateurs + mapping Beds24
   fiscal/
     2026.json         # Config annuelle : biens (Barbusse + Dahlias vendu), amortissements, ARD, charges

@@ -1,5 +1,21 @@
 [
   {
+    "name": "Paul",
+    "location": "Singapore",
+    "date": "2026-05",
+    "rating": 5,
+    "text": "Group of us were in Le Mans for a race event and had difficulty finding suitable accommodation to host all of us. Alexandre's place is perfect for large groups and has everything you need, he is also a great host and has an amazing place. Thank you!",
+    "photo": "https://a0.muscache.com/im/pictures/user/User/original/edf3d9a5-58ee-4dfa-9074-c51a2f71c20e.jpeg?im_w=240"
+  },
+  {
+    "name": "Caro",
+    "location": "France",
+    "date": "2026-04",
+    "rating": 5,
+    "text": "Logement très bien agencé, très fonctionnel. Une indépendance pour chaque chambre. Alexandre cherche régulièrement si tout va bien et répond rapidement aux questions. Merci pour ce séjour.",
+    "photo": "https://a0.muscache.com/im/pictures/user/8a72bddc-2b8a-4ab0-ac70-ebce4477ad3a.jpg?im_w=240"
+  },
+  {
     "name": "Loic",
     "location": "France",
     "date": "2026-04",
@@ -13,7 +29,7 @@
     "date": "2026-04",
     "rating": 5,
     "text": "Super logement, à noter que c'est très rare mais une télé dans chaque chambre fait la différence quand on fait des voyages professionnels à plusieurs. Tout était propre comme sur les photos. Personne très facile à joindre et réactif. Je recommande vivement pour des besoin pro ou personnel.",
-    "photo": ""
+    "photo": "https://a0.muscache.com/im/pictures/user/User/original/0fda6601-0ca2-44bf-87c8-0b4e3681a90a.jpeg?im_w=240"
   },
   {
     "name": "Jean-Michel",
