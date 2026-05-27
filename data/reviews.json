@@ -15,6 +15,21 @@
     }
   },
   {
+    "name": "Ferdinand",
+    "location": "Boulogne-Billancourt, France",
+    "date": "2026-05",
+    "rating": 5,
+    "text": "Nous avons passé un excellent séjour dans le logement d'Alexandre. Le fait que chaque chambre dispose de sa propre salle de bain apporte un vrai confort et une belle intimité, particulièrement appréciables pour un séjour en groupe.\n\nNous avons également eu la chance de profiter des extérieurs, récemment accessibles, qui sont très agréables par beau temps.\n\nAutre point très appréciable pour les sportifs : l'accès à une salle de sport indépendante de la maison.\n\nLa maison est très bien équipée, rien ne manque, et Alexandre a été très réactif et disponible tout au long du séjour.\n\nJe recommande sans hésiter et reviendrai avec plaisir.",
+    "photo": "https://a0.muscache.com/im/pictures/user/7d1bad44-9eba-4d59-b7b6-659617bb533e.jpg?im_w=240",
+    "sourceLang": "fr",
+    "translations": {
+      "en": "We had an excellent stay in Alexandre's accommodation. The fact that each room has its own bathroom provides real comfort and privacy, which is particularly appreciated when staying with a group.\n\nWe were also lucky enough to be able to enjoy the newly-accessible outside area, which is very pleasant in fine weather.\n\nAnother great feature for sports enthusiasts is access to a separate gym.\n\nThe house is very well equipped, nothing is missing, and Alexandre was very responsive and available throughout our stay.\n\nI would recommend it without hesitation and would be delighted to come back.",
+      "it": "Abbiamo trascorso un ottimo soggiorno nell'alloggio di Alexandre. Il fatto che ogni camera abbia il proprio bagno offre un vero e proprio comfort e privacy, cosa particolarmente apprezzata quando si soggiorna in gruppo.\n\nAbbiamo anche avuto la fortuna di poter usufruire dell'area esterna, recentemente accessibile, che è molto piacevole con il bel tempo.\n\nUn'altra grande caratteristica per gli amanti dello sport è l'accesso a una palestra separata.\n\nLa casa è molto ben attrezzata, non manca nulla, e Alexandre è stato molto reattivo e disponibile durante il nostro soggiorno.\n\nLa consiglio senza esitazione e sarei felice di tornare.",
+      "de": "Wir haben einen ausgezeichneten Aufenthalt in Alexandres Unterkunft verbracht. Die Tatsache, dass jedes Zimmer über ein eigenes Bad verfügt, bringt echten Komfort und eine schöne Privatsphäre, die besonders bei einem Aufenthalt in einer Gruppe geschätzt wird.\n\nWir hatten auch das Glück, die erst kürzlich zugänglichen Außenanlagen zu nutzen, die bei schönem Wetter sehr angenehm sind.\n\nEin weiterer Punkt, der für Sportler sehr angenehm ist, ist der Zugang zu einem vom Haus unabhängigen Fitnessraum.\n\nDas Haus ist sehr gut ausgestattet, es fehlt an nichts, und Alexandre war während des gesamten Aufenthalts sehr reaktionsschnell und hilfsbereit.\n\nIch empfehle es ohne zu zögern weiter und werde gerne wiederkommen.",
+      "es": "Tuvimos una estancia excelente en el alojamiento de Alexandre. El hecho de que cada habitación tenga su propio cuarto de baño proporciona verdadera comodidad e intimidad, lo que se agradece especialmente cuando se aloja un grupo.\n\nTambién tuvimos la suerte de poder disfrutar de la nueva zona exterior accesible, muy agradable cuando hace buen tiempo.\n\nPara los amantes del deporte, también hay un gimnasio independiente.\n\nLa casa está muy bien equipada, no falta de nada, y Alexandre fue muy sensible y disponible durante toda nuestra estancia.\n\nLo recomendaría sin dudarlo y estaría encantado de volver."
+    }
+  },
+  {
     "name": "Caro",
     "location": "France",
     "date": "2026-04",
