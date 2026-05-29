@@ -10,6 +10,13 @@ export default function Article() {
         Bentley Blower bis zum Porsche 962. So bereiten Sie Ihr Wochenende vor.
       </p>
 
+      <p>
+        <strong>Sie kommen als Club oder Gruppe?</strong> Unser ganzes Haus mit 9&nbsp;Suiten
+        (bis zu 18&nbsp;Personen) ist für die Ausgabe&nbsp;2026 verfügbar.{" "}
+        <Link href="/de#disponibilite">Daten prüfen und direkt buchen</Link> — ohne
+        Plattformgebühren.
+      </p>
+
       <h2>Was ist Le Mans Classic?</h2>
       <p>
         Le Mans Classic wurde 2002 ins Leben gerufen und ist eine
@@ -24,10 +31,10 @@ export default function Article() {
 
       <h2>Wann findet die nächste Ausgabe statt?</h2>
       <p>
-        Le Mans Classic findet traditionell zu Sommerbeginn (Juli) alle zwei
-        Jahre statt. Auf der offiziellen Website{" "}
+        Die nächste Ausgabe findet vom <strong>2. bis 5. Juli 2026</strong> auf dem
+        24-Stunden-Circuit statt. Auf der offiziellen Website{" "}
         <a href="https://www.lemansclassic.com/" target="_blank" rel="noopener noreferrer">lemansclassic.com</a>{" "}
-        finden Sie die genauen Daten und die Eröffnung des Ticketverkaufs.
+        finden Sie das vollständige Programm und den Ticketverkauf.
       </p>
 
       <h2>Warum Le Mans Classic so anzieht</h2>
@@ -119,10 +126,10 @@ export default function Article() {
 
       <h2>Buchen Sie Ihren Aufenthalt zu Le Mans Classic</h2>
       <p>
-        Wir haben noch Verfügbarkeiten für die nächste Ausgabe von Le Mans
-        Classic. Prüfen Sie den{" "}
-        <Link href="/de#disponibilite">Echtzeit-Kalender</Link> und buchen Sie,
-        bevor die letzten Plätze vergeben sind.
+        Wir haben noch Verfügbarkeiten für Le Mans Classic, vom <strong>2. bis 5. Juli
+        2026</strong>. Buchen Sie <strong>direkt, ohne Provision</strong>: Prüfen Sie den{" "}
+        <Link href="/de#disponibilite">Echtzeit-Kalender</Link> und sichern Sie sich den besten
+        Preis, bevor die letzten Plätze vergeben sind.
       </p>
     </>
   );

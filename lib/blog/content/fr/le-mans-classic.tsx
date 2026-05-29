@@ -10,6 +10,13 @@ export default function Article() {
         Voici comment préparer votre week-end.
       </p>
 
+      <p>
+        <strong>Vous venez en club ou en groupe&nbsp;?</strong> Notre maison entière de
+        9&nbsp;suites (jusqu'à 18&nbsp;personnes) est disponible pour l'édition&nbsp;2026.{" "}
+        <Link href="/fr#disponibilite">Vérifiez les dates et réservez en direct</Link>, sans
+        commission de plateforme.
+      </p>
+
       <h2>Qu'est-ce que Le Mans Classic ?</h2>
       <p>
         Créé en 2002, Le Mans Classic est une recréation fidèle des 24 Heures du Mans avec des
@@ -21,9 +28,9 @@ export default function Article() {
 
       <h2>Quand a lieu la prochaine édition ?</h2>
       <p>
-        Le Mans Classic se tient traditionnellement au début de l'été (juillet), tous les deux
-        ans. Consultez le site officiel <a href="https://www.lemansclassic.com/" target="_blank" rel="noopener noreferrer">lemansclassic.com</a> pour
-        les dates exactes et l'ouverture de la billetterie.
+        La prochaine édition se tient du <strong>2 au 5 juillet 2026</strong> au Circuit des
+        24&nbsp;Heures. Consultez le site officiel <a href="https://www.lemansclassic.com/" target="_blank" rel="noopener noreferrer">lemansclassic.com</a> pour
+        le programme détaillé et la billetterie.
       </p>
 
       <h2>Pourquoi Le Mans Classic attire autant</h2>
@@ -109,9 +116,10 @@ export default function Article() {
 
       <h2>Réserver votre séjour Le Mans Classic</h2>
       <p>
-        Il nous reste des disponibilités pour la prochaine édition du Mans Classic. Consultez
-        le <Link href="/fr#disponibilite">calendrier en temps réel</Link> et réservez avant que
-        les dernières places ne partent.
+        Il nous reste des disponibilités pour Le Mans Classic, du <strong>2 au 5 juillet
+        2026</strong>. Réservez <strong>en direct, sans commission</strong> : consultez le{" "}
+        <Link href="/fr#disponibilite">calendrier en temps réel</Link> et profitez du meilleur
+        tarif avant que les dernières places ne partent.
       </p>
     </>
   );

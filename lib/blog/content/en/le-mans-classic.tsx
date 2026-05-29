@@ -10,6 +10,13 @@ export default function Article() {
         how to plan your weekend.
       </p>
 
+      <p>
+        <strong>Coming as a club or a group?</strong> Our whole 9-suite house (sleeps up to
+        18) is available for the 2026 edition.{" "}
+        <Link href="/en#disponibilite">Check the dates and book direct</Link> — no platform
+        fees.
+      </p>
+
       <h2>What is Le Mans Classic?</h2>
       <p>
         Created in 2002, Le Mans Classic is a faithful re-enactment of the 24 Hours of Le
@@ -21,10 +28,10 @@ export default function Article() {
 
       <h2>When is the next edition?</h2>
       <p>
-        Le Mans Classic traditionally takes place in early summer (July), every two
-        years. Check the official website at{" "}
+        The next edition runs from <strong>2 to 5 July 2026</strong> at the 24 Hours
+        Circuit. Check the official website at{" "}
         <a href="https://www.lemansclassic.com/" target="_blank" rel="noopener noreferrer">lemansclassic.com</a>{" "}
-        for exact dates and ticket release.
+        for the full programme and tickets.
       </p>
 
       <h2>Why Le Mans Classic draws crowds</h2>
@@ -111,9 +118,10 @@ export default function Article() {
 
       <h2>Book your Le Mans Classic stay</h2>
       <p>
-        We still have availability for the next edition of Le Mans Classic. Check our{" "}
-        <Link href="/en#disponibilite">real-time calendar</Link> and secure your stay
-        before the last spots go.
+        We still have availability for Le Mans Classic, from <strong>2 to 5 July 2026</strong>.
+        Book <strong>direct, with no commission</strong>: check our{" "}
+        <Link href="/en#disponibilite">real-time calendar</Link> and get the best rate before
+        the last spots go.
       </p>
     </>
   );
