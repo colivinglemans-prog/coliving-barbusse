@@ -8,6 +8,7 @@ import Article24hDuMans2026 from "@/lib/blog/content/fr/ou-se-loger-24h-du-mans-
 import Article24hMoto from "@/lib/blog/content/fr/24-heures-moto-le-mans";
 import ArticleMotoGP from "@/lib/blog/content/fr/motogp-france-le-mans";
 import ArticleLeMansClassic from "@/lib/blog/content/fr/le-mans-classic";
+import ArticleJardin from "@/lib/blog/content/fr/jardin-securise-le-mans";
 import ArticleGPExplorer from "@/lib/blog/content/fr/gp-explorer-le-mans";
 import ArticleTourisme from "@/lib/blog/content/fr/que-visiter-le-mans-sarthe";
 import ArticleRestos from "@/lib/blog/content/fr/restos-bars-magasins-le-mans";
@@ -23,6 +24,7 @@ import ArticleEN24hDuMans2026 from "@/lib/blog/content/en/ou-se-loger-24h-du-man
 import ArticleEN24hMoto from "@/lib/blog/content/en/24-heures-moto-le-mans";
 import ArticleENMotoGP from "@/lib/blog/content/en/motogp-france-le-mans";
 import ArticleENLeMansClassic from "@/lib/blog/content/en/le-mans-classic";
+import ArticleENJardin from "@/lib/blog/content/en/jardin-securise-le-mans";
 import ArticleENGPExplorer from "@/lib/blog/content/en/gp-explorer-le-mans";
 import ArticleENTourisme from "@/lib/blog/content/en/que-visiter-le-mans-sarthe";
 import ArticleENRestos from "@/lib/blog/content/en/restos-bars-magasins-le-mans";
@@ -38,6 +40,7 @@ import ArticleIT24hDuMans2026 from "@/lib/blog/content/it/ou-se-loger-24h-du-man
 import ArticleIT24hMoto from "@/lib/blog/content/it/24-heures-moto-le-mans";
 import ArticleITMotoGP from "@/lib/blog/content/it/motogp-france-le-mans";
 import ArticleITLeMansClassic from "@/lib/blog/content/it/le-mans-classic";
+import ArticleITJardin from "@/lib/blog/content/it/jardin-securise-le-mans";
 import ArticleITGPExplorer from "@/lib/blog/content/it/gp-explorer-le-mans";
 import ArticleITTourisme from "@/lib/blog/content/it/que-visiter-le-mans-sarthe";
 import ArticleITRestos from "@/lib/blog/content/it/restos-bars-magasins-le-mans";
@@ -53,6 +56,7 @@ import ArticleDE24hDuMans2026 from "@/lib/blog/content/de/ou-se-loger-24h-du-man
 import ArticleDE24hMoto from "@/lib/blog/content/de/24-heures-moto-le-mans";
 import ArticleDEMotoGP from "@/lib/blog/content/de/motogp-france-le-mans";
 import ArticleDELeMansClassic from "@/lib/blog/content/de/le-mans-classic";
+import ArticleDEJardin from "@/lib/blog/content/de/jardin-securise-le-mans";
 import ArticleDEGPExplorer from "@/lib/blog/content/de/gp-explorer-le-mans";
 import ArticleDETourisme from "@/lib/blog/content/de/que-visiter-le-mans-sarthe";
 import ArticleDERestos from "@/lib/blog/content/de/restos-bars-magasins-le-mans";
@@ -68,6 +72,7 @@ import ArticleES24hDuMans2026 from "@/lib/blog/content/es/ou-se-loger-24h-du-man
 import ArticleES24hMoto from "@/lib/blog/content/es/24-heures-moto-le-mans";
 import ArticleESMotoGP from "@/lib/blog/content/es/motogp-france-le-mans";
 import ArticleESLeMansClassic from "@/lib/blog/content/es/le-mans-classic";
+import ArticleESJardin from "@/lib/blog/content/es/jardin-securise-le-mans";
 import ArticleESGPExplorer from "@/lib/blog/content/es/gp-explorer-le-mans";
 import ArticleESTourisme from "@/lib/blog/content/es/que-visiter-le-mans-sarthe";
 import ArticleESRestos from "@/lib/blog/content/es/restos-bars-magasins-le-mans";
@@ -82,6 +87,13 @@ import ArticleESMondialKarting from "@/lib/blog/content/es/championnat-monde-kar
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
 const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
+  "jardin-securise-le-mans": {
+    fr: ArticleJardin,
+    en: ArticleENJardin,
+    it: ArticleITJardin,
+    de: ArticleDEJardin,
+    es: ArticleESJardin,
+  },
   "ou-se-loger-24h-du-mans-2026": {
     fr: Article24hDuMans2026,
     en: ArticleEN24hDuMans2026,

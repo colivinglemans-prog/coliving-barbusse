@@ -97,6 +97,83 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     },
   },
   {
+    slug: "jardin-securise-le-mans",
+    date: "2026-05-29",
+    image: "/images/blog/jardin-securise-le-mans.jpg",
+    locales: {
+      fr: {
+        title: "Jardin clos et sécurisé au Mans : un espace extérieur pour vos séjours en groupe",
+        description:
+          "Profitez de notre jardin privatif de 90 m², clos et sécurisé, en plein cœur du Mans : salon de jardin 8 places, grandes tables pour 20 personnes, exposition plein sud.",
+        excerpt:
+          "Avec la belle saison, le jardin est prêt à vous recevoir : 90 m² clos et sécurisés, salon 8 places et grandes tables pour manger dehors jusqu'à 20 personnes.",
+        keywords: [
+          "jardin Le Mans",
+          "location maison avec jardin Le Mans",
+          "jardin clos sécurisé Le Mans",
+          "espace extérieur groupe Le Mans",
+          "maison avec jardin Le Mans",
+        ],
+      },
+      en: {
+        title: "Enclosed, secure garden in Le Mans: an outdoor space for group stays",
+        description:
+          "Enjoy our 90 m² private garden, fully enclosed and secure, in the heart of Le Mans: 8-seater lounge, large tables for 20, south-facing all day long.",
+        excerpt:
+          "As the warm season returns, the garden is ready to welcome you: 90 m² enclosed and secure, 8-seater lounge and large tables to dine outside for up to 20.",
+        keywords: [
+          "garden Le Mans",
+          "house with garden Le Mans",
+          "enclosed secure garden Le Mans",
+          "outdoor space group Le Mans",
+          "holiday house garden Le Mans",
+        ],
+      },
+      it: {
+        title: "Giardino recintato e sicuro a Le Mans: uno spazio esterno per soggiorni di gruppo",
+        description:
+          "Godetevi il nostro giardino privato di 90 m², recintato e sicuro, nel cuore di Le Mans: salotto da 8 posti, grandi tavoli per 20 persone, esposizione a sud.",
+        excerpt:
+          "Con la bella stagione, il giardino è pronto ad accogliervi: 90 m² recintati e sicuri, salotto da 8 posti e grandi tavoli per mangiare all'aperto fino a 20 persone.",
+        keywords: [
+          "giardino Le Mans",
+          "casa con giardino Le Mans",
+          "giardino recintato sicuro Le Mans",
+          "spazio esterno gruppo Le Mans",
+          "casa vacanze con giardino Le Mans",
+        ],
+      },
+      de: {
+        title: "Umschlossener, sicherer Garten in Le Mans: ein Außenbereich für Gruppenaufenthalte",
+        description:
+          "Genießen Sie unseren 90 m² großen Privatgarten, umschlossen und gesichert, im Herzen von Le Mans: Gartensofa für 8, große Tische für 20, südausgerichtet.",
+        excerpt:
+          "Mit der schönen Jahreszeit ist der Garten bereit: 90 m² umschlossen und gesichert, Gartensofa für 8 und große Tische zum Essen im Freien für bis zu 20 Personen.",
+        keywords: [
+          "Garten Le Mans",
+          "Haus mit Garten Le Mans",
+          "umschlossener sicherer Garten Le Mans",
+          "Außenbereich Gruppe Le Mans",
+          "Ferienhaus mit Garten Le Mans",
+        ],
+      },
+      es: {
+        title: "Jardín cerrado y seguro en Le Mans: un espacio exterior para estancias en grupo",
+        description:
+          "Disfrute de nuestro jardín privado de 90 m², cerrado y seguro, en pleno corazón de Le Mans: salón de 8 plazas, grandes mesas para 20 personas, orientación sur.",
+        excerpt:
+          "Con la buena estación, el jardín está listo para recibirle: 90 m² cerrados y seguros, salón de 8 plazas y grandes mesas para comer fuera hasta 20 personas.",
+        keywords: [
+          "jardín Le Mans",
+          "casa con jardín Le Mans",
+          "jardín cerrado seguro Le Mans",
+          "espacio exterior grupo Le Mans",
+          "casa vacaciones con jardín Le Mans",
+        ],
+      },
+    },
+  },
+  {
     slug: "championnat-monde-karting-kz-le-mans",
     date: "2026-04-22",
     image: "/images/blog/mondial-karting-kz.jpg",

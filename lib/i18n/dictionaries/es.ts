@@ -72,12 +72,13 @@ Hasta 18 personas.`,
   },
   garden: {
     title: "Jardín",
-    subtitle: "Jardín privado de 90 m², totalmente cerrado y seguro, orientado al sur. 25 m² de plantas y zona con grava con mobiliario de jardín para 8 personas — ideal para aperitivos entre amigos.",
+    subtitle: "Jardín privado de 90 m², totalmente cerrado y seguro, orientado al sur. Mobiliario de jardín para 8 personas para los aperitivos y grandes mesas para comer fuera hasta 20 personas — ideal entre amigos o en grupo.",
     features: [
       "Seguro y totalmente cerrado",
       "90 m² en total: 25 m² de plantas + zona con grava",
       "Orientación sur todo el día",
       "Mobiliario de jardín para 8 personas, perfecto para los aperitivos",
+      "Grandes mesas para comer fuera hasta 20 personas",
     ],
   },
   amenities: {

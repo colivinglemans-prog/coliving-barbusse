@@ -72,12 +72,13 @@ Jusqu'à 18 personnes.`,
   },
   garden: {
     title: "Jardin",
-    subtitle: "Jardin privatif de 90 m², clos de toute part et sécurisé, exposé plein sud. 25 m² de plantations et espace gravillonné avec salon de jardin 8 places — idéal pour les apéros entre amis.",
+    subtitle: "Jardin privatif de 90 m², clos de toute part et sécurisé, exposé plein sud. Salon de jardin 8 places pour les apéros et grandes tables pour manger dehors jusqu'à 20 personnes — idéal entre amis ou en groupe.",
     features: [
       "Sécurisé et clos de toute part",
       "90 m² au total : 25 m² de plantations + espace gravillonné",
       "Exposition sud toute la journée",
       "Salon de jardin 8 places, parfait pour les apéros",
+      "Grandes tables pour manger dehors jusqu'à 20 personnes",
     ],
   },
   amenities: {

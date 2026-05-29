@@ -72,12 +72,13 @@ Sleeps up to 18 guests.`,
   },
   garden: {
     title: "Garden",
-    subtitle: "90 m² private garden, fully enclosed and secure, south-facing. 25 m² of planting plus a gravelled area with 8-seater garden furniture — perfect for aperitifs with friends.",
+    subtitle: "90 m² private garden, fully enclosed and secure, south-facing. 8-seater lounge furniture for aperitifs plus large tables to dine outside for up to 20 people — perfect with friends or as a group.",
     features: [
       "Secure, fully enclosed",
       "90 m² total: 25 m² planted + gravelled area",
       "South-facing all day",
       "8-seater garden furniture, perfect for aperitifs",
+      "Large tables to dine outside, up to 20 people",
     ],
   },
   amenities: {

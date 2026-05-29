@@ -74,11 +74,11 @@ lib/
   blog/
     posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de/es) + soldOut + nextEdition
     content/
-      fr/             # 14 articles FR (Link hrefs préfixés /fr)
-      en/             # 14 articles EN (Link hrefs préfixés /en)
-      it/             # 14 articles IT (Link hrefs préfixés /it)
-      de/             # 14 articles DE (Link hrefs préfixés /de)
-      es/             # 14 articles ES (Link hrefs préfixés /es)
+      fr/             # 15 articles FR (Link hrefs préfixés /fr)
+      en/             # 15 articles EN (Link hrefs préfixés /en)
+      it/             # 15 articles IT (Link hrefs préfixés /it)
+      de/             # 15 articles DE (Link hrefs préfixés /de)
+      es/             # 15 articles ES (Link hrefs préfixés /es)
   events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
@@ -137,7 +137,7 @@ vercel.json           # Config Vercel (crons quotidiens)
 - Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 5 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
 - Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 5 entrées dans le `Record<Locale, ...>`.
 - **Liens vers Beds24** : l'URL `booking2.php` doit porter `&lang=${locale}` pour que la page de paiement ET les Auto Actions soient dans la bonne langue. Les codes `Locale` (fr/en/it/de/es) sont déjà au format ISO 639-1 attendu par Beds24, pas de mapping nécessaire. Voir [components/public/ReservationCalendar.tsx](components/public/ReservationCalendar.tsx). Prérequis Beds24 : langues activées sur la booking page (Settings → Properties → Booking Page → Languages).
-- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 14 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale.
+- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 15 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale.
 
 ## Données externes
 

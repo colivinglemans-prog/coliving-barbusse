@@ -72,12 +72,13 @@ Fino a 18 persone.`,
   },
   garden: {
     title: "Giardino",
-    subtitle: "Giardino privato di 90 m², completamente recintato e sicuro, esposto a sud. 25 m² di piantumazioni e un'area in ghiaia con salotto da giardino da 8 posti — ideale per aperitivi tra amici.",
+    subtitle: "Giardino privato di 90 m², completamente recintato e sicuro, esposto a sud. Salotto da giardino da 8 posti per gli aperitivi e grandi tavoli per mangiare all'aperto fino a 20 persone — ideale tra amici o in gruppo.",
     features: [
       "Sicuro e completamente recintato",
       "90 m² in totale: 25 m² di piantumazioni + area in ghiaia",
       "Esposizione sud tutto il giorno",
       "Salotto da giardino 8 posti, perfetto per gli aperitivi",
+      "Grandi tavoli per mangiare all'aperto fino a 20 persone",
     ],
   },
   amenities: {

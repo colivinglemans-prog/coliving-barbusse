@@ -5,8 +5,8 @@ import { useTranslation } from "@/lib/i18n";
 
 const PHOTOS = [
   { src: "/images/garden/IMG_5947.JPG", alt: "Jardin clos 90 m² — exposition sud" },
-  { src: "/images/garden/20260422_153827.jpg", alt: "Salon de jardin — 8 places pour les apéros" },
-  { src: "/images/garden/IMG_5948.JPG", alt: "Massif planté et véranda" },
+  { src: "/images/garden/20260528_183511.jpg", alt: "Salon de jardin 8 places — canapés pour les apéros" },
+  { src: "/images/garden/20260528_183440.jpg", alt: "Grandes tables pour manger dehors jusqu'à 20 personnes" },
 ];
 
 export default function Garden() {

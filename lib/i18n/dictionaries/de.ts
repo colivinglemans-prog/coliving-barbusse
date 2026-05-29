@@ -72,12 +72,13 @@ Bis zu 18 Personen.`,
   },
   garden: {
     title: "Garten",
-    subtitle: "90 m² Privatgarten, vollständig umschlossen und gesichert, südausgerichtet. 25 m² Bepflanzung und Kiesfläche mit Gartensofa für 8 Personen — ideal für Aperitifs mit Freunden.",
+    subtitle: "90 m² Privatgarten, vollständig umschlossen und gesichert, südausgerichtet. Gartensofa für 8 Personen für Aperitifs und große Tische zum Essen im Freien für bis zu 20 Personen — ideal mit Freunden oder in der Gruppe.",
     features: [
       "Sicher und vollständig umschlossen",
       "90 m² insgesamt: 25 m² Bepflanzung + Kiesbereich",
       "Den ganzen Tag Südausrichtung",
       "Gartensofa für 8 Personen, perfekt für Aperitifs",
+      "Große Tische zum Essen im Freien für bis zu 20 Personen",
     ],
   },
   amenities: {
