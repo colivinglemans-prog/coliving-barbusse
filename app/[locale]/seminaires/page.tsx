@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n";
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
 const WHATSAPP = "https://wa.me/33620921005";
-const EMAIL = "alexandre.delan@eva.gg";
+const EMAIL = "contact@coliving-barbusse.fr";
 
 type Lang = Locale;
 

@@ -29,7 +29,7 @@ export const PROPERTY_INFO = {
   contact: {
     phone: "+33620921005",
     whatsapp: "https://wa.me/33620921005",
-    email: "alexandre.delan@eva.gg",
+    email: "contact@coliving-barbusse.fr",
   },
   googleMaps: {
     shortlink: "https://maps.app.goo.gl/k141gZkCRKuv3Sai7",
