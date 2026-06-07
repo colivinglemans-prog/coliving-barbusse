@@ -198,7 +198,7 @@ migrer vers Beds24 (source unique). Propagation vers Airbnb :
 
 **Côté site** : badge « −7% en réservation directe » dans
 [ReservationCalendar.tsx](components/public/ReservationCalendar.tsx) (clé i18n `calendar.directDiscount`,
-5 langues). Détail complet : voir le plan `~/.claude/plans/linear-forging-teapot.md`.
+5 langues). **Détail complet (plan + config Beds24 + résultats vérifiés)** : [docs/refonte-pricing.md](docs/refonte-pricing.md).
 
 ## Beds24 API (v2)
 
