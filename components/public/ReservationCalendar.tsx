@@ -365,6 +365,13 @@ export default function ReservationCalendar() {
               {t.calendar.teensNote}
             </p>
 
+            <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-center text-xs font-medium text-emerald-700">
+              <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {t.calendar.directDiscount}
+            </div>
+
             <div className="flex items-center gap-3">
               <button
                 onClick={clearSelection}

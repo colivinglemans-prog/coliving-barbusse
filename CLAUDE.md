@@ -153,6 +153,53 @@ vercel.json           # Config Vercel (crons quotidiens)
 - Variable env locale **`DEEPL_API_KEY`** (compte Free DeepL, suffixe `:fx`). N'est pas déployée sur Vercel (script local uniquement).
 - Pour ajouter une réponse d'hôte : éditer manuellement le champ `hostReply` dans l'avis concerné, puis relancer le script.
 
+## Pricing multi-canal (Beds24)
+
+Politique tarifaire (juin 2026). Configurée **dans l'interface Beds24** (markup canal, mode de synchro,
+Offers, fees) — pas dans le code. Le site n'affiche aucun prix en dur, il renvoie vers la booking page
+Beds24.
+
+**Principe (toutes commissions « incluses », payées par l'hôte — Airbnb 15,5% · Booking 17% ·
+Abritel/VRBO 15%)** :
+- **Le direct doit TOUJOURS être moins cher qu'Airbnb** (les voyageurs comparent depuis Airbnb).
+  Garanti par : direct = grille canal × **0,93** (remise directe −7%) à toute durée/occupation. Net hôte
+  direct 0,916 > Airbnb 0,845 → le direct est aussi plus rentable.
+- **Markup par canal** (connexion canal) : Airbnb +0% (référence), Direct −7%, Booking/Abritel/VRBO/
+  HomeToGo **+15%** (premium). Le prix de base vient de **Beyond Pricing** (≈522 base / 260 plancher /
+  ~1576 pic 24h).
+- **Mode « Occupancy Prices »** sur chaque canal (= interrupteur clé) : fait propager **à la fois** le
+  tarif par occupation **et** les paliers durée vers Airbnb/Booking/VRBO. En « Per Day Prices », les
+  canaux restent figés (1 prix/date).
+- **Occupation** : `Price For = up to 9` + Extra Person **+10€/pers/nuit** (linéaire jusqu'à 20).
+  Plafonds : Airbnb **16**, Booking 30, VRBO/Abritel 99, Direct 20.
+- **Paliers durée** : via **Offers/rates avec min-stay** (PAS l'onglet « Discounts » qui est
+  direct-only) → poussés à tous les canaux. Grille 4-6n −8% / 7j −10% / 28j −30% (Airbnb accepte les
+  paliers perso). La remise directe −7% = discount **« referrer » direct-only** (non poussé) qui se
+  cumule par-dessus.
+- **Frais harmonisés** (identiques tous canaux, centralisés Beds24) : ménage **280 €**, linge
+  **15 €/voyageur**. La remise directe ne doit **pas** s'appliquer à la ligne taxe (utiliser le type
+  Upsell « obligatory % », pas « obligatory % tax »).
+- **Taxe de séjour** : barème Le Mans = 2,75% (2,5%×1,10) **plafonné 4,40 €/pers/nuit**. ⚠️ Beds24 **ne
+  sait pas appliquer le plafond** → ne PAS mettre 2,75% sur le direct (sur-collecterait au-dessus du
+  plafond aux prix élevés + rendrait le direct plus cher qu'Airbnb qui plafonne). Garder un **forfait bas
+  (~2,00-2,20 €/adulte/nuit)** : au prix fort on collecte moins que le dû et on absorbe la différence
+  (assumé, garde le direct < Airbnb). Airbnb/Booking gèrent leur taxe plafonnée nativement. Le dashboard
+  `/taxe-sejour` calcule le montant LÉGAL exact pour la déclaration (≠ montant collecté).
+
+**Migration Airbnb → Beds24 (frais & remises actuellement configurés nativement sur Airbnb)** : ménage,
+linge, frais voyageur supplémentaire ET réductions durée étaient réglés dans l'extranet Airbnb. Tout doit
+migrer vers Beds24 (source unique). Propagation vers Airbnb :
+- **Ménage** : poussé auto (champ cleaning fee). **Linge** : Airbnb le **fusionne dans le ménage** (pas de
+  champ linge séparé). **Frais voyageur supp.** + **réductions durée** : poussés via mode Occupancy Prices.
+- ⚠️ **Piège double-comptage** : ne jamais laisser un frais/remise actif **à la fois** sur Airbnb et dans
+  Beds24. Ordre sûr : régler dans Beds24 → vérifier l'affichage Airbnb (devis test) → retirer le natif Airbnb.
+- ⚠️ Prérequis : connexion Airbnb en **sync type « Prices & Availability »** (sinon les frais ne se poussent pas).
+- Airbnb ne garde nativement que : collecte taxe de séjour (auto) + contenus (photos/description).
+
+**Côté site** : badge « −7% en réservation directe » dans
+[ReservationCalendar.tsx](components/public/ReservationCalendar.tsx) (clé i18n `calendar.directDiscount`,
+5 langues). Détail complet : voir le plan `~/.claude/plans/linear-forging-teapot.md`.
+
 ## Beds24 API (v2)
 
 Deux tokens coexistent, selon le besoin en écriture :

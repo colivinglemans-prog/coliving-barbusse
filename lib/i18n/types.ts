@@ -69,6 +69,7 @@ export interface Dictionary {
     teensNote: string;
     clear: string;
     bookNow: string;
+    directDiscount: string;
     selectCheckIn: string;
     checkInLabel: string;
     minStayNote: (n: number) => string;
