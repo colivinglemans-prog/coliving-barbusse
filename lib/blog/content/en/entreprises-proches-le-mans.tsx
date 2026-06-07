@@ -109,7 +109,7 @@ export default function Article() {
 
       <h3>Controlled budget</h3>
       <p>
-        For a team of 10 to 18, renting the house is often cheaper than booking several
+        For a team of 10 to 20, renting the house is often cheaper than booking several
         hotel rooms, while offering a much nicer setting to work together and bond.
       </p>
 

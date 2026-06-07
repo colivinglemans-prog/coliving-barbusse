@@ -21,7 +21,7 @@ export default function Article() {
       <h2>Ein Außenbereich zum Zusammenkommen</h2>
       <p>
         Der Garten wurde so gestaltet, dass er bequem eine große Gruppe aufnimmt — genau wie das
-        Haus selbst, das bis zu 18 Personen in seinen 9 Suiten beherbergt:
+        Haus selbst, das bis zu 20 Personen in seinen 9 Suiten beherbergt:
       </p>
       <ul>
         <li>

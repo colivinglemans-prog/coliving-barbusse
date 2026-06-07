@@ -96,7 +96,7 @@ export default function Article() {
       <p>
         Nuestro coliving de <strong>9 suites privadas con baño</strong> es
         ideal para un fin de semana en familia o entre amigos en torno a las
-        carreras hípicas. Hasta 18 personas en un entorno tranquilo, a 20
+        carreras hípicas. Hasta 20 personas en un entorno tranquilo, a 20
         minutos del hipódromo y 10 minutos de la estación TGV.
       </p>
       <ul>

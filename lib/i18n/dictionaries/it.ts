@@ -15,9 +15,9 @@ export const it: Dictionary = {
     title: "Casa premium 9 suite private vicino al Circuito di Le Mans",
     superhost: "Superhost",
     location: "Le Mans, Pays de la Loire, Francia",
-    travelers: "18 ospiti",
+    travelers: "20 ospiti",
     rooms: "9 camere",
-    beds: "9 letti matrimoniali",
+    beds: "9 letti matrimoniali + 2 divani letto",
     bathrooms: "9 bagni privati",
     area: "215 m²",
   },
@@ -52,12 +52,13 @@ Ideale per gruppi misti, colleghi, amici o famiglie allargate. Questo concept pe
 
 Perfetto per eventi, scuderie, soggiorni aziendali e viaggi di gruppo durante la 24 Ore di Le Mans e i grandi eventi del circuito. Accesso facile al Circuito Bugatti tramite il Tram T1 dalla stazione TGV.
 
-Fino a 18 persone.`,
+Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20 persone.`,
   },
   sleeping: {
     title: "Dove dormirai",
     room: "Camera",
     doubleBed: "1 letto matrimoniale",
+    doubleBedSofa: "1 letto matrimoniale + 1 divano letto (1 posto)",
     features: "Bagno privato · Smart TV · Scrivania · Guardaroba · Chiave individuale",
     prevPhoto: "Foto precedente",
     nextPhoto: "Foto successiva",
@@ -171,7 +172,7 @@ Fino a 18 persone.`,
         items: [
           "Arrivo: 17:00 — 23:00",
           "Partenza: entro le 11:00",
-          "Massimo 18 ospiti",
+          "Massimo 20 ospiti",
           "Vietato fumare (all'interno)",
           "Animali non ammessi",
           "Niente feste o eventi rumorosi",

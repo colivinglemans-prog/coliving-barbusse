@@ -70,7 +70,7 @@ export default function Article() {
       <ul>
         <li>Einfaches Hotelzimmer: 150-300 € pro Nacht (gegenüber 60-90 € außerhalb der Veranstaltung)</li>
         <li>Airbnb für 4 Personen: 200-500 € pro Nacht</li>
-        <li>Großes Haus für Gruppen (10-18 Personen): 1.500-3.500 € pro Nacht</li>
+        <li>Großes Haus für Gruppen (10-20 Personen): 1.500-3.500 € pro Nacht</li>
       </ul>
       <p>
         Tipp: Je mehr Sie sind, desto niedriger werden die Kosten pro Person. Ein großes,
@@ -80,7 +80,7 @@ export default function Article() {
       <h2>Unser Haus — 9 private Suiten, 20 Minuten von der Rennstrecke</h2>
       <p>
         Für Gruppen, Großfamilien oder Unternehmen bietet unser 215 m² großes Haus{" "}
-        <strong>9 Doppelzimmer mit eigenem Bad</strong>. Sie schlafen zu 18 Personen
+        <strong>9 Doppelzimmer mit eigenem Bad</strong>. Sie schlafen zu 20 Personen
         in Ruhe, jeder in seinem eigenen Bereich, ohne Kompromisse beim Komfort.
       </p>
       <ul>

@@ -97,7 +97,7 @@ export default function Article() {
       <h2>La nostra casa: ideale per un weekend 24h Camion</h2>
       <p>
         Il nostro coliving di <strong>9 suite private con bagno</strong>{" "}
-        ospita fino a 18 persone — perfetto per un gruppo familiare o di
+        ospita fino a 20 persone — perfetto per un gruppo familiare o di
         amici:
       </p>
       <ul>

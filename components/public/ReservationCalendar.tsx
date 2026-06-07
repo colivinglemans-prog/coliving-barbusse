@@ -350,7 +350,7 @@ export default function ReservationCalendar() {
                 label={t.calendar.adults}
                 value={numAdults}
                 min={1}
-                max={18}
+                max={20}
                 onChange={setNumAdults}
               />
               <GuestCounter

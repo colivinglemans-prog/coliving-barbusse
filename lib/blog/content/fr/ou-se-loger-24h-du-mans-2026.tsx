@@ -67,7 +67,7 @@ export default function Article() {
       <ul>
         <li>Chambre d'hôtel basique : 150-300 €/nuit (contre 60-90 € hors événement)</li>
         <li>Airbnb pour 4 personnes : 200-500 €/nuit</li>
-        <li>Grande maison pour groupe (10-18 pers.) : 1 500-3 500 €/nuit</li>
+        <li>Grande maison pour groupe (10-20 pers.) : 1 500-3 500 €/nuit</li>
       </ul>
       <p>
         Astuce : plus vous êtes nombreux, plus le coût par personne baisse. Une grande maison
@@ -77,7 +77,7 @@ export default function Article() {
       <h2>Notre maison — 9 suites privatives à 20 minutes du circuit</h2>
       <p>
         Pour les groupes, familles élargies ou entreprises, notre maison de 215 m² offre{" "}
-        <strong>9 chambres doubles avec salle de bain privative</strong>. Vous dormez à 18
+        <strong>9 chambres doubles avec salle de bain privative</strong>. Vous dormez à 20
         dans le calme, chacun dans son espace, sans compromis sur le confort.
       </p>
       <ul>

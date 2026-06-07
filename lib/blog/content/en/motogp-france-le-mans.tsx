@@ -59,7 +59,7 @@ export default function Article() {
         <li>Hotel room for 2: €180-350/night</li>
         <li>Airbnb 1-bedroom: €150-280/night</li>
         <li>House for 6-8: €600-1,200/night</li>
-        <li>Large group house (15-18 people): €2,000-3,500/night</li>
+        <li>Large group house (15-20 people): €2,000-3,500/night</li>
       </ul>
       <p>
         For a group of 15+, renting a large house is unbeatable economically and far
@@ -68,7 +68,7 @@ export default function Article() {
 
       <h2>Our house: perfect for a MotoGP weekend with friends</h2>
       <p>
-        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 18
+        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 20
         guests in a quiet setting, 20 minutes from the Bugatti Circuit off-event
         (45-60 min on race days):
       </p>

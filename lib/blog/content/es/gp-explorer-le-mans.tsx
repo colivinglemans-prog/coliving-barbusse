@@ -73,7 +73,7 @@ export default function Article() {
 
       <h2>Nuestra casa: perfecta para un grupo del GP Explorer</h2>
       <p>
-        Nuestro coliving de <strong>9 suites con baño privado</strong> acoge hasta 18
+        Nuestro coliving de <strong>9 suites con baño privado</strong> acoge hasta 20
         personas:
       </p>
       <ul>

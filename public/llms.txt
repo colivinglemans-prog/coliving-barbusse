@@ -5,7 +5,7 @@
 ## Informations clés
 
 - **Type** : Maison entière en location courte durée (Airbnb, Booking, Abritel)
-- **Capacité** : 18 personnes (9 chambres doubles avec salle de bain privative)
+- **Capacité** : 20 personnes (9 chambres doubles avec salle de bain privative, dont 2 avec clic-clac une place)
 - **Surface** : 215 m²
 - **Localisation** : Rue Henri Barbusse, 72000 Le Mans, France
 - **Proximité** : Circuit Bugatti (5 min), Gare TGV Le Mans (10 min), Centre-ville (10 min)
@@ -24,7 +24,7 @@
 
 ## Idéal pour
 
-- Groupes d'amis ou familles (jusqu'à 18 personnes)
+- Groupes d'amis ou familles (jusqu'à 20 personnes)
 - Événements sportifs (24h du Mans, GP de France)
 - Séjours d'entreprise et séminaires
 - Tourisme en Sarthe

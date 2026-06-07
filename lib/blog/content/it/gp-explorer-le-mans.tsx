@@ -72,7 +72,7 @@ export default function Article() {
       <h2>La nostra casa: perfetta per un gruppo GP Explorer</h2>
       <p>
         Il nostro coliving di <strong>9 suite con bagno privato</strong> accoglie fino a
-        18 persone:
+        20 persone:
       </p>
       <ul>
         <li>20 min dal Circuit Bugatti fuori evento (45-60 min nei giorni di gara)</li>

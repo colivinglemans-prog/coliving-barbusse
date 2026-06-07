@@ -119,7 +119,7 @@ export default function Article() {
 
       <h3>Hausvermietung für das Team</h3>
       <p>
-        Die beste Option für ein Team von 8 bis 18 Personen: echte Nächte,
+        Die beste Option für ein Team von 8 bis 20 Personen: echte Nächte,
         Küche zur Vorbereitung der Verpflegung, Raum zum Entspannen zwischen
         zwei Wechseln.
       </p>
@@ -133,7 +133,7 @@ export default function Article() {
       <h2>Unser Haus: perfekt für ein 24h-Inliner-Team</h2>
       <p>
         Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
-        beherbergt bis zu 18 Personen — die ideale Konfiguration für ein oder
+        beherbergt bis zu 20 Personen — die ideale Konfiguration für ein oder
         zwei komplette Teams:
       </p>
       <ul>

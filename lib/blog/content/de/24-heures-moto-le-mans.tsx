@@ -98,7 +98,7 @@ export default function Article() {
       <h2>Ihren Aufenthalt buchen</h2>
       <p>
         Sehen Sie sich die <Link href="/de#disponibilite">verfügbaren Daten</Link> für
-        das 24-Stunden-Motorradrennen 2026 an. Unser Haus empfängt bis zu 18 Personen
+        das 24-Stunden-Motorradrennen 2026 an. Unser Haus empfängt bis zu 20 Personen
         — ideal für Clubs und Bikerfreundeskreise.
       </p>
     </>

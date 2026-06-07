@@ -132,7 +132,7 @@ export default function Article() {
       <h2>Nuestra casa: perfecta para un equipo de karting</h2>
       <p>
         Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge
-        hasta 18 personas — el formato ideal para una estructura completa de
+        hasta 20 personas — el formato ideal para una estructura completa de
         Mundial:
       </p>
       <ul>

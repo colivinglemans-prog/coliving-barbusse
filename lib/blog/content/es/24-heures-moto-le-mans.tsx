@@ -99,7 +99,7 @@ export default function Article() {
       <h2>Reservar tu estancia</h2>
       <p>
         Consulta las <Link href="/es#disponibilite">fechas disponibles</Link> para las
-        24 Horas Moto 2026. Nuestra casa acoge hasta 18 personas, ideal para clubs y
+        24 Horas Moto 2026. Nuestra casa acoge hasta 20 personas, ideal para clubs y
         grupos de amigos moteros.
       </p>
     </>

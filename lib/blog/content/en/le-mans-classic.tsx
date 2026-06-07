@@ -12,7 +12,7 @@ export default function Article() {
 
       <p>
         <strong>Coming as a club or a group?</strong> Our whole 9-suite house (sleeps up to
-        18) is available for the 2026 edition.{" "}
+        20) is available for the 2026 edition.{" "}
         <Link href="/en#disponibilite">Check the dates and book direct</Link> — no platform
         fees.
       </p>
@@ -83,7 +83,7 @@ export default function Article() {
 
       <h2>Our house: perfect for collector clubs</h2>
       <p>
-        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 18
+        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 20
         guests in a quiet setting, 20 minutes from the Bugatti Circuit off-event
         (30-45 min on race days):
       </p>

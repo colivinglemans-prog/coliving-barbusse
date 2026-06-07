@@ -91,7 +91,7 @@ export default function Article() {
       <h2>Our house: ideal for a 24h Truck weekend</h2>
       <p>
         Our <strong>9 private suites with en-suite bathrooms</strong> accommodate
-        up to 18 guests — perfect for a family group or friends:
+        up to 20 guests — perfect for a family group or friends:
       </p>
       <ul>
         <li>

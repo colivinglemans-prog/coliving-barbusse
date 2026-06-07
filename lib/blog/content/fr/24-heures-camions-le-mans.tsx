@@ -95,7 +95,7 @@ export default function Article() {
       <h2>Notre maison : idéale pour un week-end 24h Camions</h2>
       <p>
         Notre coliving de <strong>9 suites privatives avec salle de bain</strong>{" "}
-        accueille jusqu&apos;à 18 personnes — parfait pour un groupe familial ou
+        accueille jusqu&apos;à 20 personnes — parfait pour un groupe familial ou
         d&apos;amis :
       </p>
       <ul>

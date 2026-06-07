@@ -20,7 +20,7 @@ export default function Article() {
       <h2>An outdoor space designed for gathering</h2>
       <p>
         The garden was set up to comfortably host a large group — just like the house itself,
-        which sleeps up to 18 across its 9 suites:
+        which sleeps up to 20 across its 9 suites:
       </p>
       <ul>
         <li>

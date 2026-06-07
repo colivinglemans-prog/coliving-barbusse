@@ -22,7 +22,7 @@ export default function Article() {
       <h2>Un extérieur pensé pour se retrouver</h2>
       <p>
         Le jardin a été aménagé pour accueillir confortablement un grand groupe — comme l'intérieur
-        de la maison, qui loge jusqu'à 18 personnes dans ses 9 suites :
+        de la maison, qui loge jusqu'à 20 personnes dans ses 9 suites :
       </p>
       <ul>
         <li>

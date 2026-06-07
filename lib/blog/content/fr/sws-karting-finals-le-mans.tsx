@@ -84,7 +84,7 @@ export default function Article() {
       <h2>Notre maison : parfaite pour une équipe de karting</h2>
       <p>
         Notre coliving de <strong>9 suites privatives avec salle de bain</strong>{" "}
-        accueille jusqu&apos;à 18 personnes — la configuration idéale pour un team
+        accueille jusqu&apos;à 20 personnes — la configuration idéale pour un team
         complet :
       </p>
       <ul>

@@ -124,6 +124,8 @@ vercel.json           # Config Vercel (crons quotidiens)
 - **Images externes** : Airbnb CDN (`a0.muscache.com`) configuré dans `next.config.ts`
 - **Rôles auth** : `admin` (accès complet) et `viewer` (calendrier + chauffage lecture/contrôle)
 - **Photos** : triées par ordre alphabétique des noms de fichiers
+- **Capacité** : **20 personnes** (9 chambres doubles ; chambres 8 et 9 avec clic-clac 1 place en plus). Source : `PROPERTY_INFO.maxGuests` + clé i18n `sleeping.doubleBedSofa` (rendue pour les chambres d'index ≥ 7 dans `SleepingArrangement`).
+- **Zoom photo** : composant partagé [components/public/Lightbox.tsx](components/public/Lightbox.tsx) (plein écran, clavier ←/→/Échap, swipe tactile, scroll lock). Utilisé par SleepingArrangement (par chambre), CommonSpaces, Garden. La galerie d'accueil PhotoGallery garde sa propre implémentation historique.
 - **Commits** : penser à commit/push régulièrement
 - **Deploy** : `npx vercel --prod` (auto-deploy GitHub cassé)
 

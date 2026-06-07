@@ -99,7 +99,7 @@ export default function Article() {
       <h2>Unser Haus: ideal für ein 24h-Lkw-Wochenende</h2>
       <p>
         Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
-        beherbergt bis zu 18 Personen — perfekt für eine Familien- oder
+        beherbergt bis zu 20 Personen — perfekt für eine Familien- oder
         Freundesgruppe:
       </p>
       <ul>

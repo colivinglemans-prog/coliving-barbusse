@@ -15,9 +15,9 @@ export const de: Dictionary = {
     title: "Premium-Haus mit 9 privaten Suiten in der Nähe der Rennstrecke Le Mans",
     superhost: "Superhost",
     location: "Le Mans, Pays de la Loire, Frankreich",
-    travelers: "18 Gäste",
+    travelers: "20 Gäste",
     rooms: "9 Schlafzimmer",
-    beds: "9 Doppelbetten",
+    beds: "9 Doppelbetten + 2 Schlafsofas",
     bathrooms: "9 private Bäder",
     area: "215 m²",
   },
@@ -52,12 +52,13 @@ Ideal für gemischte Gruppen, Kollegen, Freunde oder Patchwork-Familien. Dieses 
 
 Perfekt für Events, Rennteams, Firmenaufenthalte und Gruppenreisen während der 24 Stunden von Le Mans und der großen Veranstaltungen der Rennstrecke. Einfacher Zugang zur Rennstrecke Bugatti über die Straßenbahn T1 vom TGV-Bahnhof.
 
-Bis zu 18 Personen.`,
+Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherbergt bis zu 20 Personen.`,
   },
   sleeping: {
     title: "Wo Sie schlafen werden",
     room: "Zimmer",
     doubleBed: "1 Doppelbett",
+    doubleBedSofa: "1 Doppelbett + 1 Schlafsofa (1 Person)",
     features: "Privates Bad · Smart TV · Schreibtisch · Kleiderschrank · Eigener Schlüssel",
     prevPhoto: "Vorheriges Foto",
     nextPhoto: "Nächstes Foto",
@@ -171,7 +172,7 @@ Bis zu 18 Personen.`,
         items: [
           "Anreise: 17:00 — 23:00 Uhr",
           "Abreise: vor 11:00 Uhr",
-          "Maximal 18 Gäste",
+          "Maximal 20 Gäste",
           "Nichtraucher (im Innenbereich)",
           "Keine Haustiere erlaubt",
           "Keine Partys oder laute Veranstaltungen",

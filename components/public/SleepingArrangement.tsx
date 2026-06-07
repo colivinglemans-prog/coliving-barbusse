@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useTranslation } from "@/lib/i18n";
+import Lightbox, { type LightboxPhoto } from "./Lightbox";
 
 const ROOM_PHOTOS = [
   [
@@ -76,7 +77,19 @@ const ROOM_PHOTOS = [
   ],
 ];
 
-function RoomCarousel({ photos, name, prevLabel, nextLabel }: { photos: string[]; name: string; prevLabel: string; nextLabel: string }) {
+function RoomCarousel({
+  photos,
+  name,
+  prevLabel,
+  nextLabel,
+  onZoom,
+}: {
+  photos: string[];
+  name: string;
+  prevLabel: string;
+  nextLabel: string;
+  onZoom: (index: number) => void;
+}) {
   const [index, setIndex] = useState(0);
 
   const prev = () => setIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
@@ -84,13 +97,20 @@ function RoomCarousel({ photos, name, prevLabel, nextLabel }: { photos: string[]
 
   return (
     <div className="group relative aspect-[4/3] overflow-hidden bg-gray-100">
-      <Image
-        src={encodeURI(photos[index])}
-        alt={`${name} — photo ${index + 1}`}
-        fill
-        className="object-cover"
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-      />
+      <button
+        type="button"
+        onClick={() => onZoom(index)}
+        className="absolute inset-0 cursor-zoom-in"
+        aria-label={name}
+      >
+        <Image
+          src={encodeURI(photos[index])}
+          alt={`${name} — photo ${index + 1}`}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        />
+      </button>
       {photos.length > 1 && (
         <>
           <button
@@ -130,6 +150,7 @@ function RoomCarousel({ photos, name, prevLabel, nextLabel }: { photos: string[]
 
 export default function SleepingArrangement() {
   const { t } = useTranslation();
+  const [lightbox, setLightbox] = useState<{ photos: LightboxPhoto[]; index: number } | null>(null);
 
   return (
     <div id="chambres" className="mx-auto max-w-6xl border-b border-border px-6 py-8">
@@ -137,6 +158,10 @@ export default function SleepingArrangement() {
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ROOM_PHOTOS.map((photos, i) => {
           const roomName = `${t.sleeping.room} ${i + 1}`;
+          const lbPhotos: LightboxPhoto[] = photos.map((src, p) => ({
+            src,
+            alt: `${roomName} — photo ${p + 1}`,
+          }));
           return (
             <div
               key={i}
@@ -147,16 +172,23 @@ export default function SleepingArrangement() {
                 name={roomName}
                 prevLabel={t.sleeping.prevPhoto}
                 nextLabel={t.sleeping.nextPhoto}
+                onZoom={(idx) => setLightbox({ photos: lbPhotos, index: idx })}
               />
               <div className="p-4">
                 <h3 className="font-medium text-foreground">{roomName}</h3>
-                <p className="mt-1 text-sm text-secondary">{t.sleeping.doubleBed}</p>
+                <p className="mt-1 text-sm text-secondary">{i >= 7 ? t.sleeping.doubleBedSofa : t.sleeping.doubleBed}</p>
                 <p className="mt-2 text-xs text-secondary">{t.sleeping.features}</p>
               </div>
             </div>
           );
         })}
       </div>
+
+      <Lightbox
+        photos={lightbox?.photos ?? []}
+        index={lightbox?.index ?? null}
+        onChange={(idx) => setLightbox((cur) => (cur && idx !== null ? { ...cur, index: idx } : null))}
+      />
     </div>
   );
 }

@@ -17,11 +17,11 @@ import HouseRules from "@/components/public/HouseRules";
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
 const DESCRIPTIONS: Record<string, string> = {
-  fr: "Maison de 215 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV. Idéal groupes, événements et séjours d'entreprise. Jusqu'à 18 personnes.",
-  en: "215 m² house with 9 twin bedrooms and en-suite bathrooms in Le Mans. Near Bugatti Circuit and TGV station. Ideal for groups, events and corporate stays. Up to 18 guests.",
-  it: "Casa di 215 m² con 9 camere matrimoniali e bagni privati a Le Mans. Vicino al Circuito Bugatti e alla stazione TGV. Ideale per gruppi, eventi e soggiorni aziendali. Fino a 18 ospiti.",
-  de: "215 m² großes Haus mit 9 Doppelzimmern und eigenen Bädern in Le Mans. In der Nähe der Bugatti-Rennstrecke und des TGV-Bahnhofs. Ideal für Gruppen, Events und Firmenaufenthalte. Bis zu 18 Gäste.",
-  es: "Casa de 215 m² con 9 habitaciones dobles y baños privados en Le Mans. Cerca del Circuito Bugatti y la estación TGV. Ideal para grupos, eventos y estancias de empresa. Hasta 18 personas.",
+  fr: "Maison de 215 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV. Idéal groupes, événements et séjours d'entreprise. Jusqu'à 20 personnes.",
+  en: "215 m² house with 9 twin bedrooms and en-suite bathrooms in Le Mans. Near Bugatti Circuit and TGV station. Ideal for groups, events and corporate stays. Up to 20 guests.",
+  it: "Casa di 215 m² con 9 camere matrimoniali e bagni privati a Le Mans. Vicino al Circuito Bugatti e alla stazione TGV. Ideale per gruppi, eventi e soggiorni aziendali. Fino a 20 ospiti.",
+  de: "215 m² großes Haus mit 9 Doppelzimmern und eigenen Bädern in Le Mans. In der Nähe der Bugatti-Rennstrecke und des TGV-Bahnhofs. Ideal für Gruppen, Events und Firmenaufenthalte. Bis zu 20 Gäste.",
+  es: "Casa de 215 m² con 9 habitaciones dobles y baños privados en Le Mans. Cerca del Circuito Bugatti y la estación TGV. Ideal para grupos, eventos y estancias de empresa. Hasta 20 personas.",
 };
 
 const OG_LOCALES: Record<string, string> = {

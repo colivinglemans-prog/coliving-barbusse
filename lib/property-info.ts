@@ -20,7 +20,7 @@ export const PROPERTY_INFO = {
     de: "vor 11:00 Uhr",
     es: "antes de las 11:00",
   },
-  maxGuests: 18,
+  maxGuests: 20,
   wifi: {
     ssid: "Freebox-C1A6F7",
     password: "xccm4q2z33qz3t7wqbmvbh",

@@ -60,7 +60,7 @@ export default function Article() {
         <li>Camera d'hotel per 2 pers.: da 180 a 350 €/notte</li>
         <li>Airbnb bilocale: da 150 a 280 €/notte</li>
         <li>Casa per 6-8 pers.: da 600 a 1.200 €/notte</li>
-        <li>Grande casa per gruppo (15-18 pers.): da 2.000 a 3.500 €/notte</li>
+        <li>Grande casa per gruppo (15-20 pers.): da 2.000 a 3.500 €/notte</li>
       </ul>
       <p>
         Per un gruppo di 15+ persone, affittare una grande casa è economicamente
@@ -69,7 +69,7 @@ export default function Article() {
 
       <h2>La nostra casa: perfetta per un weekend MotoGP tra amici</h2>
       <p>
-        Il nostro coliving di <strong>9 suite private con bagno</strong> accoglie fino a 18
+        Il nostro coliving di <strong>9 suite private con bagno</strong> accoglie fino a 20
         persone in tranquillità, a 20 minuti dal Circuit Bugatti fuori evento (45-60 min
         nei giorni di gara):
       </p>

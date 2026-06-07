@@ -121,7 +121,7 @@ export default function Article() {
 
       <h3>Alquiler de una casa para el equipo</h3>
       <p>
-        La mejor opción para un equipo de 8 a 18 personas: noches de
+        La mejor opción para un equipo de 8 a 20 personas: noches de
         verdad, cocina para preparar los avituallamientos, espacio para
         relajarse entre dos relevos.
       </p>
@@ -135,7 +135,7 @@ export default function Article() {
       <h2>Nuestra casa: perfecta para un equipo de 24H Rollers</h2>
       <p>
         Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge
-        hasta 18 personas — la configuración ideal para uno o dos equipos
+        hasta 20 personas — la configuración ideal para uno o dos equipos
         completos:
       </p>
       <ul>

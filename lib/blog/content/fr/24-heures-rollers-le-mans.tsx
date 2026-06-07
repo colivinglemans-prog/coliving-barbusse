@@ -113,7 +113,7 @@ export default function Article() {
 
       <h3>Location de maison pour l'équipe</h3>
       <p>
-        La meilleure option pour une équipe de 8 à 18 personnes : vraies nuits, cuisine
+        La meilleure option pour une équipe de 8 à 20 personnes : vraies nuits, cuisine
         pour préparer les ravitaillements, espace pour se détendre entre deux relais.
       </p>
 
@@ -125,7 +125,7 @@ export default function Article() {
       <h2>Notre maison : parfaite pour une équipe 24H Rollers</h2>
       <p>
         Notre coliving de <strong>9 suites privatives avec salle de bain</strong> accueille
-        jusqu'à 18 personnes — la configuration idéale pour une ou deux équipes complètes :
+        jusqu'à 20 personnes — la configuration idéale pour une ou deux équipes complètes :
       </p>
       <ul>
         <li>

@@ -75,7 +75,7 @@ export default function Article() {
       <h2>Our house: perfect for a karting team</h2>
       <p>
         Our <strong>9 private suites with en-suite bathrooms</strong> accommodate up to
-        18 guests — the ideal setup for a full team:
+        20 guests — the ideal setup for a full team:
       </p>
       <ul>
         <li>

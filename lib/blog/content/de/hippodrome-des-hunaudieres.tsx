@@ -96,7 +96,7 @@ export default function Article() {
       <p>
         Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
         ist ideal für ein Wochenende mit Familie oder Freunden rund um die
-        Pferderennen. Bis zu 18 Personen in ruhiger Umgebung, 20 Minuten von der
+        Pferderennen. Bis zu 20 Personen in ruhiger Umgebung, 20 Minuten von der
         Rennbahn und 10 Minuten vom TGV-Bahnhof entfernt.
       </p>
       <ul>

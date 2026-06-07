@@ -69,7 +69,7 @@ export default function Article() {
       <ul>
         <li>Habitación de hotel básica: 150-300 €/noche (frente a 60-90 € fuera del evento)</li>
         <li>Airbnb para 4 personas: 200-500 €/noche</li>
-        <li>Gran casa para grupo (10-18 pers.): 1.500-3.500 €/noche</li>
+        <li>Gran casa para grupo (10-20 pers.): 1.500-3.500 €/noche</li>
       </ul>
       <p>
         Truco: cuantos más seáis, menor será el coste por persona. Una gran casa
@@ -79,7 +79,7 @@ export default function Article() {
       <h2>Nuestra casa — 9 suites privadas a 20 minutos del circuito</h2>
       <p>
         Para grupos, familias numerosas o empresas, nuestra casa de 215 m² ofrece{" "}
-        <strong>9 habitaciones dobles con baño privado</strong>. Dormís 18 personas en
+        <strong>9 habitaciones dobles con baño privado</strong>. Dormís 20 personas en
         calma, cada uno en su espacio, sin compromiso en cuanto a comodidad.
       </p>
       <ul>

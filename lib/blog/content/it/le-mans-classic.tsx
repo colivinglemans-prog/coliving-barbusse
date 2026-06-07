@@ -13,7 +13,7 @@ export default function Article() {
 
       <p>
         <strong>Venite in club o in gruppo?</strong> La nostra casa intera con 9&nbsp;suite
-        (fino a 18&nbsp;persone) è disponibile per l'edizione&nbsp;2026.{" "}
+        (fino a 20&nbsp;persone) è disponibile per l'edizione&nbsp;2026.{" "}
         <Link href="/it#disponibilite">Verificate le date e prenotate in diretta</Link>, senza
         commissioni di piattaforma.
       </p>
@@ -91,7 +91,7 @@ export default function Article() {
       <h2>La nostra casa: perfetta per i club di collezionisti</h2>
       <p>
         Le nostre <strong>9 suite private con bagno</strong> ospitano
-        fino a 18 persone in una cornice tranquilla, a 20 minuti dal
+        fino a 20 persone in una cornice tranquilla, a 20 minuti dal
         Circuit Bugatti fuori dall'evento (30-45 min nei giorni di gara):
       </p>
       <ul>

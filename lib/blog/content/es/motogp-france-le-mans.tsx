@@ -60,7 +60,7 @@ export default function Article() {
         <li>Habitación de hotel 2 pers.: 180 a 350 €/noche</li>
         <li>Airbnb T2: 150 a 280 €/noche</li>
         <li>Casa 6-8 pers.: 600 a 1.200 €/noche</li>
-        <li>Gran casa para grupo (15-18 pers.): 2.000 a 3.500 €/noche</li>
+        <li>Gran casa para grupo (15-20 pers.): 2.000 a 3.500 €/noche</li>
       </ul>
       <p>
         Para un grupo de más de 15 personas, alquilar una gran casa es económicamente
@@ -70,7 +70,7 @@ export default function Article() {
       <h2>Nuestra casa: perfecta para un fin de semana de MotoGP entre amigos</h2>
       <p>
         Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge hasta
-        18 personas en calma, a 20 minutos del Circuito Bugatti fuera del evento (45-60
+        20 personas en calma, a 20 minutos del Circuito Bugatti fuera del evento (45-60
         min los días de carrera):
       </p>
       <ul>

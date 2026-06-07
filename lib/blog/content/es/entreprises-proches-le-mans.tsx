@@ -111,7 +111,7 @@ export default function Article() {
 
       <h3>Presupuesto controlado</h3>
       <p>
-        Para un equipo de 10 a 18 personas, alquilar la casa suele salir más barato
+        Para un equipo de 10 a 20 personas, alquilar la casa suele salir más barato
         que reservar varias habitaciones de hotel, además de ofrecer un entorno mucho
         más agradable para trabajar juntos y cohesionar el equipo.
       </p>

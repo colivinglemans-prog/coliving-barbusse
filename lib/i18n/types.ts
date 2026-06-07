@@ -36,6 +36,7 @@ export interface Dictionary {
     title: string;
     room: string;
     doubleBed: string;
+    doubleBedSofa: string;
     features: string;
     prevPhoto: string;
     nextPhoto: string;

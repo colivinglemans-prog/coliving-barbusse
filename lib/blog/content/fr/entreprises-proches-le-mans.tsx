@@ -109,7 +109,7 @@ export default function Article() {
 
       <h3>Budget maîtrisé</h3>
       <p>
-        Pour une équipe de 10 à 18 personnes, louer la maison revient souvent moins cher que
+        Pour une équipe de 10 à 20 personnes, louer la maison revient souvent moins cher que
         de réserver plusieurs chambres d'hôtel, tout en offrant un cadre bien plus agréable
         pour travailler ensemble et souder l'équipe.
       </p>

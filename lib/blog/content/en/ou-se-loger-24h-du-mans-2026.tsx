@@ -65,7 +65,7 @@ export default function Article() {
       <ul>
         <li>Basic hotel room: €150-300/night (vs €60-90 off-event)</li>
         <li>Airbnb for 4 people: €200-500/night</li>
-        <li>Large group house (10-18 people): €1,500-3,500/night</li>
+        <li>Large group house (10-20 people): €1,500-3,500/night</li>
       </ul>
       <p>
         Tip: the more of you, the lower the per-person cost. A shared house at 15 often
@@ -75,7 +75,7 @@ export default function Article() {
       <h2>Our house — 9 private suites 20 minutes from the circuit</h2>
       <p>
         For groups, large families or businesses, our 215 m² house offers{" "}
-        <strong>9 twin bedrooms with en-suite bathrooms</strong>. Up to 18 guests sleep
+        <strong>9 twin bedrooms with en-suite bathrooms</strong>. Up to 20 guests sleep
         in peace, each in their own space, with no compromise on comfort.
       </p>
       <ul>

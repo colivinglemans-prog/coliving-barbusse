@@ -112,7 +112,7 @@ export default function Article() {
 
       <h3>Team house rental</h3>
       <p>
-        The best option for a team of 8 to 18 people: real nights of sleep, kitchen to
+        The best option for a team of 8 to 20 people: real nights of sleep, kitchen to
         prepare refuels, space to relax between relays.
       </p>
 
@@ -124,7 +124,7 @@ export default function Article() {
       <h2>Our house: perfect for a 24H Rollers team</h2>
       <p>
         Our coliving of <strong>9 private suites with en-suite bathrooms</strong>{" "}
-        accommodates up to 18 guests — the perfect setup for one or two complete teams:
+        accommodates up to 20 guests — the perfect setup for one or two complete teams:
       </p>
       <ul>
         <li>

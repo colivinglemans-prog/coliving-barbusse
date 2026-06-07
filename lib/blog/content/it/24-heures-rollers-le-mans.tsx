@@ -123,7 +123,7 @@ export default function Article() {
 
       <h3>Affitto di una casa per la squadra</h3>
       <p>
-        La miglior opzione per una squadra da 8 a 18 persone: vere notti,
+        La miglior opzione per una squadra da 8 a 20 persone: vere notti,
         cucina per preparare i rifornimenti, spazio per rilassarsi tra due
         turni.
       </p>
@@ -137,7 +137,7 @@ export default function Article() {
       <h2>La nostra casa: perfetta per una squadra 24H Rollerblade</h2>
       <p>
         Il nostro coliving di <strong>9 suite private con bagno</strong>{" "}
-        ospita fino a 18 persone — la configurazione ideale per una o due
+        ospita fino a 20 persone — la configurazione ideale per una o due
         squadre complete:
       </p>
       <ul>

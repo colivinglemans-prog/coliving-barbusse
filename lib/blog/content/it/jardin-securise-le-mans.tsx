@@ -21,7 +21,7 @@ export default function Article() {
       <h2>Uno spazio esterno pensato per ritrovarsi</h2>
       <p>
         Il giardino è stato allestito per ospitare comodamente un grande gruppo — proprio come
-        l'interno della casa, che ospita fino a 18 persone nelle sue 9 suite:
+        l'interno della casa, che ospita fino a 20 persone nelle sue 9 suite:
       </p>
       <ul>
         <li>

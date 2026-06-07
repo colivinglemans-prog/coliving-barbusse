@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { useTranslation } from "@/lib/i18n";
+import Lightbox from "./Lightbox";
 
 const PHOTOS = [
   { src: "/images/house/5-sportAI.jpg", alt: "Salle de sport" },
@@ -11,6 +13,7 @@ const PHOTOS = [
 
 export default function CommonSpaces() {
   const { t } = useTranslation();
+  const [lightbox, setLightbox] = useState<number | null>(null);
 
   return (
     <div className="mx-auto max-w-6xl border-b border-border px-6 py-8">
@@ -21,18 +24,26 @@ export default function CommonSpaces() {
 
       {/* 3 photos côte à côte */}
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        {PHOTOS.map((photo) => (
-          <div key={photo.src} className="relative aspect-[4/3] overflow-hidden rounded-xl">
+        {PHOTOS.map((photo, i) => (
+          <button
+            key={photo.src}
+            type="button"
+            onClick={() => setLightbox(i)}
+            className="group relative aspect-[4/3] cursor-zoom-in overflow-hidden rounded-xl"
+            aria-label={photo.alt}
+          >
             <Image
               src={encodeURI(photo.src)}
               alt={photo.alt}
               fill
-              className="object-cover"
+              className="object-cover transition-opacity group-hover:opacity-90"
               sizes="(max-width: 640px) 100vw, 33vw"
             />
-          </div>
+          </button>
         ))}
       </div>
+
+      <Lightbox photos={PHOTOS} index={lightbox} onChange={setLightbox} />
 
       {/* Descriptions */}
       <div className="mt-6 space-y-4">

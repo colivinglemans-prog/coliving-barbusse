@@ -109,7 +109,7 @@ export default function Article() {
 
       <h3>Budget sotto controllo</h3>
       <p>
-        Per un team da 10 a 18 persone, affittare la casa intera costa spesso meno che
+        Per un team da 10 a 20 persone, affittare la casa intera costa spesso meno che
         prenotare diverse camere d'albergo, offrendo al tempo stesso un ambiente molto più
         piacevole per lavorare insieme e fare gruppo.
       </p>

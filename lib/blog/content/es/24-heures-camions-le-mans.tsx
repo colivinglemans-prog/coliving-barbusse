@@ -98,7 +98,7 @@ export default function Article() {
       <h2>Nuestra casa: ideal para un fin de semana de 24h Camiones</h2>
       <p>
         Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge
-        hasta 18 personas — perfecto para un grupo familiar o de amigos:
+        hasta 20 personas — perfecto para un grupo familiar o de amigos:
       </p>
       <ul>
         <li>

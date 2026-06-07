@@ -111,7 +111,7 @@ export default function Article() {
 
       <h3>Kontrolliertes Budget</h3>
       <p>
-        Für ein Team von 10 bis 18 Personen ist die Miete des gesamten Hauses oft
+        Für ein Team von 10 bis 20 Personen ist die Miete des gesamten Hauses oft
         günstiger als mehrere Hotelzimmer zu buchen — und bietet zugleich eine deutlich
         angenehmere Umgebung, um zusammen zu arbeiten und das Team zu stärken.
       </p>

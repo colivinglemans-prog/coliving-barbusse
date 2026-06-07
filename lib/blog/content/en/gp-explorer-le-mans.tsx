@@ -70,7 +70,7 @@ export default function Article() {
 
       <h2>Our house: perfect for a GP Explorer group</h2>
       <p>
-        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 18
+        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 20
         guests:
       </p>
       <ul>

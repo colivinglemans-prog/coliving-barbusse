@@ -97,7 +97,7 @@ export default function Article() {
       <h2>Prenotare il tuo soggiorno</h2>
       <p>
         Consulta le <Link href="/it#disponibilite">date disponibili</Link> per la 24 Ore
-        Moto 2026. La nostra casa ospita fino a 18 persone, ideale per club e gruppi di
+        Moto 2026. La nostra casa ospita fino a 20 persone, ideale per club e gruppi di
         amici motociclisti.
       </p>
     </>
