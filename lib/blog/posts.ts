@@ -95,6 +95,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
     },
+    soldOut: true,
+    nextEdition: "2027",
   },
   {
     slug: "jardin-securise-le-mans",
