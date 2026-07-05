@@ -6,7 +6,7 @@ import { useTranslation } from "@/lib/i18n";
 import Lightbox from "./Lightbox";
 
 const PHOTOS = [
-  { src: "/images/garden/IMG_5947.JPG", alt: "Jardin clos 90 m² — exposition sud" },
+  { src: "/images/garden/voile d'ombrage.jpg", alt: "Jardin clos 90 m² — exposition sud" },
   { src: "/images/garden/20260528_183511.jpg", alt: "Salon de jardin 8 places — canapés pour les apéros" },
   { src: "/images/garden/20260528_183440.jpg", alt: "Grandes tables pour manger dehors jusqu'à 20 personnes" },
 ];

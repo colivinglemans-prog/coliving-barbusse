@@ -62,9 +62,10 @@ const ROOM_PHOTOS = [
     "/images/rooms/chambre-8/4-chambre 8 AI 3.jpg",
     "/images/rooms/chambre-8/Chambre 8 AI SDB 2.jpg",
     "/images/rooms/chambre-8/Chambre 8 AI SDB.jpg",
-    "/images/rooms/chambre-8/chambre 8 AI 2.jpg",
     "/images/rooms/chambre-8/chambre 8 AI 4.jpg",
     "/images/rooms/chambre-8/chambre 8 AI 7.jpg",
+    "/images/rooms/chambre-8/sofabed (2).jpg",
+    "/images/rooms/chambre-8/sofa bed 4.jpg",
   ],
   [
     "/images/rooms/chambre-9/1-chambre 9 AI 4.jpg",
@@ -74,6 +75,8 @@ const ROOM_PHOTOS = [
     "/images/rooms/chambre-9/chambre 9 AI 5.jpg",
     "/images/rooms/chambre-9/chambre 9 AI SDB.jpg",
     "/images/rooms/chambre-9/chambre_9_AI_SBD_2_1280x900_min.jpg",
+    "/images/rooms/chambre-9/sofa bed 3.jpg",
+    "/images/rooms/chambre-9/sofa bed 5.jpg",
   ],
 ];
 
