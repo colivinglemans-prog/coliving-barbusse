@@ -69,20 +69,45 @@ function addDays(dateStr: string, days: number): string {
   return d.toISOString().split("T")[0];
 }
 
+function dayDiff(from: string, to: string): number {
+  const a = new Date(from + "T00:00:00");
+  const b = new Date(to + "T00:00:00");
+  return Math.round((b.getTime() - a.getTime()) / 86_400_000);
+}
+
 /**
- * Find the first event that overlaps with [arrival, departure[ (extended window).
+ * Number of nights of a stay [arrival, departure[ that fall inside an event's
+ * core dates [start, end] (both inclusive → exclusive end = end + 1 day).
+ */
+function coreOverlapNights(arrival: string, departure: string, start: string, end: string): number {
+  const overlapStart = arrival > start ? arrival : start;
+  const evtEndExcl = addDays(end, 1);
+  const overlapEnd = departure < evtEndExcl ? departure : evtEndExcl;
+  return Math.max(0, dayDiff(overlapStart, overlapEnd));
+}
+
+/**
+ * Find the event best matching a stay [arrival, departure[.
+ * Candidates are events overlapping the extended window (±EVENT_EXT_DAYS);
+ * among them we prefer the one whose *core* dates overlap the stay the most,
+ * so a stay during one event isn't mislabelled with an adjacent event whose
+ * extension window it merely grazes. Ties keep chronological (array) order.
  * Returns the event name or null.
  */
 export function findEventForStay(arrival: string, departure: string): string | null {
+  let best: { name: string; core: number } | null = null;
   for (const ev of LE_MANS_EVENTS) {
     const winStart = addDays(ev.start, -EVENT_EXT_DAYS);
     const winEnd = addDays(ev.end, EVENT_EXT_DAYS);
-    // Overlap test: arrival < winEnd AND departure > winStart
+    // Overlap test: arrival <= winEnd AND departure > winStart
     if (arrival <= winEnd && departure > winStart) {
-      return ev.name;
+      const core = coreOverlapNights(arrival, departure, ev.start, ev.end);
+      if (!best || core > best.core) {
+        best = { name: ev.name, core };
+      }
     }
   }
-  return null;
+  return best ? best.name : null;
 }
 
 /**
