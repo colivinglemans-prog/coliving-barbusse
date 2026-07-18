@@ -42,12 +42,12 @@ export default function StatsCards({
       tooltip: "Chiffre d'affaires brut (avant commissions plateformes)",
     },
     {
-      label: "Revenu net",
+      label: "Revenu net (est.)",
       value: `${netRevenue.toLocaleString("fr-FR")} €`,
       color: "text-emerald-600",
       bg: "bg-emerald-50",
-      tooltip: "CA net des commissions Airbnb/Booking (extraites des factures Beds24). Avant charges fixes.",
-      sub: `−${commissionRate} % de commissions`,
+      tooltip: "CA net des commissions plateformes, estimées par canal (Beds24 ne les transmet pas). Taux configurables. Avant charges fixes.",
+      sub: `−${commissionRate} % de commissions (est.)`,
     },
     {
       label: "Réservations",

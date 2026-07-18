@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBookings, getProperties, getDailyPrices } from "@/lib/beds24";
-import { normalizeChannel } from "@/lib/channel";
+import { normalizeChannel, estimatedCommissionRate } from "@/lib/channel";
 import { findEventForStay } from "@/lib/events";
-import { sumCommissions } from "@/lib/fiscal/commissions";
 import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
 
 function getDateRange(period: string): { from: string; to: string } {
@@ -197,7 +196,7 @@ export async function GET(request: NextRequest) {
     const fwdWindowEnd = addDaysStr(today, 90);
 
     const [rawBookings, properties, forwardBookings] = await Promise.all([
-      getBookings({ arrivalFrom: from, arrivalTo: to, includeInvoiceItems: true }),
+      getBookings({ arrivalFrom: from, arrivalTo: to }),
       getProperties(),
       getBookings({ arrivalFrom: fwdWindowStart, arrivalTo: fwdWindowEnd }),
     ]);
@@ -328,10 +327,14 @@ export async function GET(request: NextRequest) {
       room: computeAvgLeadTime(roomBookings),
     };
 
-    // ─── Revenu net (après commissions plateforme) ───────────
-    // NRevPAR-like : le CA brut moins les commissions Airbnb/Booking (extraites
-    // des invoiceItems Beds24). Reflète l'encaissé réel avant charges fixes.
-    const commissions = sumCommissions(bookings);
+    // ─── Revenu net (après commissions plateforme, estimé) ───
+    // Beds24 ne transmet pas les commissions comme lignes de facture pour ce
+    // compte : on les estime par canal (taux dans lib/channel.ts, surchargeables
+    // par env). Reflète l'encaissé réel approximatif avant charges fixes.
+    const commissions = bookings.reduce(
+      (s, b) => s + b.price * estimatedCommissionRate(normalizeChannel(b.referer, b.channel)),
+      0,
+    );
     const netRevenue = Math.round((totalRevenue - commissions) * 100) / 100;
     const commissionRate =
       totalRevenue > 0 ? Math.round((commissions / totalRevenue) * 1000) / 10 : 0;
