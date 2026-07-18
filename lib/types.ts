@@ -10,6 +10,8 @@ export interface MonthRevenue {
   upcoming: number;
   isFuture: boolean;
   occupancyRate: number;
+  /** RevPAR mensuel = (réalisé + réservé) ÷ jours du mois (revenu par nuit disponible). */
+  revpar: number;
 }
 
 export interface SplitMetric {
@@ -55,11 +57,25 @@ export interface DashboardStats {
   occupancyRate: number;
   channelDistribution: { channel: string; count: number; revenue: number }[];
   totalRevenue: number;
+  /** CA net des commissions plateforme (Airbnb/Booking), extraites des invoiceItems. */
+  netRevenue: number;
+  /** Taux de commission moyen en % du CA brut. */
+  commissionRate: number;
   totalBookings: number;
   tjm: SplitMetric;
   revpar: SplitMetric;
   avgStay: SplitMetric;
   avgLeadTime: SplitMetric;
+  /** Part du CA réalisée en direct (0 commission), en %. */
+  directRevenueShare: number;
+  /** Part des réservations (en nombre) faites en direct, en %. */
+  directBookingShare: number;
+  /** Part du CA liée à un événement du circuit, en %. */
+  eventRevenueShare: number;
+  /** Surcote du TJM pendant les événements vs hors événement, en %. */
+  eventPremium: number;
+  /** Taux d'occupation des 90 prochains jours déjà réservés (occupancy on the books), en %. */
+  forwardOccupancy90: number;
   recentBookings: BookingSummary[];
   topBookings: BookingSummary[];
   projection: RevenueProjection;

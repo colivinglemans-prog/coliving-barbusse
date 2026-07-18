@@ -286,14 +286,21 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 
 ## Dashboard stats (`/dashboard`)
 
-- **StatsCards** : revenus totaux, réservations, occupation (global) ; TJM, RevPAR, durée moy. séjour, délai moy. réservation affichés **maison entière uniquement** (`SplitMetric.house`, plus de breakdown chambre). L'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
+- **StatsCards** (12 cartes, indicateurs standard du secteur). Les métriques par nuitée sont affichées **maison entière uniquement** (`SplitMetric.house`) ; l'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
+  - **Revenus totaux** = CA brut (Σ `b.price`).
+  - **Revenu net** = CA brut − commissions plateformes. Commissions extraites des `invoiceItems` via `sumCommissions` ([lib/fiscal/commissions.ts](lib/fiscal/commissions.ts)) — nécessite `includeInvoiceItems: true` sur `getBookings`. Sous-titre = taux de commission moyen.
+  - **Occupation moyenne** = taux calendaire **réalisé (YTD)** : nuits vendues ÷ nuits disponibles sur la partie *écoulée* de la période (`[from, min(to, today)]`, 9 chambres × jours). Corrige l'ancien biais qui excluait du dénominateur les mois sans réservation (taux gonflé) sans pour autant compter les mois futurs invendus. Helper `occupiedRoomNightsInWindow`.
   - **TJM** = revenu ÷ nuits *vendues* (prix moyen d'une nuit occupée).
-  - **RevPAR** = TJM × taux d'occupation = revenu ÷ nuits *disponibles* (intègre les nuits vides, toujours ≤ TJM). Calculé dans `route.ts` via `occupancyRate`.
+  - **RevPAR** = TJM × taux d'occupation = revenu ÷ nuits *disponibles* (intègre les nuits vides, toujours ≤ TJM).
+  - **Résas directes** = % des résas en direct (0 commission) ; sous-titre = part du CA correspondante.
+  - **Occ. 90 j (à venir)** = occupancy on the books : occupation des 90 prochains jours déjà réservée. **Fetch dédié** `[today-30, today+90]` indépendant de la période sélectionnée, exclut `cancelled`/`black`.
+  - **CA événements** = part du CA liée à un événement du circuit (`findEventForStay`).
+  - **Premium événement** = surcote du TJM pendant les événements vs hors événement.
 - **RevenueProjection annuelle** :
   - Bloc "garanti" : réalisé + confirmé = total, avec barre progress
   - 3 scénarios : Minimum garanti / Tendance actuelle (TJM moyen) / Pricing dynamique (prix BeyondPricing × taux occupation)
   - Pricing dynamique via `getDailyPrices` (Beds24 `/inventory/rooms/calendar?includePrices`)
-- **RevenueChart** : Recharts par mois, split réalisé/prévu
+- **RevenueChart** : Recharts `ComposedChart` par mois — barres réalisé/prévu (axe gauche) + **ligne RevPAR mensuel** (axe droit violet). RevPAR mensuel = (réalisé + réservé) ÷ jours du mois (`MonthRevenue.revpar`).
 - **BookingsTable** (2 tableaux) :
   - Réservations récentes : triées par **date de réservation** (bookingTime) avec colonne "Réservée"
   - Meilleures réservations (TJM) : triées par TJM avec colonne **Événement** (badge indigo via `findEventForStay`)

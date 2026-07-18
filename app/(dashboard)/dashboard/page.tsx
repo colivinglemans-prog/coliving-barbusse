@@ -68,12 +68,19 @@ export default function Dashboard() {
           <div className="space-y-6">
             <StatsCards
               totalRevenue={stats.totalRevenue}
+              netRevenue={stats.netRevenue}
+              commissionRate={stats.commissionRate}
               totalBookings={stats.totalBookings}
               occupancyRate={stats.occupancyRate}
               tjm={stats.tjm}
               revpar={stats.revpar}
               avgStay={stats.avgStay}
               avgLeadTime={stats.avgLeadTime}
+              directRevenueShare={stats.directRevenueShare}
+              directBookingShare={stats.directBookingShare}
+              eventRevenueShare={stats.eventRevenueShare}
+              eventPremium={stats.eventPremium}
+              forwardOccupancy90={stats.forwardOccupancy90}
             />
 
             <RevenueProjection projection={stats.projection} />

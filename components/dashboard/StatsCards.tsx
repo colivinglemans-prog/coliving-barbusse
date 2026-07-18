@@ -2,22 +2,36 @@ import type { SplitMetric } from "@/lib/types";
 
 interface StatsCardsProps {
   totalRevenue: number;
+  netRevenue: number;
+  commissionRate: number;
   totalBookings: number;
   occupancyRate: number;
   tjm: SplitMetric;
   revpar: SplitMetric;
   avgStay: SplitMetric;
   avgLeadTime: SplitMetric;
+  directRevenueShare: number;
+  directBookingShare: number;
+  eventRevenueShare: number;
+  eventPremium: number;
+  forwardOccupancy90: number;
 }
 
 export default function StatsCards({
   totalRevenue,
+  netRevenue,
+  commissionRate,
   totalBookings,
   occupancyRate,
   tjm,
   revpar,
   avgStay,
   avgLeadTime,
+  directRevenueShare,
+  directBookingShare,
+  eventRevenueShare,
+  eventPremium,
+  forwardOccupancy90,
 }: StatsCardsProps) {
   const cards = [
     {
@@ -25,6 +39,15 @@ export default function StatsCards({
       value: `${totalRevenue.toLocaleString("fr-FR")} €`,
       color: "text-rose-500",
       bg: "bg-rose-50",
+      tooltip: "Chiffre d'affaires brut (avant commissions plateformes)",
+    },
+    {
+      label: "Revenu net",
+      value: `${netRevenue.toLocaleString("fr-FR")} €`,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+      tooltip: "CA net des commissions Airbnb/Booking (extraites des factures Beds24). Avant charges fixes.",
+      sub: `−${commissionRate} % de commissions`,
     },
     {
       label: "Réservations",
@@ -37,6 +60,7 @@ export default function StatsCards({
       value: `${occupancyRate} %`,
       color: occupancyRate >= 75 ? "text-emerald-600" : occupancyRate >= 50 ? "text-amber-600" : "text-rose-500",
       bg: occupancyRate >= 75 ? "bg-emerald-50" : occupancyRate >= 50 ? "bg-amber-50" : "bg-rose-50",
+      tooltip: "Taux d'occupation calendaire réalisé (nuits vendues ÷ nuits disponibles, depuis le début de la période)",
     },
     {
       label: "TJM",
@@ -65,6 +89,35 @@ export default function StatsCards({
       bg: "bg-amber-50",
       tooltip: "Nombre moyen de jours entre la date de réservation et l'arrivée (maison entière)",
     },
+    {
+      label: "Résas directes",
+      value: `${directBookingShare} %`,
+      color: "text-cyan-600",
+      bg: "bg-cyan-50",
+      tooltip: "Part des réservations faites en direct (sans commission). En dessous : part du chiffre d'affaires correspondante.",
+      sub: `${directRevenueShare} % du CA`,
+    },
+    {
+      label: "Occ. 90 j (à venir)",
+      value: `${forwardOccupancy90} %`,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      tooltip: "Occupation des 90 prochains jours déjà réservée (occupancy on the books) : indicateur d'avance des réservations.",
+    },
+    {
+      label: "CA événements",
+      value: `${eventRevenueShare} %`,
+      color: "text-fuchsia-600",
+      bg: "bg-fuchsia-50",
+      tooltip: "Part du chiffre d'affaires liée à un événement du circuit (24h, MotoGP, Classic…)",
+    },
+    {
+      label: "Premium événement",
+      value: `${eventPremium >= 0 ? "+" : ""}${eventPremium} %`,
+      color: "text-fuchsia-600",
+      bg: "bg-fuchsia-50",
+      tooltip: "Surcote du TJM pendant les événements par rapport aux périodes hors événement",
+    },
   ];
 
   return (
@@ -76,6 +129,9 @@ export default function StatsCards({
             {card.tooltip && <span className="ml-1 cursor-help text-gray-300">?</span>}
           </p>
           <p className={`mt-1 text-2xl font-bold ${card.color}`}>{card.value}</p>
+          {"sub" in card && card.sub && (
+            <p className="mt-1 text-xs text-gray-500">{card.sub}</p>
+          )}
         </div>
       ))}
     </div>

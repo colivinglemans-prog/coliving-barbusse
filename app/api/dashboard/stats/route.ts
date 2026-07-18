@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBookings, getProperties, getDailyPrices } from "@/lib/beds24";
 import { normalizeChannel } from "@/lib/channel";
 import { findEventForStay } from "@/lib/events";
+import { sumCommissions } from "@/lib/fiscal/commissions";
 import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
 
 function getDateRange(period: string): { from: string; to: string } {
@@ -44,6 +45,17 @@ function getDateRange(period: string): { from: string; to: string } {
 function daysBetween(a: string, b: string): number {
   const msPerDay = 86400000;
   return Math.max(1, Math.round((new Date(b).getTime() - new Date(a).getTime()) / msPerDay));
+}
+
+/** Signed day difference (peut être 0 ou négatif), contrairement à daysBetween qui plafonne à ≥1. */
+function rawDays(a: string, b: string): number {
+  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
+}
+
+function addDaysStr(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().split("T")[0];
 }
 
 function addRevenueToMap(
@@ -146,6 +158,27 @@ function computeOccupancyByMonth(
   return monthMap;
 }
 
+/**
+ * Room-nights occupées à l'intérieur de [windowStart, windowEnd[.
+ * Maison entière = 9 room-nights/nuit, chambre seule = 1. Sert au taux
+ * d'occupation calendaire (réalisé) et à l'occupation prévisionnelle (on the books).
+ */
+function occupiedRoomNightsInWindow(
+  bookings: Beds24Booking[],
+  windowStart: string,
+  windowEnd: string,
+): number {
+  let sum = 0;
+  for (const b of bookings) {
+    const weight = b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? TOTAL_ROOMS : 1;
+    const start = b.arrival > windowStart ? b.arrival : windowStart;
+    const end = b.departure < windowEnd ? b.departure : windowEnd;
+    const nights = rawDays(start, end);
+    if (nights > 0) sum += weight * nights;
+  }
+  return sum;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const period = request.nextUrl.searchParams.get("period") ?? "3m";
@@ -154,9 +187,15 @@ export async function GET(request: NextRequest) {
     const today = new Date().toISOString().split("T")[0];
     const currentMonth = today.substring(0, 7);
 
-    const [bookings, properties] = await Promise.all([
-      getBookings({ arrivalFrom: from, arrivalTo: to }),
+    // Fenêtre glissante pour l'occupation prévisionnelle (90 prochains jours),
+    // indépendante de la période sélectionnée. -30j pour capter les séjours en cours.
+    const fwdWindowStart = addDaysStr(today, -30);
+    const fwdWindowEnd = addDaysStr(today, 90);
+
+    const [bookings, properties, forwardBookings] = await Promise.all([
+      getBookings({ arrivalFrom: from, arrivalTo: to, includeInvoiceItems: true }),
       getProperties(),
+      getBookings({ arrivalFrom: fwdWindowStart, arrivalTo: fwdWindowEnd }),
     ]);
 
     // Revenue by month
@@ -183,12 +222,18 @@ export async function GET(request: NextRequest) {
         const rev = revenueMap.get(month) ?? { realized: 0, upcoming: 0 };
         const occ = occupancyMap.get(month);
         const occupancyRate = occ ? Math.round((occ.occupied / occ.total) * 100) : 0;
+        // RevPAR mensuel = revenu du mois (réalisé + réservé) ÷ nuits disponibles.
+        // La maison = 1 unité louable → nuits dispo = jours du mois.
+        const [mY, mM] = month.split("-").map(Number);
+        const daysInMonth = new Date(mY, mM, 0).getDate();
+        const revpar = daysInMonth > 0 ? Math.round((rev.realized + rev.upcoming) / daysInMonth) : 0;
         return {
           month,
           realized: Math.round(rev.realized * 100) / 100,
           upcoming: Math.round(rev.upcoming * 100) / 100,
           isFuture: month > currentMonth,
           occupancyRate,
+          revpar,
         };
       });
 
@@ -206,11 +251,15 @@ export async function GET(request: NextRequest) {
       ([channel, data]) => ({ channel, ...data }),
     );
 
-    // Global occupancy rate (room-nights based)
-    let occupancyRate = 0;
-    const totalOccupied = Array.from(occupancyMap.values()).reduce((s, v) => s + v.occupied, 0);
-    const totalRoomNights = Array.from(occupancyMap.values()).reduce((s, v) => s + v.total, 0);
-    if (totalRoomNights > 0) occupancyRate = Math.round((totalOccupied / totalRoomNights) * 100);
+    // Taux d'occupation global — calendaire, sur la partie *écoulée* de la période
+    // (façon YTD). Nuits disponibles = 9 chambres × jours écoulés. On ne compte pas
+    // les mois futurs invendus (gérés par l'occupation prévisionnelle) et, à l'inverse,
+    // on n'exclut plus les mois creux passés (ancien biais qui gonflait le taux).
+    const occWindowEnd = to < today ? to : today;
+    const availableRoomNights = TOTAL_ROOMS * Math.max(0, rawDays(from, occWindowEnd));
+    const occupiedRoomNights = occupiedRoomNightsInWindow(bookings, from, occWindowEnd);
+    const occupancyRate =
+      availableRoomNights > 0 ? Math.round((occupiedRoomNights / availableRoomNights) * 100) : 0;
 
     // ─── Split bookings by type ──────────────────────────────
     const houseBookings = bookings.filter((b) => b.propertyId === WHOLE_HOUSE_PROPERTY_ID);
@@ -268,6 +317,46 @@ export async function GET(request: NextRequest) {
       house: computeAvgLeadTime(houseBookings),
       room: computeAvgLeadTime(roomBookings),
     };
+
+    // ─── Revenu net (après commissions plateforme) ───────────
+    // NRevPAR-like : le CA brut moins les commissions Airbnb/Booking (extraites
+    // des invoiceItems Beds24). Reflète l'encaissé réel avant charges fixes.
+    const commissions = sumCommissions(bookings);
+    const netRevenue = Math.round((totalRevenue - commissions) * 100) / 100;
+    const commissionRate =
+      totalRevenue > 0 ? Math.round((commissions / totalRevenue) * 1000) / 10 : 0;
+
+    // ─── Part des réservations directes (0 commission) ───────
+    const directBookings = bookings.filter(
+      (b) => normalizeChannel(b.referer, b.channel) === "Direct",
+    );
+    const directRevenue = directBookings.reduce((s, b) => s + b.price, 0);
+    const directRevenueShare =
+      totalRevenue > 0 ? Math.round((directRevenue / totalRevenue) * 100) : 0;
+    const directBookingShare =
+      bookings.length > 0 ? Math.round((directBookings.length / bookings.length) * 100) : 0;
+
+    // ─── Événements Le Mans : part du CA + premium tarifaire ──
+    const eventBookings = bookings.filter((b) => findEventForStay(b.arrival, b.departure) !== null);
+    const eventRevenue = eventBookings.reduce((s, b) => s + b.price, 0);
+    const eventRevenueShare =
+      totalRevenue > 0 ? Math.round((eventRevenue / totalRevenue) * 100) : 0;
+    const eventNights = computeNights(eventBookings);
+    const nonEventNights = totalNights - eventNights;
+    const nonEventRevenue = totalRevenue - eventRevenue;
+    const tjmEvent = eventNights > 0 ? eventRevenue / eventNights : 0;
+    const tjmNonEvent = nonEventNights > 0 ? nonEventRevenue / nonEventNights : 0;
+    const eventPremium =
+      tjmNonEvent > 0 && tjmEvent > 0 ? Math.round((tjmEvent / tjmNonEvent - 1) * 100) : 0;
+
+    // ─── Occupation prévisionnelle 90 j (occupancy on the books) ─
+    const forwardActive = forwardBookings.filter(
+      (b) => !["cancelled", "black"].includes((b.status ?? "").toLowerCase()),
+    );
+    const forwardAvailable = TOTAL_ROOMS * rawDays(today, fwdWindowEnd);
+    const forwardOccupied = occupiedRoomNightsInWindow(forwardActive, today, fwdWindowEnd);
+    const forwardOccupancy90 =
+      forwardAvailable > 0 ? Math.round((forwardOccupied / forwardAvailable) * 100) : 0;
 
     // ─── Booking summaries ───────────────────────────────────
     function toSummary(b: Beds24Booking): BookingSummary {
@@ -386,11 +475,18 @@ export async function GET(request: NextRequest) {
       occupancyRate,
       channelDistribution,
       totalRevenue,
+      netRevenue,
+      commissionRate,
       totalBookings: bookings.length,
       tjm,
       revpar,
       avgStay,
       avgLeadTime,
+      directRevenueShare,
+      directBookingShare,
+      eventRevenueShare,
+      eventPremium,
+      forwardOccupancy90,
       recentBookings,
       topBookings,
       projection,
