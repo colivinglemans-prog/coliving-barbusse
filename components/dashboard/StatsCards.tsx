@@ -10,16 +10,6 @@ interface StatsCardsProps {
   avgLeadTime: SplitMetric;
 }
 
-function SplitDetail({ house, room, unit }: { house: number; room: number; unit: string }) {
-  if (house === 0 && room === 0) return null;
-  return (
-    <div className="mt-2 flex gap-3 text-xs text-gray-500">
-      <span title="Maison entière">🏠 {house}{unit}</span>
-      <span title="Chambre">🛏️ {room}{unit}</span>
-    </div>
-  );
-}
-
 export default function StatsCards({
   totalRevenue,
   totalBookings,
@@ -50,34 +40,30 @@ export default function StatsCards({
     },
     {
       label: "TJM",
-      value: `${tjm.global} €`,
+      value: `${tjm.house} €`,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
-      tooltip: "Tarif Journalier Moyen : revenu total divisé par le nombre de nuitées vendues",
-      split: { house: tjm.house, room: tjm.room, unit: " €" },
+      tooltip: "Tarif Journalier Moyen (maison entière) : revenu divisé par le nombre de nuitées vendues",
     },
     {
       label: "Revenu / nuit occupée",
-      value: `${Math.round(revpar.global)} €`,
+      value: `${Math.round(revpar.house)} €`,
       color: "text-violet-600",
       bg: "bg-violet-50",
-      tooltip: "Revenu par nuit si la maison est pleine. Compare les deux modes à occupation équivalente (9 chambres)",
-      split: { house: Math.round(revpar.house), room: Math.round(revpar.room), unit: " €" },
+      tooltip: "Revenu par nuit occupée pour la maison entière",
     },
     {
       label: "Durée moy. séjour",
-      value: `${avgStay.global} nuits`,
+      value: `${avgStay.house} nuits`,
       color: "text-sky-600",
       bg: "bg-sky-50",
-      split: { house: avgStay.house, room: avgStay.room, unit: " n" },
     },
     {
       label: "Délai moy. réservation",
-      value: `${avgLeadTime.global} jours`,
+      value: `${avgLeadTime.house} jours`,
       color: "text-amber-600",
       bg: "bg-amber-50",
-      tooltip: "Nombre moyen de jours entre la date de réservation et l'arrivée",
-      split: { house: avgLeadTime.house, room: avgLeadTime.room, unit: " j" },
+      tooltip: "Nombre moyen de jours entre la date de réservation et l'arrivée (maison entière)",
     },
   ];
 
@@ -90,9 +76,6 @@ export default function StatsCards({
             {card.tooltip && <span className="ml-1 cursor-help text-gray-300">?</span>}
           </p>
           <p className={`mt-1 text-2xl font-bold ${card.color}`}>{card.value}</p>
-          {"split" in card && card.split && (
-            <SplitDetail {...card.split} />
-          )}
         </div>
       ))}
     </div>

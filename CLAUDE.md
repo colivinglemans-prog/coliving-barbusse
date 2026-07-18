@@ -286,7 +286,7 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 
 ## Dashboard stats (`/dashboard`)
 
-- **StatsCards** : revenus totaux, TJM, RevPAR, occupation, lead time (global/maison/chambre)
+- **StatsCards** : revenus totaux, réservations, occupation (global) ; TJM, revenu/nuit occupée, durée moy. séjour, délai moy. réservation affichés **maison entière uniquement** (`SplitMetric.house`, plus de breakdown chambre). L'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
 - **RevenueProjection annuelle** :
   - Bloc "garanti" : réalisé + confirmé = total, avec barre progress
   - 3 scénarios : Minimum garanti / Tendance actuelle (TJM moyen) / Pricing dynamique (prix BeyondPricing × taux occupation)
