@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBookings, getProperties, getDailyPrices } from "@/lib/beds24";
-import { normalizeChannel, estimatedCommissionRate } from "@/lib/channel";
+import { normalizeChannel } from "@/lib/channel";
 import { findEventForStay } from "@/lib/events";
 import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
 
@@ -327,18 +327,6 @@ export async function GET(request: NextRequest) {
       room: computeAvgLeadTime(roomBookings),
     };
 
-    // ─── Revenu net (après commissions plateforme, estimé) ───
-    // Beds24 ne transmet pas les commissions comme lignes de facture pour ce
-    // compte : on les estime par canal (taux dans lib/channel.ts, surchargeables
-    // par env). Reflète l'encaissé réel approximatif avant charges fixes.
-    const commissions = bookings.reduce(
-      (s, b) => s + b.price * estimatedCommissionRate(normalizeChannel(b.referer, b.channel)),
-      0,
-    );
-    const netRevenue = Math.round((totalRevenue - commissions) * 100) / 100;
-    const commissionRate =
-      totalRevenue > 0 ? Math.round((commissions / totalRevenue) * 1000) / 10 : 0;
-
     // ─── Part des réservations directes (0 commission) ───────
     const directBookings = bookings.filter(
       (b) => normalizeChannel(b.referer, b.channel) === "Direct",
@@ -348,24 +336,6 @@ export async function GET(request: NextRequest) {
       totalRevenue > 0 ? Math.round((directRevenue / totalRevenue) * 100) : 0;
     const directBookingShare =
       bookings.length > 0 ? Math.round((directBookings.length / bookings.length) * 100) : 0;
-
-    // ─── Événements Le Mans : part du CA + premium tarifaire ──
-    const eventBookings = bookings.filter((b) => findEventForStay(b.arrival, b.departure) !== null);
-    const eventRevenue = eventBookings.reduce((s, b) => s + b.price, 0);
-    const eventRevenueShare =
-      totalRevenue > 0 ? Math.round((eventRevenue / totalRevenue) * 100) : 0;
-    const eventNights = computeNights(eventBookings);
-    const nonEventNights = totalNights - eventNights;
-    const nonEventRevenue = totalRevenue - eventRevenue;
-    const tjmEvent = eventNights > 0 ? eventRevenue / eventNights : 0;
-    const tjmNonEvent = nonEventNights > 0 ? nonEventRevenue / nonEventNights : 0;
-    // Garde-fou : le premium n'a de sens qu'avec un échantillon hors-événement
-    // représentatif (≥ 10 nuitées). Sinon une poignée de nuits bon marché fait
-    // exploser le ratio. `null` = non significatif (affiché « n/a »).
-    const eventPremium =
-      tjmEvent > 0 && tjmNonEvent > 0 && nonEventNights >= 10
-        ? Math.round((tjmEvent / tjmNonEvent - 1) * 100)
-        : null;
 
     // ─── Occupation prévisionnelle 90 j (occupancy on the books) ─
     const forwardActive = forwardBookings.filter(
@@ -493,8 +463,6 @@ export async function GET(request: NextRequest) {
       occupancyRate,
       channelDistribution,
       totalRevenue,
-      netRevenue,
-      commissionRate,
       totalBookings: bookings.length,
       tjm,
       revpar,
@@ -502,8 +470,6 @@ export async function GET(request: NextRequest) {
       avgLeadTime,
       directRevenueShare,
       directBookingShare,
-      eventRevenueShare,
-      eventPremium,
       forwardOccupancy90,
       recentBookings,
       topBookings,

@@ -2,8 +2,6 @@ import type { SplitMetric } from "@/lib/types";
 
 interface StatsCardsProps {
   totalRevenue: number;
-  netRevenue: number;
-  commissionRate: number;
   totalBookings: number;
   occupancyRate: number;
   tjm: SplitMetric;
@@ -12,15 +10,11 @@ interface StatsCardsProps {
   avgLeadTime: SplitMetric;
   directRevenueShare: number;
   directBookingShare: number;
-  eventRevenueShare: number;
-  eventPremium: number | null;
   forwardOccupancy90: number;
 }
 
 export default function StatsCards({
   totalRevenue,
-  netRevenue,
-  commissionRate,
   totalBookings,
   occupancyRate,
   tjm,
@@ -29,8 +23,6 @@ export default function StatsCards({
   avgLeadTime,
   directRevenueShare,
   directBookingShare,
-  eventRevenueShare,
-  eventPremium,
   forwardOccupancy90,
 }: StatsCardsProps) {
   const cards = [
@@ -40,14 +32,6 @@ export default function StatsCards({
       color: "text-rose-500",
       bg: "bg-rose-50",
       tooltip: "Chiffre d'affaires brut (avant commissions plateformes)",
-    },
-    {
-      label: "Revenu net (est.)",
-      value: `${netRevenue.toLocaleString("fr-FR")} €`,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
-      tooltip: "CA net des commissions plateformes, estimées par canal (Beds24 ne les transmet pas). Taux configurables. Avant charges fixes.",
-      sub: `−${commissionRate} % de commissions (est.)`,
     },
     {
       label: "Réservations",
@@ -103,20 +87,6 @@ export default function StatsCards({
       color: "text-blue-600",
       bg: "bg-blue-50",
       tooltip: "Occupation des 90 prochains jours déjà réservée (occupancy on the books) : indicateur d'avance des réservations.",
-    },
-    {
-      label: "CA événements",
-      value: `${eventRevenueShare} %`,
-      color: "text-fuchsia-600",
-      bg: "bg-fuchsia-50",
-      tooltip: "Part du chiffre d'affaires liée à un événement du circuit (24h, MotoGP, Classic…)",
-    },
-    {
-      label: "Premium événement",
-      value: eventPremium === null ? "n/a" : `${eventPremium >= 0 ? "+" : ""}${eventPremium} %`,
-      color: "text-fuchsia-600",
-      bg: "bg-fuchsia-50",
-      tooltip: "Surcote du TJM pendant les événements par rapport aux périodes hors événement (n/a si trop peu de nuitées hors événement pour être fiable)",
     },
   ];
 

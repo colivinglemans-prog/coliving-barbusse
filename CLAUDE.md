@@ -286,17 +286,14 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 
 ## Dashboard stats (`/dashboard`)
 
-- **Statuts exclus** : la route stats filtre `cancelled`/`black` (`EXCLUDED_STATUSES`, cohérent avec `lib/bookings.ts` / `lib/fiscal`). Sans ça, les blocages propriétaire à 0 € et annulations faussaient revenus, TJM, occupation et surtout le premium événementiel.
-- **StatsCards** (12 cartes, indicateurs standard du secteur). Les métriques par nuitée sont affichées **maison entière uniquement** (`SplitMetric.house`) ; l'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
+- **Statuts exclus** : la route stats filtre `cancelled`/`black` (`EXCLUDED_STATUSES`, cohérent avec `lib/bookings.ts` / `lib/fiscal`). Sans ça, les blocages propriétaire à 0 € et annulations faussaient revenus, TJM et occupation.
+- **StatsCards** (9 cartes, indicateurs standard du secteur). Les métriques par nuitée sont affichées **maison entière uniquement** (`SplitMetric.house`) ; l'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
   - **Revenus totaux** = CA brut (Σ `b.price`).
-  - **Revenu net (est.)** = CA brut − commissions plateformes **estimées par canal**. ⚠️ Beds24 ne transmet PAS les commissions comme lignes de facture pour ce compte (Fiscalité montre aussi ~0 €), donc on les estime via `estimatedCommissionRate(channel)` ([lib/channel.ts](lib/channel.ts)) : défauts Airbnb/Booking/Abritel 15 %, Direct 0 %, surchargeables par env (`COMMISSION_RATE_*`). Sous-titre = taux moyen estimé.
   - **Occupation moyenne** = taux calendaire **réalisé (YTD)** : nuits vendues ÷ nuits disponibles sur la partie *écoulée* de la période (`[from, min(to, today)]`, 9 chambres × jours). Corrige l'ancien biais qui excluait du dénominateur les mois sans réservation (taux gonflé) sans pour autant compter les mois futurs invendus. Helper `occupiedRoomNightsInWindow`.
   - **TJM** = revenu ÷ nuits *vendues* (prix moyen d'une nuit occupée).
   - **RevPAR** = TJM × taux d'occupation = revenu ÷ nuits *disponibles* (intègre les nuits vides, toujours ≤ TJM).
   - **Résas directes** = % des résas en direct (0 commission) ; sous-titre = part du CA correspondante.
   - **Occ. 90 j (à venir)** = occupancy on the books : occupation des 90 prochains jours déjà réservée. **Fetch dédié** `[today-30, today+90]` indépendant de la période sélectionnée, exclut `cancelled`/`black`.
-  - **CA événements** = part du CA liée à un événement du circuit (`findEventForStay`).
-  - **Premium événement** = surcote du TJM pendant les événements vs hors événement. Garde-fou : `null` (affiché « n/a ») si < 10 nuitées hors événement (échantillon non représentatif → ratio qui explose).
 - **RevenueProjection annuelle** :
   - Bloc "garanti" : réalisé + confirmé = total, avec barre progress
   - 3 scénarios : Minimum garanti / Tendance actuelle (TJM moyen) / Pricing dynamique (prix BeyondPricing × taux occupation)
@@ -665,12 +662,6 @@ INVOICE_BIC              # BIC / SWIFT
 INVOICE_BANK_NAME        # Nom de la banque
 INVOICE_WEBSITE          # URL du site affichée sur la facture (optionnel)
 STRIPE_SECRET_KEY        # Clé Stripe (restricted read-only suffit) pour lister les paiements
-
-# Commissions plateformes estimées (dashboard stats "Revenu net") — optionnel, fraction 0-1
-COMMISSION_RATE_AIRBNB                # Défaut 0.15
-COMMISSION_RATE_BOOKING               # Défaut 0.15
-COMMISSION_RATE_ABRITEL               # Défaut 0.15
-COMMISSION_RATE_DIRECT                # Défaut 0
 
 # Notifications push (cron check-in)
 NTFY_TOPIC                            # URL complète du topic ntfy (ex https://ntfy.sh/coliving-barbusse-xxx)

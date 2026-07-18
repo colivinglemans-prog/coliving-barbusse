@@ -57,10 +57,6 @@ export interface DashboardStats {
   occupancyRate: number;
   channelDistribution: { channel: string; count: number; revenue: number }[];
   totalRevenue: number;
-  /** CA net des commissions plateforme (Airbnb/Booking), extraites des invoiceItems. */
-  netRevenue: number;
-  /** Taux de commission moyen en % du CA brut. */
-  commissionRate: number;
   totalBookings: number;
   tjm: SplitMetric;
   revpar: SplitMetric;
@@ -70,10 +66,6 @@ export interface DashboardStats {
   directRevenueShare: number;
   /** Part des réservations (en nombre) faites en direct, en %. */
   directBookingShare: number;
-  /** Part du CA liée à un événement du circuit, en %. */
-  eventRevenueShare: number;
-  /** Surcote du TJM pendant les événements vs hors événement, en %. null si non significatif. */
-  eventPremium: number | null;
   /** Taux d'occupation des 90 prochains jours déjà réservés (occupancy on the books), en %. */
   forwardOccupancy90: number;
   recentBookings: BookingSummary[];
