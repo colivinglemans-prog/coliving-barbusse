@@ -235,13 +235,14 @@ export async function GET(request: NextRequest) {
       room: roomNights > 0 ? Math.round(roomRevenue / roomNights) : 0,
     };
 
-    // Revenue per night at full occupancy — fair comparison between modes
-    // House: revenue per night (all 9 rooms by definition)
-    // Room: TJM room × 9 (what the house would earn if all 9 rooms were booked)
+    // RevPAR (Revenue Per Available Night) = TJM × taux d'occupation.
+    // Contrairement au TJM (revenu par nuit *vendue*), le RevPAR intègre les
+    // nuits vides : il est donc toujours ≤ TJM et reflète le rendement réel.
+    const occRatio = occupancyRate / 100;
     const revpar: SplitMetric = {
-      global: totalNights > 0 ? Math.round(totalRevenue / totalNights) : 0,
-      house: houseNights > 0 ? Math.round(houseRevenue / houseNights) : 0,
-      room: tjm.room * TOTAL_ROOMS,
+      global: Math.round(tjm.global * occRatio),
+      house: Math.round(tjm.house * occRatio),
+      room: Math.round(tjm.room * occRatio),
     };
 
     // Durée moyenne de séjour

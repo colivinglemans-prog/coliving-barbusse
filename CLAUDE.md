@@ -286,7 +286,9 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 
 ## Dashboard stats (`/dashboard`)
 
-- **StatsCards** : revenus totaux, réservations, occupation (global) ; TJM, revenu/nuit occupée, durée moy. séjour, délai moy. réservation affichés **maison entière uniquement** (`SplitMetric.house`, plus de breakdown chambre). L'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
+- **StatsCards** : revenus totaux, réservations, occupation (global) ; TJM, RevPAR, durée moy. séjour, délai moy. réservation affichés **maison entière uniquement** (`SplitMetric.house`, plus de breakdown chambre). L'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
+  - **TJM** = revenu ÷ nuits *vendues* (prix moyen d'une nuit occupée).
+  - **RevPAR** = TJM × taux d'occupation = revenu ÷ nuits *disponibles* (intègre les nuits vides, toujours ≤ TJM). Calculé dans `route.ts` via `occupancyRate`.
 - **RevenueProjection annuelle** :
   - Bloc "garanti" : réalisé + confirmé = total, avec barre progress
   - 3 scénarios : Minimum garanti / Tendance actuelle (TJM moyen) / Pricing dynamique (prix BeyondPricing × taux occupation)

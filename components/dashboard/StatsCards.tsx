@@ -46,11 +46,11 @@ export default function StatsCards({
       tooltip: "Tarif Journalier Moyen (maison entière) : revenu divisé par le nombre de nuitées vendues",
     },
     {
-      label: "Revenu / nuit occupée",
-      value: `${Math.round(revpar.house)} €`,
+      label: "RevPAR",
+      value: `${revpar.house} €`,
       color: "text-violet-600",
       bg: "bg-violet-50",
-      tooltip: "Revenu par nuit occupée pour la maison entière",
+      tooltip: "Revenu par nuit disponible (maison entière) : TJM × taux d'occupation. Intègre les nuits vides, donc toujours ≤ TJM.",
     },
     {
       label: "Durée moy. séjour",
