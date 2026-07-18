@@ -13,7 +13,7 @@ interface StatsCardsProps {
   directRevenueShare: number;
   directBookingShare: number;
   eventRevenueShare: number;
-  eventPremium: number;
+  eventPremium: number | null;
   forwardOccupancy90: number;
 }
 
@@ -113,10 +113,10 @@ export default function StatsCards({
     },
     {
       label: "Premium événement",
-      value: `${eventPremium >= 0 ? "+" : ""}${eventPremium} %`,
+      value: eventPremium === null ? "n/a" : `${eventPremium >= 0 ? "+" : ""}${eventPremium} %`,
       color: "text-fuchsia-600",
       bg: "bg-fuchsia-50",
-      tooltip: "Surcote du TJM pendant les événements par rapport aux périodes hors événement",
+      tooltip: "Surcote du TJM pendant les événements par rapport aux périodes hors événement (n/a si trop peu de nuitées hors événement pour être fiable)",
     },
   ];
 

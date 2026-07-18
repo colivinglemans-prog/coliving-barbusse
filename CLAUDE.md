@@ -286,6 +286,7 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 
 ## Dashboard stats (`/dashboard`)
 
+- **Statuts exclus** : la route stats filtre `cancelled`/`black` (`EXCLUDED_STATUSES`, cohérent avec `lib/bookings.ts` / `lib/fiscal`). Sans ça, les blocages propriétaire à 0 € et annulations faussaient revenus, TJM, occupation et surtout le premium événementiel.
 - **StatsCards** (12 cartes, indicateurs standard du secteur). Les métriques par nuitée sont affichées **maison entière uniquement** (`SplitMetric.house`) ; l'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
   - **Revenus totaux** = CA brut (Σ `b.price`).
   - **Revenu net** = CA brut − commissions plateformes. Commissions extraites des `invoiceItems` via `sumCommissions` ([lib/fiscal/commissions.ts](lib/fiscal/commissions.ts)) — nécessite `includeInvoiceItems: true` sur `getBookings`. Sous-titre = taux de commission moyen.
@@ -295,7 +296,7 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
   - **Résas directes** = % des résas en direct (0 commission) ; sous-titre = part du CA correspondante.
   - **Occ. 90 j (à venir)** = occupancy on the books : occupation des 90 prochains jours déjà réservée. **Fetch dédié** `[today-30, today+90]` indépendant de la période sélectionnée, exclut `cancelled`/`black`.
   - **CA événements** = part du CA liée à un événement du circuit (`findEventForStay`).
-  - **Premium événement** = surcote du TJM pendant les événements vs hors événement.
+  - **Premium événement** = surcote du TJM pendant les événements vs hors événement. Garde-fou : `null` (affiché « n/a ») si < 10 nuitées hors événement (échantillon non représentatif → ratio qui explose).
 - **RevenueProjection annuelle** :
   - Bloc "garanti" : réalisé + confirmé = total, avec barre progress
   - 3 scénarios : Minimum garanti / Tendance actuelle (TJM moyen) / Pricing dynamique (prix BeyondPricing × taux occupation)

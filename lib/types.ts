@@ -72,8 +72,8 @@ export interface DashboardStats {
   directBookingShare: number;
   /** Part du CA liée à un événement du circuit, en %. */
   eventRevenueShare: number;
-  /** Surcote du TJM pendant les événements vs hors événement, en %. */
-  eventPremium: number;
+  /** Surcote du TJM pendant les événements vs hors événement, en %. null si non significatif. */
+  eventPremium: number | null;
   /** Taux d'occupation des 90 prochains jours déjà réservés (occupancy on the books), en %. */
   forwardOccupancy90: number;
   recentBookings: BookingSummary[];

@@ -124,6 +124,10 @@ function computeRevenue(
 const TOTAL_ROOMS = 9;
 const WHOLE_HOUSE_PROPERTY_ID = 303771;
 
+// Statuts exclus de toutes les stats (annulations + blocages propriétaire à 0 €).
+// Cohérent avec lib/bookings.ts et lib/fiscal/revenus.ts.
+const EXCLUDED_STATUSES = new Set(["cancelled", "black"]);
+
 function computeOccupancyByMonth(
   bookings: Beds24Booking[],
 ): Map<string, { occupied: number; total: number }> {
@@ -192,11 +196,17 @@ export async function GET(request: NextRequest) {
     const fwdWindowStart = addDaysStr(today, -30);
     const fwdWindowEnd = addDaysStr(today, 90);
 
-    const [bookings, properties, forwardBookings] = await Promise.all([
+    const [rawBookings, properties, forwardBookings] = await Promise.all([
       getBookings({ arrivalFrom: from, arrivalTo: to, includeInvoiceItems: true }),
       getProperties(),
       getBookings({ arrivalFrom: fwdWindowStart, arrivalTo: fwdWindowEnd }),
     ]);
+
+    // Exclut annulations et blocages propriétaire (0 €) qui faussaient revenus,
+    // TJM, occupation et le premium événementiel.
+    const bookings = rawBookings.filter(
+      (b) => !EXCLUDED_STATUSES.has((b.status ?? "").toLowerCase()),
+    );
 
     // Revenue by month
     const revenueMap = computeRevenue(bookings, mode, today);
@@ -346,12 +356,17 @@ export async function GET(request: NextRequest) {
     const nonEventRevenue = totalRevenue - eventRevenue;
     const tjmEvent = eventNights > 0 ? eventRevenue / eventNights : 0;
     const tjmNonEvent = nonEventNights > 0 ? nonEventRevenue / nonEventNights : 0;
+    // Garde-fou : le premium n'a de sens qu'avec un échantillon hors-événement
+    // représentatif (≥ 10 nuitées). Sinon une poignée de nuits bon marché fait
+    // exploser le ratio. `null` = non significatif (affiché « n/a »).
     const eventPremium =
-      tjmNonEvent > 0 && tjmEvent > 0 ? Math.round((tjmEvent / tjmNonEvent - 1) * 100) : 0;
+      tjmEvent > 0 && tjmNonEvent > 0 && nonEventNights >= 10
+        ? Math.round((tjmEvent / tjmNonEvent - 1) * 100)
+        : null;
 
     // ─── Occupation prévisionnelle 90 j (occupancy on the books) ─
     const forwardActive = forwardBookings.filter(
-      (b) => !["cancelled", "black"].includes((b.status ?? "").toLowerCase()),
+      (b) => !EXCLUDED_STATUSES.has((b.status ?? "").toLowerCase()),
     );
     const forwardAvailable = TOTAL_ROOMS * rawDays(today, fwdWindowEnd);
     const forwardOccupied = occupiedRoomNightsInWindow(forwardActive, today, fwdWindowEnd);
