@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,14 +20,22 @@ export default function Login() {
       });
 
       if (res.ok) {
-        router.push("/dashboard");
+        const data = await res.json();
+        // Navigation dure (pas router.push) : force le middleware à re-tourner
+        // côté serveur avec le cookie fraîchement posé et contourne le Router
+        // Cache client (qui pouvait avoir préfetché /dashboard en version login).
+        // Les viewers n'ont pas accès à /dashboard → on les envoie directement
+        // sur le calendrier pour éviter un hop de redirection supplémentaire.
+        window.location.href =
+          data.role === "viewer" ? "/dashboard/calendar" : "/dashboard";
+        return; // garde le spinner actif pendant le chargement de la page
       } else {
         const data = await res.json();
         setError(data.error || "Erreur de connexion");
+        setLoading(false);
       }
     } catch {
       setError("Erreur réseau");
-    } finally {
       setLoading(false);
     }
   }
