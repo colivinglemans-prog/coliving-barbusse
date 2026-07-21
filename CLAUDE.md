@@ -639,6 +639,7 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 ```
 DASHBOARD_PASSWORD       # Mot de passe admin
 DASHBOARD_PASSWORD_VIEWER # Mot de passe viewer (calendrier + chauffage)
+DASHBOARD_PASSWORD_VIEWER_* # Mots de passe viewer nommés, même accès (ex: DASHBOARD_PASSWORD_VIEWER_Sylvie)
 DASHBOARD_SECRET         # Secret JWT (HS256)
 BEDS24_API_TOKEN         # Long life token Beds24 (read-only, scopes read:bookings*)
 BEDS24_REFRESH_TOKEN     # Refresh token Beds24 (long life, scope write:bookings) pour l'édition des notes.

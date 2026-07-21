@@ -9,7 +9,17 @@ export async function POST(request: NextRequest) {
 
   if (password === process.env.DASHBOARD_PASSWORD) {
     role = "admin";
-  } else if (password === process.env.DASHBOARD_PASSWORD_VIEWER) {
+  } else if (
+    // Mot de passe viewer générique OU tout mot de passe viewer nommé
+    // (ex: DASHBOARD_PASSWORD_VIEWER_Sylvie) → même accès viewer.
+    Object.entries(process.env).some(
+      ([key, value]) =>
+        key.startsWith("DASHBOARD_PASSWORD_VIEWER") &&
+        value !== undefined &&
+        value !== "" &&
+        value === password,
+    )
+  ) {
     role = "viewer";
   }
 
