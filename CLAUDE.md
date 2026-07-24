@@ -231,6 +231,27 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 
 **Vercel** : les deux tokens doivent être configurés sur Production + Development (Preview est bloqué par le wrapper plugin Vercel — non critique vu le workflow `vercel --prod` direct).
 
+### Historique archivé (propriété "à la chambre" supprimée)
+
+La propriété **310268** ("Coliving Henri Barbusse", location à la chambre) a été supprimée du compte
+Beds24 (coût d'abonnement) — l'activité est désormais **maison entière uniquement** (303771). Ses
+réservations n'existent donc plus dans l'API. On les conserve pour les dashboards + le moteur fiscal via
+un merge transparent :
+
+- **Sauvegarde** : `scripts/beds24-backup.mjs` aspire tout le compte par API et écrit deux fichiers :
+  - `data/beds24-raw-backup.json` — dump brut intégral (disaster recovery, **non lu au runtime**).
+  - `data/bookings-archive.json` — sous-ensemble `propertyId ∈ ARCHIVED_PROPERTY_IDS` (310268),
+    **lu au runtime**. Lancer : `node --env-file=.env.local scripts/beds24-backup.mjs`.
+- **Merge** : [lib/bookings-archive.ts](lib/bookings-archive.ts) (`getArchivedBookings()`, `ARCHIVED_PROPERTY_IDS`)
+  est appelé par `getBookings()` ([lib/beds24.ts](lib/beds24.ts)) : dédup par `id`, **le live gagne**, on
+  n'injecte que les résas archivées absentes du live et matchant les mêmes filtres (dates + statuts).
+  Tant que la propriété existe, ses résas live écrasent les archivées (zéro doublon) ; une fois supprimée,
+  l'archive prend le relais **sans changement de code**. Tous les consommateurs en héritent (stats classe
+  310268 en `type:"room"`, fiscal garde `310268` dans `propertyIds` de `data/fiscal/2026.json`).
+- Endpoints d'inventaire (`getAvailability`/`getDailyPrices`/`getMinStay`) et `updateBookingNotes` ne
+  concernent pas l'archive (historique en lecture seule).
+- **Ré-exécuter le backup** si de nouvelles résas 310268 apparaissent avant la suppression définitive.
+
 ## Heatzy Pilote Pro
 
 - **API** : Gizwits (`https://euapi.gizwits.com`), App ID `c70a66ff039d41b4a220e198b0fcc8b3`
