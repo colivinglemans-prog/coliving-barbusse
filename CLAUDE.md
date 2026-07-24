@@ -83,7 +83,7 @@ lib/
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
   auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
-  beds24.ts           # Client API Beds24 (cache 5 min)
+  beds24.ts           # Client API Beds24 (cache Next.js 60s : next.revalidate)
   heatzy.ts           # Client API Heatzy + logique scheduling
   email.ts            # Alertes email via Resend
   cron-auth.ts        # Vérification CRON_SECRET pour les cron jobs
