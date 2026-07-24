@@ -1,4 +1,5 @@
 import type { Beds24Booking, Beds24Property } from "./types";
+import { getArchivedBookings } from "./bookings-archive";
 
 const BEDS24_API_URL = "https://api.beds24.com/v2";
 
@@ -111,7 +112,20 @@ export async function getBookings(params?: {
   }
 
   const data = await beds24Fetch<{ data: Beds24Booking[] }>("/bookings", queryParams);
-  return data.data ?? [];
+  const live = data.data ?? [];
+
+  // Réinjecte l'historique des propriétés supprimées de Beds24 (voir lib/bookings-archive.ts).
+  // Dédup par id : le live gagne, on n'ajoute que les résas archivées absentes du live.
+  const liveIds = new Set(live.map((b) => b.id));
+  const archived = getArchivedBookings({
+    arrivalFrom: params?.arrivalFrom,
+    arrivalTo: params?.arrivalTo,
+    departureFrom: params?.departureFrom,
+    departureTo: params?.departureTo,
+    statuses: params?.statuses,
+  }).filter((b) => !liveIds.has(b.id));
+
+  return [...live, ...archived];
 }
 
 export async function getBookingById(id: number): Promise<Beds24Booking | null> {
