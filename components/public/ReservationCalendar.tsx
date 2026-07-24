@@ -53,8 +53,10 @@ export default function ReservationCalendar() {
       const lastDay = daysInMonth(month2.year, month2.month);
       const to = `${key2}-${String(lastDay).padStart(2, "0")}`;
 
+      // Toujours no-store : le navigateur ne doit jamais resservir une dispo périmée
+      // (le cache serveur Next.js de 60 s protège déjà le quota API Beds24).
       const res = await fetch(`/api/availability?mode=map&from=${from}&to=${to}`, {
-        cache: force ? "no-store" : "default",
+        cache: "no-store",
       });
       const data = await res.json();
 
