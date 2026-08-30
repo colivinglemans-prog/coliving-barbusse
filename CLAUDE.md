@@ -517,12 +517,12 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
 
 Estimation indicative de l'imposition (IR + PS/SSI) et du test de bascule LMP,
 à partir des résas Beds24 + charges saisies + données foyer. **Ne remplace pas
-le travail du comptable** (SAS CONTALIM pour ce dossier).
+la déclaration officielle** (faite via LMNP.ai pour ce dossier).
 
 ### Contexte utilisateur (fiscalité 2026)
 
 - **Régime** : LMNP au **réel simplifié** (pas de TVA — art. 293B CGI).
-- **Comptable** : SAS CONTALIM (Ruy-Montceau 38300) — dossier 260083, SIREN 535 071 757.
+- **Tenue comptable / déclaration** : **LMNP.ai** (plateforme en autonomie, liasse 2031 en EDI) — SIREN 535 071 757. Plus d'expert-comptable en cabinet (ex-SAS CONTALIM, dossier clos) → la conformité (échéances, formalités, facturation électronique) est à la charge de l'exploitant.
 - **Adresse activité** : à transférer du 23 Allée des Dahlias, 92320 Châtillon (bien vendu) vers 42 rue Henri Barbusse, 72100 Le Mans (bien actif). Via formalites.entreprises.gouv.fr.
 - **RP** : Châtillon 92320 (≠ adresse de l'activité).
 - **Foyer** : couple marié + 2 enfants = **3 parts fiscales**. TMI 2026 estimée **30 %** (bascule depuis 11 % en 2024).
