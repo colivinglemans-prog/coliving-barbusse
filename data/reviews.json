@@ -1,5 +1,35 @@
 [
   {
+    "name": "Vassilis",
+    "location": "France",
+    "date": "2026-08",
+    "rating": 5,
+    "text": "Un très bel endroit qui correspond parfaitement à la description. Merci pour votre accueil et au plaisir. Cordialement",
+    "photo": "https://a0.muscache.com/im/pictures/user/User-459700923/original/a11720ae-5c86-4c7d-bb51-0fd18ea692f2.jpeg?im_w=240",
+    "sourceLang": "fr",
+    "translations": {
+      "en": "A really lovely place that matches the description perfectly. Thank you for your welcome, hope to see you again. Best regards",
+      "it": "Un posto davvero bellissimo, perfettamente conforme alla descrizione. Grazie per la vostra accoglienza e alla prossima. Cordiali saluti",
+      "de": "Ein sehr schöner Ort, der genau der Beschreibung entspricht. Vielen Dank für Ihren herzlichen Empfang und bis zum nächsten Mal. Mit freundlichen Grüßen",
+      "es": "Un lugar precioso que se corresponde perfectamente con la descripción. Gracias por su acogida y hasta la próxima. Un cordial saludo"
+    }
+  },
+  {
+    "name": "Inma",
+    "location": "Espagne",
+    "date": "2026-08",
+    "rating": 5,
+    "text": "Ha sido una estancia muy agradable, éramos un grupo familiar de 18 personas, hemos estado muy cómodos, el poder cocinar allí. La amplitud de la cocina, las duchas en la habitación, te da más intimidad, las camas supercómodas y la terraza un plus, se estaba genial. Es una zona muy tranquila, cerca del centro. Le Mans es precioso. Muchas gracias por todo.",
+    "photo": "",
+    "sourceLang": "es",
+    "translations": {
+      "fr": "Le séjour a été très agréable, nous étions un groupe familial de 18 personnes et nous avons été très à l'aise, avec la possibilité de cuisiner sur place. La grande cuisine, les douches dans les chambres qui offrent plus d'intimité, les lits super confortables et la terrasse en plus, c'était génial. C'est un quartier très calme, proche du centre. Le Mans est magnifique. Merci beaucoup pour tout.",
+      "en": "It was a very pleasant stay. We were a family group of 18 and we were very comfortable, with the option of cooking there. The spacious kitchen, the showers in the bedrooms which give you more privacy, the super comfortable beds and the terrace as a bonus, it was great. It's a very quiet area, close to the centre. Le Mans is beautiful. Thank you so much for everything.",
+      "it": "È stato un soggiorno molto piacevole, eravamo un gruppo familiare di 18 persone e siamo stati molto comodi, con la possibilità di cucinare sul posto. L'ampiezza della cucina, le docce in camera che danno più intimità, i letti comodissimi e la terrazza in più, si stava benissimo. È una zona molto tranquilla, vicino al centro. Le Mans è bellissima. Grazie mille di tutto.",
+      "de": "Es war ein sehr angenehmer Aufenthalt, wir waren eine Familiengruppe von 18 Personen und haben uns sehr wohl gefühlt, auch weil wir dort kochen konnten. Die große Küche, die Duschen in den Zimmern, die mehr Privatsphäre bieten, die superbequemen Betten und die Terrasse als Plus – es war einfach toll. Die Gegend ist sehr ruhig und liegt in der Nähe des Zentrums. Le Mans ist wunderschön. Vielen Dank für alles."
+    }
+  },
+  {
     "name": "Paul",
     "location": "Singapore",
     "date": "2026-05",
