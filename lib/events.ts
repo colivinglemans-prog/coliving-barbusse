@@ -53,8 +53,18 @@ export const LE_MANS_EVENTS: LeMansEvent[] = [
   { name: "Réunion hippique Hunaudières", start: "2026-05-21", end: "2026-05-21" },
   // GP Explorer dates annoncées plus tard
 
-  // 2027
-  { name: "Le Mans Classic 2027", start: "2027-07-02", end: "2027-07-04" },
+  // 2027 — uniquement les dates officiellement annoncées par les organisateurs.
+  // Le calendrier complet du circuit (lemans.org) paraît habituellement en octobre
+  // pour l'année suivante : revenir le compléter à ce moment-là.
+  { name: "Exclusive Drive 2027", start: "2027-03-19", end: "2027-03-21" },
+  { name: "24 Heures Moto 2027", start: "2027-04-16", end: "2027-04-19" },
+  // ATTENTION : le calendrier MotoGP 2027 n'est PAS officiel à ce jour
+  // (tickets.motogp.com affiche « no official date » pour la France). Le 7-9 mai vient
+  // des revendeurs de billets, d'autres sources annoncent le 14-16 mai. Ne rien bloquer
+  // ni tarifer sur cette base avant publication du calendrier FIM/Dorna.
+  { name: "MotoGP France 2027 (à confirmer)", start: "2027-05-07", end: "2027-05-09" },
+  { name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13" },
+  { name: "Le Mans Classic Heritage 2027", start: "2027-07-01", end: "2027-07-04" },
 ];
 
 /**
@@ -121,8 +131,16 @@ export function findEventOnDay(dateStr: string): LeMansEvent | null {
   return null;
 }
 
-/** Short label for calendar display (e.g., "24h Mans", "MotoGP", "Le Mans Classic") */
+/**
+ * Short label for calendar display (e.g., "24h Mans", "MotoGP", "Le Mans Classic").
+ * Un événement dont la date n'est pas encore officielle est suffixé « ? ».
+ */
 export function shortEventLabel(name: string): string {
+  const base = baseEventLabel(name);
+  return name.includes("à confirmer") ? `${base} ?` : base;
+}
+
+function baseEventLabel(name: string): string {
   if (name.includes("24 Heures du Mans")) return "24h Mans";
   if (name.includes("24 Heures Moto")) return "24h Moto";
   if (name.includes("MotoGP")) return "MotoGP";
@@ -146,5 +164,6 @@ export function shortEventLabel(name: string): string {
   if (name.includes("Porsche") || name.includes("F4")) return "Porsche/F4";
   if (name.includes("Inter Écurie") || name.includes("Slalom")) return "Slalom ACO";
   if (name.includes("Trophée Tourisme")) return "TTE";
+  if (name.includes("Exclusive Drive")) return "Exclusive Drive";
   return name;
 }
