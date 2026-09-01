@@ -28,7 +28,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   );
 
   const blogPages: MetadataRoute.Sitemap = locales.flatMap((locale) =>
-    BLOG_POSTS.map((post) => ({
+    // Les éditions passées remplacées par une nouvelle sont en noindex :
+    // les lister ici enverrait un signal contradictoire à Google.
+    BLOG_POSTS.filter((post) => !post.supersededBy).map((post) => ({
       url: `${baseUrl}/${locale}/blog/${post.slug}`,
       lastModified: new Date(post.date),
       changeFrequency: "monthly" as const,

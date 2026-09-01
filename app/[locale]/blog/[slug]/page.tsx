@@ -86,7 +86,61 @@ import ArticleESMondialKarting from "@/lib/blog/content/es/championnat-monde-kar
 
 const SITE_URL = "https://www.coliving-barbusse.fr";
 
+// Editions 2027 (les editions 2026 restent en ligne comme archives)
+import Article24hMoto2027 from "@/lib/blog/content/fr/24-heures-moto-le-mans-2027";
+import ArticleLeMansClassic2027 from "@/lib/blog/content/fr/le-mans-classic-2027";
+import Article24hDuMans2027 from "@/lib/blog/content/fr/ou-se-loger-24h-du-mans-2027";
+import ArticleMotoGP2027 from "@/lib/blog/content/fr/motogp-france-le-mans-2027";
+
+import ArticleEN24hMoto2027 from "@/lib/blog/content/en/24-heures-moto-le-mans-2027";
+import ArticleENLeMansClassic2027 from "@/lib/blog/content/en/le-mans-classic-2027";
+import ArticleEN24hDuMans2027 from "@/lib/blog/content/en/ou-se-loger-24h-du-mans-2027";
+import ArticleENMotoGP2027 from "@/lib/blog/content/en/motogp-france-le-mans-2027";
+
+import ArticleIT24hMoto2027 from "@/lib/blog/content/it/24-heures-moto-le-mans-2027";
+import ArticleITLeMansClassic2027 from "@/lib/blog/content/it/le-mans-classic-2027";
+import ArticleIT24hDuMans2027 from "@/lib/blog/content/it/ou-se-loger-24h-du-mans-2027";
+import ArticleITMotoGP2027 from "@/lib/blog/content/it/motogp-france-le-mans-2027";
+
+import ArticleDE24hMoto2027 from "@/lib/blog/content/de/24-heures-moto-le-mans-2027";
+import ArticleDELeMansClassic2027 from "@/lib/blog/content/de/le-mans-classic-2027";
+import ArticleDE24hDuMans2027 from "@/lib/blog/content/de/ou-se-loger-24h-du-mans-2027";
+import ArticleDEMotoGP2027 from "@/lib/blog/content/de/motogp-france-le-mans-2027";
+
+import ArticleES24hMoto2027 from "@/lib/blog/content/es/24-heures-moto-le-mans-2027";
+import ArticleESLeMansClassic2027 from "@/lib/blog/content/es/le-mans-classic-2027";
+import ArticleES24hDuMans2027 from "@/lib/blog/content/es/ou-se-loger-24h-du-mans-2027";
+import ArticleESMotoGP2027 from "@/lib/blog/content/es/motogp-france-le-mans-2027";
+
 const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
+  "24-heures-moto-le-mans-2027": {
+    fr: Article24hMoto2027,
+    en: ArticleEN24hMoto2027,
+    it: ArticleIT24hMoto2027,
+    de: ArticleDE24hMoto2027,
+    es: ArticleES24hMoto2027,
+  },
+  "le-mans-classic-2027": {
+    fr: ArticleLeMansClassic2027,
+    en: ArticleENLeMansClassic2027,
+    it: ArticleITLeMansClassic2027,
+    de: ArticleDELeMansClassic2027,
+    es: ArticleESLeMansClassic2027,
+  },
+  "ou-se-loger-24h-du-mans-2027": {
+    fr: Article24hDuMans2027,
+    en: ArticleEN24hDuMans2027,
+    it: ArticleIT24hDuMans2027,
+    de: ArticleDE24hDuMans2027,
+    es: ArticleES24hDuMans2027,
+  },
+  "motogp-france-le-mans-2027": {
+    fr: ArticleMotoGP2027,
+    en: ArticleENMotoGP2027,
+    it: ArticleITMotoGP2027,
+    de: ArticleDEMotoGP2027,
+    es: ArticleESMotoGP2027,
+  },
   "jardin-securise-le-mans": {
     fr: ArticleJardin,
     en: ArticleENJardin,
@@ -234,6 +288,14 @@ const SOLD_OUT_BODY: Record<Locale, (nextEdition: string) => string> = {
   es: (e) => `¡Gracias a todos nuestros viajeros! Nos vemos en la edición ${e}.`,
 };
 
+const SUPERSEDED_CTA: Record<Locale, (title: string) => string> = {
+  fr: (t) => `Lire l'édition à venir : ${t} →`,
+  en: (t) => `Read the upcoming edition: ${t} →`,
+  it: (t) => `Leggi l'edizione in arrivo: ${t} →`,
+  de: (t) => `Zur kommenden Ausgabe: ${t} →`,
+  es: (t) => `Leer la próxima edición: ${t} →`,
+};
+
 export function generateStaticParams() {
   const locales: Locale[] = ["fr", "en", "it", "de", "es"];
   return locales.flatMap((locale) =>
@@ -259,6 +321,9 @@ export async function generateMetadata({
     title: loc.title,
     description: loc.description,
     keywords: loc.keywords,
+    // Une edition passee remplacee par la suivante ne doit plus concurrencer
+    // celle-ci dans l'index : on la desindexe tout en gardant ses liens suivis.
+    ...(post.supersededBy ? { robots: { index: false, follow: true } } : {}),
     alternates: {
       canonical: url,
       languages: {
@@ -327,6 +392,7 @@ export default async function BlogPost({
   const dateLocale = DATE_LOCALE[locale] ?? "fr-FR";
   const backLabel = BACK_LABEL[locale] ?? BACK_LABEL.fr;
   const isSoldOut = !!post.soldOut;
+  const nextPost = post.supersededBy ? getPostBySlug(post.supersededBy) : undefined;
 
   return (
     <article className="mx-auto max-w-3xl px-6 py-12">
@@ -362,6 +428,18 @@ export default async function BlogPost({
           <p className="mt-1 text-sm text-amber-800">
             {(SOLD_OUT_BODY[locale] ?? SOLD_OUT_BODY.fr)(post.nextEdition ?? "")}
           </p>
+          {nextPost && (
+            <p className="mt-3 text-sm">
+              <Link
+                href={`/${locale}/blog/${nextPost.slug}`}
+                className="font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-950"
+              >
+                {(SUPERSEDED_CTA[locale] ?? SUPERSEDED_CTA.fr)(
+                  getLocalizedPost(nextPost, locale).title,
+                )}
+              </Link>
+            </p>
+          )}
         </div>
       )}
 
