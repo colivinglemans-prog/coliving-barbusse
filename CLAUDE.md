@@ -72,7 +72,7 @@ components/
     HeatingDeviceCard # Carte device (mode, temp, tendance, présence, alertes)
 lib/
   blog/
-    posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de/es) + soldOut + nextEdition
+    posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de/es) + soldOut + nextEdition + supersededBy
     content/
       fr/             # 15 articles FR (Link hrefs préfixés /fr)
       en/             # 15 articles EN (Link hrefs préfixés /en)
@@ -359,6 +359,22 @@ un merge transparent :
 - Flag manuel `soldOut: true` dans `posts.ts` par article
 - Si soldOut : grayscale image + badge "Complet" + trié en bas de liste + bandeau article "Rendez-vous pour l'édition {nextEdition}"
 - Pas d'auto-détection Beds24 (Turbopack avait des issues de compilation)
+
+## Blog : renouvellement annuel des articles d'événement
+
+Un événement passé n'est **pas** réécrit sur place : l'article de l'édition écoulée reste
+en ligne comme archive, et une nouvelle version datée est créée à côté.
+
+- Nouveau slug suffixé de l'année (`motogp-france-le-mans-2027`), `date` = date de publication réelle
+- Les 5 fichiers de contenu sont clonés depuis l'édition précédente puis re-datés, et
+  recensés dans `CONTENT` de `app/[locale]/blog/[slug]/page.tsx` (imports statiques)
+- L'archive garde `soldOut: true` et reçoit `supersededBy: "<nouveau-slug>"`, ce qui déclenche :
+  - `robots: noindex, follow` dans `generateMetadata` — sinon les deux éditions se
+    concurrencent sur des contenus quasi identiques
+  - un lien "Lire l'édition à venir" dans le bandeau "Complet"
+  - son exclusion de `app/sitemap.ts` (`filter(post => !post.supersededBy)`)
+- Ne créer l'article de l'année N+1 que si l'édition est **confirmée** par l'organisateur
+  (cf. `lib/events.ts`). Sinon laisser l'archive telle quelle.
 
 ### Dashboard chauffage (`/dashboard/heating`)
 

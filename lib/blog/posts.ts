@@ -15,10 +15,320 @@ export interface BlogPostMeta {
   soldOut?: boolean;
   /** Ex: "2027" — affiché quand soldOut=true */
   nextEdition?: string;
+  /** Slug de l'édition suivante : bandeau de renvoi + noindex sur l'archive */
+  supersededBy?: string;
   locales: Record<Locale, LocalizedPost>;
 }
 
 export const BLOG_POSTS: BlogPostMeta[] = [
+  {
+    slug: "24-heures-moto-le-mans-2027",
+    date: "2026-09-01",
+    image: "/images/blog/24h-moto.jpg",
+    locales: {
+      fr: {
+        title: "24 Heures Moto Le Mans 2027 (17-18 avril) : guide hébergement et parking",
+        description:
+          "Tout pour organiser votre week-end des 24 Heures Moto 2027 au Mans, 50ᵉ édition les 17-18 avril : zones d'hébergement, prix, parking moto, conseils pour groupes de motards.",
+        excerpt:
+          "100 000 spectateurs, une ambiance motards unique et un hébergement bien placé, c'est ce qu'il faut. Voici comment préparer votre week-end.",
+        keywords: [
+          "24 Heures Moto Le Mans 2027",
+          "hébergement 24h moto",
+          "parking moto Le Mans circuit",
+          "location maison 24h moto",
+          "week-end moto Le Mans",
+        ],
+      },
+      en: {
+        title: "24 Hours Motorcycle Le Mans 2027 (17-18 April): accommodation and parking guide",
+        description:
+          "Everything to plan your 24 Hours Motorcycle 2027 weekend in Le Mans, 50th edition on 17-18 April: accommodation areas, prices, motorcycle parking, tips for biker groups.",
+        excerpt:
+          "100,000 spectators, a unique biker vibe and a well-located place to stay — here's how to prepare your weekend.",
+        keywords: [
+          "24 Hours Motorcycle Le Mans 2027",
+          "24h moto accommodation",
+          "motorcycle parking Le Mans circuit",
+          "house rental 24h moto",
+          "motorcycle weekend Le Mans",
+        ],
+      },
+      it: {
+        title: "24 Ore Moto Le Mans 2027 (17-18 aprile): guida ad alloggio e parcheggio",
+        description:
+          "Tutto per organizzare il vostro weekend della 24 Ore Moto 2027 a Le Mans, 50ª edizione il 17-18 aprile: zone di alloggio, prezzi, parcheggio moto, consigli per gruppi di motociclisti.",
+        excerpt:
+          "100.000 spettatori, un'atmosfera motociclistica unica e un alloggio ben posizionato, ecco quello che serve. Ecco come preparare il vostro weekend.",
+        keywords: [
+          "24 Ore Moto Le Mans 2027",
+          "alloggio 24h moto",
+          "parcheggio moto circuito Le Mans",
+          "affitto casa 24h moto",
+          "weekend moto Le Mans",
+        ],
+      },
+      de: {
+        title: "24 Stunden Motorrad Le Mans 2027 (17.-18. April): Guide für Unterkunft und Parken",
+        description:
+          "Alles, um Ihr 24-Stunden-Motorrad-Wochenende 2027 in Le Mans zu organisieren, 50. Ausgabe am 17.-18. April: Unterkunftszonen, Preise, Motorradparken, Tipps für Bikergruppen.",
+        excerpt:
+          "100.000 Zuschauer, eine einzigartige Biker-Atmosphäre und eine gut gelegene Unterkunft — so bereiten Sie Ihr Wochenende vor.",
+        keywords: [
+          "24 Stunden Motorrad Le Mans 2027",
+          "Unterkunft 24h Moto",
+          "Motorradparken Le Mans Circuit",
+          "Haus mieten 24h Moto",
+          "Motorrad-Wochenende Le Mans",
+        ],
+      },
+      es: {
+        title: "24 Horas Moto Le Mans 2027 (17-18 de abril): guía de alojamiento y parking",
+        description:
+          "Todo para organizar su fin de semana de las 24 Horas Moto 2027 en Le Mans, 50ª edición los 17-18 de abril: zonas de alojamiento, precios, parking moto, consejos para grupos de moteros.",
+        excerpt:
+          "100.000 espectadores, un ambiente motero único y un alojamiento bien ubicado: eso es lo que necesita. Así puede preparar su fin de semana.",
+        keywords: [
+          "24 Horas Moto Le Mans 2027",
+          "alojamiento 24h moto",
+          "parking moto circuito Le Mans",
+          "alquiler casa 24h moto",
+          "fin de semana moto Le Mans",
+        ],
+      },
+    },
+  },
+  {
+    slug: "le-mans-classic-2027",
+    date: "2026-09-01",
+    image: "/images/blog/le-mans-classic.jpg",
+    locales: {
+      fr: {
+        title: "Le Mans Classic Heritage 2027 : guide du rassemblement mondial des voitures anciennes",
+        description:
+          "Le Mans Classic Heritage 2027, du 1ᵉʳ au 4 juillet : plus grand rassemblement mondial de voitures de course anciennes. Dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
+        excerpt:
+          "700 voitures mythiques de 1923 à 1993, 24 heures de course, 235 000 spectateurs. Préparez votre séjour pour la plus grande fête de l'automobile de collection.",
+        keywords: [
+          "Le Mans Classic Heritage 2027",
+          "Le Mans Classic hébergement",
+          "rassemblement voitures anciennes Le Mans",
+          "club collectionneurs Le Mans",
+          "location maison Le Mans Classic",
+        ],
+      },
+      en: {
+        title: "Le Mans Classic Heritage 2027: a guide to the world's largest vintage racing gathering",
+        description:
+          "Le Mans Classic Heritage 2027, from 1 to 4 July: the world's largest gathering of vintage racing cars. Dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
+        excerpt:
+          "700 legendary cars from 1923 to 1993, 24 hours of racing, 235,000 spectators. Plan your stay for the greatest vintage motoring celebration.",
+        keywords: [
+          "Le Mans Classic Heritage 2027",
+          "Le Mans Classic accommodation",
+          "vintage car gathering Le Mans",
+          "collector club Le Mans",
+          "house rental Le Mans Classic",
+        ],
+      },
+      it: {
+        title: "Le Mans Classic Heritage 2027: guida al più grande raduno mondiale di auto d'epoca",
+        description:
+          "Le Mans Classic Heritage 2027, dal 1º al 4 luglio: il più grande raduno mondiale di auto da corsa d'epoca. Date, programma, alloggio e consigli pratici per appassionati e club.",
+        excerpt:
+          "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa, 235.000 spettatori. Preparate il vostro soggiorno per la più grande festa dell'automobile d'epoca.",
+        keywords: [
+          "Le Mans Classic Heritage 2027",
+          "alloggio Le Mans Classic",
+          "raduno auto d'epoca Le Mans",
+          "club collezionisti Le Mans",
+          "affitto casa Le Mans Classic",
+        ],
+      },
+      de: {
+        title: "Le Mans Classic Heritage 2027: Guide zum weltgrößten Oldtimer-Rennsporttreffen",
+        description:
+          "Le Mans Classic Heritage 2027, vom 1. bis 4. Juli: das weltgrößte Treffen historischer Rennwagen. Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
+        excerpt:
+          "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen, 235.000 Zuschauer. Planen Sie Ihren Aufenthalt für das größte Fest des klassischen Automobilsports.",
+        keywords: [
+          "Le Mans Classic Heritage 2027",
+          "Le Mans Classic Unterkunft",
+          "Oldtimer-Treffen Le Mans",
+          "Sammlerclub Le Mans",
+          "Haus mieten Le Mans Classic",
+        ],
+      },
+      es: {
+        title: "Le Mans Classic Heritage 2027: guía del mayor encuentro mundial de coches clásicos",
+        description:
+          "Le Mans Classic Heritage 2027, del 1 al 4 de julio: el mayor encuentro mundial de coches de carreras clásicos. Fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
+        excerpt:
+          "700 coches míticos de 1923 a 1993, 24 horas de carrera, 235.000 espectadores. Prepare su estancia para la mayor fiesta del automovilismo de colección.",
+        keywords: [
+          "Le Mans Classic Heritage 2027",
+          "alojamiento Le Mans Classic",
+          "encuentro coches clásicos Le Mans",
+          "club coleccionistas Le Mans",
+          "alquiler casa Le Mans Classic",
+        ],
+      },
+    },
+  },
+  {
+    slug: "ou-se-loger-24h-du-mans-2027",
+    date: "2026-09-01",
+    image: "/images/blog/24h-du-mans.jpg",
+    locales: {
+      fr: {
+        title: "Où se loger pour les 24 Heures du Mans 2027 ?",
+        description:
+          "Guide complet pour choisir son hébergement pendant les 24h du Mans 2027, 95ᵉ édition les 12-13 juin : zones, prix, conseils pour grands groupes et familles. Notre maison de 9 suites à moins de 5 km du circuit.",
+        excerpt:
+          "Où dormir pendant les 24h du Mans ? Zones, tarifs, disponibilités — tout ce qu'il faut savoir pour réserver son hébergement avant que tout soit pris.",
+        keywords: [
+          "24 Heures du Mans 2027",
+          "hébergement 24h du Mans",
+          "où se loger Le Mans course",
+          "location maison 24h du Mans",
+          "logement proche circuit Bugatti",
+        ],
+      },
+      en: {
+        title: "Where to stay for the 24 Hours of Le Mans 2027?",
+        description:
+          "Complete guide to choosing your accommodation for the 24 Hours of Le Mans 2027, 95th edition on 12-13 June: areas, prices, tips for large groups and families. Our 9-suite house less than 5 km from the circuit.",
+        excerpt:
+          "Where to sleep during the 24 Hours of Le Mans? Areas, prices, availability — everything you need to book before it's all taken.",
+        keywords: [
+          "24 Hours of Le Mans 2027",
+          "24h Le Mans accommodation",
+          "where to stay Le Mans race",
+          "house rental 24h Le Mans",
+          "lodging near Bugatti circuit",
+        ],
+      },
+      it: {
+        title: "Dove alloggiare per la 24 Ore di Le Mans 2027?",
+        description:
+          "Guida completa per scegliere il proprio alloggio durante la 24h di Le Mans 2027, 95ª edizione il 12-13 giugno: zone, prezzi, consigli per grandi gruppi e famiglie. La nostra casa con 9 suite a meno di 5 km dal circuito.",
+        excerpt:
+          "Dove dormire durante la 24h di Le Mans? Zone, tariffe, disponibilità — tutto quello che c'è da sapere per prenotare prima che sia tutto esaurito.",
+        keywords: [
+          "24 Ore di Le Mans 2027",
+          "alloggio 24h di Le Mans",
+          "dove alloggiare Le Mans gara",
+          "affitto casa 24h di Le Mans",
+          "alloggio vicino Circuit Bugatti",
+        ],
+      },
+      de: {
+        title: "Wo wohnen für die 24 Stunden von Le Mans 2027?",
+        description:
+          "Kompletter Guide zur Wahl Ihrer Unterkunft während der 24 Stunden von Le Mans 2027, 95. Ausgabe am 12.-13. Juni: Zonen, Preise, Tipps für Gruppen und Familien. Unser Haus mit 9 Suiten weniger als 5 km vom Circuit.",
+        excerpt:
+          "Wo schlafen während der 24 Stunden von Le Mans? Zonen, Preise, Verfügbarkeit — alles was Sie wissen müssen, um zu buchen, bevor alles weg ist.",
+        keywords: [
+          "24 Stunden von Le Mans 2027",
+          "Unterkunft 24h Le Mans",
+          "wo wohnen Le Mans Rennen",
+          "Haus mieten 24h Le Mans",
+          "Unterkunft nahe Circuit Bugatti",
+        ],
+      },
+      es: {
+        title: "¿Dónde alojarse para las 24 Horas de Le Mans 2027?",
+        description:
+          "Guía completa para elegir su alojamiento durante las 24 Horas de Le Mans 2027, 95ª edición los 12-13 de junio: zonas, precios, consejos para grupos grandes y familias. Nuestra casa de 9 suites a menos de 5 km del circuito.",
+        excerpt:
+          "¿Dónde dormir durante las 24 Horas de Le Mans? Zonas, tarifas, disponibilidad: todo lo que hay que saber para reservar antes de que se agote.",
+        keywords: [
+          "24 Horas de Le Mans 2027",
+          "alojamiento 24h de Le Mans",
+          "dónde alojarse Le Mans carrera",
+          "alquiler casa 24h de Le Mans",
+          "alojamiento cerca Circuito Bugatti",
+        ],
+      },
+    },
+  },
+  {
+    slug: "motogp-france-le-mans-2027",
+    date: "2026-09-01",
+    image: "/images/blog/motogp.jpg",
+    locales: {
+      fr: {
+        title: "MotoGP France 2027 au Mans : hébergement et conseils pratiques",
+        description:
+          "Grand Prix de France MotoGP 2027 au Circuit Bugatti : dates (à confirmer), tarifs hébergement, transport, conseils pour un week-end réussi en famille ou entre amis.",
+        excerpt:
+          "La manche la plus fréquentée du championnat : préparez votre week-end MotoGP au Mans avec notre guide complet.",
+        keywords: [
+          "MotoGP France 2027",
+          "Grand Prix France MotoGP Le Mans",
+          "hébergement MotoGP Le Mans",
+          "location maison MotoGP France",
+          "week-end MotoGP Circuit Bugatti",
+        ],
+      },
+      en: {
+        title: "MotoGP France 2027 in Le Mans: accommodation and practical tips",
+        description:
+          "French MotoGP 2027 at the Bugatti Circuit: dates (to be confirmed), accommodation rates, transport, tips for a great weekend with family or friends.",
+        excerpt:
+          "The most attended round of the championship: plan your MotoGP weekend in Le Mans with our complete guide.",
+        keywords: [
+          "French MotoGP 2027",
+          "French Grand Prix MotoGP Le Mans",
+          "MotoGP Le Mans accommodation",
+          "house rental French MotoGP",
+          "MotoGP Bugatti Circuit weekend",
+        ],
+      },
+      it: {
+        title: "MotoGP Francia 2027 a Le Mans: alloggio e consigli pratici",
+        description:
+          "Gran Premio di Francia MotoGP 2027 al Circuit Bugatti: date (da confermare), tariffe alloggio, trasporti, consigli per un weekend riuscito in famiglia o tra amici.",
+        excerpt:
+          "La gara più frequentata del campionato: preparate il vostro weekend MotoGP a Le Mans con la nostra guida completa.",
+        keywords: [
+          "MotoGP Francia 2027",
+          "Gran Premio Francia MotoGP Le Mans",
+          "alloggio MotoGP Le Mans",
+          "affitto casa MotoGP Francia",
+          "weekend MotoGP Circuit Bugatti",
+        ],
+      },
+      de: {
+        title: "MotoGP Frankreich 2027 in Le Mans: Unterkunft und praktische Tipps",
+        description:
+          "Frankreich-Grand-Prix MotoGP 2027 auf dem Circuit Bugatti: Termine (noch offen), Unterkunftspreise, Anreise, Tipps für ein gelungenes Wochenende mit Familie oder Freunden.",
+        excerpt:
+          "Der meistbesuchte Lauf der Meisterschaft: Planen Sie Ihr MotoGP-Wochenende in Le Mans mit unserem kompletten Guide.",
+        keywords: [
+          "MotoGP Frankreich 2027",
+          "Großer Preis Frankreich MotoGP Le Mans",
+          "MotoGP Le Mans Unterkunft",
+          "Haus mieten MotoGP Frankreich",
+          "MotoGP-Wochenende Circuit Bugatti",
+        ],
+      },
+      es: {
+        title: "MotoGP de Francia 2027 en Le Mans: alojamiento y consejos prácticos",
+        description:
+          "Gran Premio de Francia MotoGP 2027 en el Circuito Bugatti: fechas (por confirmar), tarifas de alojamiento, transporte, consejos para un fin de semana logrado en familia o entre amigos.",
+        excerpt:
+          "La cita más concurrida del campeonato: prepare su fin de semana de MotoGP en Le Mans con nuestra guía completa.",
+        keywords: [
+          "MotoGP Francia 2027",
+          "Gran Premio Francia MotoGP Le Mans",
+          "alojamiento MotoGP Le Mans",
+          "alquiler casa MotoGP Francia",
+          "fin de semana MotoGP Circuito Bugatti",
+        ],
+      },
+    },
+  },
   {
     slug: "le-mans-classic",
     date: "2026-05-27",
@@ -96,6 +406,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
     },
     soldOut: true,
+    supersededBy: "le-mans-classic-2027",
     nextEdition: "2027",
   },
   {
@@ -826,6 +1137,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     date: "2026-03-28",
     image: "/images/blog/24h-du-mans.jpg",
     soldOut: true,
+    supersededBy: "ou-se-loger-24h-du-mans-2027",
     nextEdition: "2027",
     locales: {
       fr: {
@@ -905,6 +1217,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     date: "2026-03-17",
     image: "/images/blog/motogp.jpg",
     soldOut: true,
+    supersededBy: "motogp-france-le-mans-2027",
     nextEdition: "2027",
     locales: {
       fr: {
@@ -984,6 +1297,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     date: "2026-03-05",
     image: "/images/blog/24h-moto.jpg",
     soldOut: true,
+    supersededBy: "24-heures-moto-le-mans-2027",
     nextEdition: "2027",
     locales: {
       fr: {
