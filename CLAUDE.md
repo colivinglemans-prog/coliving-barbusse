@@ -74,11 +74,11 @@ lib/
   blog/
     posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de/es) + soldOut + nextEdition + supersededBy
     content/
-      fr/             # 15 articles FR (Link hrefs préfixés /fr)
-      en/             # 15 articles EN (Link hrefs préfixés /en)
-      it/             # 15 articles IT (Link hrefs préfixés /it)
-      de/             # 15 articles DE (Link hrefs préfixés /de)
-      es/             # 15 articles ES (Link hrefs préfixés /es)
+      fr/             # 16 articles FR (Link hrefs préfixés /fr)
+      en/             # 16 articles EN (Link hrefs préfixés /en)
+      it/             # 16 articles IT (Link hrefs préfixés /it)
+      de/             # 16 articles DE (Link hrefs préfixés /de)
+      es/             # 16 articles ES (Link hrefs préfixés /es)
   events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
@@ -139,7 +139,7 @@ vercel.json           # Config Vercel (crons quotidiens)
 - Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 5 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
 - Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 5 entrées dans le `Record<Locale, ...>`.
 - **Liens vers Beds24** : l'URL `booking2.php` doit porter `&lang=${locale}` pour que la page de paiement ET les Auto Actions soient dans la bonne langue. Les codes `Locale` (fr/en/it/de/es) sont déjà au format ISO 639-1 attendu par Beds24, pas de mapping nécessaire. Voir [components/public/ReservationCalendar.tsx](components/public/ReservationCalendar.tsx). Prérequis Beds24 : langues activées sur la booking page (Settings → Properties → Booking Page → Languages).
-- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 15 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale.
+- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 16 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale. `app/sitemap.ts` a sa propre liste `locales` (5 langues + `x-default` sur le FR via le helper `languagesFor`) : l'étendre aussi, sinon les URLs de la nouvelle locale ne sont pas soumises à Google.
 
 ## Données externes
 
@@ -349,7 +349,7 @@ un merge transparent :
 
 ## Événements Le Mans (`lib/events.ts`)
 
-- `LE_MANS_EVENTS` : 20+ événements du circuit (2025-2027) : 24h Moto, MotoGP, SWS Karting, 24h du Mans, Le Mans Classic, 24h Rollers, 24h Camions, Rotax, Mini OGP, Superbike, Rallye Sarthe, 23H60, 24h Vélo, Porsche/F4, Championnat Monde Karting KZ, Euro IAME, Marathon, Slalom ACO, TTE, Fun Cup, Hunaudières Réunions hippiques
+- `LE_MANS_EVENTS` : 20+ événements du circuit (2025-2027) : 24h Moto, MotoGP, SWS Karting, 24h du Mans, Le Mans Classic, 24h Rollers, 24h Camions, Rotax, Mini OGP, Superbike, Rallye Sarthe, 23H60, 24h Vélo, Porsche Sprint Challenge, Championnat Monde Karting KZ, Euro IAME, Marathon, Slalom ACO, TTE, Fun Cup, Hunaudières Réunions hippiques
 - `findEventForStay(arrival, departure)` : retourne le nom du 1er événement qui overlap (±2 jours margin). Utilisé dans stats + calendrier popup
 - `findEventOnDay(dateStr)` : retourne l'événement qui contient ce jour (sans margin). Utilisé dans calendrier
 - `shortEventLabel(name)` : label court pour affichage compact (ex: "24h Mans", "MotoGP", "Classic")
@@ -375,6 +375,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
   - son exclusion de `app/sitemap.ts` (`filter(post => !post.supersededBy)`)
 - Ne créer l'article de l'année N+1 que si l'édition est **confirmée** par l'organisateur
   (cf. `lib/events.ts`). Sinon laisser l'archive telle quelle.
+- Exception : un événement qui n'a jamais eu d'article garde un slug **sans année** (`porsche-sprint-challenge-le-mans`) et reste evergreen tant que les dates de l'édition suivante ne sont pas publiées ; on le renouvellera en `-AAAA` seulement le jour où une archive vaut la peine d'être conservée.
 
 ### Dashboard chauffage (`/dashboard/heating`)
 

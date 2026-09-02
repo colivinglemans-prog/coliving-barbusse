@@ -36,7 +36,8 @@ export const LE_MANS_EVENTS: LeMansEvent[] = [
   { name: "Rotax Max Challenge Karting 2026", start: "2026-07-15", end: "2026-07-18" },
   { name: "23H60 2026", start: "2026-08-21", end: "2026-08-23" },
   { name: "24 Heures Vélo 2026", start: "2026-08-29", end: "2026-08-30" },
-  { name: "Porsche Sprint / F4 2026", start: "2026-09-11", end: "2026-09-12" },
+  // Calendrier officiel lemans.org : "Porsche Sprint Challenge" seul (pas de F4 au Mans en 2026).
+  { name: "Porsche Sprint Challenge France 2026", start: "2026-09-11", end: "2026-09-12" },
   { name: "Championnat du Monde Karting KZ 2026", start: "2026-09-16", end: "2026-09-20" },
   { name: "24 Heures Camions 2026", start: "2026-09-26", end: "2026-09-27" },
   { name: "Euro Challenge IAME 2026", start: "2026-10-07", end: "2026-10-11" },
@@ -161,7 +162,7 @@ function baseEventLabel(name: string): string {
   if (name.includes("Rallye")) return "Rallye Sarthe";
   if (name.includes("23H60")) return "23H60";
   if (name.includes("Vélo")) return "24h Vélo";
-  if (name.includes("Porsche") || name.includes("F4")) return "Porsche/F4";
+  if (name.includes("Porsche")) return "Porsche Sprint";
   if (name.includes("Inter Écurie") || name.includes("Slalom")) return "Slalom ACO";
   if (name.includes("Trophée Tourisme")) return "TTE";
   if (name.includes("Exclusive Drive")) return "Exclusive Drive";

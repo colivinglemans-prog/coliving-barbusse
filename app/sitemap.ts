@@ -1,10 +1,23 @@
 import type { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/lib/blog/posts";
+import type { Locale } from "@/lib/i18n/types";
+
+const baseUrl = "https://www.coliving-barbusse.fr";
+
+// Doit rester aligné sur SUPPORTED dans app/[locale]/layout.tsx.
+const locales: Locale[] = ["fr", "en", "it", "de", "es"];
+
+/** Construit le bloc hreflang (5 langues + x-default sur le FR) pour un chemin donné. */
+function languagesFor(path: string): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const locale of locales) {
+    languages[locale] = `${baseUrl}/${locale}${path}`;
+  }
+  languages["x-default"] = `${baseUrl}/fr${path}`;
+  return languages;
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://www.coliving-barbusse.fr";
-  const locales = ["fr", "en"] as const;
-
   const staticRoutes = [
     { path: "", changeFrequency: "weekly" as const, priority: 1 },
     { path: "/chambres", changeFrequency: "monthly" as const, priority: 0.8 },
@@ -18,12 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: r.changeFrequency,
       priority: r.priority,
-      alternates: {
-        languages: {
-          fr: `${baseUrl}/fr${r.path}`,
-          en: `${baseUrl}/en${r.path}`,
-        },
-      },
+      alternates: { languages: languagesFor(r.path) },
     })),
   );
 
@@ -35,12 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(post.date),
       changeFrequency: "monthly" as const,
       priority: 0.6,
-      alternates: {
-        languages: {
-          fr: `${baseUrl}/fr/blog/${post.slug}`,
-          en: `${baseUrl}/en/blog/${post.slug}`,
-        },
-      },
+      alternates: { languages: languagesFor(`/blog/${post.slug}`) },
     })),
   );
 

@@ -112,6 +112,12 @@ import ArticleESLeMansClassic2027 from "@/lib/blog/content/es/le-mans-classic-20
 import ArticleES24hDuMans2027 from "@/lib/blog/content/es/ou-se-loger-24h-du-mans-2027";
 import ArticleESMotoGP2027 from "@/lib/blog/content/es/motogp-france-le-mans-2027";
 
+import ArticlePorsche from "@/lib/blog/content/fr/porsche-sprint-challenge-le-mans";
+import ArticleENPorsche from "@/lib/blog/content/en/porsche-sprint-challenge-le-mans";
+import ArticleITPorsche from "@/lib/blog/content/it/porsche-sprint-challenge-le-mans";
+import ArticleDEPorsche from "@/lib/blog/content/de/porsche-sprint-challenge-le-mans";
+import ArticleESPorsche from "@/lib/blog/content/es/porsche-sprint-challenge-le-mans";
+
 const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
   "24-heures-moto-le-mans-2027": {
     fr: Article24hMoto2027,
@@ -140,6 +146,13 @@ const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
     it: ArticleITMotoGP2027,
     de: ArticleDEMotoGP2027,
     es: ArticleESMotoGP2027,
+  },
+  "porsche-sprint-challenge-le-mans": {
+    fr: ArticlePorsche,
+    en: ArticleENPorsche,
+    it: ArticleITPorsche,
+    de: ArticleDEPorsche,
+    es: ArticleESPorsche,
   },
   "jardin-securise-le-mans": {
     fr: ArticleJardin,
