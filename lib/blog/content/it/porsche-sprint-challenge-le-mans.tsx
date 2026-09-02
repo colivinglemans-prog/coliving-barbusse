@@ -37,7 +37,8 @@ export default function Article() {
         Per il <strong>2027 le date non sono ancora ufficiali</strong>: il calendario
         completo dei circuiti di Le Mans viene pubblicato di solito in ottobre per la
         stagione successiva. Storicamente la gara di Le Mans cade a fine estate o inizio
-        autunno. Se state già programmando la stagione, la scelta più sicura è bloccare
+        autunno: l&apos;edizione 2025 si è svolta dal 26 al 28 settembre, quella del
+        2026 l&apos;11 e 12 settembre. Se state già programmando la stagione, la scelta più sicura è bloccare
         un alloggio annullabile e confermare appena esce il calendario.
       </p>
 

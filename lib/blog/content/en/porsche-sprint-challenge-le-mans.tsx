@@ -34,7 +34,8 @@ export default function Article() {
       <p>
         For <strong>2027 the dates are not official yet</strong>: the full Le Mans
         circuits calendar is usually published in October for the following season.
-        Historically the Le Mans round falls in late summer or early autumn. If you are
+        Historically the Le Mans round falls in late summer or early autumn: the 2025
+        edition ran on 26-28 September, the 2026 one on 11-12 September. If you are
         already planning your season, the safe move is to hold a cancellable booking and
         confirm as soon as the calendar is out.
       </p>
