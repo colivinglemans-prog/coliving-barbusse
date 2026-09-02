@@ -330,6 +330,89 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     },
   },
   {
+    slug: "porsche-sprint-challenge-le-mans",
+    date: "2026-09-02",
+    // TODO remplacer par une photo dédiée : public/images/blog/porsche-sprint-challenge.jpg
+    image: "/images/blog/24h-du-mans.jpg",
+    locales: {
+      fr: {
+        title: "Porsche Sprint Challenge au Mans : où se loger avec son équipage ?",
+        description:
+          "Porsche Sprint Challenge France sur le circuit Bugatti du Mans : format monotype, profil des équipages, où se loger. Maison entière de 9 suites pour 20 personnes à 20 min du circuit.",
+        excerpt:
+          "Un plateau 100 % Porsche sur le circuit Bugatti, des équipages de 3 à 6 personnes par voiture engagée. Le guide hébergement pour votre week-end de course.",
+        keywords: [
+          "Porsche Sprint Challenge Le Mans",
+          "hébergement équipage Porsche Le Mans",
+          "circuit Bugatti Le Mans logement",
+          "maison entière sport auto Le Mans",
+          "Porsche Sprint Challenge France 2027",
+          "location maison week-end course Le Mans",
+        ],
+      },
+      en: {
+        title: "Porsche Sprint Challenge at Le Mans: where to stay with your crew",
+        description:
+          "Porsche Sprint Challenge France on the Le Mans Bugatti circuit: one-make format, who the crews are, where to stay. Whole house with 9 en-suite bedrooms for 20 people, 20 min from the track.",
+        excerpt:
+          "An all-Porsche grid on the Bugatti circuit, with 3 to 6 people per entered car. The accommodation guide for your race weekend.",
+        keywords: [
+          "Porsche Sprint Challenge Le Mans",
+          "Porsche crew accommodation Le Mans",
+          "Bugatti circuit Le Mans stay",
+          "whole house motorsport Le Mans",
+          "Porsche Sprint Challenge France 2027",
+          "house rental race weekend Le Mans",
+        ],
+      },
+      it: {
+        title: "Porsche Sprint Challenge a Le Mans: dove alloggiare con l'equipaggio",
+        description:
+          "Porsche Sprint Challenge France sul circuito Bugatti di Le Mans: format monomarca, profilo degli equipaggi, dove alloggiare. Casa intera di 9 suite per 20 persone a 20 min dal circuito.",
+        excerpt:
+          "Uno schieramento 100 % Porsche sul circuito Bugatti, con 3 a 6 persone per vettura iscritta. La guida all'alloggio per il vostro weekend di gara.",
+        keywords: [
+          "Porsche Sprint Challenge Le Mans",
+          "alloggio equipaggio Porsche Le Mans",
+          "circuito Bugatti Le Mans alloggio",
+          "casa intera sport auto Le Mans",
+          "Porsche Sprint Challenge France 2027",
+          "affitto casa weekend gara Le Mans",
+        ],
+      },
+      de: {
+        title: "Porsche Sprint Challenge in Le Mans: wo wohnen mit der Mannschaft?",
+        description:
+          "Porsche Sprint Challenge France auf dem Bugatti-Circuit in Le Mans: Markenpokal-Format, Profil der Mannschaften, Unterkunft. Ganzes Haus mit 9 Suiten für 20 Personen, 20 Min. von der Strecke.",
+        excerpt:
+          "Ein reines Porsche-Feld auf dem Bugatti-Circuit, mit 3 bis 6 Personen pro gemeldetem Auto. Der Unterkunfts-Leitfaden für Ihr Rennwochenende.",
+        keywords: [
+          "Porsche Sprint Challenge Le Mans",
+          "Unterkunft Porsche Mannschaft Le Mans",
+          "Bugatti Circuit Le Mans Unterkunft",
+          "ganzes Haus Motorsport Le Mans",
+          "Porsche Sprint Challenge France 2027",
+          "Haus mieten Rennwochenende Le Mans",
+        ],
+      },
+      es: {
+        title: "Porsche Sprint Challenge en Le Mans: dónde alojarse con su equipo",
+        description:
+          "Porsche Sprint Challenge France en el circuito Bugatti de Le Mans: formato monomarca, perfil de los equipos, dónde alojarse. Casa entera de 9 suites para 20 personas a 20 min del circuito.",
+        excerpt:
+          "Una parrilla 100 % Porsche en el circuito Bugatti, con 3 a 6 personas por coche inscrito. La guía de alojamiento para su fin de semana de carrera.",
+        keywords: [
+          "Porsche Sprint Challenge Le Mans",
+          "alojamiento equipo Porsche Le Mans",
+          "circuito Bugatti Le Mans alojamiento",
+          "casa entera automovilismo Le Mans",
+          "Porsche Sprint Challenge France 2027",
+          "alquiler casa fin de semana carrera Le Mans",
+        ],
+      },
+    },
+  },
+  {
     slug: "le-mans-classic",
     date: "2026-05-27",
     image: "/images/blog/le-mans-classic.jpg",
