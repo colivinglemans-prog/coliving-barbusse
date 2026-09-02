@@ -38,7 +38,8 @@ export default function Article() {
         Für <strong>2027 stehen die Termine noch nicht offiziell fest</strong>: der
         vollständige Kalender der Rennstrecken von Le Mans wird üblicherweise im Oktober
         für die kommende Saison veröffentlicht. Historisch liegt der Lauf von Le Mans im
-        Spätsommer oder Frühherbst. Wenn Sie Ihre Saison bereits planen, ist die sicherste
+        Spätsommer oder Frühherbst: die Ausgabe 2025 fand vom 26. bis 28. September
+        statt, die von 2026 am 11. und 12. September. Wenn Sie Ihre Saison bereits planen, ist die sicherste
         Variante eine kostenfrei stornierbare Buchung, die Sie bestätigen, sobald der
         Kalender erscheint.
       </p>

@@ -39,7 +39,8 @@ export default function Article() {
         Pour <strong>2027, les dates ne sont pas encore officielles</strong> : le
         calendrier complet des circuits du Mans est habituellement publié en octobre
         pour la saison suivante. Historiquement, l&apos;épreuve mancelle se place en fin
-        d&apos;été ou début d&apos;automne. Si vous préparez déjà votre saison, le plus
+        d&apos;été ou début d&apos;automne : l&apos;édition 2025 s&apos;est tenue du 26 au 28
+        septembre, celle de 2026 les 11 et 12 septembre. Si vous préparez déjà votre saison, le plus
         sûr est de bloquer un hébergement annulable et de confirmer dès la parution du
         calendrier.
       </p>
