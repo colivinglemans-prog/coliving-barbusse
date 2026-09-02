@@ -301,6 +301,16 @@ const SOLD_OUT_BODY: Record<Locale, (nextEdition: string) => string> = {
   es: (e) => `¡Gracias a todos nuestros viajeros! Nos vemos en la edición ${e}.`,
 };
 
+// Ponctuation incluse : l'espace avant le deux-points est une regle typographique
+// francaise, absente en anglais / italien / allemand / espagnol.
+const PHOTO_CREDIT_LABEL: Record<Locale, string> = {
+  fr: "Photo :",
+  en: "Photo:",
+  it: "Foto:",
+  de: "Foto:",
+  es: "Foto:",
+};
+
 const SUPERSEDED_CTA: Record<Locale, (title: string) => string> = {
   fr: (t) => `Lire l'édition à venir : ${t} →`,
   en: (t) => `Read the upcoming edition: ${t} →`,
@@ -456,10 +466,34 @@ export default async function BlogPost({
         </div>
       )}
 
-      <div
-        className="mt-8 aspect-[16/9] w-full rounded-xl bg-cover bg-center"
-        style={{ backgroundImage: `url(${post.image})` }}
-      />
+      <figure className="mt-8">
+        <div
+          className="aspect-[16/9] w-full rounded-xl bg-cover bg-center"
+          style={{ backgroundImage: `url(${post.image})` }}
+        />
+        {post.imageCredit && (
+          <figcaption className="mt-2 text-right text-xs text-stone-500">
+            {PHOTO_CREDIT_LABEL[locale] ?? PHOTO_CREDIT_LABEL.fr}{" "}
+            <a
+              href={post.imageCredit.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="underline underline-offset-2 hover:text-stone-700"
+            >
+              {post.imageCredit.author}
+            </a>
+            {" · "}
+            <a
+              href={post.imageCredit.licenseUrl}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="underline underline-offset-2 hover:text-stone-700"
+            >
+              {post.imageCredit.license}
+            </a>
+          </figcaption>
+        )}
+      </figure>
 
       <div className="prose-article mt-10">
         <Content />

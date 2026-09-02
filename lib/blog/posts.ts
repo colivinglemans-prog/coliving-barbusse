@@ -17,6 +17,20 @@ export interface BlogPostMeta {
   nextEdition?: string;
   /** Slug de l'édition suivante : bandeau de renvoi + noindex sur l'archive */
   supersededBy?: string;
+  /**
+   * Crédit photo, obligatoire pour les images sous licence à attribution
+   * (CC BY / CC BY-SA). Rendu en légende sous la photo de l'article.
+   */
+  imageCredit?: {
+    /** Nom de l'auteur tel qu'il doit apparaître */
+    author: string;
+    /** Page source de l'image (Wikimedia Commons, etc.) */
+    sourceUrl: string;
+    /** Nom court de la licence, ex "CC BY-SA 4.0" */
+    license: string;
+    /** URL du texte de licence */
+    licenseUrl: string;
+  };
   locales: Record<Locale, LocalizedPost>;
 }
 
@@ -332,8 +346,14 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   {
     slug: "porsche-sprint-challenge-le-mans",
     date: "2026-09-02",
-    // TODO remplacer par une photo dédiée : public/images/blog/porsche-sprint-challenge.jpg
-    image: "/images/blog/24h-du-mans.jpg",
+    image: "/images/blog/porsche-sprint-challenge.jpg",
+    imageCredit: {
+      author: "Sebring12Hrs",
+      sourceUrl:
+        "https://commons.wikimedia.org/wiki/File:Paddock_Carrera_Cup_Le_Mans_2014_7.jpg",
+      license: "CC BY-SA 4.0",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/deed.fr",
+    },
     locales: {
       fr: {
         title: "Porsche Sprint Challenge au Mans : où se loger avec son équipage ?",
