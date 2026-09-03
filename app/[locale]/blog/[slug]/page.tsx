@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
+import { getEventByName, stayWindowForEvent } from "@/lib/events";
+import EventBookingCTA from "@/components/public/EventBookingCTA";
 import type { Locale } from "@/lib/i18n";
 
 import Article24hDuMans2026 from "@/lib/blog/content/fr/ou-se-loger-24h-du-mans-2026";
@@ -417,6 +419,12 @@ export default async function BlogPost({
   const isSoldOut = !!post.soldOut;
   const nextPost = post.supersededBy ? getPostBySlug(post.supersededBy) : undefined;
 
+  // Fenêtre de séjour conseillée pour l'événement de l'article, quand il en
+  // référence un. Le composant décide lui-même de s'afficher ou non selon la
+  // disponibilité réelle et la date du jour.
+  const linkedEvent = post.event ? getEventByName(post.event) : undefined;
+  const stayWindow = linkedEvent ? stayWindowForEvent(linkedEvent) : undefined;
+
   return (
     <article className="mx-auto max-w-3xl px-6 py-12">
       <script
@@ -498,6 +506,14 @@ export default async function BlogPost({
       <div className="prose-article mt-10">
         <Content />
       </div>
+
+      {stayWindow && (
+        <EventBookingCTA
+          locale={locale}
+          checkIn={stayWindow.checkIn}
+          checkOut={stayWindow.checkOut}
+        />
+      )}
     </article>
   );
 }

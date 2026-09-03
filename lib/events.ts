@@ -168,3 +168,22 @@ function baseEventLabel(name: string): string {
   if (name.includes("Exclusive Drive")) return "Exclusive Drive";
   return name;
 }
+
+/**
+ * Retrouve un événement par son nom exact (tel qu'il figure dans LE_MANS_EVENTS).
+ * Utilisé par les articles de blog qui référencent un événement via `BlogPostMeta.event`.
+ * Renvoie undefined si le nom ne correspond à rien : l'appelant doit alors
+ * simplement ne rien afficher plutôt que de casser la page.
+ */
+export function getEventByName(name: string): LeMansEvent | undefined {
+  return LE_MANS_EVENTS.find((ev) => ev.name === name);
+}
+
+/**
+ * Fenêtre de séjour conseillée pour un événement : on arrive la veille du
+ * premier jour et on repart le lendemain du dernier. Les dates sont au format
+ * [checkIn, checkOut[ attendu par Beds24.
+ */
+export function stayWindowForEvent(ev: LeMansEvent): { checkIn: string; checkOut: string } {
+  return { checkIn: addDays(ev.start, -1), checkOut: addDays(ev.end, 1) };
+}
