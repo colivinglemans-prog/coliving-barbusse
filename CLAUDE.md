@@ -354,6 +354,30 @@ un merge transparent :
 - `findEventForStay(arrival, departure)` : retourne le nom du 1er événement qui overlap (±2 jours margin). Utilisé dans stats + calendrier popup
 - `findEventOnDay(dateStr)` : retourne l'événement qui contient ce jour (sans margin). Utilisé dans calendrier
 - `shortEventLabel(name)` : label court pour affichage compact (ex: "24h Mans", "MotoGP", "Classic")
+- `getEventByName(name)` : retrouve un événement par son nom exact. Utilisé par les articles de blog
+- `stayWindowForEvent(ev)` : fenêtre de séjour conseillée (veille du début → lendemain de la fin), au format `[checkIn, checkOut[` de Beds24
+
+## Blog : CTA de réservation sur les articles d'événement
+
+`components/public/EventBookingCTA.tsx` affiche un bloc de réservation en fin d'article.
+Il existe parce que le contenu seul ne convertissait pas : le seul chemin vers la
+réservation était un lien texte noyé dans le dernier paragraphe, puis retour sur la home,
+re-scroll jusqu'au calendrier et ressaisie des dates.
+
+- Activé par le champ `event` de `BlogPostMeta` (`posts.ts`), qui doit reprendre **le nom
+  exact** d'une entrée de `LE_MANS_EVENTS`. Sans ce champ, aucun CTA n'est rendu.
+- **Ne renseigner `event` que si les dates sont officielles.** MotoGP 2027 en est
+  volontairement dépourvu (dates « à confirmer » côté FIM/Dorna).
+- Client component : les pages blog sont statiques, la dispo doit être lue à la visite et
+  non au build. Il se masque seul si l'événement est passé, et tronque les nuits écoulées
+  s'il est en cours.
+- 4 états : disponible / partiel / complet / erreur API. En cas de panne API le CTA reste
+  affiché avec les dates conseillées — on ne sacrifie pas la conversion à un incident.
+- `minStay` : on retient le **max** de la fenêtre, pas la valeur du jour d'arrivée. Beds24
+  renvoie ces clés décalées d'un jour, et lire une seule clé fait retomber silencieusement
+  sur le défaut de 2 nuits.
+- Traductions dans le fichier du composant (`Record<Locale, Copy>`), comme le reste des
+  libellés du blog — pas dans `lib/i18n/dictionaries`.
 
 ## Blog sold-out
 
