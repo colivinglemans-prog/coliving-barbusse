@@ -38,3 +38,18 @@ export async function sendWaterHeaterAlert(subject: string, body: string) {
     text: body,
   });
 }
+
+export async function sendBeds24Alert(subject: string, body: string) {
+  const to = process.env.ALERT_EMAIL;
+  if (!to) {
+    console.error("ALERT_EMAIL is not set, skipping email alert");
+    return;
+  }
+
+  await getResend().emails.send({
+    from: "Coliving Barbusse <onboarding@resend.dev>",
+    to,
+    subject: `[Beds24 Coliving] ${subject}`,
+    text: body,
+  });
+}
