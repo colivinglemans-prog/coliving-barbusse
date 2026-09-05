@@ -28,11 +28,12 @@ async function beds24Fetch<T>(path: string, params?: Record<string, string>): Pr
 // because long-life tokens only support read scopes.
 let writeTokenCache: { token: string; expiresAt: number } | null = null;
 
-async function getBeds24WriteToken(): Promise<string> {
-  const now = Date.now();
-  if (writeTokenCache && writeTokenCache.expiresAt > now + 60_000) {
-    return writeTokenCache.token;
-  }
+/**
+ * Échange le refresh token contre un access token, sans passer par le cache.
+ * Exporté pour le cron keepalive : un refresh token Beds24 est invalidé après
+ * 30 jours sans usage, et l'écriture est trop rare pour l'entretenir seule.
+ */
+export async function refreshBeds24WriteToken(): Promise<{ token: string; expiresIn: number }> {
   const refreshToken = process.env.BEDS24_REFRESH_TOKEN;
   if (!refreshToken) {
     throw new Error("BEDS24_REFRESH_TOKEN non défini (requis pour l'écriture)");
@@ -43,15 +44,26 @@ async function getBeds24WriteToken(): Promise<string> {
   });
   const body = await res.text();
   if (!res.ok) {
+    writeTokenCache = null;
     throw new Error(`Beds24 auth ${res.status}: ${body.slice(0, 200)}`);
   }
   const data = JSON.parse(body) as { token?: string; expiresIn?: number };
   if (!data.token) throw new Error(`Beds24 auth: token manquant dans la réponse`);
+  const expiresIn = data.expiresIn ?? 86_400;
   writeTokenCache = {
     token: data.token,
-    expiresAt: now + (data.expiresIn ?? 86_400) * 1000,
+    expiresAt: Date.now() + expiresIn * 1000,
   };
-  return data.token;
+  return { token: data.token, expiresIn };
+}
+
+async function getBeds24WriteToken(): Promise<string> {
+  const cached = writeTokenCache;
+  if (cached && cached.expiresAt > Date.now() + 60_000) {
+    return cached.token;
+  }
+  const { token } = await refreshBeds24WriteToken();
+  return token;
 }
 
 export async function updateBookingNotes(id: number, notes: string): Promise<void> {

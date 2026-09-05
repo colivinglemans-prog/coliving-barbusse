@@ -679,10 +679,28 @@ Exemple résa Direct (85615323) : Σ(daily rates) + Ménage 250 + Draps 140 **�
 | Automation ECS | `/api/cron/water-heater-automation` | `0 * * * *` |
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
+| Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
 
 Le reset vérifie après application que les devices ont bien pris les changements (températures). Si échec → email alerte.
+
+### Keepalive Beds24 (refresh token)
+
+Beds24 **invalide un refresh token qui n'a pas servi depuis 30 jours** (`401 Token not valid`).
+
+- Le refresh token (`BEDS24_REFRESH_TOKEN`) ne sert qu'aux **écritures** : ajout de note sur une réservation via `updateBookingNotes()`. Les lectures utilisent `BEDS24_API_TOKEN` (long life token, scopes read seuls), qui lui n'expire pas de cette façon.
+- L'écriture étant rare, le refresh token mourait de lui-même. Le cron `/api/cron/beds24-keepalive` appelle `GET /authentication/token` chaque lundi 4 h pour le garder vivant.
+- En cas d'échec → email d'alerte (`sendBeds24Alert`) contenant la procédure de régénération.
+
+**Régénérer le refresh token** (si l'alerte tombe, ou en cas de `401 Token not valid`) :
+
+1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code avec les scopes `read:bookings` et `write:bookings` (le token de lecture actuel n'a **que** des scopes read, il ne peut pas écrire).
+2. `curl -H "code: <INVITE>" -H "deviceName: coliving-dashboard" https://api.beds24.com/v2/authentication/setup`
+3. Copier le champ `refreshToken` dans `BEDS24_REFRESH_TOKEN` (`.env.local` + Vercel).
+4. `npx vercel --prod`
+
+L'invite code est à usage unique et valable 24 h.
 
 ### Notifications check-in (push ntfy.sh)
 
