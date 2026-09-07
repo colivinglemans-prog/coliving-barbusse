@@ -39,15 +39,19 @@ function formatIban(iban: string): string {
 
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    paddingTop: 32,
+    paddingHorizontal: 32,
+    // Le pied de page est en position absolue : sans réserve en bas, le flux
+    // passe dessous et le bandeau Total TTC se retrouve barré par son filet.
+    paddingBottom: 46,
     fontSize: 10,
     fontFamily: "Helvetica",
     color: "#111827",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
   },
   brandBanner: {
-    marginBottom: 20,
-    paddingBottom: 12,
+    marginBottom: 14,
+    paddingBottom: 10,
     borderBottom: "2px solid #e11d48",
     flexDirection: "row",
     alignItems: "flex-end",
@@ -81,7 +85,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 30,
+    marginBottom: 16,
   },
   issuer: { maxWidth: "55%" },
   issuerName: { fontSize: 12, fontFamily: "Helvetica-Bold", marginBottom: 4 },
@@ -94,28 +98,28 @@ const styles = StyleSheet.create({
     fontSize: 9,
     textTransform: "uppercase",
     color: "#6b7280",
-    marginBottom: 6,
+    marginBottom: 4,
     letterSpacing: 1,
   },
   billTo: {
     border: "1px solid #e5e7eb",
     borderRadius: 4,
-    padding: 12,
-    marginBottom: 20,
+    padding: 10,
+    marginBottom: 12,
     backgroundColor: "#f9fafb",
   },
   clientCompany: { fontFamily: "Helvetica-Bold", fontSize: 11, marginBottom: 2 },
   clientName: { fontSize: 11, marginBottom: 4 },
   clientLine: { fontSize: 9, color: "#374151" },
-  subject: { marginBottom: 16, fontSize: 10 },
+  subject: { marginBottom: 10, fontSize: 10 },
   subjectLabel: { fontFamily: "Helvetica-Bold" },
   detailsBlock: {
     backgroundColor: "#f9fafb",
-    padding: 10,
+    padding: 8,
     borderRadius: 4,
-    marginBottom: 16,
+    marginBottom: 10,
   },
-  detailsRow: { flexDirection: "row", marginBottom: 2 },
+  detailsRow: { flexDirection: "row", marginBottom: 1 },
   detailsLabel: { width: 110, color: "#6b7280", fontSize: 9 },
   detailsValue: { fontSize: 9, flex: 1 },
   commentsBox: {
@@ -129,7 +133,7 @@ const styles = StyleSheet.create({
     border: "1px solid #e5e7eb",
     borderRadius: 4,
     overflow: "hidden",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   tableHead: {
     flexDirection: "row",
@@ -172,7 +176,7 @@ const styles = StyleSheet.create({
   totalsLine: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 6,
+    padding: 4,
   },
   totalTtcLine: {
     flexDirection: "row",
@@ -188,14 +192,14 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#6b7280",
     fontStyle: "italic",
-    marginTop: 12,
-    marginBottom: 16,
+    marginTop: 8,
+    marginBottom: 10,
   },
   paymentBox: {
     border: "1px solid #e11d48",
     borderRadius: 4,
-    padding: 12,
-    marginBottom: 12,
+    padding: 10,
+    marginBottom: 8,
   },
   paymentTitle: {
     fontFamily: "Helvetica-Bold",
@@ -206,8 +210,8 @@ const styles = StyleSheet.create({
   paidBox: {
     border: "1px solid #059669",
     borderRadius: 4,
-    padding: 12,
-    marginBottom: 12,
+    padding: 10,
+    marginBottom: 8,
     backgroundColor: "#ecfdf5",
   },
   paidTitle: {
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   paidThanks: {
-    marginTop: 12,
+    marginTop: 8,
     padding: 8,
     backgroundColor: "#d1fae5",
     borderRadius: 4,
@@ -231,7 +235,7 @@ const styles = StyleSheet.create({
   paymentValue: { fontSize: 10 },
   paymentValueBold: { fontSize: 10, fontFamily: "Helvetica-Bold" },
   dueNotice: {
-    marginTop: 12,
+    marginTop: 8,
     padding: 8,
     backgroundColor: "#fef2f2",
     borderRadius: 4,
@@ -241,9 +245,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 24,
-    left: 40,
-    right: 40,
+    bottom: 18,
+    left: 32,
+    right: 32,
     textAlign: "center",
     fontSize: 8,
     color: "#9ca3af",
@@ -412,7 +416,8 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
         </View>
 
         {/* wrap={false} : sans ça le bandeau Total TTC se coupe en deux au saut de page. */}
-        <View style={styles.totalsRow} wrap={false}>
+        <View wrap={false}>
+          <View style={styles.totalsRow}>
           <View style={styles.totalsBlock}>
             {partial && (
               <View style={styles.recapBlock}>
@@ -465,16 +470,17 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
               <Text>TVA (0%)</Text>
               <Text>{formatEur(0)}</Text>
             </View>
-            <View style={styles.totalTtcLine}>
-              <Text>Total TTC</Text>
-              <Text>{formatEur(payload.amount)}</Text>
+              <View style={styles.totalTtcLine}>
+                <Text>Total TTC</Text>
+                <Text>{formatEur(payload.amount)}</Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        <Text style={styles.vatNotice}>
-          TVA non applicable, art. 293B du CGI (location meublée non professionnelle).
-        </Text>
+          <Text style={styles.vatNotice}>
+            TVA non applicable, art. 293B du CGI (location meublée non professionnelle).
+          </Text>
+        </View>
 
         {payload.paid ? (
           <View wrap={false}>
