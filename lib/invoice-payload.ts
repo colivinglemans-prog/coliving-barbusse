@@ -1,6 +1,21 @@
 import type { Beds24Booking } from "./types";
 import type { StripePaymentDetail } from "./stripe";
 
+/**
+ * Un séjour peut être facturé en deux temps : un acompte à la réservation,
+ * puis le solde avant l'arrivée. Chaque facture ne porte alors qu'une fraction
+ * du séjour, et doit rappeler le total ainsi que ce qui reste dû.
+ */
+export type InvoiceKind = "standard" | "acompte" | "solde";
+
+export const INVOICE_KINDS: InvoiceKind[] = ["standard", "acompte", "solde"];
+
+export const INVOICE_KIND_LABEL: Record<InvoiceKind, string> = {
+  standard: "Facture",
+  acompte: "Facture d'acompte",
+  solde: "Facture de solde",
+};
+
 export interface InvoicePayload {
   // Client
   company: string;
@@ -28,12 +43,30 @@ export interface InvoicePayload {
   description: string;
   paymentDueDate: string;
 
+  // Acompte / solde
+  kind: InvoiceKind;
+  /** Total TTC du séjour. Requis dès que la facture n'en couvre qu'une partie. */
+  stayTotal: number;
+  /** Facture d'acompte déjà émise, rappelée et déduite sur la facture de solde. */
+  priorInvoiceNumber: string;
+  priorInvoiceDate: string;
+  priorInvoiceAmount: number;
+
   // Paiement (si déjà réglé — typiquement Stripe)
   paid: boolean;
   paidAt: string;         // YYYY-MM-DD
   paidMethod: string;     // ex: "Carte bancaire via Stripe"
   paidReference: string;  // ex: pi_3M... / ch_3M...
 }
+
+/** Valeurs par défaut : une facture couvre la totalité du séjour. */
+const WHOLE_STAY = {
+  kind: "standard" as InvoiceKind,
+  stayTotal: 0,
+  priorInvoiceNumber: "",
+  priorInvoiceDate: "",
+  priorInvoiceAmount: 0,
+};
 
 function nightsBetween(arrival: string, departure: string): number {
   const a = new Date(arrival + "T00:00:00Z").getTime();
@@ -98,6 +131,7 @@ export function beds24ToPayload(booking: Beds24Booking): InvoicePayload {
     amount: Number(booking.price ?? 0),
     description,
     paymentDueDate: defaultPaymentDueDate(booking.arrival),
+    ...WHOLE_STAY,
 
     paid: false,
     paidAt: "",
@@ -176,6 +210,7 @@ export function stripeToPayload(p: StripePaymentDetail): InvoicePayload {
     amount: p.amount,
     description,
     paymentDueDate: p.createdAt,
+    ...WHOLE_STAY,
 
     paid: true,
     paidAt: p.createdAt,
@@ -207,6 +242,7 @@ export function emptyPayload(): InvoicePayload {
     amount: 0,
     description: "",
     paymentDueDate: today,
+    ...WHOLE_STAY,
     paid: false,
     paidAt: "",
     paidMethod: "",
@@ -288,6 +324,11 @@ export function validateInvoicePayload(
     amount: num("amount", true),
     description: str("description", true),
     paymentDueDate: date("paymentDueDate", true),
+    kind: INVOICE_KINDS.includes(r.kind as InvoiceKind) ? (r.kind as InvoiceKind) : "standard",
+    stayTotal: num("stayTotal"),
+    priorInvoiceNumber: str("priorInvoiceNumber"),
+    priorInvoiceDate: date("priorInvoiceDate"),
+    priorInvoiceAmount: num("priorInvoiceAmount"),
     paid: bool("paid"),
     paidAt: "",
     paidMethod: "",
@@ -304,6 +345,47 @@ export function validateInvoicePayload(
     errors.push({ field: "amount", message: "Le montant doit être supérieur à 0" });
   }
 
+  // Une facture partielle doit toujours pouvoir se rattacher au total du séjour :
+  // c'est ce qui permet au client de rapprocher acompte et solde.
+  if (payload.kind !== "standard") {
+    if (payload.stayTotal <= 0) {
+      errors.push({ field: "stayTotal", message: "Total du séjour requis" });
+    } else if (payload.amount > payload.stayTotal + 0.01) {
+      errors.push({ field: "amount", message: "Le montant dépasse le total du séjour" });
+    }
+  } else {
+    payload.stayTotal = 0;
+    payload.priorInvoiceNumber = "";
+    payload.priorInvoiceDate = "";
+    payload.priorInvoiceAmount = 0;
+  }
+
+  if (payload.kind === "acompte") {
+    payload.priorInvoiceNumber = "";
+    payload.priorInvoiceDate = "";
+    payload.priorInvoiceAmount = 0;
+  }
+
+  if (payload.kind === "solde") {
+    if (!payload.priorInvoiceNumber) {
+      errors.push({ field: "priorInvoiceNumber", message: "N° de la facture d'acompte requis" });
+    }
+    if (!payload.priorInvoiceDate) {
+      errors.push({ field: "priorInvoiceDate", message: "Date de la facture d'acompte requise" });
+    }
+    if (payload.priorInvoiceAmount <= 0) {
+      errors.push({ field: "priorInvoiceAmount", message: "Montant de l'acompte requis" });
+    } else if (
+      payload.stayTotal > 0 &&
+      Math.abs(payload.priorInvoiceAmount + payload.amount - payload.stayTotal) > 0.01
+    ) {
+      errors.push({
+        field: "amount",
+        message: `Acompte + solde doit égaler le total du séjour (${payload.stayTotal.toFixed(2)} €)`,
+      });
+    }
+  }
+
   if (!payload.paid && payload.arrival && payload.departure && payload.arrival >= payload.departure) {
     errors.push({ field: "departure", message: "La date de départ doit être après l'arrivée" });
   }
@@ -314,4 +396,19 @@ export function validateInvoicePayload(
 
 export function computeNights(payload: InvoicePayload): number {
   return nightsBetween(payload.arrival, payload.departure);
+}
+
+/**
+ * Part du séjour couverte par la facture, arrondie au point de pourcentage
+ * (ex. 30 pour un acompte de 30 %). `null` si la facture couvre tout le séjour.
+ */
+export function staySharePercent(payload: InvoicePayload): number | null {
+  if (payload.kind === "standard" || payload.stayTotal <= 0) return null;
+  return Math.round((payload.amount / payload.stayTotal) * 100);
+}
+
+/** Reste dû après cette facture (acompte). */
+export function remainingAfter(payload: InvoicePayload): number {
+  if (payload.kind !== "acompte" || payload.stayTotal <= 0) return 0;
+  return Math.round((payload.stayTotal - payload.amount) * 100) / 100;
 }

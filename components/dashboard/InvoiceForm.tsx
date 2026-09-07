@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { InvoicePayload } from "@/lib/invoice-payload";
+import type { InvoiceKind, InvoicePayload } from "@/lib/invoice-payload";
 
 interface Props {
   initial: InvoicePayload;
@@ -57,7 +57,38 @@ Alexandre
 Coliving Barbusse — https://coliving-barbusse.vercel.app`;
   }
 
-  return `Objet : Votre demande de réservation — facture n° ${g.number} (paiement par virement)
+  const subject =
+    p.kind === "acompte"
+      ? `Objet : Votre réservation — facture d'acompte n° ${g.number} (paiement par virement)`
+      : p.kind === "solde"
+        ? `Objet : Votre séjour — facture de solde n° ${g.number} (paiement par virement)`
+        : `Objet : Votre demande de réservation — facture n° ${g.number} (paiement par virement)`;
+
+  const recap =
+    p.kind === "acompte"
+      ? `- Total du séjour : ${formatEur(p.stayTotal)}
+- Acompte à régler maintenant : ${formatEur(p.amount)}
+- Solde de ${formatEur(p.stayTotal - p.amount)} à régler ultérieurement
+- Référence à indiquer dans le libellé du virement : ${g.number}
+- Date limite de paiement : ${formatDateFr(p.paymentDueDate)}`
+      : p.kind === "solde"
+        ? `- Total du séjour : ${formatEur(p.stayTotal)}
+- Acompte déjà réglé (facture n° ${p.priorInvoiceNumber}) : ${formatEur(p.priorInvoiceAmount)}
+- Solde à régler : ${formatEur(p.amount)}
+- Référence à indiquer dans le libellé du virement : ${g.number}
+- Date limite de paiement : ${formatDateFr(p.paymentDueDate)}`
+        : `- Montant : ${formatEur(p.amount)}
+- Référence à indiquer dans le libellé du virement : ${g.number}
+- Date limite de paiement : ${formatDateFr(p.paymentDueDate)}`;
+
+  const closing =
+    p.kind === "acompte"
+      ? `Dès réception du virement, votre réservation est ferme. L'acompte n'est pas remboursable et vient en déduction du solde. Je vous transmettrai la facture de solde ainsi que les informations pratiques (code d'accès de la serrure connectée, arrivée à partir de 17h, guide d'arrivée) avant votre venue.`
+      : p.kind === "solde"
+        ? `Dès réception du virement, je vous transmets les informations pratiques (code d'accès de la serrure connectée, arrivée à partir de 17h, guide d'arrivée).`
+        : `Dès réception du virement, je vous confirme la réservation et vous transmets les informations pratiques (code d'accès de la serrure connectée, arrivée à partir de 17h, guide d'arrivée).`;
+
+  return `${subject}
 
 Bonjour ${firstName},
 
@@ -66,13 +97,11 @@ Merci pour votre demande de réservation du ${formatDateFr(p.arrival)} au ${form
 Vous trouverez ci-joint la facture correspondante pour un règlement par virement bancaire.
 
 Récapitulatif
-- Montant : ${formatEur(p.amount)}
-- Référence à indiquer dans le libellé du virement : ${g.number}
-- Date limite de paiement : ${formatDateFr(p.paymentDueDate)}
+${recap}
 
 Les coordonnées bancaires (IBAN / BIC) figurent sur la facture.
 
-Dès réception du virement, je vous confirme la réservation et vous transmets les informations pratiques (code d'accès de la serrure connectée, arrivée à partir de 17h, guide d'arrivée).
+${closing}
 
 N'hésitez pas si vous avez la moindre question — par email ou directement sur WhatsApp au +33 6 20 92 10 05.
 
@@ -87,6 +116,14 @@ function buildShortMessage(g: GeneratedInvoice): string {
 
   if (p.paid) {
     return `Bonjour ${firstName}, vous trouverez ci-joint votre facture acquittée n° ${g.number} (${formatEur(p.amount)}, réglée par carte le ${formatDateFr(p.paidAt)}). Merci pour votre réservation. Bien cordialement, Alexandre.`;
+  }
+
+  if (p.kind === "acompte") {
+    return `Bonjour ${firstName}, merci pour votre demande. Vous trouverez ci-joint la facture d'acompte n° ${g.number} : ${formatEur(p.amount)} à régler par virement avant le ${formatDateFr(p.paymentDueDate)} en indiquant ${g.number} en libellé, sur un total de séjour de ${formatEur(p.stayTotal)}. Le solde de ${formatEur(p.stayTotal - p.amount)} sera facturé avant votre arrivée. Les IBAN/BIC sont sur la facture. Bien cordialement, Alexandre.`;
+  }
+
+  if (p.kind === "solde") {
+    return `Bonjour ${firstName}, vous trouverez ci-joint la facture de solde n° ${g.number} : ${formatEur(p.amount)} à régler par virement avant le ${formatDateFr(p.paymentDueDate)} en indiquant ${g.number} en libellé (total du séjour ${formatEur(p.stayTotal)}, acompte de ${formatEur(p.priorInvoiceAmount)} déjà réglé). Les IBAN/BIC sont sur la facture. Bien cordialement, Alexandre.`;
   }
 
   return `Bonjour ${firstName}, merci pour votre demande. Vous trouverez ci-joint la facture n° ${g.number} pour un règlement par virement : ${formatEur(p.amount)}, à régler avant le ${formatDateFr(p.paymentDueDate)} en indiquant ${g.number} en libellé. Les IBAN/BIC sont sur la facture. Je confirme la réservation dès réception du virement. Bien cordialement, Alexandre.`;
@@ -117,18 +154,49 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  /** Passe en acompte/solde/standard en remettant à zéro les champs devenus inutiles. */
+  function setKind(kind: InvoiceKind) {
+    setPayload((p) => ({
+      ...p,
+      kind,
+      stayTotal: kind === "standard" ? 0 : p.stayTotal || p.amount,
+      priorInvoiceNumber: kind === "solde" ? p.priorInvoiceNumber : "",
+      priorInvoiceDate: kind === "solde" ? p.priorInvoiceDate : "",
+      priorInvoiceAmount: kind === "solde" ? p.priorInvoiceAmount : 0,
+    }));
+    setFieldErrors({});
+  }
+
+  /** Acompte : fixe le montant à un pourcentage du total du séjour. */
+  function applyDepositRate(rate: number) {
+    setPayload((p) => ({
+      ...p,
+      amount: Math.round(p.stayTotal * rate * 100) / 100,
+    }));
+  }
+
+  /** Solde : montant = total du séjour − acompte déjà facturé. */
+  function applyBalance() {
+    setPayload((p) => ({
+      ...p,
+      amount: Math.round((p.stayTotal - p.priorInvoiceAmount) * 100) / 100,
+    }));
+  }
+
+  async function runGenerate(preview: boolean) {
     setSubmitting(true);
     setError(null);
     setFieldErrors({});
 
     try {
-      const res = await fetch("/api/dashboard/invoices/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `/api/dashboard/invoices/generate${preview ? "?preview=1" : ""}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: "Erreur inconnue" }));
@@ -148,17 +216,23 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `facture-${invoiceNumber}.pdf`;
+      a.download = preview ? "apercu-facture.pdf" : `facture-${invoiceNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setGenerated({ number: invoiceNumber, payload });
+      // Un aperçu ne porte pas de numéro : pas de modèles d'email à proposer.
+      if (!preview) setGenerated({ number: invoiceNumber, payload });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await runGenerate(false);
   }
 
   return (
@@ -341,6 +415,137 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
 
       <section className="rounded-2xl bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Montant &amp; paiement</h2>
+
+        <div className="mb-4">
+          <label className={labelClass}>Type de facture</label>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["standard", "Séjour complet"],
+                ["acompte", "Acompte"],
+                ["solde", "Solde"],
+              ] as [InvoiceKind, string][]
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setKind(k)}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  payload.kind === k
+                    ? "bg-rose-500 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {payload.kind !== "standard" && (
+          <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className={labelClass}>Total TTC du séjour (€) *</label>
+                <input
+                  className={inputClass}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={payload.stayTotal}
+                  onChange={(e) => update("stayTotal", Number(e.target.value))}
+                  required
+                />
+                {fieldErrors.stayTotal && (
+                  <p className="mt-1 text-xs text-red-600">{fieldErrors.stayTotal}</p>
+                )}
+              </div>
+
+              {payload.kind === "acompte" ? (
+                <div>
+                  <label className={labelClass}>Calculer l&apos;acompte</label>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {[0.2, 0.3, 0.4, 0.5].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => applyDepositRate(r)}
+                        disabled={payload.stayTotal <= 0}
+                        className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        {r * 100} %
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Reste à régler :{" "}
+                    <strong>
+                      {formatEur(Math.max(0, payload.stayTotal - payload.amount))}
+                    </strong>
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>Montant de l&apos;acompte déjà facturé (€) *</label>
+                  <input
+                    className={inputClass}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={payload.priorInvoiceAmount}
+                    onChange={(e) => update("priorInvoiceAmount", Number(e.target.value))}
+                    required
+                  />
+                  {fieldErrors.priorInvoiceAmount && (
+                    <p className="mt-1 text-xs text-red-600">{fieldErrors.priorInvoiceAmount}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {payload.kind === "solde" && (
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <label className={labelClass}>N° facture d&apos;acompte *</label>
+                  <input
+                    className={inputClass}
+                    value={payload.priorInvoiceNumber}
+                    onChange={(e) => update("priorInvoiceNumber", e.target.value)}
+                    placeholder="Ex : 2026-014"
+                    required
+                  />
+                  {fieldErrors.priorInvoiceNumber && (
+                    <p className="mt-1 text-xs text-red-600">{fieldErrors.priorInvoiceNumber}</p>
+                  )}
+                </div>
+                <div>
+                  <label className={labelClass}>Date de l&apos;acompte *</label>
+                  <input
+                    className={inputClass}
+                    type="date"
+                    value={payload.priorInvoiceDate}
+                    onChange={(e) => update("priorInvoiceDate", e.target.value)}
+                    required
+                  />
+                  {fieldErrors.priorInvoiceDate && (
+                    <p className="mt-1 text-xs text-red-600">{fieldErrors.priorInvoiceDate}</p>
+                  )}
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={applyBalance}
+                    disabled={payload.stayTotal <= 0}
+                    className="w-full rounded-lg bg-white px-3 py-2 text-xs font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Calculer le solde
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className={labelClass}>Description *</label>
@@ -356,7 +561,13 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
             )}
           </div>
           <div>
-            <label className={labelClass}>Montant total TTC (€) *</label>
+            <label className={labelClass}>
+              {payload.kind === "acompte"
+                ? "Montant de l'acompte (€) *"
+                : payload.kind === "solde"
+                  ? "Montant du solde (€) *"
+                  : "Montant total TTC (€) *"}
+            </label>
             <input
               className={inputClass}
               type="number"
@@ -461,6 +672,15 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
             Pré-rempli depuis Stripe {stripeId}
           </span>
         )}
+        <button
+          type="button"
+          onClick={() => runGenerate(true)}
+          disabled={submitting}
+          className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-gray-700 ring-1 ring-gray-300 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+          title="Génère le PDF sans consommer de numéro de facture"
+        >
+          Aperçu
+        </button>
         <button
           type="submit"
           disabled={submitting}
