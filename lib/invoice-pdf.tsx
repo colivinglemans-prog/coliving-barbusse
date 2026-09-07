@@ -10,8 +10,14 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import type { InvoicePayload } from "./invoice-payload";
-import { computeNights } from "./invoice-payload";
+import {
+  computeNights,
+  remainingAfter,
+  staySharePercent,
+  INVOICE_KIND_LABEL,
+} from "./invoice-payload";
 import type { InvoiceIssuerConfig } from "./invoice-config";
+import { PREVIEW_NUMBER } from "./invoice-number";
 
 function formatDateFr(iso: string): string {
   if (!iso) return "";
@@ -147,7 +153,22 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     marginTop: 8,
   },
-  totalsBlock: { width: 200 },
+  totalsBlock: { width: 280 },
+  recapBlock: {
+    marginBottom: 6,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  recapLine: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 9,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  recapLabel: { flex: 1, paddingRight: 10, color: "#4b5563" },
+  recapStrong: { fontFamily: "Helvetica-Bold", color: "#111827" },
   totalsLine: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -240,7 +261,14 @@ interface InvoiceDocProps {
 
 function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDocProps) {
   const nights = computeNights(payload);
-  const unitPrice = nights > 0 ? payload.amount / nights : payload.amount;
+  const partial = payload.kind !== "standard";
+  // Une facture d'acompte ou de solde porte sur un forfait, pas sur des nuits :
+  // afficher « 6 nuits à 337,65 € » pour un acompte de 30 % ferait lire au client
+  // un séjour à 2 025,90 € au lieu de 6 753 €.
+  const quantity = partial ? "1" : String(nights);
+  const unitPrice = partial ? payload.amount : nights > 0 ? payload.amount / nights : payload.amount;
+  const sharePercent = staySharePercent(payload);
+  const remaining = remainingAfter(payload);
   const cityLine = [payload.postcode, payload.city].filter(Boolean).join(" ");
 
   return (
@@ -277,8 +305,14 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
             ) : null}
           </View>
           <View style={styles.invoiceBox}>
-            <Text style={styles.invoiceTitle}>FACTURE</Text>
-            <Text style={styles.invoiceNumber}>N° {invoiceNumber}</Text>
+            <Text style={styles.invoiceTitle}>
+              {INVOICE_KIND_LABEL[payload.kind].toUpperCase()}
+            </Text>
+            <Text style={styles.invoiceNumber}>
+              {invoiceNumber === PREVIEW_NUMBER
+                ? "APERÇU — numéro non attribué"
+                : `N° ${invoiceNumber}`}
+            </Text>
             <Text style={styles.invoiceDate}>
               Émise le {formatDateFr(issuedAt.toISOString().split("T")[0])}
             </Text>
@@ -344,7 +378,13 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
           {payload.reference ? (
             <View style={styles.detailsRow}>
               <Text style={styles.detailsLabel}>Réf. réservation</Text>
-              <Text style={styles.detailsValue}>Beds24 #{payload.reference}</Text>
+              {/* Une référence purement numérique vient de Beds24 ; une référence
+                  saisie à la main (bon de commande, dossier client) reste telle quelle. */}
+              <Text style={styles.detailsValue}>
+                {/^\d+$/.test(payload.reference)
+                  ? `Beds24 #${payload.reference}`
+                  : payload.reference}
+              </Text>
             </View>
           ) : null}
           {payload.comments ? (
@@ -364,14 +404,58 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.colDesc}>{payload.description}</Text>
-            <Text style={styles.colQty}>{nights}</Text>
+            <Text style={styles.colQty}>{quantity}</Text>
             <Text style={styles.colUnit}>{formatEur(unitPrice)}</Text>
             <Text style={styles.colTotal}>{formatEur(payload.amount)}</Text>
           </View>
         </View>
 
-        <View style={styles.totalsRow}>
+        {/* wrap={false} : sans ça le bandeau Total TTC se coupe en deux au saut de page. */}
+        <View style={styles.totalsRow} wrap={false}>
           <View style={styles.totalsBlock}>
+            {partial && (
+              <View style={styles.recapBlock}>
+                <View style={styles.recapLine}>
+                  <Text style={styles.recapLabel}>Total du séjour</Text>
+                  <Text>{formatEur(payload.stayTotal)}</Text>
+                </View>
+
+                {payload.kind === "acompte" ? (
+                  <>
+                    <View style={styles.recapLine}>
+                      <Text style={styles.recapLabel}>
+                        Acompte{sharePercent !== null ? ` ${sharePercent} %` : ""} (cette facture)
+                      </Text>
+                      <Text>{formatEur(payload.amount)}</Text>
+                    </View>
+                    <View style={styles.recapLine}>
+                      <Text style={[styles.recapLabel, styles.recapStrong]}>Reste à régler</Text>
+                      <Text style={styles.recapStrong}>{formatEur(remaining)}</Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.recapLine}>
+                      <Text style={styles.recapLabel}>
+                        Acompte facture n° {payload.priorInvoiceNumber}
+                        {payload.priorInvoiceDate
+                          ? ` du ${formatDateFr(payload.priorInvoiceDate)}`
+                          : ""}
+                      </Text>
+                      {/* Tiret ASCII : le vrai signe moins U+2212 n'a pas de glyphe en Helvetica
+                          et disparaîtrait silencieusement du PDF. */}
+                      <Text>-{formatEur(payload.priorInvoiceAmount)}</Text>
+                    </View>
+                    <View style={styles.recapLine}>
+                      <Text style={[styles.recapLabel, styles.recapStrong]}>
+                        Solde (cette facture)
+                      </Text>
+                      <Text style={styles.recapStrong}>{formatEur(payload.amount)}</Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
             <View style={styles.totalsLine}>
               <Text>Total HT</Text>
               <Text>{formatEur(payload.amount)}</Text>

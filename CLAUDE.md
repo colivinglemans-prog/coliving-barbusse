@@ -550,10 +550,30 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
   - `payload.paid === true` → bloc vert « ✓ Paiement reçu » avec montant, méthode, date, référence Stripe. Bandeau vert « Merci de votre paiement ». La facture vaut reçu.
 - `<View wrap={false}>` sur le bloc paiement pour éviter qu'il soit coupé entre deux pages.
 
+### Acompte et solde (séjours facturés en deux temps)
+
+Un séjour d'entreprise se règle en général par un acompte à la réservation puis un solde
+avant l'arrivée. Le champ `kind` de `InvoicePayload` vaut `standard` (défaut), `acompte` ou
+`solde` ; le sélecteur est en tête de la section « Montant & paiement » du formulaire.
+
+- **`stayTotal`** (total TTC du séjour) est obligatoire dès que `kind !== "standard"`. Sans lui,
+  le client ne peut pas rattacher la facture au séjour.
+- **`priorInvoiceNumber` / `priorInvoiceDate` / `priorInvoiceAmount`** : l'acompte rappelé et
+  déduit sur la facture de solde. La validation **refuse** un solde dont `acompte + solde`
+  ne retombe pas sur `stayTotal` (tolérance 1 centime).
+- Le PDF change de titre (`FACTURE D'ACOMPTE` / `FACTURE DE SOLDE`) et facture **en forfait**
+  (quantité 1) au lieu du calcul par nuit : sinon un acompte de 30 % sur 6 nuits s'imprimait
+  « 6 × 337,65 € », que la comptabilité du client lit comme un séjour à 2 025,90 €.
+- Un récapitulatif (total séjour / acompte / reste à régler) s'insère au-dessus du bloc
+  Total HT–TVA–Total TTC, l'ensemble en `wrap={false}` pour ne pas se couper au saut de page.
+- Les modèles d'email et le message court générés après coup s'adaptent au type de facture.
+- Le PDF est rendu en Helvetica : **pas de glyphe pour le signe moins U+2212**, qui
+  disparaîtrait sans erreur. Utiliser le tiret ASCII pour les montants négatifs.
+
 ### Restrictions
 
 - `/dashboard/invoices/**` et `/api/dashboard/invoices/**` : middleware bloque viewer (redirect / 403).
-- Numérotation séquentielle **continue** (obligation légale FR) : le compteur n'est incrémenté qu'à la génération réelle, pas à l'ouverture du formulaire.
+- Numérotation séquentielle **continue** (obligation légale FR) : le compteur n'est incrémenté qu'à la génération réelle, pas à l'ouverture du formulaire. Le bouton **Aperçu** (`POST …/generate?preview=1`) rend le PDF avec le numéro fictif `PREVIEW_NUMBER` sans toucher au compteur — relire un brouillon ne creuse plus de trou dans la série. La sentinelle est en ASCII pur car elle transite par l'en-tête `X-Invoice-Number`.
 
 ## Dashboard Fiscalité LMNP / LMP (`/dashboard/fiscal`)
 

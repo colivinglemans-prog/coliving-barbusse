@@ -11,6 +11,9 @@ function getRedis(): Redis {
   return redisClient;
 }
 
+/** Numéro fictif d'un aperçu : ne consomme pas la séquence. ASCII pur (en-tête HTTP). */
+export const PREVIEW_NUMBER = "PREVIEW";
+
 export async function getNextInvoiceNumber(date = new Date()): Promise<string> {
   const year = date.getUTCFullYear();
   const key = `invoice:counter:${year}`;
