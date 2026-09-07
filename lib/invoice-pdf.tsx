@@ -261,6 +261,9 @@ interface InvoiceDocProps {
 
 function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDocProps) {
   const nights = computeNights(payload);
+  // En aperçu, aucun numéro n'est alloué : tout ce qui en dérive (titre du
+  // document, libellé de virement) doit le dire plutôt qu'afficher la sentinelle.
+  const preview = invoiceNumber === PREVIEW_NUMBER;
   const partial = payload.kind !== "standard";
   // Une facture d'acompte ou de solde porte sur un forfait, pas sur des nuits :
   // afficher « 6 nuits à 337,65 € » pour un acompte de 30 % ferait lire au client
@@ -273,7 +276,7 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
 
   return (
     <Document
-      title={`Facture ${invoiceNumber}`}
+      title={preview ? "Aperçu de facture" : `Facture ${invoiceNumber}`}
       author={issuer.legalName}
       subject="Facture Coliving Barbusse"
     >
@@ -309,9 +312,7 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
               {INVOICE_KIND_LABEL[payload.kind].toUpperCase()}
             </Text>
             <Text style={styles.invoiceNumber}>
-              {invoiceNumber === PREVIEW_NUMBER
-                ? "APERÇU — numéro non attribué"
-                : `N° ${invoiceNumber}`}
+              {preview ? "APERÇU — numéro non attribué" : `N° ${invoiceNumber}`}
             </Text>
             <Text style={styles.invoiceDate}>
               Émise le {formatDateFr(issuedAt.toISOString().split("T")[0])}
@@ -523,7 +524,9 @@ function InvoiceDocument({ payload, issuer, invoiceNumber, issuedAt }: InvoiceDo
               </View>
               <View style={styles.paymentRow}>
                 <Text style={styles.paymentLabel}>Libellé virement</Text>
-                <Text style={styles.paymentValueBold}>{invoiceNumber}</Text>
+                <Text style={preview ? styles.paymentValue : styles.paymentValueBold}>
+                  {preview ? "numéro attribué à la génération" : invoiceNumber}
+                </Text>
               </View>
             </View>
 
