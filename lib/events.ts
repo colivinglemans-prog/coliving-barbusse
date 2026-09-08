@@ -52,7 +52,8 @@ export const LE_MANS_EVENTS: LeMansEvent[] = [
   { name: "Réunion hippique Hunaudières", start: "2026-05-03", end: "2026-05-03" },
   { name: "Réunion hippique Hunaudières", start: "2026-05-08", end: "2026-05-08" },
   { name: "Réunion hippique Hunaudières", start: "2026-05-21", end: "2026-05-21" },
-  // GP Explorer dates annoncées plus tard
+  // GP Explorer : plus d’édition. La 3e (« The Last Race », 3-5 octobre 2025) était la
+  // dernière ; ne rien attendre pour 2026 ou après.
 
   // 2027 — uniquement les dates officiellement annoncées par les organisateurs.
   // Le calendrier complet du circuit (lemans.org) paraît habituellement en octobre
