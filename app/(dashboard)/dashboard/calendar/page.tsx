@@ -85,6 +85,7 @@ export default function CalendarPage() {
               bookings={bookings}
               showPrices={effectiveRole === "admin"}
               showChannels={effectiveRole === "admin"}
+              isAdmin={effectiveRole === "admin"}
               onNotesUpdated={(id, notes) => {
                 setBookings((prev) =>
                   prev.map((b) => (b.id === id ? { ...b, notes } : b)),

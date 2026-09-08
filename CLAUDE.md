@@ -60,7 +60,8 @@ app/
         stripe-payments/  # GET liste des derniers paiements Stripe réussis
       taxe-sejour/    # Taxe de séjour (Le Mans Métropole, trimestres + canaux)
       fiscal/         # Estimation IR + PS/SSI + test LMP
-      bookings/[id]/notes/  # POST notes internes (admin only) → Beds24
+      bookings/[id]/notes/      # POST notes internes (admin only) → Beds24
+      bookings/[id]/nuki-code/  # GET code serrure (admin only) ← infoItems NUKI_PIN
     cron/
       heating-automation/  # Check-in/check-out → mode présence/hors-gel
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
@@ -347,6 +348,15 @@ un merge transparent :
 - Stockées dans le champ `notes` de Beds24 (non imprimé sur factures, contrairement à `comments`).
 - API : `POST /api/dashboard/bookings/[id]/notes` (admin only via JWT) → `updateBookingNotes()` dans [lib/beds24.ts](lib/beds24.ts) utilise le **refresh token** (`BEDS24_REFRESH_TOKEN`) car les long life tokens Beds24 ne supportent pas `write:bookings`.
 - Le state `bookings` côté page calendrier est mis à jour via la callback `onNotesUpdated` pour éviter un refetch.
+
+### Partage voyageur (lien du guide + code serrure)
+
+Bloc dans la popup de réservation du calendrier — [components/dashboard/GuestShareBlock.tsx](components/dashboard/GuestShareBlock.tsx). Copie en un clic du lien du guide et d'un message prêt à envoyer dans les 5 langues, plus le code de la serrure.
+
+- **Rendu uniquement si `isAdmin`** (prop passée par la page calendrier depuis `effectiveRole`, donc masqué aussi en « Vue viewer »).
+- **Code Nuki** : Beds24 dépose le PIN 6 chiffres dans `infoItems[]` sous `code = "NUKI_PIN"` (champ `text`), environ **6 jours avant l'arrivée** seulement → prévoir l'état « Pas encore généré ». Lu via `GET /api/dashboard/bookings/[id]/nuki-code` (admin only via JWT, re-vérifié dans la route car le middleware ne bloque pas viewer sur `/api/dashboard/bookings`). Route dédiée volontairement : le calendrier charge ~19 mois de résas, hors de question d'y faire transiter les PIN. **Ne jamais logger le PIN — le dépôt est public.**
+- **URL et langues** : `guideUrl()` / `guestLocaleFromCountry()` dans [lib/site.ts](lib/site.ts) ; modèles de message dans [lib/guest-messages.ts](lib/guest-messages.ts) (vouvoiement FR/DE, tutoiement IT/ES, comme le guide).
+- **Presse-papier** : le dashboard est utilisé en mode « app » sur mobile, où `navigator.clipboard` peut être refusé → repli sur un champ sélectionnable, jamais d'échec silencieux.
 
 ## Événements Le Mans (`lib/events.ts`)
 

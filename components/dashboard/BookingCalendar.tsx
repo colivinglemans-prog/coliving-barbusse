@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { Beds24Booking } from "@/lib/types";
 import { findEventForStay, LE_MANS_EVENTS, shortEventLabel, type LeMansEvent } from "@/lib/events";
+import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
 
 /* ── Channel colours (same as ChannelPieChart) ────────────────────── */
 const CHANNEL_COLORS: Record<string, string> = {
@@ -81,6 +82,8 @@ interface BookingCalendarProps {
   bookings: Beds24Booking[];
   showPrices?: boolean;
   showChannels?: boolean;
+  /** Débloque le bloc de partage voyageur (lien du guide + code de la serrure). */
+  isAdmin?: boolean;
   onNotesUpdated?: (bookingId: number, notes: string) => void;
 }
 
@@ -200,7 +203,7 @@ function NotesEditor({
   );
 }
 
-export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, onNotesUpdated }: BookingCalendarProps) {
+export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated }: BookingCalendarProps) {
   const [month, setMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -741,6 +744,14 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                     {popup.booking.comments}
                   </p>
                 </div>
+              )}
+
+              {isAdmin && (
+                <GuestShareBlock
+                  bookingId={popup.booking.id}
+                  firstName={popup.booking.firstName}
+                  country={popup.booking.country}
+                />
               )}
 
               <NotesEditor
