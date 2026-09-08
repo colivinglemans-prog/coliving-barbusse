@@ -37,7 +37,7 @@ app/
     page.tsx          # Homepage (metadata/JSON-LD localisés, inclut ReservationCalendar)
     blog/
     chambres/         # Suites + ReservationCalendar
-    guide-arrivee/    # Guide voyageurs noindex (accès, Wi-Fi QR, chauffage, checkout)
+    guide-arrivee/    # Guide voyageurs noindex (accès, Wi-Fi QR, chauffage, café, lits d'appoint, checkout)
     seminaires/
     # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via middleware (4 locales).
     # Le calendrier de dispo est sur la homepage (#disponibilite) et /chambres.

@@ -32,7 +32,15 @@ const T = {
     s1Route2: "Boulangerie, Carrefour City et autres commerces de proximité sur le chemin.",
     s1MapsLink: "Ouvrir dans une application de navigation :",
     s2Title: "Stationnement",
-    s2Body: "Pas de parking privé ni de garage à la maison. Stationnement libre et gratuit dans la rue Henri Barbusse et les rues adjacentes — pratique pour les groupes, plusieurs voitures peuvent stationner sans contrainte.",
+    s2Body: "Stationnement libre et gratuit dans la rue Henri Barbusse et les rues adjacentes, sans disque ni horodateur — pratique pour les groupes, plusieurs voitures peuvent stationner sans contrainte.",
+    s2Garage: "Vous pouvez aussi vous garer devant la porte du garage de la maison : aucun véhicule n'y entre ni n'en sort, vous ne bloquez donc personne.",
+    s2Note: "Le garage lui-même ne fait pas partie du logement. C'est notre local de rangement (draps, produits d'entretien) et il n'est pas accessible aux voyageurs.",
+    sCafeTitle: "Le café",
+    sCafeBody: "La cuisine est équipée d'une machine à café à grain (De'Longhi Magnifica S) : versez les grains dans le réservoir du haut, posez votre tasse, appuyez. Le moulin fait le reste.",
+    sCafeNote: "Nous laissons toujours du café en grains à disposition, mais nous ne pouvons pas garantir la quantité pour tout un séjour à plusieurs. Si vous êtes de bons buveurs de café, prévoyez un paquet — le Carrefour City sur le chemin de la gare en vend.",
+    sSofaTitle: "Les deux lits d'appoint",
+    sSofaBody: "Deux des neuf chambres disposent d'un canapé-lit une place, ce qui porte la capacité de la maison à 20 voyageurs. Par défaut, ils restent en position canapé.",
+    sSofaNote: "Prévenez-nous avant votre arrivée si vous avez besoin de l'un ou des deux : nous les déplierons et les préparerons avec draps et serviettes, pour que tout soit prêt en arrivant.",
     s3Title: "Accès à la maison",
     s3Item1T: "Serrure connectée",
     s3Item1: "L'entrée principale est équipée d'une serrure connectée avec un code d'accès personnel à 6 chiffres, valable uniquement pendant la durée de votre séjour. Le clavier se trouve à gauche de la sonnette.",
@@ -128,7 +136,15 @@ const T = {
     s1Route2: "Bakery, Carrefour City and other local shops along the way.",
     s1MapsLink: "Open in a navigation app:",
     s2Title: "Parking",
-    s2Body: "No private parking or garage at the house. Free street parking on Rue Henri Barbusse and adjacent streets, no permit required — convenient for groups, several cars can park without restrictions.",
+    s2Body: "Free street parking on Rue Henri Barbusse and adjacent streets, with no permit and no parking meter — convenient for groups, several cars can park without restrictions.",
+    s2Garage: "You can also park in front of the house's garage door: no vehicle goes in or out, so you won't be blocking anyone.",
+    s2Note: "The garage itself is not part of the rental. It is our storage room (linen, cleaning supplies) and is not accessible to guests.",
+    sCafeTitle: "Coffee",
+    sCafeBody: "The kitchen has a bean-to-cup coffee machine (De'Longhi Magnifica S): pour the beans into the hopper on top, place your cup, press. The grinder does the rest.",
+    sCafeNote: "We always leave coffee beans available, but we can't guarantee there will be enough for a whole stay with a group. If you're serious coffee drinkers, bring a bag along — the Carrefour City on the way from the station sells them.",
+    sSofaTitle: "The two extra beds",
+    sSofaBody: "Two of the nine bedrooms have a single sofa bed, bringing the capacity of the house to 20 guests. By default they stay folded as sofas.",
+    sSofaNote: "Let us know before you arrive if you need one or both: we'll unfold them and make them up with sheets and towels, so everything is ready when you get here.",
     s3Title: "Getting inside",
     s3Item1T: "Smart lock",
     s3Item1: "The main entrance is equipped with a smart lock and a personal 6-digit access code, valid only for the duration of your stay. The keypad is located to the left of the doorbell.",
@@ -224,7 +240,15 @@ const T = {
     s1Route2: "Panetteria, Carrefour City e altri negozi di vicinato lungo il percorso.",
     s1MapsLink: "Apri in un'app di navigazione:",
     s2Title: "Parcheggio",
-    s2Body: "Nessun parcheggio privato né garage in casa. Parcheggio libero e gratuito in rue Henri Barbusse e nelle vie adiacenti — comodo per i gruppi, più auto possono sostare senza vincoli.",
+    s2Body: "Parcheggio libero e gratuito in rue Henri Barbusse e nelle vie adiacenti, senza disco orario né parchimetro — comodo per i gruppi, più auto possono sostare senza vincoli.",
+    s2Garage: "Puoi anche parcheggiare davanti alla porta del garage della casa: nessun veicolo entra o esce, quindi non blocchi nessuno.",
+    s2Note: "Il garage in sé non fa parte dell'alloggio: è il nostro locale di deposito (lenzuola, prodotti per la pulizia) e non è accessibile agli ospiti.",
+    sCafeTitle: "Il caffè",
+    sCafeBody: "La cucina è dotata di una macchina per il caffè in grani (De'Longhi Magnifica S): versa i chicchi nel contenitore in alto, metti la tazza e premi. Al resto pensa il macinacaffè.",
+    sCafeNote: "Lasciamo sempre del caffè in grani a disposizione, ma non possiamo garantire che basti per un intero soggiorno di gruppo. Se bevi molto caffè, porta con te una confezione — il Carrefour City sulla strada dalla stazione lo vende.",
+    sSofaTitle: "I due letti supplementari",
+    sSofaBody: "Due delle nove camere dispongono di un divano letto singolo, che porta la capacità della casa a 20 ospiti. Di norma restano chiusi, in versione divano.",
+    sSofaNote: "Avvisaci prima del tuo arrivo se hai bisogno di uno o di entrambi: li apriremo e li prepareremo con lenzuola e asciugamani, così troverai tutto pronto.",
     s3Title: "Accesso alla casa",
     s3Item1T: "Serratura connessa",
     s3Item1: "L'ingresso principale è dotato di una serratura connessa con un codice di accesso personale a 6 cifre, valido solo per la durata del tuo soggiorno. La tastiera si trova a sinistra del campanello.",
@@ -320,7 +344,15 @@ const T = {
     s1Route2: "Bäckerei, Carrefour City und weitere lokale Geschäfte auf dem Weg.",
     s1MapsLink: "In einer Navigations-App öffnen:",
     s2Title: "Parken",
-    s2Body: "Kein privater Parkplatz oder Garage am Haus. Kostenloses Parken auf der Straße in der Rue Henri Barbusse und den angrenzenden Straßen — praktisch für Gruppen, mehrere Autos können ohne Einschränkung parken.",
+    s2Body: "Kostenloses und freies Parken in der Rue Henri Barbusse und den angrenzenden Straßen, ohne Parkscheibe und ohne Parkuhr — praktisch für Gruppen, mehrere Autos können ohne Einschränkung parken.",
+    s2Garage: "Sie können auch direkt vor dem Garagentor des Hauses parken: Es fährt kein Fahrzeug hinein oder heraus, Sie blockieren also niemanden.",
+    s2Note: "Die Garage selbst gehört nicht zur Unterkunft. Sie ist unser Lagerraum (Bettwäsche, Reinigungsmittel) und für Gäste nicht zugänglich.",
+    sCafeTitle: "Kaffee",
+    sCafeBody: "In der Küche steht ein Kaffeevollautomat (De'Longhi Magnifica S): Bohnen oben einfüllen, Tasse hinstellen, Taste drücken. Das Mahlwerk erledigt den Rest.",
+    sCafeNote: "Wir stellen immer Kaffeebohnen bereit, können aber nicht garantieren, dass die Menge für einen ganzen Aufenthalt in der Gruppe reicht. Wenn Sie viel Kaffee trinken, bringen Sie gerne eine Packung mit — der Carrefour City auf dem Weg vom Bahnhof führt welche.",
+    sSofaTitle: "Die zwei Zusatzbetten",
+    sSofaBody: "Zwei der neun Zimmer verfügen über ein Schlafsofa für eine Person, womit das Haus bis zu 20 Gäste beherbergt. Standardmäßig bleiben sie als Sofa zusammengeklappt.",
+    sSofaNote: "Sagen Sie uns vor Ihrer Ankunft Bescheid, wenn Sie eines oder beide benötigen: Wir klappen sie aus und beziehen sie mit Bettwäsche und Handtüchern, damit bei Ihrer Ankunft alles bereit ist.",
     s3Title: "Zugang zum Haus",
     s3Item1T: "Smart Lock",
     s3Item1: "Der Haupteingang ist mit einem Smart Lock und einem persönlichen 6-stelligen Zugangscode ausgestattet, der nur für die Dauer Ihres Aufenthalts gültig ist. Das Tastenfeld befindet sich links neben der Klingel.",
@@ -416,7 +448,15 @@ const T = {
     s1Route2: "Panadería, Carrefour City y otros comercios de barrio en el camino.",
     s1MapsLink: "Abrir en una app de navegación:",
     s2Title: "Aparcamiento",
-    s2Body: "No hay aparcamiento privado ni garaje en la casa. Aparcamiento libre y gratuito en la rue Henri Barbusse y calles adyacentes — práctico para grupos, varios coches pueden aparcar sin restricciones.",
+    s2Body: "Aparcamiento libre y gratuito en la rue Henri Barbusse y calles adyacentes, sin disco ni parquímetro — práctico para grupos, varios coches pueden aparcar sin restricciones.",
+    s2Garage: "También puedes aparcar delante de la puerta del garaje de la casa: no entra ni sale ningún vehículo, así que no bloqueas a nadie.",
+    s2Note: "El garaje en sí no forma parte del alojamiento: es nuestro trastero (sábanas, productos de limpieza) y no está accesible para los viajeros.",
+    sCafeTitle: "El café",
+    sCafeBody: "La cocina está equipada con una cafetera automática de grano (De'Longhi Magnifica S): echa los granos en el depósito superior, coloca la taza y pulsa. El molinillo hace el resto.",
+    sCafeNote: "Siempre dejamos café en grano a disposición, pero no podemos garantizar que haya suficiente para toda una estancia en grupo. Si tomas mucho café, trae un paquete — el Carrefour City de camino desde la estación los vende.",
+    sSofaTitle: "Las dos camas supletorias",
+    sSofaBody: "Dos de las nueve habitaciones disponen de un sofá cama de una plaza, lo que eleva la capacidad de la casa a 20 viajeros. Por defecto permanecen plegados como sofá.",
+    sSofaNote: "Avísanos antes de tu llegada si necesitas una o las dos: las desplegaremos y las prepararemos con sábanas y toallas, para que todo esté listo al llegar.",
     s3Title: "Acceso a la casa",
     s3Item1T: "Cerradura conectada",
     s3Item1: "La entrada principal está equipada con una cerradura conectada y un código de acceso personal de 6 dígitos, válido únicamente durante la duración de tu estancia. El teclado se encuentra a la izquierda del timbre.",
@@ -632,6 +672,10 @@ export default async function GuideArrivee({
       <section className="mt-12">
         <h2 className="text-2xl font-bold text-foreground">🚗 {t.s2Title}</h2>
         <p className="mt-4 text-sm text-secondary">{t.s2Body}</p>
+        <p className="mt-3 text-sm text-secondary">{t.s2Garage}</p>
+        <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          ⚠️ {t.s2Note}
+        </p>
       </section>
 
       {/* 3. Accès maison */}
@@ -771,6 +815,50 @@ export default async function GuideArrivee({
           <div>
             <p className="text-sm text-secondary">{t.s6Body}</p>
             <p className="mt-3 text-sm text-secondary">{t.s6Note}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6.bis Café */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold text-foreground">☕ {t.sCafeTitle}</h2>
+        <div className="mt-5 grid gap-5 sm:grid-cols-[200px_1fr] sm:items-start">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <Image
+              src="/images/guide/cafe.jpg"
+              alt={t.sCafeTitle}
+              width={720}
+              height={960}
+              className="h-auto w-full object-cover"
+              sizes="(max-width: 640px) 100vw, 200px"
+            />
+          </div>
+          <div>
+            <p className="text-sm text-secondary">{t.sCafeBody}</p>
+            <p className="mt-3 text-sm text-secondary">{t.sCafeNote}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6.ter Lits d'appoint */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold text-foreground">🛏️ {t.sSofaTitle}</h2>
+        <div className="mt-5 grid gap-5 sm:grid-cols-[200px_1fr] sm:items-start">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <Image
+              src="/images/guide/canape-lit.jpg"
+              alt={t.sSofaTitle}
+              width={720}
+              height={960}
+              className="h-auto w-full object-cover"
+              sizes="(max-width: 640px) 100vw, 200px"
+            />
+          </div>
+          <div>
+            <p className="text-sm text-secondary">{t.sSofaBody}</p>
+            <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              💬 {t.sSofaNote}
+            </p>
           </div>
         </div>
       </section>
