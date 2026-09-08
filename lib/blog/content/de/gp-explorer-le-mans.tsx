@@ -4,76 +4,87 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Der GP Explorer, ins Leben gerufen von Squeezie und seinem Team, ist innerhalb
-        weniger Ausgaben zu einer der meistverfolgten Veranstaltungen Frankreichs
-        geworden. Eine Mischung aus Autorennen, YouTube-Show und Festival, die mehr
-        als 60.000 Zuschauer an den Circuit Bugatti zieht. Hier ist der Leitfaden zur
-        Vorbereitung Ihres Wochenendes.
+        Der GP Explorer ist Geschichte. Die dritte Ausgabe mit dem Titel
+        <strong> GP Explorer: The Last Race</strong>, ausgetragen vom 3. bis 5. Oktober 2025
+        auf dem Circuit Bugatti, machte ihrem Namen alle Ehre: Es war die letzte. Ein
+        Rückblick auf drei Ausgaben, die Le Mans geprägt haben — und darauf, was die
+        Rennstrecke weiterhin belebt.
       </p>
 
-      <h2>Was ist der GP Explorer?</h2>
+      <h2>Wird es eine nächste Ausgabe geben?</h2>
       <p>
-        Der GP Explorer ist ein Autorennen, das 2022 von Squeezie (YouTuber mit über
-        18 Millionen Abonnenten) in Partnerschaft mit GP Elite ins Leben gerufen wurde.
-        Content-Creator und Prominente messen sich auf dem Circuit Bugatti am Steuer
-        von Formel-4-Fahrzeugen — vor einem begeisterten Publikum und live übertragen
-        auf Twitch (mit jeder Ausgabe wird der französische Zuschauerrekord gebrochen).
+        Nein. Squeezie hat die Ausgabe 2025 bewusst als Schlusspunkt angelegt, bis hin zum
+        Titel: <em>The Last Race</em>. Seitdem wurde keine neue Ausgabe angekündigt, es gibt
+        also keinen Ticketverkauf abzuwarten. Wer nach „GP Explorer 2026“ oder „nächster GP
+        Explorer“ sucht, bekommt eine einfache Antwort: Es wird keinen mehr geben.
       </p>
 
-      <h2>Warum der GP Explorer eine einzigartige Veranstaltung ist</h2>
+      <h2>Die drei Ausgaben im Überblick</h2>
       <ul>
         <li>
-          <strong>Junges, leidenschaftliches Publikum</strong>: überwiegend 15- bis
-          30-Jährige, sehr festlich, Konzertatmosphäre.
+          <strong>2022 — die erste</strong>: von Squeezie mit Content-Creators am Steuer von
+          Formel-4-Wagen auf dem Circuit Bugatti gestartet, brach sie mit über einer Million
+          gleichzeitiger Zuschauer den französischsprachigen Twitch-Rekord.
         </li>
         <li>
-          <strong>Twitch-Zuschauerrekord</strong>: über 1,2 Millionen gleichzeitige
-          Viewer bei der Ausgabe 2023 — die größte französischsprachige Zuschauerzahl
-          auf der Plattform.
+          <strong>2023 — die Bestätigung</strong>: erneut ein großer Erfolg mit einem Höchstwert
+          von über 1,3 Millionen Live-Zuschauern und vollen Tribünen in Le Mans.
         </li>
         <li>
-          <strong>Erschwingliche Eintrittspreise</strong>: Tickets ab rund 40 € sowie
-          Free Zones, im Gegensatz zu MotoGP- oder Formel-1-Events.
-        </li>
-        <li>
-          <strong>Show-Animationen im amerikanischen Stil</strong>: Moderatoren,
-          Podium, Musik, abends Lichtdrohnen.
+          <strong>2025 — The Last Race</strong>: vom 3. bis 5. Oktober 2025, ein auf drei Tage
+          erweitertes Format mit Rennen, Überraschungen auf der Strecke und Konzerten. 2024
+          fand keine Ausgabe statt.
         </li>
       </ul>
 
-      <h2>Wann findet die nächste Ausgabe statt?</h2>
+      <h2>Was der GP Explorer hinterlässt</h2>
       <p>
-        Die vergangenen Ausgaben fanden im Oktober (2022, 2023) und dann im September
-        (2024) statt. Der genaue Termin der kommenden Ausgaben wird in der Regel
-        einige Monate vorher auf Squeezies YouTube-Kanal und auf der offiziellen Website
-        bekannt gegeben. Halten Sie den Ticketverkauf im Auge: Alles ist innerhalb
-        weniger Minuten weg.
+        In drei Ausgaben hat das Event den Circuit Bugatti einer Generation nähergebracht, die
+        sich nicht zwangsläufig für Motorsport interessierte. Und es hat gezeigt, dass man ein
+        Wochenende in Le Mans wie ein Festival plant: mit dem TGV anreisen, in der Stadt
+        übernachten, mit der Straßenbahn zur Rennstrecke fahren und das Auto ganz weglassen.
+        Genau dasselbe Rezept funktioniert für die anderen großen Termine der Strecke, die
+        sehr lebendig sind.
       </p>
 
-      <h2>Unterkunft für den GP Explorer</h2>
+      <h2>Was auf dem Circuit Bugatti weitergeht</h2>
       <p>
-        Da die Veranstaltung mittlerweile riesig ist, füllen sich die Unterkünfte
-        schnell — wenn auch oft weniger früh als bei den 24 Stunden von Le Mans. Da
-        das Publikum eher jung ist, ist die klassische Hotellerie nicht immer die
-        erste Wahl; geteilte Hausvermietungen funktionieren sehr gut für
-        Freundesgruppen.
+        An Veranstaltungen mangelt es in Le Mans nicht — mehrere ziehen sogar deutlich mehr
+        Menschen an als der GP Explorer je:
+      </p>
+      <ul>
+        <li>
+          <Link href="/de/blog/24-heures-moto-le-mans-2027">Die 24 Stunden von Le Mans für
+          Motorräder</Link>, im April: 100.000 Zuschauer und eine einzigartige Biker-Atmosphäre.
+        </li>
+        <li>
+          <Link href="/de/blog/motogp-france-le-mans-2027">Der MotoGP von Frankreich</Link>, im
+          Frühjahr: der bestbesuchte Grand Prix der Meisterschaft.
+        </li>
+        <li>
+          <Link href="/de/blog/ou-se-loger-24h-du-mans-2027">Die 24 Stunden von Le Mans</Link>,
+          im Juni: das berühmteste Langstreckenrennen der Welt.
+        </li>
+        <li>
+          <Link href="/de/blog/le-mans-classic-2027">Le Mans Classic</Link>, im Sommer: das
+          Treffen der Oldtimer.
+        </li>
+        <li>
+          <Link href="/de/blog/24-heures-camions-le-mans">Die 24 Stunden der Lkw</Link>, im
+          September: das familienfreundlichste und günstigste Format.
+        </li>
+      </ul>
+
+      <h2>Unterkunft für ein Rennwochenende in Le Mans</h2>
+      <p>
+        Die Gewohnheit aus den GP-Explorer-Jahren gilt weiterhin: Für eine Gruppe ist ein
+        großes gemeinsames Haus deutlich günstiger als ebenso viele Hotelzimmer — und man kann
+        den Abend zusammen ausklingen lassen. Wer in der Stadt statt direkt an der Strecke
+        wohnt, hat außerdem die Restaurants und Bars des Zentrums vor der Tür, die an
+        Veranstaltungsabenden gut gefüllt sind.
       </p>
 
-      <h3>In der Gruppe ist es schlauer</h3>
-      <p>
-        Den GP Explorer erlebt man am besten gemeinsam: Viele reisen mit ihrer
-        Freundesgruppe oder ihrer Community an. Sich ein großes Haus zu teilen, senkt
-        die Kosten pro Person und lässt das Fest gemeinsam ausklingen.
-      </p>
-
-      <h3>Le Mans Stadt bevorzugen</h3>
-      <p>
-        Am Samstagabend kocht die Stimmung in der Stadt über: Restaurants, Bars,
-        Terrassen. Eine Unterkunft im Zentrum erlaubt es, die Atmosphäre zu genießen,
-        ohne fahren zu müssen.
-      </p>
-
-      <h2>Unser Haus: perfekt für eine GP-Explorer-Gruppe</h2>
+      <h2>Unser Haus: für Gruppen gemacht</h2>
       <p>
         Unser Coliving mit <strong>9 Suiten mit privaten Bädern</strong> empfängt bis
         zu 20 Personen:
@@ -83,41 +94,27 @@ export default function Article() {
         <li>10 Gehminuten zum TGV-Bahnhof + Straßenbahn T1 direkt zur Rennstrecke (~30 Minuten von Tür zu Tür, ohne Staus und Parkplatzsorgen)</li>
         <li>Kostenlose Parkplätze in der ruhigen Wohnstraße</li>
         <li>Insgesamt 215 m² (Gemeinschaftsbereiche, Zimmer und Sport-/Zen-Anbau), um zusammenzukommen</li>
-        <li>Highspeed-WLAN, um den Twitch-Live-Stream zu schauen, falls jemand eine Session verpasst</li>
+        <li>Highspeed-WLAN, um die Sessions live zu verfolgen</li>
         <li>Ausgestattete Küche zum Vor-Abendessen vor dem Ausgehen</li>
         <li>Smart-Lock, eigenständige Anreise ab 17 Uhr</li>
       </ul>
 
-      <h2>Tipps für Ihr GP-Explorer-Wochenende</h2>
-      <ol>
-        <li>
-          <strong>Seien Sie zur Ticketöffnung bereit</strong>: Letztes Jahr waren alle
-          Tickets in weniger als 30 Minuten weg.
-        </li>
-        <li>
-          <strong>Bevorzugen Sie die Straßenbahn T1</strong> ab dem Bahnhof Le Mans
-          (~20 Minuten bis zur Strecke, häufige Verbindungen). So vermeiden Sie Staus
-          am Eingang und auf der Rückfahrt.
-        </li>
-        <li>
-          <strong>Rechnen Sie mit der Rückfahrt im Auto</strong>: Wie bei den großen
-          Rennen sind die Straßen bei der Abreise überlastet.
-        </li>
-        <li>
-          <strong>Reisen Sie Freitagabend an</strong>, um vor dem Andrang am Samstag
-          das Stadtzentrum zu genießen.
-        </li>
-        <li>
-          <strong>Samstagabend ausgehen</strong>: Die Bars im Zentrum werden gestürmt,
-          möglichst reservieren.
-        </li>
-      </ol>
-
-      <h2>Für den nächsten GP Explorer buchen</h2>
+      <h2>Buchen Sie Ihr Wochenende in Le Mans</h2>
       <p>
-        Planen Sie Ihr GP-Explorer-Wochenende in Le Mans? Sehen Sie sich jetzt{" "}
-        <Link href="/de#disponibilite">unsere Verfügbarkeiten</Link> an und sichern Sie
-        sich Ihre Unterkunft, bevor alles weg ist.
+        Der GP Explorer bekommt keine Fortsetzung, der Rennkalender der Strecke bleibt aber
+        das ganze Jahr über voll. Prüfen Sie{" "}
+        <Link href="/de#disponibilite">unsere Verfügbarkeiten</Link> und buchen Sie direkt.
+      </p>
+      <p>
+        Siehe auch:{" "}
+        <Link href="/de/blog/que-visiter-le-mans-sarthe">
+          Was man in Le Mans und der Sarthe besichtigen kann
+        </Link>
+        {" "}oder{" "}
+        <Link href="/de/blog/restos-bars-magasins-le-mans">
+          Die guten Adressen im Viertel
+        </Link>
+        .
       </p>
     </>
   );

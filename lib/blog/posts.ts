@@ -1489,77 +1489,77 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "gp-explorer-le-mans",
-    date: "2026-02-20",
+    date: "2026-09-08",
     image: "/images/blog/gp-explorer.jpg",
     locales: {
       fr: {
-        title: "GP Explorer au Mans : tout savoir sur l'événement de Squeezie",
+        title: "GP Explorer : c'est terminé après The Last Race 2025",
         description:
-          "GP Explorer de Squeezie au Circuit Bugatti : format, billetterie, hébergement, conseils pour vivre le plus grand événement Twitch francophone dans les meilleures conditions.",
+          "Le GP Explorer de Squeezie s'est arrêté après sa troisième édition, The Last Race (3-5 octobre 2025 au Circuit Bugatti). Retour sur les trois éditions et sur les événements qui continuent au Mans.",
         excerpt:
-          "60 000 spectateurs, plus d'1 million de viewers sur Twitch : le GP Explorer est devenu l'événement incontournable du Circuit Bugatti. Voici comment préparer votre week-end.",
+          "Pas d'édition 2026 : la troisième, The Last Race, était la dernière. Retour sur l'aventure GP Explorer et sur ce qui fait encore vivre le Circuit Bugatti.",
         keywords: [
           "GP Explorer",
+          "GP Explorer 2026",
+          "GP Explorer The Last Race",
+          "GP Explorer dernière édition",
           "GP Explorer Squeezie",
-          "GP Explorer hébergement Le Mans",
-          "billet GP Explorer",
-          "location maison GP Explorer",
         ],
       },
       en: {
-        title: "GP Explorer in Le Mans: everything about Squeezie's event",
+        title: "GP Explorer: it's over after The Last Race 2025",
         description:
-          "Squeezie's GP Explorer at Bugatti Circuit: format, tickets, accommodation, tips to enjoy the biggest French-speaking Twitch event.",
+          "Squeezie's GP Explorer ended after its third edition, The Last Race (3-5 October 2025 at the Bugatti Circuit). A look back at the three editions and at the events that carry on in Le Mans.",
         excerpt:
-          "60,000 spectators, over 1 million Twitch viewers: GP Explorer has become a must-attend event at Bugatti Circuit. Here's how to prepare.",
+          "No 2026 edition: the third one, The Last Race, was the last. A look back at GP Explorer and at what still fills the Bugatti Circuit.",
         keywords: [
           "GP Explorer",
+          "GP Explorer 2026",
+          "GP Explorer The Last Race",
+          "GP Explorer last edition",
           "GP Explorer Squeezie",
-          "GP Explorer accommodation Le Mans",
-          "GP Explorer ticket",
-          "GP Explorer house rental",
         ],
       },
       it: {
-        title: "GP Explorer a Le Mans: tutto sull'evento di Squeezie",
+        title: "GP Explorer: è finito dopo The Last Race 2025",
         description:
-          "GP Explorer di Squeezie al Circuit Bugatti: format, biglietteria, alloggio, consigli per vivere il più grande evento Twitch francofono nelle migliori condizioni.",
+          "Il GP Explorer di Squeezie si è fermato dopo la terza edizione, The Last Race (3-5 ottobre 2025 al Circuit Bugatti). Bilancio delle tre edizioni e degli eventi che continuano a Le Mans.",
         excerpt:
-          "60.000 spettatori, oltre 1 milione di viewer su Twitch: il GP Explorer è diventato l'evento imperdibile del Circuit Bugatti. Ecco come preparare il vostro weekend.",
+          "Nessuna edizione 2026: la terza, The Last Race, era l'ultima. Bilancio dell'avventura GP Explorer e di ciò che anima ancora il Circuit Bugatti.",
         keywords: [
           "GP Explorer",
+          "GP Explorer 2026",
+          "GP Explorer The Last Race",
+          "GP Explorer ultima edizione",
           "GP Explorer Squeezie",
-          "alloggio GP Explorer Le Mans",
-          "biglietto GP Explorer",
-          "affitto casa GP Explorer",
         ],
       },
       de: {
-        title: "GP Explorer in Le Mans: alles über Squeezies Event",
+        title: "GP Explorer: nach The Last Race 2025 ist Schluss",
         description:
-          "Squeezies GP Explorer auf dem Circuit Bugatti: Format, Tickets, Unterkunft, Tipps, um das größte französischsprachige Twitch-Event optimal zu erleben.",
+          "Squeezies GP Explorer endete nach der dritten Ausgabe, The Last Race (3.-5. Oktober 2025 auf dem Circuit Bugatti). Rückblick auf die drei Ausgaben und auf die Events, die in Le Mans weitergehen.",
         excerpt:
-          "60.000 Zuschauer, über 1 Million Twitch-Viewer: der GP Explorer ist zum Pflichtevent des Circuit Bugatti geworden. So bereiten Sie Ihr Wochenende vor.",
+          "Keine Ausgabe 2026: Die dritte, The Last Race, war die letzte. Rückblick auf den GP Explorer und darauf, was den Circuit Bugatti weiterhin füllt.",
         keywords: [
           "GP Explorer",
+          "GP Explorer 2026",
+          "GP Explorer The Last Race",
+          "GP Explorer letzte Ausgabe",
           "GP Explorer Squeezie",
-          "GP Explorer Unterkunft Le Mans",
-          "GP Explorer Ticket",
-          "GP Explorer Haus mieten",
         ],
       },
       es: {
-        title: "GP Explorer en Le Mans: todo sobre el evento de Squeezie",
+        title: "GP Explorer: se acabó tras The Last Race 2025",
         description:
-          "GP Explorer de Squeezie en el Circuito Bugatti: formato, entradas, alojamiento, consejos para vivir el mayor evento de Twitch francófono en las mejores condiciones.",
+          "El GP Explorer de Squeezie se detuvo tras su tercera edición, The Last Race (3-5 de octubre de 2025 en el Circuito Bugatti). Repaso de las tres ediciones y de los eventos que continúan en Le Mans.",
         excerpt:
-          "60.000 espectadores, más de 1 millón de viewers en Twitch: el GP Explorer se ha convertido en el evento ineludible del Circuito Bugatti. Así puede preparar su fin de semana.",
+          "Sin edición 2026: la tercera, The Last Race, fue la última. Repaso de la aventura GP Explorer y de lo que sigue llenando el Circuito Bugatti.",
         keywords: [
           "GP Explorer",
+          "GP Explorer 2026",
+          "GP Explorer The Last Race",
+          "GP Explorer última edición",
           "GP Explorer Squeezie",
-          "alojamiento GP Explorer Le Mans",
-          "entrada GP Explorer",
-          "alquiler casa GP Explorer",
         ],
       },
     },

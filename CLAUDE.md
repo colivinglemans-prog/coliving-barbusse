@@ -74,11 +74,11 @@ lib/
   blog/
     posts.ts          # BLOG_POSTS avec locales = Record<Locale, LocalizedPost> (fr/en/it/de/es) + soldOut + nextEdition + supersededBy
     content/
-      fr/             # 16 articles FR (Link hrefs préfixés /fr)
-      en/             # 16 articles EN (Link hrefs préfixés /en)
-      it/             # 16 articles IT (Link hrefs préfixés /it)
-      de/             # 16 articles DE (Link hrefs préfixés /de)
-      es/             # 16 articles ES (Link hrefs préfixés /es)
+      fr/             # 20 articles FR (Link hrefs préfixés /fr)
+      en/             # 20 articles EN (Link hrefs préfixés /en)
+      it/             # 20 articles IT (Link hrefs préfixés /it)
+      de/             # 20 articles DE (Link hrefs préfixés /de)
+      es/             # 20 articles ES (Link hrefs préfixés /es)
   events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
@@ -140,7 +140,7 @@ vercel.json           # Config Vercel (crons quotidiens)
 - Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 5 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
 - Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 5 entrées dans le `Record<Locale, ...>`.
 - **Liens vers Beds24** : l'URL `booking2.php` doit porter `&lang=${locale}` pour que la page de paiement ET les Auto Actions soient dans la bonne langue. Les codes `Locale` (fr/en/it/de/es) sont déjà au format ISO 639-1 attendu par Beds24, pas de mapping nécessaire. Voir [components/public/ReservationCalendar.tsx](components/public/ReservationCalendar.tsx). Prérequis Beds24 : langues activées sur la booking page (Settings → Properties → Booking Page → Languages).
-- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 16 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale. `app/sitemap.ts` a sa propre liste `locales` (5 langues + `x-default` sur le FR via le helper `languagesFor`) : l'étendre aussi, sinon les URLs de la nouvelle locale ne sont pas soumises à Google.
+- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 20 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale. `app/sitemap.ts` a sa propre liste `locales` (5 langues + `x-default` sur le FR via le helper `languagesFor`) : l'étendre aussi, sinon les URLs de la nouvelle locale ne sont pas soumises à Google.
 
 ## Données externes
 
@@ -400,6 +400,11 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
   - son exclusion de `app/sitemap.ts` (`filter(post => !post.supersededBy)`)
 - Ne créer l'article de l'année N+1 que si l'édition est **confirmée** par l'organisateur
   (cf. `lib/events.ts`). Sinon laisser l'archive telle quelle.
+- Événement **définitivement arrêté** (ex : GP Explorer, dont la 3e édition « The Last Race »
+  d'octobre 2025 était la dernière) : là on réécrit bien **sur place**, en rétrospective qui
+  répond d'entrée « il n'y aura pas de prochaine édition » puis renvoie vers les événements
+  encore vivants. Pas de `soldOut` ni de `supersededBy` : il n'y a pas de successeur, et
+  l'article doit rester indexable pour capter les recherches « <événement> <année> ».
 - Exception : un événement qui n'a jamais eu d'article garde un slug **sans année** (`porsche-sprint-challenge-le-mans`) et reste evergreen tant que les dates de l'édition suivante ne sont pas publiées ; on le renouvellera en `-AAAA` seulement le jour où une archive vaut la peine d'être conservée.
 
 ### Dashboard chauffage (`/dashboard/heating`)
