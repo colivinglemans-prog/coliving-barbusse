@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { Beds24Booking } from "@/lib/types";
 import { findEventForStay, LE_MANS_EVENTS, shortEventLabel, type LeMansEvent } from "@/lib/events";
+import { bandesPeriodes, PERIODES, type BandePeriode } from "@/lib/periodes";
 import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
 
 /* ── Channel colours (same as ChannelPieChart) ────────────────────── */
@@ -13,6 +14,144 @@ const CHANNEL_COLORS: Record<string, string> = {
   Direct: "#00A699",
   Autre: "#9ca3af",
 };
+
+/*
+ * Un événement du circuit n'est pas une réservation, et ne doit pas se lire comme elle.
+ *
+ * Les deux familles partageaient la même grammaire — pilule pleine, fond saturé, texte
+ * blanc, hauteurs voisines (20 px contre 24) — et l'indigo des événements pesait autant
+ * que le #003580 de Booking juste en dessous. Un événement devient donc un libellé coloré
+ * souligné d'un filet de 3 px, sans aplat : pas d'aplat, texte coloré, trait fin. Trois
+ * différences cumulées valent mieux qu'un écart de teinte, la lecture tenant alors aussi
+ * en niveaux de gris et pour un daltonien.
+ */
+const EVENT_LINE = "#818cf8";
+const EVENT_TEXT = "#4338ca";
+
+/*
+ * Vacances scolaires et semaines de fêtes, en filet comme les événements.
+ *
+ * L'indigo reste aux événements du circuit : c'est déjà la couleur du badge « Événement »
+ * dans les stats et dans la popup, la changer ici casserait une convention qui dépasse le
+ * calendrier. Les vacances prennent donc l'émeraude — divergence assumée avec Albiez, où
+ * elles sont en indigo faute d'événements à qui le disputer. Les fêtes gardent le rose des
+ * deux tableaux de bord : Noël et le Jour de l'An sont la même information ici et là-bas.
+ */
+const PALETTE_PERIODE = {
+  vacances: { line: "#34d399", text: "#047857" },
+  vacancesLeMans: { line: "#fbbf24", text: "#b45309" },
+  fete: { line: "#fb7185", text: "#be123c" },
+} as const;
+
+/**
+ * Statuts Beds24 d'une réservation qui n'est pas acquise.
+ *
+ * `new` est une réservation arrivée d'un canal et pas encore passée en « Confirmed » ;
+ * `request` une demande en attente de décision ; `inquiry` une simple demande de
+ * renseignement. Aucune des trois n'est une nuit vendue.
+ *
+ * Ces trois-là **n'apparaissent pas du tout en vue viewer** : le planning du ménage doit
+ * dire les nuits vendues, pas les nuits peut-être vendues — une personne qui se déplace
+ * pour une réservation qui n'a jamais existé s'est déplacée pour rien. En vue admin elles
+ * restent visibles, mais en ardoise rayée au lieu de la couleur du canal.
+ *
+ * `black` a son propre lot (`HELD_STATUSES`) : même sort en vue viewer, étiquette différente
+ * en admin. `cancelled` n'est nulle part — l'API Beds24 n'en renvoie pas sur nos fenêtres,
+ * et une réservation annulée n'a rien à faire sur un planning, à confirmer ou non.
+ */
+const UNCONFIRMED_STATUSES = new Set(["new", "request", "inquiry"]);
+
+/**
+ * `black` — dates tenues, affaire en cours.
+ *
+ * Beds24 appelle ça un blocage, mais l'usage ici est commercial : l'option Spartner Travel
+ * de juin 2027 est une vraie affaire à 21 718 € sur les 24 Heures, saisie à la main pour
+ * réserver les dates pendant la négociation. Ce n'est donc ni une nuit vendue ni une
+ * demande de renseignement, d'où sa propre étiquette « OPTION ».
+ */
+const HELD_STATUSES = new Set(["black"]);
+
+/**
+ * Ce que vaut une réservation qui n'est pas acquise, ou `null` si elle l'est.
+ *
+ * Les deux valeurs se ressemblent — même ardoise rayée, même absence en vue viewer — et se
+ * distinguent par leur étiquette : « ? » pour une demande qui peut se conclure, « OPTION »
+ * pour des dates délibérément tenues.
+ */
+type Provisional = "unconfirmed" | "held";
+
+function provisionalKind(status: string | undefined): Provisional | null {
+  const s = (status ?? "").toLowerCase();
+  if (UNCONFIRMED_STATUSES.has(s)) return "unconfirmed";
+  if (HELD_STATUSES.has(s)) return "held";
+  return null;
+}
+
+/**
+ * Libellé d'une barre : le nom du client, puis le nombre de voyageurs.
+ *
+ * `title` n'est qu'un dernier recours : Beds24 y met la civilité aussi souvent que le nom
+ * de société (voir le type `Beds24Booking`). Sur une option saisie à la main, c'est
+ * pourtant la seule trace du client — « Spartner Travel » vaut mieux que « · 1 voy. », qui
+ * est ce que l'ancien libellé affichait quand prénom et nom étaient vides.
+ */
+function label(b: Beds24Booking, guests: number): string {
+  const nom = b.firstName || b.lastName || b.company || b.title || "";
+  return nom ? `${nom} · ${guests} voy.` : `${guests} voy.`;
+}
+
+/** Étiquette portée en tête de barre, à la façon du 📝 des notes internes. */
+const PROVISIONAL_MARK: Record<Provisional, string> = {
+  unconfirmed: "?",
+  held: "OPTION",
+};
+
+/**
+ * Ardoise pour une réservation à confirmer, plus des rayures.
+ *
+ * La couleur seule ne suffit pas : « Autre » est déjà en gris `#9ca3af` et la vue viewer
+ * peint tout en `#FF385C`. Les rayures, elles, ne ressemblent à aucune autre barre de la
+ * grille et disent « provisoire » sans qu'on ait à consulter la légende.
+ */
+const UNCONFIRMED_COLOUR = "#94a3b8";
+const UNCONFIRMED_STRIPES =
+  "repeating-linear-gradient(45deg, rgba(255,255,255,0.38) 0 3px, transparent 3px 7px)";
+
+/** Zone scolaire du Mans — académie de Nantes. */
+const ZONE_LOCALE = "B";
+
+/**
+ * Les vacances de la zone B se distinguent des deux autres.
+ *
+ * C'est l'information utile au ménage : quand les écoles du Mans sont fermées, la personne
+ * qui vient nettoyer a ses propres enfants à la maison. Les vacances des zones A et C
+ * remplissent le logement sans rien changer à sa disponibilité ; celles de la zone B, si.
+ * D'où l'ambre, qui tranche sur l'émeraude des autres zones.
+ *
+ * On lit `zones` et **jamais** `sources` : après l'absorption d'un week-end de bascule,
+ * `sources` peut contenir une zone qui n'est plus dans le libellé — y compris la B.
+ *
+ * Les fêtes gardent le rose sans se poser la question : Noël et le Jour de l'An concernent
+ * les trois zones, la distinction n'y voudrait rien dire.
+ */
+function palettePeriode(band: BandePeriode) {
+  if (band.type === "fete") return PALETTE_PERIODE.fete;
+  return band.zones.includes(ZONE_LOCALE)
+    ? PALETTE_PERIODE.vacancesLeMans
+    : PALETTE_PERIODE.vacances;
+}
+
+/**
+ * Infobulle d'une bande : le libellé compact ne dit pas de quelles périodes il est fait,
+ * donc le détail — nom complet, zone, dates réelles — se lit au survol, une ligne par
+ * période. C'est aussi là que réapparaît la zone sortante d'un week-end de bascule absorbé :
+ * le libellé simplifie, l'infobulle dit toute la vérité.
+ */
+function periodTooltip(band: BandePeriode): string {
+  return band.sources
+    .map((p) => `${p.nom}${p.zone === "Toutes" ? "" : ` — ${p.zone}`} · ${p.debut} → ${p.fin}`)
+    .join("\n");
+}
 
 function normalizeChannel(referer: string, channel?: string): string {
   const c = (channel ?? "").toLowerCase();
@@ -57,6 +196,8 @@ interface BookingBar {
   startsInMonth: boolean;
   /** true if the actual departure day is visible (not clamped to month end) */
   endsInMonth: boolean;
+  /** Réservation pas encore acquise : ardoise rayée, et absente de la vue viewer. */
+  provisional: Provisional | null;
   label: string;
 }
 
@@ -240,8 +381,13 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         // Booking overlaps the month if arrival < end-of-month AND departure > start-of-month
         return b.arrival <= lastDateStr && b.departure > firstDateStr;
       })
+      // Ni une demande ni une option n'existent pour le rôle viewer — voir
+      // UNCONFIRMED_STATUSES et HELD_STATUSES. Le filtre est ici, sur la source des barres,
+      // et non au rendu : la barre ne doit pas exister, pas seulement être invisible.
+      .filter((b) => isAdmin || provisionalKind(b.status) === null)
       .map((b) => {
         const channel = normalizeChannel(b.referer, b.channel);
+        const provisional = provisionalKind(b.status);
         const guests = b.numAdult + b.numChild;
         const arrDate = new Date(b.arrival + "T00:00:00");
         const depDate = new Date(b.departure + "T00:00:00");
@@ -257,16 +403,25 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         return {
           booking: b,
           channel,
-          colour: showChannels ? (CHANNEL_COLORS[channel] ?? "#9ca3af") : "#FF385C",
+          colour: provisional
+            ? UNCONFIRMED_COLOUR
+            : showChannels
+              ? (CHANNEL_COLORS[channel] ?? "#9ca3af")
+              : "#FF385C",
+          provisional,
           startCol: startDay - 1,
           endCol: Math.max(startDay - 1, endDay - 1),
           startsInMonth,
           endsInMonth,
-          label: `${b.firstName || b.lastName} · ${guests} voy.`,
+          label: label(b, guests),
         };
       })
       .sort((a, b) => a.startCol - b.startCol);
-  }, [bookings, firstDateStr, lastDateStr, year, mo, daysInMonth]);
+    // `isAdmin` et `showChannels` sont bien des dépendances : ils décident quelles
+    // réservations entrent dans la liste et de quelle couleur. Sans eux, basculer en
+    // « Vue viewer » gardait les barres du rendu précédent — les couleurs de canal
+    // restaient affichées, et les réservations à confirmer avec.
+  }, [bookings, firstDateStr, lastDateStr, year, mo, daysInMonth, isAdmin, showChannels]);
 
   /* ── Build weeks (rows) with booking bar assignments ──────────── */
   const totalCells = firstDow + daysInMonth;
@@ -382,6 +537,65 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
       .sort((a, b) => a.startCol - b.startCol);
   }, [firstDateStr, lastDateStr, daysInMonth]);
 
+  /* ── Compute school-holiday bands (vacances scolaires + fêtes) ───── */
+  type PeriodSegment = {
+    band: BandePeriode;
+    weekStart: number;
+    weekEnd: number;
+    /** Le libellé ne s'écrit que sur le premier segment de la bande. */
+    isFirstSegment: boolean;
+    /** La composition prend effet à la moitié de ce jour, elle ne vient pas d'avant. */
+    startsHere: boolean;
+    /** Elle cesse à la moitié de ce jour, elle ne continue pas après. */
+    endsHere: boolean;
+  };
+
+  /*
+   * Une seule ligne suffit, sans placement en lanes : `bandesPeriodes` a déjà fusionné les
+   * zones d'une même période (« Noël A+B+C ») et découpé aux jours où la composition change
+   * (« Hiver A » → « Hiver A+B »). Deux bandes ne se chevauchent donc jamais — contrairement
+   * aux événements du circuit, qui peuvent être simultanés et réclament des lanes.
+   *
+   * Les bandes se relaient en demi-journées, comme deux séjours dont l'un part le jour où
+   * l'autre arrive : une composition prend effet à la moitié de son premier jour et cesse à
+   * la moitié du jour où elle change. D'où une fin portée au *lendemain* du dernier jour de
+   * la composition. C'est propre aux vacances : un événement du circuit, lui, occupe des
+   * journées entières.
+   */
+  const periodSegmentsByWeek: Map<number, PeriodSegment[]> = useMemo(() => {
+    const map = new Map<number, PeriodSegment[]>();
+
+    for (const band of bandesPeriodes(PERIODES, firstDateStr, lastDateStr)) {
+      // Hors du mois, le jour de transition n'est pas dessinable : la bande court alors
+      // jusqu'au bord droit, où elle vaut pour toute la dernière journée.
+      const transitionInMonth = band.fin < lastDateStr;
+      const startDay = Number(band.debut.slice(8, 10));
+      const endDay = transitionInMonth ? Number(band.fin.slice(8, 10)) + 1 : daysInMonth;
+
+      const startCell = firstDow + startDay - 1;
+      const endCell = firstDow + endDay - 1;
+      const startWeek = Math.floor(startCell / 7);
+      const endWeek = Math.floor(endCell / 7);
+
+      for (let w = startWeek; w <= endWeek; w++) {
+        const weekCellStart = w * 7;
+        const visStart = Math.max(startCell, weekCellStart);
+        const visEnd = Math.min(endCell, weekCellStart + 6);
+
+        if (!map.has(w)) map.set(w, []);
+        map.get(w)!.push({
+          band,
+          weekStart: visStart - weekCellStart,
+          weekEnd: visEnd - weekCellStart,
+          isFirstSegment: w === startWeek,
+          startsHere: w === startWeek && band.debutReel,
+          endsHere: w === endWeek && transitionInMonth,
+        });
+      }
+    }
+    return map;
+  }, [firstDateStr, lastDateStr, daysInMonth, firstDow]);
+
   type EventPlacement = EventBar & { row: number; weekStart: number; weekEnd: number; isFirstSegment: boolean; isLastSegment: boolean };
   const eventPlacementsByWeek: Map<number, EventPlacement[]> = useMemo(() => {
     const map = new Map<number, EventPlacement[]>();
@@ -466,7 +680,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
       </div>
 
       {/* Day names header */}
-      <div className="grid grid-cols-7 border-b border-gray-200 pb-2">
+      <div className="grid grid-cols-7 border-b border-gray-300 pb-2">
         {DAY_NAMES.map((d) => (
           <div key={d} className="text-center text-xs font-medium text-gray-500">
             {d}
@@ -479,12 +693,29 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         const weekBars = placementsByWeek.get(w) ?? [];
         const maxLane = weekBars.reduce((m, b) => Math.max(m, b.row), -1);
         const barRows = maxLane + 1;
+        const weekPeriods = periodSegmentsByWeek.get(w) ?? [];
         const weekEvents = eventPlacementsByWeek.get(w) ?? [];
         const maxEventLane = weekEvents.reduce((m, b) => Math.max(m, b.row), -1);
         const eventRows = maxEventLane + 1;
 
         return (
-          <div key={w} className="grid grid-cols-7 border-b border-gray-100">
+          <div key={w} className="relative grid grid-cols-7 border-b border-gray-200">
+            {/*
+             * Filets de colonnes, en position absolue et non sur les cases : une case ne
+             * couvre que la ligne des numéros, et le trait s'arrêtait donc avant les barres
+             * — impossible d'aligner à l'œil la fin d'un séjour sur son jour. Hors flux, la
+             * couche traverse toute la hauteur de la semaine. Elle ne peut pas être faite
+             * d'éléments de grille étendus sur `grid-row: 1 / -1` : le placement automatique
+             * refuse les cellules déjà occupées et repousserait les sept cases en deuxième
+             * ligne. Placée *avant* les barres dans le DOM, elle passe au-dessus des fonds
+             * de cases et en dessous des séjours : les filets ne coupent aucune pilule.
+             */}
+            <div className="pointer-events-none absolute inset-0 grid grid-cols-7" aria-hidden>
+              {Array.from({ length: 7 }, (_, col) => (
+                <div key={col} className={col < 6 ? "border-r border-gray-200" : ""} />
+              ))}
+            </div>
+
             {/* Day number row */}
             {Array.from({ length: 7 }, (_, col) => {
               const dayIdx = w * 7 + col - firstDow;
@@ -497,7 +728,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
               return (
                 <div
                   key={col}
-                  className={`relative min-h-[2.5rem] border-r border-gray-50 px-1.5 pt-1 last:border-r-0 ${!isInMonth ? "bg-gray-50/50" : ""}`}
+                  className={`relative min-h-[2.5rem] px-1.5 pt-1 ${!isInMonth ? "bg-gray-50/50" : ""}`}
                 >
                   {isInMonth && (
                     <span
@@ -514,31 +745,102 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
               );
             })}
 
+            {/* Vacances scolaires et fêtes — au-dessus des événements : les bandes durent
+                des semaines, les événements des jours, les séjours des nuits. Du plus large
+                au plus précis en descendant vers les réservations. */}
+            {weekPeriods.length > 0 && (
+              <div className="col-span-7 px-0.5 pt-0.5">
+                <div className="relative mt-0.5 h-[1.15rem]">
+                  {weekPeriods.map((ps) => {
+                    const cellW = 100 / 7;
+                    const halfCell = cellW / 2;
+                    // Mêmes demi-cellules que les séjours : une composition qui cesse
+                    // n'occupe que la moitié gauche de son jour de bascule, celle qui prend
+                    // le relais que la moitié droite.
+                    const insetStart = ps.startsHere ? halfCell : 0;
+                    const insetEnd = ps.endsHere ? halfCell : 0;
+                    const palette = palettePeriode(ps.band);
+                    return (
+                      <div
+                        key={`${ps.band.debut}-${ps.weekStart}`}
+                        className="absolute top-0 h-full"
+                        style={{
+                          left: `${ps.weekStart * cellW + insetStart}%`,
+                          width: `${(ps.weekEnd - ps.weekStart + 1) * cellW - insetStart - insetEnd}%`,
+                        }}
+                        title={periodTooltip(ps.band)}
+                      >
+                        <div
+                          className="truncate px-1 text-left text-[10px] font-semibold uppercase leading-[0.85rem] tracking-wide"
+                          style={{ color: palette.text }}
+                        >
+                          {ps.isFirstSegment && ps.band.libelle}
+                        </div>
+                        {/* Les 3 px de retrait s'ajoutent à la demi-cellule : sans eux les
+                            deux filets se toucheraient pile au milieu du samedi de bascule
+                            et n'en feraient qu'un. */}
+                        <div
+                          className="h-[3px] rounded-full"
+                          style={{
+                            backgroundColor: palette.line,
+                            marginLeft: ps.startsHere ? 3 : 0,
+                            marginRight: ps.endsHere ? 3 : 0,
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Event bars (indigo) */}
             {eventRows > 0 && (
               <div className="col-span-7 px-0.5 pt-0.5">
                 {Array.from({ length: eventRows }, (_, lane) => {
                   const laneEvents = weekEvents.filter((e) => e.row === lane);
                   return (
-                    <div key={lane} className="relative mt-0.5 h-5">
+                    <div key={lane} className="relative mt-0.5 h-[1.15rem]">
                       {laneEvents.map((ep) => {
                         const cellW = 100 / 7;
                         const left = `${ep.weekStart * cellW}%`;
                         const width = `${(ep.weekEnd - ep.weekStart + 1) * cellW}%`;
-                        const roundLeft = ep.isFirstSegment && ep.startsInMonth;
-                        const roundRight = ep.isLastSegment && ep.endsInMonth;
+                        // L'événement tient sur des cases pleines, sans demi-cellule : il
+                        // occupe des journées entières, là où une réservation libère la
+                        // maison le matin de son départ. Un événement d'un seul jour —
+                        // « Marathon », une réunion hippique — se réduirait d'ailleurs à
+                        // rien si on lui retirait une demi-case de chaque côté.
+                        const startsHere = ep.isFirstSegment && ep.startsInMonth;
+                        const endsHere = ep.isLastSegment && ep.endsInMonth;
                         return (
                           <div
                             key={`${ep.event.name}-${ep.event.start}-${ep.weekStart}`}
-                            className={`absolute top-0 h-full overflow-hidden truncate px-1.5 text-left text-[10px] font-semibold uppercase tracking-wide text-white bg-indigo-500 ${
-                              roundLeft && roundRight ? "rounded-full" :
-                              roundLeft ? "rounded-l-full" :
-                              roundRight ? "rounded-r-full" : ""
-                            }`}
+                            className="absolute top-0 h-full"
                             style={{ left, width }}
                             title={ep.event.name}
                           >
-                            {ep.isFirstSegment && ep.label}
+                            {/* Le libellé n'apparaît que sur le premier segment ; les
+                                semaines suivantes ne portent que le filet, à la même
+                                hauteur. */}
+                            <div
+                              className="truncate px-1 text-left text-[10px] font-semibold uppercase leading-[0.85rem] tracking-wide"
+                              style={{ color: EVENT_TEXT }}
+                            >
+                              {ep.isFirstSegment && ep.label}
+                            </div>
+                            {/* Le filet se retire de 3 px du côté où l'événement s'arrête
+                                vraiment, et file jusqu'au bord de la semaine quand il
+                                continue : c'est ce qui remplace l'arrondi des pilules, et
+                                ce qui empêche deux événements qui se suivent — « Classic »
+                                puis « 24h Rollers » début juillet — de n'en faire qu'un. */}
+                            <div
+                              className="h-[3px] rounded-full"
+                              style={{
+                                backgroundColor: EVENT_LINE,
+                                marginLeft: startsHere ? 3 : 0,
+                                marginRight: endsHere ? 3 : 0,
+                              }}
+                            />
                           </div>
                         );
                       })}
@@ -582,15 +884,37 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                               left,
                               width,
                               backgroundColor: bp.colour,
+                              // Les rayures se superposent à l'aplat : la couleur seule ne
+                              // suffit pas à dire « provisoire » dans une grille qui a déjà
+                              // un canal « Autre » en gris.
+                              backgroundImage: bp.provisional ? UNCONFIRMED_STRIPES : undefined,
                             }}
-                            title={bp.booking.notes ? `${bp.label} · 📝 ${bp.booking.notes}` : bp.label}
+                            title={[
+                              bp.provisional === "held"
+                                ? `Option — dates tenues (${bp.booking.status})`
+                                : bp.provisional === "unconfirmed"
+                                  ? `À confirmer (${bp.booking.status})`
+                                  : null,
+                              bp.label,
+                              bp.booking.notes ? `📝 ${bp.booking.notes}` : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
                           >
+                            {bp.provisional && (
+                              <span
+                                className="inline font-bold"
+                                aria-label={bp.provisional === "held" ? "Option" : "À confirmer"}
+                              >
+                                {PROVISIONAL_MARK[bp.provisional]}
+                              </span>
+                            )}
                             {bp.booking.notes && (
                               <span className="inline" aria-label="Note interne">📝</span>
                             )}
                             {isStart && (
                               <span className="hidden sm:inline">
-                                {bp.booking.notes ? " " : ""}
+                                {bp.provisional || bp.booking.notes ? " " : ""}
                                 {bp.label}
                               </span>
                             )}
@@ -606,17 +930,63 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         );
       })}
 
-      {/* Legend */}
-      {showChannels && (
-        <div className="mt-4 flex flex-wrap gap-4">
-          {Object.entries(CHANNEL_COLORS).map(([name, colour]) => (
+      {/* Legend — l'événement y figure quel que soit le rôle : les filets sont apparus
+          dans la grille, ils doivent être nommés même quand les canaux sont masqués. */}
+      <div className="mt-4 flex flex-wrap gap-4">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <span
+            className="inline-block h-[3px] w-6 rounded-full"
+            style={{ backgroundColor: EVENT_LINE }}
+          />
+          Événement circuit
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <span
+            className="inline-block h-[3px] w-6 rounded-full"
+            style={{ backgroundColor: PALETTE_PERIODE.vacancesLeMans.line }}
+          />
+          Vacances Le Mans (zone B)
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <span
+            className="inline-block h-[3px] w-6 rounded-full"
+            style={{ backgroundColor: PALETTE_PERIODE.vacances.line }}
+          />
+          Vacances zones A / C
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <span
+            className="inline-block h-[3px] w-6 rounded-full"
+            style={{ backgroundColor: PALETTE_PERIODE.fete.line }}
+          />
+          Fêtes
+        </div>
+        {isAdmin &&
+          (
+            [
+              ["unconfirmed", "À confirmer (?)"],
+              ["held", "Option, dates tenues (OPTION)"],
+            ] as const
+          ).map(([kind, libelle]) => (
+            <div key={kind} className="flex items-center gap-1.5 text-xs text-gray-500">
+              <span
+                className="inline-block h-3 w-3 rounded"
+                style={{
+                  backgroundColor: UNCONFIRMED_COLOUR,
+                  backgroundImage: UNCONFIRMED_STRIPES,
+                }}
+              />
+              {libelle}
+            </div>
+          ))}
+        {showChannels &&
+          Object.entries(CHANNEL_COLORS).map(([name, colour]) => (
             <div key={name} className="flex items-center gap-1.5 text-xs text-gray-500">
               <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: colour }} />
               {name}
             </div>
           ))}
-        </div>
-      )}
+      </div>
 
       {/* Popup — bottom-sheet on mobile, floating card on desktop */}
       {popup && (
@@ -685,6 +1055,19 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                 </svg>
               </button>
             </div>
+
+            {/* Le statut ne s'affiche que s'il vaut la peine d'être dit : une réservation
+                confirmée est le cas normal, l'annoncer noierait celle qui ne l'est pas. */}
+            {provisionalKind(popup.booking.status) && (
+              <p className="mb-3 rounded-lg bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700">
+                {provisionalKind(popup.booking.status) === "held"
+                  ? "Option — les dates sont tenues, l'affaire n'est pas faite."
+                  : "À confirmer — rien n'est vendu à ce stade."}{" "}
+                Statut Beds24 « {popup.booking.status} ». Elle n&apos;apparaît ni dans les
+                revenus, ni dans la taxe de séjour, ni sur le planning du rôle viewer, et
+                n&apos;y entrera qu&apos;en passant en « confirmed ».
+              </p>
+            )}
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
