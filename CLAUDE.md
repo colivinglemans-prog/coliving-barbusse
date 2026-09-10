@@ -81,6 +81,7 @@ lib/
       de/             # 20 articles DE (Link hrefs préfixés /de)
       es/             # 20 articles ES (Link hrefs préfixés /es)
   events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
+  periodes.ts         # Vacances scolaires par zone + semaines de fêtes — PORT du module d'Albiez (voir plus bas)
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
   auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
@@ -332,8 +333,24 @@ un merge transparent :
 ## Dashboard calendrier (`/dashboard/calendar`)
 
 - **Grille mois** avec navigation prev/next, jour férié marqué, aujourd'hui en rose
-- **Événements Le Mans** : affichés en **barres continues indigo** au-dessus des barres de réservation (une seule fois par event, même sur plusieurs jours). Label court via `shortEventLabel`, nom complet en tooltip. Plusieurs events qui overlappent → lanes séparés.
+- **Événements Le Mans** : un **libellé coloré souligné d'un filet de 3 px** (`EVENT_LINE` / `EVENT_TEXT`), au-dessus des barres de réservation (une seule fois par event, même sur plusieurs jours). Label court via `shortEventLabel`, nom complet en tooltip. Plusieurs events qui overlappent → lanes séparés.
+  - **Un événement n'est pas une réservation, et ne se dessine pas comme elle.** Les deux étaient des pilules pleines à texte blanc, de hauteurs voisines (20 px contre 24), et l'indigo saturé pesait autant que le `#003580` de Booking juste en dessous. Pas d'aplat, texte coloré, trait fin : trois différences cumulées valent mieux qu'un écart de teinte, la lecture tenant alors aussi en niveaux de gris et pour un daltonien.
+  - Le filet remplace l'arrondi comme signal de continuation : il **se retire de 3 px du côté où l'événement s'arrête vraiment** et file jusqu'au bord de la semaine quand il continue. C'est aussi ce qui sépare deux événements qui s'enchaînent (« Classic » puis « 24h Rollers » début juillet).
+  - **Pas de demi-cellules pour un événement**, contrairement aux réservations : un événement occupe des journées entières, là où une résa libère la maison le matin de son départ. Un événement d'un seul jour — « Marathon », une réunion hippique — se réduirait d'ailleurs à rien si on lui retirait une demi-case de chaque côté.
 - **Barres de réservation** : couleur par canal (admin), demi-cellules pour checkout/check-in → permet aux résas back-to-back (même jour) de partager une ligne
+- **Vacances scolaires et fêtes** : une rangée de filets **au-dessus des événements**. L'ordre se lit du plus large au plus précis en descendant — les bandes durent des semaines, les événements des jours, les séjours des nuits.
+  - **Trois couleurs, et la zone B à part** : ambre pour les vacances de la **zone B (Le Mans)**, émeraude pour les zones A / C, rose pour les fêtes. C'est l'information utile au **ménage** : quand les écoles du Mans ferment, la personne qui vient nettoyer a ses propres enfants à la maison. Les vacances des deux autres zones remplissent le logement sans rien changer à sa disponibilité ; celles de la zone B, si. Les fêtes gardent le rose sans se poser la question — Noël et le Jour de l'An concernent les trois zones.
+  - **Le test de zone lit `band.zones`, jamais `band.sources`.** Après l'absorption d'un week-end de bascule, `sources` contient la zone *sortante*, absente du libellé. Cas réel : février 2025, « Hiver A+C » a la zone B dans ses `sources` — lire `sources` aurait peint la bande en ambre et annoncé au ménage des vacances du Mans qui n'existaient pas.
+  - **Pas de placement en lanes** : `bandesPeriodes` ne produit jamais deux bandes qui se chevauchent, une seule ligne suffit. C'est l'inverse des événements du circuit, qui peuvent être simultanés (« Le Mans Classic » et « 24h Rollers » début juillet) et réclament des lanes.
+  - **Demi-cellules, comme les séjours** — et contrairement aux événements : une composition de zones prend effet à la moitié de son premier jour et cesse à la moitié du jour où elle change, d'où une fin portée au *lendemain* du dernier jour de la composition.
+  - **L'émeraude est une divergence assumée avec Albiez**, où les vacances sont en indigo. Ici l'indigo est déjà la couleur du badge « Événement » dans les stats et la popup : la convention dépasse le calendrier, c'est aux vacances de céder. Les fêtes gardent le rose des deux tableaux de bord.
+- **Filets de colonnes** : une couche hors flux (`absolute inset-0 grid grid-cols-7`) et non des bordures de cases. Une case ne couvre que la ligne des numéros : le trait s'arrêtait avant les barres et on ne pouvait pas aligner la fin d'un séjour sur son jour. Ce ne peut pas être des éléments de grille étendus sur `grid-row: 1 / -1` — le placement automatique refuse les cellules occupées et repousserait les sept cases en deuxième ligne. Placée *avant* les barres dans le DOM, la couche passe au-dessus des fonds de cases et en dessous des séjours, donc ne coupe aucune pilule. Hiérarchie : `gray-300` pour l'en-tête des jours, `gray-200` pour la grille.
+- **Légende** : l'entrée « Événement circuit » s'affiche quel que soit le rôle. Les filets sont apparus dans la grille, ils doivent être nommés même en vue viewer, où les couleurs de canal sont masquées.
+- **Réservations non confirmées** (`UNCONFIRMED_STATUSES` = `new`, `request`, `inquiry`) : **absentes de la vue viewer**, et en **ardoise rayée** (`#94a3b8` + hachures 45°) avec un marqueur `?` en vue admin, au lieu de la couleur du canal. Le planning du ménage doit dire les nuits vendues, pas les nuits peut-être vendues — quelqu'un qui se déplace pour une réservation qui n'a jamais existé s'est déplacé pour rien. Les rayures parce que la couleur seule ne suffit pas : le canal « Autre » est déjà en gris et la vue viewer peint tout en `#FF385C`. La popup explique le statut quand il n'est pas `confirmed`.
+  - ⚠️ **C'est un filtre d'affichage, pas un contrôle d'accès.** `/api/dashboard/bookings` n'a aucune vérification de rôle : le navigateur d'un viewer reçoit toujours toutes les réservations, montants compris. C'est déjà vrai de `showPrices` et `showChannels`, purement cosmétiques. Pour que ce soit un vrai cloisonnement il faudrait filtrer dans la route selon le JWT.
+- **Options commerciales** (`HELD_STATUSES` = `black`) : **même sort que les non confirmées** — absentes de la vue viewer, ardoise rayée en admin — mais étiquetées **« OPTION »** au lieu de « ? ». Beds24 appelle `black` un blocage ; l'usage ici est commercial. L'option Spartner Travel du 31 mai au 14 juin 2027 est une affaire à 21 718 € sur les 24 Heures, saisie à la main pour tenir les dates pendant la négociation : ni une nuit vendue, ni une demande de renseignement.
+  - Le libellé d'une barre retombe sur `company` puis `title` quand prénom et nom sont vides — c'est le cas des options saisies à la main. « Spartner Travel » vaut mieux que « · 1 voy. », ce que l'ancien libellé affichait. `title` en dernier car Beds24 y met la civilité aussi souvent que le nom de société.
+  - `cancelled` n'est traité nulle part : l'API Beds24 n'en renvoie pas sur nos fenêtres. Si cela changeait, une annulée s'afficherait comme une réservation ordinaire.
 - **Indicateur 📝** sur la barre quand la résa a une note interne (visible admin ET viewer)
 - **Popup réservation** : dates, **heure d'arrivée** (`arrivalTime`), nuits, voyageurs, prix/canal (admin)
   - Admin : titre/société + email (mailto) + téléphone (tel) cliquables + édition inline des notes internes (Beds24)
@@ -341,7 +358,49 @@ un merge transparent :
   - **Remarque voyageur** (`comments`) affichée uniquement pour le canal `Direct` (sur Airbnb/Booking/Abritel ce champ contient des métadonnées OTA inutiles : "prepaid", rate codes…)
   - Événement associé affiché en bas (badge indigo)
   - Mobile : `max-h-[calc(100vh-2rem)] overflow-y-auto` pour garder le popup dans l'écran
-- **Toggle admin/viewer** : bouton prévisualiser la vue viewer (comme /heating)
+- **Toggle admin/viewer** : bouton prévisualiser la vue viewer (comme /heating). `isAdmin` et `showChannels` sont des **dépendances du `useMemo` des barres** : ils décident quelles réservations entrent dans la liste et de quelle couleur. Ils manquaient, et basculer en « Vue viewer » gardait donc les barres du rendu précédent — les couleurs de canal restaient affichées.
+
+### Vacances scolaires (`lib/periodes.ts`) — port depuis Albiez
+
+Module **copié** depuis Albiez, pas partagé : deux dépôts, deux déploiements, aucun code
+commun. Le fichier est tenu **identique** à `lib/periodes.ts` d'Albiez à son en-tête près,
+pour que toute correction se reporte sans réflexion — d'où quelques fonctions inutilisées ici
+(`findPeriodesForStay`, `periodeLabel`) : Barbusse étiquette ses séjours par événement du
+circuit, pas par période de vacances. Ne pas les supprimer, cela ferait diverger les copies.
+
+- **Données** : `data/vacances-scolaires.json` (80 périodes, 2023-10 → 2027-07), versionné —
+  c'est de la donnée publique et le site n'a alors aucun appel réseau à l'exécution.
+- **Regénération** : `node scripts/build-vacances.mjs [année_de_début]`, depuis l'open data
+  du ministère. À relancer quand une nouvelle année scolaire est publiée.
+- **Import direct dans le composant**, comme `LE_MANS_EVENTS` — pas via l'API. Albiez, lui,
+  filtre au mois côté serveur. Ici le calendrier est déjà un composant client qui embarque
+  ses données d'événements ; ajouter 15 Ko de JSON à un bundle de dashboard privé ne
+  justifiait pas une route et trois props de plus.
+
+**Une seule bande à la fois.** Peindre une barre par ligne de données donnait quatre barres
+empilées la semaine de Noël (« Noël », « Noël A », « Noël B », « Noël C ») pour une seule
+information : tout le monde est en vacances. `bandesPeriodes` parcourt le mois jour par jour,
+fusionne les zones d'une même période dans le libellé, et ne coupe que là où la composition
+change — c'est ce découpage qui porte l'information, le nombre de zones en vacances mesurant
+la pression sur la demande.
+
+**`zones` n'est pas `sources`.** `zones` porte les lettres des zones qui composent le libellé
+affiché ; `sources` porte les périodes pour l'infobulle, zone sortante d'une bascule absorbée
+comprise. Pour savoir si une zone donnée est en vacances sur la bande telle qu'elle
+s'affiche — le test de la zone B ci-dessus — c'est `zones` qu'il faut lire.
+
+**Le week-end de bascule ne produit pas de bande.** Les vacances durent seize jours du samedi
+au dimanche et les zones démarrent de sept en sept : deux zones qui se relaient se chevauchent
+*toujours* exactement deux jours, le dernier week-end de l'une étant le premier de l'autre. Ce
+chevauchement ne dit pas que trois zones partent ensemble, il dit que l'une rentre quand
+l'autre part — et il fabriquait une bande de deux jours coincée entre les deux vraies
+(« PRINTEMPS A+B+C » les 18-19 avril 2026, entre « A+B » et « B+C »). `fusionnerBascules` la
+donne à la bande suivante, qui démarre au samedi de bascule. Sur 2025-2028 cela retire cinq
+bandes, toutes samedi→dimanche. Le test est **étroit à dessein** — au plus deux jours, deux
+voisines contiguës de même type, une composition sur-ensemble *strict* des deux — pour qu'un
+« ASCENSION A+B+C » d'un seul jour, dont le ministère ne publie que la date de début
+(`finNonPubliee`), y survive. Les périodes absorbées restent dans `sources` : le libellé
+simplifie, l'infobulle dit toute la vérité, zone sortante comprise.
 
 ### Notes internes (ménage, infos)
 
