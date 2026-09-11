@@ -11,9 +11,81 @@ function beds24Url(path: string, params?: Record<string, string>): string {
   return url.toString();
 }
 
+/*
+ * Trois jetons, trois privilèges — un par chemin, pas par verbe.
+ *
+ * | Variable | deviceName | Scopes | Chemin servi |
+ * |---|---|---|---|
+ * | `BEDS24_PUBLIC_REFRESH_TOKEN` | `coliving-barbusse-public-2026-09` | `read:inventory`, `read:properties` | `/api/availability`, vitrine |
+ * | `BEDS24_READ_REFRESH_TOKEN` | `coliving-barbusse-lecture-2026-09b` | + `read:bookings`, `-personal`, `-financial` | dashboard, factures |
+ * | `BEDS24_REFRESH_TOKEN` | `coliving-barbusse-ecriture-2026-09` | `read:bookings`, `write:bookings` | consignes de ménage |
+ *
+ * Les trois vérifiés contre l'API le 2026-09-11, pas supposés : le public reçoit `401` sur
+ * `/bookings`, la lecture ne peut pas écrire, l'écriture ne voit ni `price` ni `invoiceItems`.
+ *
+ * **Les trois sont des refresh tokens, plus aucun long life.** Les lectures du dashboard
+ * passaient par `BEDS24_API_TOKEN`, un long life dont la durée de vie ne se laisse pas
+ * établir : celui d'avant, créé le 24/04, affichait encore 90 jours restants 140 jours plus
+ * tard. Un refresh token meurt après 30 jours sans usage, mais l'échéance glisse à chaque
+ * échange — et le cron keepalive les entretient tous les trois plutôt que de parier sur le
+ * trafic. Un long life aurait de toute façon forcé un jeton séparé pour l'écriture, faute de
+ * pouvoir porter un scope `write`.
+ */
+
+/** Access tokens de 24 h, en cache par refresh token — les trois voies partagent le mécanisme. */
+const accessTokenCache = new Map<string, { token: string; expiresAt: number }>();
+
+/** Échange forcé, hors cache. C'est lui qui repousse l'échéance du refresh token. */
+async function exchangeRefreshToken(
+  refreshToken: string,
+  usage: string,
+): Promise<{ token: string; expiresIn: number }> {
+  accessTokenCache.delete(refreshToken);
+
+  const res = await fetch(`${BEDS24_API_URL}/authentication/token`, {
+    headers: { refreshToken },
+    cache: "no-store",
+  });
+  const body = await res.text();
+  if (!res.ok) {
+    throw new Error(`Beds24 auth ${usage} ${res.status}: ${body.slice(0, 200)}`);
+  }
+  const data = JSON.parse(body) as { token?: string; expiresIn?: number };
+  if (!data.token) throw new Error(`Beds24 auth ${usage} : token manquant dans la réponse`);
+
+  const expiresIn = data.expiresIn ?? 86_400;
+  accessTokenCache.set(refreshToken, {
+    token: data.token,
+    expiresAt: Date.now() + expiresIn * 1000,
+  });
+  return { token: data.token, expiresIn };
+}
+
+async function getAccessToken(refreshToken: string, usage: string): Promise<string> {
+  // Marge d'une minute : un token qui expire pendant la requête coûte un 401 inexplicable.
+  const cached = accessTokenCache.get(refreshToken);
+  if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
+  const { token } = await exchangeRefreshToken(refreshToken, usage);
+  return token;
+}
+
+/** Échange forcé du jeton de lecture — exporté pour le cron keepalive. */
+export async function refreshBeds24ReadToken(): Promise<{ token: string; expiresIn: number }> {
+  const rt = process.env.BEDS24_READ_REFRESH_TOKEN;
+  if (!rt) throw new Error("BEDS24_READ_REFRESH_TOKEN non défini");
+  return exchangeRefreshToken(rt, "lecture");
+}
+
+/**
+ * Lectures du dashboard : réservations, montants, coordonnées voyageur.
+ *
+ * `read:bookings-personal` est nécessaire ici, contrairement à Albiez : les factures et le
+ * partage du guide voyageur lisent `firstName`, `email` et `phone`.
+ */
 async function beds24Fetch<T>(path: string, params?: Record<string, string>): Promise<T> {
-  const token = process.env.BEDS24_API_TOKEN;
-  if (!token) throw new Error("BEDS24_API_TOKEN is not set");
+  const rt = process.env.BEDS24_READ_REFRESH_TOKEN;
+  if (!rt) throw new Error("BEDS24_READ_REFRESH_TOKEN non défini");
+  const token = await getAccessToken(rt, "lecture");
 
   const res = await fetch(beds24Url(path, params), {
     headers: { token },
@@ -28,10 +100,10 @@ async function beds24Fetch<T>(path: string, params?: Record<string, string>): Pr
 }
 
 /*
- * Lecture publique : un second jeton, qui ne sait rien des réservations.
+ * Lecture publique : le jeton qui ne sait rien des réservations.
  *
- * `/api/availability` et les pages vitrine ne consultent que l'inventaire. Les servir avec
- * `BEDS24_API_TOKEN` revenait à poser `read:bookings-personal` et `read:bookings-financial`
+ * `/api/availability` et les pages vitrine ne consultent que l'inventaire. Les servir avec le
+ * jeton du dashboard revenait à poser `read:bookings-personal` et `read:bookings-financial`
  * dans l'environnement du point d'entrée le plus exposé du site — celui qu'un visiteur
  * anonyme atteint, et le premier qu'on sonde.
  *
@@ -39,67 +111,28 @@ async function beds24Fetch<T>(path: string, params?: Record<string, string>): Pr
  * à `/bookings`, Beds24 répond 401 : vérifié, pas supposé. S'il fuite, l'attaquant apprend
  * quelles dates sont libres, information que la page affiche déjà.
  *
- * Un refresh token plutôt qu'un long life token, pour la même raison que côté Albiez : ses
- * 30 jours sont repoussés à chaque usage, alors que les 90 jours d'un long life sont fermes
- * et imposeraient un renouvellement manuel, potentiellement en pleine saison.
- *
- * Repli assumé : jeton absent, refusé ou révoqué, on refait l'appel avec le jeton principal
- * en journalisant quoi régénérer. On perd la séparation des privilèges le temps de réagir,
- * ce qui vaut mieux qu'un tunnel de réservation éteint sans prévenir.
+ * Repli assumé : jeton absent, refusé ou révoqué, on refait l'appel avec le jeton de
+ * **lecture** — jamais celui d'écriture, qui n'a d'ailleurs pas les scopes d'inventaire. On
+ * perd la séparation des privilèges le temps de réagir, ce qui vaut mieux qu'un tunnel de
+ * réservation éteint sans prévenir. Cette dégradation étant silencieuse par nature, c'est le
+ * cron keepalive qui la rend visible.
  */
-let publicTokenCache: { token: string; expiresAt: number } | null = null;
-
 const REGENERER_PUBLIC =
   "Régénérer BEDS24_PUBLIC_REFRESH_TOKEN (scopes read:inventory, read:properties).";
 
-/**
- * Échange le refresh token public contre un access token, sans passer par le cache.
- *
- * Exporté pour le cron keepalive, au même titre que son homologue en écriture : Beds24
- * invalide tout refresh token qui n'a pas servi depuis 30 jours. On pourrait croire celui-ci
- * entretenu par le trafic de la page publique, mais le cache de 60 s des réponses fait qu'une
- * visite ne déclenche pas forcément un échange — et une saison creuse ne prévient pas. Sa mort
- * n'éteindrait pas le site : le repli vers le jeton principal prendrait le relais, en silence,
- * et on aurait reperdu la séparation des privilèges sans le savoir.
- *
- * Contrairement à `getBeds24PublicToken`, cette fonction lève : le cron doit échouer bruyamment.
- */
+/** Échange forcé du jeton public — exporté pour le cron keepalive, il lève en cas d'échec. */
 export async function refreshBeds24PublicToken(): Promise<{ token: string; expiresIn: number }> {
-  const refreshToken = process.env.BEDS24_PUBLIC_REFRESH_TOKEN;
-  if (!refreshToken) {
-    throw new Error("BEDS24_PUBLIC_REFRESH_TOKEN non défini");
-  }
-  const res = await fetch(`${BEDS24_API_URL}/authentication/token`, {
-    headers: { refreshToken },
-    cache: "no-store",
-  });
-  const body = await res.text();
-  if (!res.ok) {
-    publicTokenCache = null;
-    throw new Error(`Beds24 auth publique ${res.status}: ${body.slice(0, 200)}`);
-  }
-  const data = JSON.parse(body) as { token?: string; expiresIn?: number };
-  if (!data.token) {
-    publicTokenCache = null;
-    throw new Error("Beds24 auth publique : token manquant dans la réponse");
-  }
-  const expiresIn = data.expiresIn ?? 86_400;
-  publicTokenCache = {
-    token: data.token,
-    expiresAt: Date.now() + expiresIn * 1000,
-  };
-  return { token: data.token, expiresIn };
+  const rt = process.env.BEDS24_PUBLIC_REFRESH_TOKEN;
+  if (!rt) throw new Error("BEDS24_PUBLIC_REFRESH_TOKEN non défini");
+  return exchangeRefreshToken(rt, "publique");
 }
 
 async function getBeds24PublicToken(): Promise<string | null> {
-  if (!process.env.BEDS24_PUBLIC_REFRESH_TOKEN) return null;
-
-  const cached = publicTokenCache;
-  if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
+  const rt = process.env.BEDS24_PUBLIC_REFRESH_TOKEN;
+  if (!rt) return null;
 
   try {
-    const { token } = await refreshBeds24PublicToken();
-    return token;
+    return await getAccessToken(rt, "publique");
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`Beds24 : ${message}. ${REGENERER_PUBLIC}`);
@@ -120,7 +153,8 @@ async function beds24FetchPublic<T>(
   });
 
   if (res.status === 401) {
-    publicTokenCache = null;
+    const rt = process.env.BEDS24_PUBLIC_REFRESH_TOKEN;
+    if (rt) accessTokenCache.delete(rt);
     console.error(`Beds24 : jeton public rejeté sur ${path}. ${REGENERER_PUBLIC}`);
     return beds24Fetch<T>(path, params);
   }
@@ -131,46 +165,25 @@ async function beds24FetchPublic<T>(
   return res.json();
 }
 
-// Access token cache (24h TTL from Beds24) — write ops use refresh-token flow
-// because long-life tokens only support read scopes.
-let writeTokenCache: { token: string; expiresAt: number } | null = null;
-
 /**
- * Échange le refresh token contre un access token, sans passer par le cache.
- * Exporté pour le cron keepalive : un refresh token Beds24 est invalidé après
- * 30 jours sans usage, et l'écriture est trop rare pour l'entretenir seule.
+ * Écriture des consignes de ménage, et rien d'autre.
+ *
+ * Ce jeton ne voit ni `price`, ni `commission`, ni `invoiceItems` : un chemin qui n'a besoin
+ * que d'annoter une réservation n'a pas à pouvoir lire le chiffre d'affaires.
+ *
+ * Échange forcé exporté pour le cron keepalive : l'écriture est bien trop rare pour entretenir
+ * le jeton seule, et sans le cron il meurt au bout de 30 jours.
  */
 export async function refreshBeds24WriteToken(): Promise<{ token: string; expiresIn: number }> {
-  const refreshToken = process.env.BEDS24_REFRESH_TOKEN;
-  if (!refreshToken) {
-    throw new Error("BEDS24_REFRESH_TOKEN non défini (requis pour l'écriture)");
-  }
-  const res = await fetch(`${BEDS24_API_URL}/authentication/token`, {
-    headers: { refreshToken },
-    cache: "no-store",
-  });
-  const body = await res.text();
-  if (!res.ok) {
-    writeTokenCache = null;
-    throw new Error(`Beds24 auth ${res.status}: ${body.slice(0, 200)}`);
-  }
-  const data = JSON.parse(body) as { token?: string; expiresIn?: number };
-  if (!data.token) throw new Error(`Beds24 auth: token manquant dans la réponse`);
-  const expiresIn = data.expiresIn ?? 86_400;
-  writeTokenCache = {
-    token: data.token,
-    expiresAt: Date.now() + expiresIn * 1000,
-  };
-  return { token: data.token, expiresIn };
+  const rt = process.env.BEDS24_REFRESH_TOKEN;
+  if (!rt) throw new Error("BEDS24_REFRESH_TOKEN non défini (requis pour l'écriture)");
+  return exchangeRefreshToken(rt, "écriture");
 }
 
 async function getBeds24WriteToken(): Promise<string> {
-  const cached = writeTokenCache;
-  if (cached && cached.expiresAt > Date.now() + 60_000) {
-    return cached.token;
-  }
-  const { token } = await refreshBeds24WriteToken();
-  return token;
+  const rt = process.env.BEDS24_REFRESH_TOKEN;
+  if (!rt) throw new Error("BEDS24_REFRESH_TOKEN non défini (requis pour l'écriture)");
+  return getAccessToken(rt, "écriture");
 }
 
 export async function updateBookingNotes(id: number, notes: string): Promise<void> {
@@ -184,7 +197,11 @@ export async function updateBookingNotes(id: number, notes: string): Promise<voi
   const body = await res.text();
   if (!res.ok) {
     // Invalidate cache on 401 so next call refreshes
-    if (res.status === 401) writeTokenCache = null;
+    // Invalide le cache sur 401 pour que l'appel suivant refasse l'échange.
+    if (res.status === 401) {
+      const rt = process.env.BEDS24_REFRESH_TOKEN;
+      if (rt) accessTokenCache.delete(rt);
+    }
     throw new Error(`Beds24 ${res.status}: ${body.slice(0, 300)}`);
   }
   // Beds24 v2 can return 200 with success:false inside the array
