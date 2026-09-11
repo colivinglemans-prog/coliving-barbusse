@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBookings } from "@/lib/beds24";
+import { getBookingsWithArchive } from "@/lib/bookings";
 import {
   TAXE_SEJOUR_CONFIG,
   computeTaxeSejour,
@@ -37,16 +37,17 @@ export async function GET(req: NextRequest) {
 
   let bookings;
   try {
-    bookings = await getBookings({
+    bookings = await getBookingsWithArchive({
       departureFrom: from,
       departureTo: to,
       includeInvoiceItems: true,
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Beds24 error" },
-      { status: 502 },
-    );
+    // Le détail reste dans les logs : le message du client Beds24 porte le chemin interne et
+    // 200 caractères de la réponse de l'API. Utile pour diagnostiquer, inutile au navigateur —
+    // et c'est précisément ce qu'on a retiré du rôle restreint côté Albiez.
+    console.error("[taxe-sejour] Beds24 :", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "Beds24 momentanément injoignable" }, { status: 502 });
   }
 
   const lines: TaxeSejourLine[] = bookings

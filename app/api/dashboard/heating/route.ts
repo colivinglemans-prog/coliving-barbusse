@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules, getSummerMode } from "@/lib/heatzy";
-import { getBookings } from "@/lib/beds24";
+import { getBookingsWithArchive } from "@/lib/bookings";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
 
@@ -40,7 +40,7 @@ export async function GET() {
     // Fetch device list and active bookings in parallel
     const [rawDevices, activeBookings] = await Promise.all([
       getDevices(),
-      getBookings({
+      getBookingsWithArchive({
         arrivalTo: todayParis(),
         departureFrom: todayParis(),
       }).catch(() => []),

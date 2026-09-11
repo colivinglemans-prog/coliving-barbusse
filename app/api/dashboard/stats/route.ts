@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBookings, getProperties, getDailyPrices } from "@/lib/beds24";
-import { normalizeChannel } from "@sejour/socle/lib/channels";
+import { getProperties, getDailyPrices } from "@/lib/beds24";
+import { getStays } from "@/lib/bookings";
 import { findEventForStay } from "@/lib/events";
-import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
-import { EXCLUDED_STATUSES } from "@sejour/socle/lib/booking-status";
+import type { DashboardStats, RevenueMode, MonthRevenue, BookingSummary, SplitMetric } from "@/lib/types";
+import type { Booking } from "@sejour/socle/lib/booking";
+import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
+
+/**
+ * Ces statistiques ne connaissent plus la forme Beds24 : elles travaillent sur le `Booking`
+ * du socle, auquel `lib/beds24.ts` traduit les réservations vivantes comme les archivées.
+ *
+ * Trois conséquences visibles dans le code ci-dessous : le canal est déjà normalisé (plus de
+ * `normalizeChannel` à chaque boucle), le montant s'appelle `gross` — c'est le prix payé par
+ * le voyageur, avant commission — et la date de réservation s'appelle `bookedAt`, toujours
+ * comparable lexicographiquement.
+ *
+ * Le nombre de nuits reste calculé ici par `daysBetween`, qui **plafonne à 1**, et non pris
+ * dans `booking.nights`, qui rend la valeur exacte. C'est délibéré : un séjour arrivée =
+ * départ vaut zéro nuit dans le domaine, mais le TJM et la durée moyenne de cette page
+ * divisent par ce nombre depuis toujours. Changer la convention ici déplacerait des
+ * indicateurs sans rapport avec ce lot.
+ */
 
 function getDateRange(period: string): { from: string; to: string } {
   const now = new Date();
@@ -74,7 +91,7 @@ function addRevenueToMap(
 }
 
 function computeRevenue(
-  bookings: Beds24Booking[],
+  bookings: Booking[],
   mode: RevenueMode,
   today: string,
 ): Map<string, { realized: number; upcoming: number }> {
@@ -86,23 +103,23 @@ function computeRevenue(
     switch (mode) {
       case "byCheckIn": {
         const month = b.arrival.substring(0, 7);
-        addRevenueToMap(revenueMap, month, b.price, isRealized);
+        addRevenueToMap(revenueMap, month, b.gross, isRealized);
         break;
       }
       case "byCheckOut": {
         const month = b.departure.substring(0, 7);
-        addRevenueToMap(revenueMap, month, b.price, b.departure <= today);
+        addRevenueToMap(revenueMap, month, b.gross, b.departure <= today);
         break;
       }
       case "byBookingDate": {
-        const bookingDate = b.bookingTime ? b.bookingTime.substring(0, 10) : b.arrival;
+        const bookingDate = b.bookedAt ? b.bookedAt.substring(0, 10) : b.arrival;
         const month = bookingDate.substring(0, 7);
-        addRevenueToMap(revenueMap, month, b.price, bookingDate < today);
+        addRevenueToMap(revenueMap, month, b.gross, bookingDate < today);
         break;
       }
       case "averagedPerNight": {
         const nights = daysBetween(b.arrival, b.departure);
-        const perNight = b.price / nights;
+        const perNight = b.gross / nights;
         // Spread revenue across each night
         const start = new Date(b.arrival);
         for (let i = 0; i < nights; i++) {
@@ -128,7 +145,7 @@ const WHOLE_HOUSE_PROPERTY_ID = 303771;
 // Cohérent avec lib/bookings.ts et lib/fiscal/revenus.ts.
 
 function computeOccupancyByMonth(
-  bookings: Beds24Booking[],
+  bookings: Booking[],
 ): Map<string, { occupied: number; total: number }> {
   // Count room-nights per month
   // Each booking contributes room-nights: whole-house = 9, per-room = 1
@@ -167,7 +184,7 @@ function computeOccupancyByMonth(
  * d'occupation calendaire (réalisé) et à l'occupation prévisionnelle (on the books).
  */
 function occupiedRoomNightsInWindow(
-  bookings: Beds24Booking[],
+  bookings: Booking[],
   windowStart: string,
   windowEnd: string,
 ): number {
@@ -196,16 +213,14 @@ export async function GET(request: NextRequest) {
     const fwdWindowEnd = addDaysStr(today, 90);
 
     const [rawBookings, properties, forwardBookings] = await Promise.all([
-      getBookings({ arrivalFrom: from, arrivalTo: to }),
+      getStays({ arrivalFrom: from, arrivalTo: to }),
       getProperties(),
-      getBookings({ arrivalFrom: fwdWindowStart, arrivalTo: fwdWindowEnd }),
+      getStays({ arrivalFrom: fwdWindowStart, arrivalTo: fwdWindowEnd }),
     ]);
 
     // Exclut annulations et blocages propriétaire (0 €) qui faussaient revenus,
     // TJM, occupation et le premium événementiel.
-    const bookings = rawBookings.filter(
-      (b) => !EXCLUDED_STATUSES.has((b.status ?? "").toLowerCase()),
-    );
+    const bookings = rawBookings.filter((b) => !isExcludedStatus(b.status));
 
     // Revenue by month
     const revenueMap = computeRevenue(bookings, mode, today);
@@ -249,11 +264,11 @@ export async function GET(request: NextRequest) {
     // Channel distribution
     const channelMap = new Map<string, { count: number; revenue: number }>();
     for (const b of bookings) {
-      const channel = normalizeChannel(b.referer, b.channel);
+      const channel = b.channel;
       const existing = channelMap.get(channel) ?? { count: 0, revenue: 0 };
       channelMap.set(channel, {
         count: existing.count + 1,
-        revenue: existing.revenue + b.price,
+        revenue: existing.revenue + b.gross,
       });
     }
     const channelDistribution = Array.from(channelMap.entries()).map(
@@ -274,7 +289,7 @@ export async function GET(request: NextRequest) {
     const houseBookings = bookings.filter((b) => b.propertyId === WHOLE_HOUSE_PROPERTY_ID);
     const roomBookings = bookings.filter((b) => b.propertyId !== WHOLE_HOUSE_PROPERTY_ID);
 
-    function computeNights(list: Beds24Booking[]): number {
+    function computeNights(list: Booking[]): number {
       return list.reduce((sum, b) => sum + daysBetween(b.arrival, b.departure), 0);
     }
 
@@ -282,9 +297,9 @@ export async function GET(request: NextRequest) {
     const houseNights = computeNights(houseBookings);
     const roomNights = computeNights(roomBookings);
 
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.price, 0);
-    const houseRevenue = houseBookings.reduce((sum, b) => sum + b.price, 0);
-    const roomRevenue = roomBookings.reduce((sum, b) => sum + b.price, 0);
+    const totalRevenue = bookings.reduce((sum, b) => sum + b.gross, 0);
+    const houseRevenue = houseBookings.reduce((sum, b) => sum + b.gross, 0);
+    const roomRevenue = roomBookings.reduce((sum, b) => sum + b.gross, 0);
 
     // TJM (Tarif Journalier Moyen / ADR)
     const tjm: SplitMetric = {
@@ -311,11 +326,11 @@ export async function GET(request: NextRequest) {
     };
 
     // Délai moyen de réservation (jours entre bookingTime et arrival)
-    function computeAvgLeadTime(list: Beds24Booking[]): number {
-      const withBookingTime = list.filter((b) => b.bookingTime);
+    function computeAvgLeadTime(list: Booking[]): number {
+      const withBookingTime = list.filter((b) => b.bookedAt);
       if (withBookingTime.length === 0) return 0;
       const totalDays = withBookingTime.reduce((sum, b) => {
-        const bookingDate = b.bookingTime.substring(0, 10);
+        const bookingDate = b.bookedAt!.substring(0, 10);
         return sum + Math.max(0, daysBetween(bookingDate, b.arrival));
       }, 0);
       return Math.round(totalDays / withBookingTime.length);
@@ -328,45 +343,48 @@ export async function GET(request: NextRequest) {
     };
 
     // ─── Part des réservations directes (0 commission) ───────
-    const directBookings = bookings.filter(
-      (b) => normalizeChannel(b.referer, b.channel) === "Direct",
-    );
-    const directRevenue = directBookings.reduce((s, b) => s + b.price, 0);
+    const directBookings = bookings.filter((b) => b.channel === "Direct");
+    const directRevenue = directBookings.reduce((s, b) => s + b.gross, 0);
     const directRevenueShare =
       totalRevenue > 0 ? Math.round((directRevenue / totalRevenue) * 100) : 0;
     const directBookingShare =
       bookings.length > 0 ? Math.round((directBookings.length / bookings.length) * 100) : 0;
 
     // ─── Occupation prévisionnelle 90 j (occupancy on the books) ─
-    const forwardActive = forwardBookings.filter(
-      (b) => !EXCLUDED_STATUSES.has((b.status ?? "").toLowerCase()),
-    );
+    const forwardActive = forwardBookings.filter((b) => !isExcludedStatus(b.status));
     const forwardAvailable = TOTAL_ROOMS * rawDays(today, fwdWindowEnd);
     const forwardOccupied = occupiedRoomNightsInWindow(forwardActive, today, fwdWindowEnd);
     const forwardOccupancy90 =
       forwardAvailable > 0 ? Math.round((forwardOccupied / forwardAvailable) * 100) : 0;
 
     // ─── Booking summaries ───────────────────────────────────
-    function toSummary(b: Beds24Booking): BookingSummary {
+    function toSummary(b: Booking): BookingSummary {
       const nights = daysBetween(b.arrival, b.departure);
       return {
-        id: b.id,
-        guest: `${b.firstName} ${b.lastName}`.trim() || "—",
+        /*
+         * `id` est optionnel sur `Booking` parce que l'archive d'Albiez n'en a pas — ses
+         * lignes viennent d'exports de canal, qui ne portent aucun identifiant Beds24. Ici
+         * les deux sources en ont un : l'API le rend toujours, et l'archive de ce site l'a
+         * conservé. L'assertion dit ce fait plutôt que de fabriquer un `0` de repli, qui
+         * s'afficherait comme une vraie réservation introuvable.
+         */
+        id: b.id!,
+        guest: `${b.firstName ?? ""} ${b.lastName ?? ""}`.trim() || "—",
         arrival: b.arrival,
         departure: b.departure,
         nights,
-        price: Math.round(b.price * 100) / 100,
-        tjm: nights > 0 ? Math.round(b.price / nights) : 0,
-        channel: normalizeChannel(b.referer, b.channel),
+        price: Math.round(b.gross * 100) / 100,
+        tjm: nights > 0 ? Math.round(b.gross / nights) : 0,
+        channel: b.channel,
         type: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? "house" : "room",
-        bookingTime: b.bookingTime,
+        bookingTime: b.bookedAt ?? undefined,
         event: findEventForStay(b.arrival, b.departure),
       };
     }
 
     // Réservations récentes (10 dernières par date de réservation)
     const recentBookings = [...bookings]
-      .sort((a, b) => (b.bookingTime || "").localeCompare(a.bookingTime || ""))
+      .sort((a, b) => (b.bookedAt || "").localeCompare(a.bookedAt || ""))
       .slice(0, 10)
       .map(toSummary);
 
@@ -389,10 +407,10 @@ export async function GET(request: NextRequest) {
     // Realized = past bookings, Confirmed = future bookings already booked
     const realizedRevenue = bookings
       .filter((b) => b.arrival < today)
-      .reduce((sum, b) => sum + b.price, 0);
+      .reduce((sum, b) => sum + b.gross, 0);
     const confirmedUpcoming = bookings
       .filter((b) => b.arrival >= today)
-      .reduce((sum, b) => sum + b.price, 0);
+      .reduce((sum, b) => sum + b.gross, 0);
 
     // Count future days already covered by confirmed bookings
     const confirmedFutureNights = bookings
@@ -478,7 +496,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(stats);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // Détail dans les logs, message générique au client : depuis que le transport Beds24 vient
+    // du socle, `error.message` embarque le chemin appelé et 200 caractères de la réponse de
+    // l'API. C'est bon à lire dans Vercel, pas à renvoyer dans un navigateur.
+    console.error("[stats] échec :", error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: "Statistiques momentanément indisponibles" }, { status: 500 });
   }
 }

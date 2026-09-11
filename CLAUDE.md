@@ -228,9 +228,11 @@ portent un — et **pas** de l'API : Beds24 ne renvoie `infoItems` que si on les
 
 **Deux corrections, pas une.**
 
-1. À la source : `getBookings()` dépouille les réservations archivées de leurs `infoItems` et
-   `invoiceItems` quand l'appelant ne les a pas demandés — symétrie avec l'API, où ce qu'on
-   n'a pas demandé n'est pas là.
+1. À la source : la fusion de l'archive dépouille les réservations archivées de leurs
+   `infoItems` et `invoiceItems` quand l'appelant ne les a pas demandés — symétrie avec l'API,
+   où ce qu'on n'a pas demandé n'est pas là. C'était dans `getBookings()` jusqu'au Lot 2,
+   c'est maintenant dans `withArchive()` ([lib/bookings-archive.ts](lib/bookings-archive.ts)),
+   appelé par `getBookingsWithArchive()` ([lib/bookings.ts](lib/bookings.ts)).
 2. À la sortie : le DTO en liste blanche, qui protège aussi des champs que Beds24 ajoutera.
 
 ⚠️ **`includeInfoItems: true` reste légitime à trois endroits** : `getBookingById` (donc
@@ -287,6 +289,44 @@ curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 
 **Vercel** : les deux tokens doivent être configurés sur Production + Development (Preview est bloqué par le wrapper plugin Vercel — non critique vu le workflow `vercel --prod` direct).
 
+### Le transport et les types viennent du socle
+
+[lib/beds24.ts](lib/beds24.ts) ne fait plus d'HTTP. L'échange des jetons, le cache d'access
+tokens (marge de 60 s), les replis, l'écriture de note — y compris la subtilité du « 200 avec
+`success: false` » — et la réexpansion des tranches de calendrier vivent dans
+`createBeds24Client` (`@sejour/socle/lib/beds24-client`). Ne restent ici que les **noms des
+variables d'environnement**, la traduction vers `Booking`, et les lectures propres à ce bien :
+sold-out du blog, rapprochement Stripe, liste des propriétés.
+
+Les replis sont **deux champs distincts, pas un drapeau** : `whenMissing` (variable non
+définie) et `whenRefused` (jeton refusé, échange impossible ou 401). La voie publique a les
+deux vers la **lecture** ; la voie de lecture n'en a aucun — sans elle, il n'y a rien à servir.
+
+⚠️ **`expandSpans` itère en UTC**, et corrige un décalage d'un jour que portaient
+`getDailyPrices()` et `getMinStay()` : elles faisaient `new Date(jour + "T00:00:00")` puis
+`toISOString()`, soit minuit **local** relu en UTC. En production c'est sans effet — Vercel
+tourne en UTC — mais en développement depuis Paris, le prix du 1er juillet était étiqueté
+30 juin, ce qui décalait la projection « pricing dynamique » de tout le dashboard et du fiscal.
+
+### `Booking` canonique, et `Beds24Booking` pour ce qui parle à l'API
+
+Le type canonique est **`Booking`** (`@sejour/socle/lib/booking`), et c'est le modèle d'Albiez
+qui l'emporte : l'archive ne porte plus la forme `Beds24Booking`, les deux sources se
+traduisent vers un type commun. Champs requis : `ref`, `channel` (déjà normalisé), `arrival`,
+`departure`, `nights`, `gross`, `net`, `commission`, `source` (`"live"` | `"archive"`).
+
+Tout le reste est **optionnel**, et l'identité du voyageur (`firstName`, `email`, `phone`,
+`country`…) l'est pour une raison précise : Albiez ne porte pas `read:bookings-personal`. Un
+calcul du socle qui en dépendrait pousserait ce site à réclamer un scope dont il n'a pas
+besoin.
+
+Les types de transport (`Beds24Booking`, `Beds24InfoItem`, `Beds24InvoiceItem`,
+`Beds24Property`) sont montés au socle eux aussi (`@sejour/socle/lib/beds24-types`) et
+réexportés par [lib/types.ts](lib/types.ts) sous leurs noms d'origine. Ce n'est pas une
+contradiction : c'est la distinction entre le modèle du domaine et le format de transport. Ce
+qui a besoin d'`invoiceItems` ou d'`infoItems` — factures, taxe de séjour, commissions
+fiscales, code Nuki, notifications d'arrivée — travaille sur la forme brute et doit continuer.
+
 ### Historique archivé (propriété "à la chambre" supprimée)
 
 La propriété **310268** ("Coliving Henri Barbusse", location à la chambre) a été supprimée du compte
@@ -298,12 +338,23 @@ un merge transparent :
   - `data/beds24-raw-backup.json` — dump brut intégral (disaster recovery, **non lu au runtime**).
   - `data/bookings-archive.json` — sous-ensemble `propertyId ∈ ARCHIVED_PROPERTY_IDS` (310268),
     **lu au runtime**. Lancer : `node --env-file=.env.local scripts/beds24-backup.mjs`.
-- **Merge** : [lib/bookings-archive.ts](lib/bookings-archive.ts) (`getArchivedBookings()`, `ARCHIVED_PROPERTY_IDS`)
-  est appelé par `getBookings()` ([lib/beds24.ts](lib/beds24.ts)) : dédup par `id`, **le live gagne**, on
-  n'injecte que les résas archivées absentes du live et matchant les mêmes filtres (dates + statuts).
+- **Merge** : [lib/bookings-archive.ts](lib/bookings-archive.ts) (`ARCHIVED_PROPERTY_IDS`, `withArchive()`) sur le mécanisme générique `createArchive`
+  (`@sejour/socle/lib/archive`) : dédup par `id`, **le live gagne**, on n'injecte que les résas
+  archivées absentes du live et matchant les mêmes filtres (dates + statuts).
   Tant que la propriété existe, ses résas live écrasent les archivées (zéro doublon) ; une fois supprimée,
   l'archive prend le relais **sans changement de code**. Tous les consommateurs en héritent (stats classe
   310268 en `type:"room"`, fiscal garde `310268` dans `propertyIds` de `data/fiscal/2026.json`).
+- ⚠️ **Le merge n'est plus dans `getBookings()`.** Il y était enfoui jusqu'au Lot 2, et un
+  client d'API qui ajoute en silence des lignes que l'API n'a pas renvoyées rend fausse
+  d'avance toute mesure de ce qu'il produit — c'est exactement ce qui a laissé 37 `NUKI_PIN`
+  d'origine archivée traverser une route qu'on croyait ne servir que du live. Le placement
+  d'Albiez, qui expose sa fusion à ses appelants, est le bon.
+  - `getBookings()` ([lib/beds24.ts](lib/beds24.ts)) : le live seul, tel que l'API le rend.
+  - `getBookingsWithArchive()` ([lib/bookings.ts](lib/bookings.ts)) : live + archive, forme
+    Beds24 brute. Pour ce qui a besoin d'`invoiceItems` / `infoItems` : factures, fiscal, taxe
+    de séjour, code Nuki, notifications d'arrivée, calendrier.
+  - `getStays()` (même fichier) : live + archive, traduits en `Booking` canonique. Pour ce qui
+    **calcule** — aujourd'hui `/api/dashboard/stats`.
 - Endpoints d'inventaire (`getAvailability`/`getDailyPrices`/`getMinStay`) et `updateBookingNotes` ne
   concernent pas l'archive (historique en lecture seule).
 - **Ré-exécuter le backup** si de nouvelles résas 310268 apparaissent avant la suppression définitive.
@@ -363,9 +414,9 @@ un merge transparent :
 
 ## Dashboard stats (`/dashboard`)
 
-- **Statuts exclus** : la route stats filtre `cancelled`/`black` (`EXCLUDED_STATUSES`, cohérent avec `lib/bookings.ts` / `lib/fiscal`). Sans ça, les blocages propriétaire à 0 € et annulations faussaient revenus, TJM et occupation.
+- **Statuts exclus** : la route stats filtre `cancelled`/`black` (`isExcludedStatus`, `@sejour/socle/lib/booking-status`, cohérent avec `lib/bookings.ts` / `lib/fiscal`). Sans ça, les blocages propriétaire à 0 € et annulations faussaient revenus, TJM et occupation.
 - **StatsCards** (9 cartes, indicateurs standard du secteur). Les métriques par nuitée sont affichées **maison entière uniquement** (`SplitMetric.house`) ; l'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
-  - **Revenus totaux** = CA brut (Σ `b.price`).
+  - **Revenus totaux** = CA brut (Σ `b.gross`, le `price` de Beds24 après traduction).
   - **Occupation moyenne** = taux calendaire **réalisé (YTD)** : nuits vendues ÷ nuits disponibles sur la partie *écoulée* de la période (`[from, min(to, today)]`, 9 chambres × jours). Corrige l'ancien biais qui excluait du dénominateur les mois sans réservation (taux gonflé) sans pour autant compter les mois futurs invendus. Helper `occupiedRoomNightsInWindow`.
   - **TJM** = revenu ÷ nuits *vendues* (prix moyen d'une nuit occupée).
   - **RevPAR** = TJM × taux d'occupation = revenu ÷ nuits *disponibles* (intègre les nuits vides, toujours ≤ TJM).
@@ -377,7 +428,7 @@ un merge transparent :
   - Pricing dynamique via `getDailyPrices` (Beds24 `/inventory/rooms/calendar?includePrices`)
 - **RevenueChart** : Recharts `ComposedChart` par mois — barres réalisé/prévu (axe gauche) + **ligne RevPAR mensuel** (axe droit violet). RevPAR mensuel = (réalisé + réservé) ÷ jours du mois (`MonthRevenue.revpar`).
 - **BookingsTable** (2 tableaux) :
-  - Réservations récentes : triées par **date de réservation** (bookingTime) avec colonne "Réservée"
+  - Réservations récentes : triées par **date de réservation** (`bookedAt`, l'horodatage `bookingTime` de Beds24) avec colonne "Réservée"
   - Meilleures réservations (TJM) : triées par TJM avec colonne **Événement** (badge indigo via `findEventForStay`)
   - Colonne "Type" supprimée (toujours maison)
 - **ChannelPieChart** : revenus par canal (Airbnb, Booking, Abritel, Direct)

@@ -1,4 +1,5 @@
-import { getBookings, getDailyPrices } from "@/lib/beds24";
+import { getDailyPrices } from "@/lib/beds24";
+import { getBookingsWithArchive } from "@/lib/bookings";
 import type { Beds24Booking } from "@/lib/types";
 import type { BienFiscal } from "./config";
 import { computeCABooking, computeCommissionBooking } from "./commissions";
@@ -73,7 +74,7 @@ async function computeBeds24Revenus(
   const clampedToday = currentYear ? today : yearEnd;
 
   const bookings = (
-    await getBookings({
+    await getBookingsWithArchive({
       arrivalFrom: from,
       arrivalTo: to,
       includeInvoiceItems: true,
