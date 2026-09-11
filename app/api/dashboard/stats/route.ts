@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBookings, getProperties, getDailyPrices } from "@/lib/beds24";
-import { normalizeChannel } from "@/lib/channel";
+import { normalizeChannel } from "@sejour/socle/lib/channels";
 import { findEventForStay } from "@/lib/events";
 import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
 

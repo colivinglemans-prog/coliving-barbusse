@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCronAuth } from "@/lib/cron-auth";
+import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import {
   getFullZoneConfig,
   getLockedDevices,
@@ -11,7 +11,7 @@ import {
 } from "@/lib/heatzy";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/email";
-import { todayParis, currentHourParis } from "@/lib/time";
+import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

@@ -1,5 +1,5 @@
 import { getBookings } from "./beds24";
-import { todayParis, tomorrowParis } from "./time";
+import { todayParis, tomorrowParis } from "@sejour/socle/lib/time";
 import type { Beds24Booking } from "./types";
 
 const EXCLUDED_STATUSES = new Set(["cancelled", "black"]);

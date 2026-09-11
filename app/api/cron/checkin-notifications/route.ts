@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
-import { verifyCronAuth } from "@/lib/cron-auth";
+import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { getBookings } from "@/lib/beds24";
-import { sendNtfy } from "@/lib/ntfy";
-import { todayParis } from "@/lib/time";
+import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { todayParis } from "@sejour/socle/lib/time";
 import type { Beds24Booking } from "@/lib/types";
 
 const CHECKIN_INFO_CODE = "CHECKIN";

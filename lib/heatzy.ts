@@ -1,5 +1,5 @@
 import type { HeatzyMode, HeatzyZone, HeatzyZoneConfig } from "./types";
-import { todayParis } from "./time";
+import { todayParis } from "@sejour/socle/lib/time";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { Redis } from "@upstash/redis";

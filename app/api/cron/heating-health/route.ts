@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCronAuth } from "@/lib/cron-auth";
+import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { getDevices, getFullZoneConfig } from "@/lib/heatzy";
 import { sendHeatingAlert } from "@/lib/email";
-import { todayParis, nowParis } from "@/lib/time";
+import { todayParis, nowParis } from "@sejour/socle/lib/time";
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {

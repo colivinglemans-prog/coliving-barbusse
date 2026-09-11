@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addDays, formatDate } from "@/lib/calendar-utils";
+import { addDays, formatDate } from "@sejour/socle/lib/dates";
 import type { Locale } from "@/lib/i18n";
 
 const PROPERTY_ID = 303771;

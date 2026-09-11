@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules, getSummerMode } from "@/lib/heatzy";
 import { getBookings } from "@/lib/beds24";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
-import { todayParis, currentHourParis } from "@/lib/time";
+import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
 
 function hasActiveReservation(
   bookings: { arrival: string; departure: string }[],
