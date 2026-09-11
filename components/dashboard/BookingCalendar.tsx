@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import type { Beds24Booking } from "@/lib/types";
+import type { BookingListEntry } from "@sejour/socle/lib/booking-dto";
 import { findEventForStay, LE_MANS_EVENTS, shortEventLabel, type LeMansEvent } from "@/lib/events";
 import { bandesPeriodes, PERIODES, type BandePeriode } from "@sejour/socle/lib/periodes";
 import { CHANNEL_COLORS, normalizeChannel } from "@sejour/socle/lib/channels";
+import { provisionalKind, type Provisional } from "@sejour/socle/lib/booking-status";
 import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
 
 /*
@@ -36,48 +37,21 @@ const PALETTE_PERIODE = {
 } as const;
 
 /**
- * Statuts Beds24 d'une réservation qui n'est pas acquise.
+ * Demandes et options : `UNCONFIRMED_STATUSES`, `HELD_STATUSES` et `provisionalKind` vivent
+ * dans `@sejour/socle/lib/booking-status`.
  *
- * `new` est une réservation arrivée d'un canal et pas encore passée en « Confirmed » ;
- * `request` une demande en attente de décision ; `inquiry` une simple demande de
- * renseignement. Aucune des trois n'est une nuit vendue.
+ * Ils ont quitté ce fichier pour une raison de fond : enfouis dans un composant client, ils
+ * étaient inutilisables côté serveur — donc le filtre ci-dessous était le **seul** contrôle,
+ * et le navigateur d'un `viewer` recevait les demandes et les options quand même. La route
+ * les retire désormais de la réponse ; ce qui reste ici est une seconde ceinture.
  *
- * Ces trois-là **n'apparaissent pas du tout en vue viewer** : le planning du ménage doit
- * dire les nuits vendues, pas les nuits peut-être vendues — une personne qui se déplace
- * pour une réservation qui n'a jamais existé s'est déplacée pour rien. En vue admin elles
- * restent visibles, mais en ardoise rayée au lieu de la couleur du canal.
+ * - `unconfirmed` (`new`, `request`, `inquiry`) : étiquette « ? », une demande qui peut se
+ *   conclure.
+ * - `held` (`black`) : étiquette « OPTION », des dates délibérément tenues.
  *
- * `black` a son propre lot (`HELD_STATUSES`) : même sort en vue viewer, étiquette différente
- * en admin. `cancelled` n'est nulle part — l'API Beds24 n'en renvoie pas sur nos fenêtres,
- * et une réservation annulée n'a rien à faire sur un planning, à confirmer ou non.
+ * Les deux se ressemblent — même ardoise rayée, même absence en vue viewer — et ne se
+ * distinguent que par leur étiquette.
  */
-const UNCONFIRMED_STATUSES = new Set(["new", "request", "inquiry"]);
-
-/**
- * `black` — dates tenues, affaire en cours.
- *
- * Beds24 appelle ça un blocage, mais l'usage ici est commercial : l'option Spartner Travel
- * de juin 2027 est une vraie affaire à 21 718 € sur les 24 Heures, saisie à la main pour
- * réserver les dates pendant la négociation. Ce n'est donc ni une nuit vendue ni une
- * demande de renseignement, d'où sa propre étiquette « OPTION ».
- */
-const HELD_STATUSES = new Set(["black"]);
-
-/**
- * Ce que vaut une réservation qui n'est pas acquise, ou `null` si elle l'est.
- *
- * Les deux valeurs se ressemblent — même ardoise rayée, même absence en vue viewer — et se
- * distinguent par leur étiquette : « ? » pour une demande qui peut se conclure, « OPTION »
- * pour des dates délibérément tenues.
- */
-type Provisional = "unconfirmed" | "held";
-
-function provisionalKind(status: string | undefined): Provisional | null {
-  const s = (status ?? "").toLowerCase();
-  if (UNCONFIRMED_STATUSES.has(s)) return "unconfirmed";
-  if (HELD_STATUSES.has(s)) return "held";
-  return null;
-}
 
 /**
  * Libellé d'une barre : le nom du client, puis le nombre de voyageurs.
@@ -87,7 +61,7 @@ function provisionalKind(status: string | undefined): Provisional | null {
  * pourtant la seule trace du client — « Spartner Travel » vaut mieux que « · 1 voy. », qui
  * est ce que l'ancien libellé affichait quand prénom et nom étaient vides.
  */
-function label(b: Beds24Booking, guests: number): string {
+function label(b: BookingListEntry, guests: number): string {
   const nom = b.firstName || b.lastName || b.company || b.title || "";
   return nom ? `${nom} · ${guests} voy.` : `${guests} voy.`;
 }
@@ -167,7 +141,7 @@ function formatEuro(v: number) {
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 interface BookingBar {
-  booking: Beds24Booking;
+  booking: BookingListEntry;
   channel: string;
   colour: string;
   /** 0-based col start within month grid */
@@ -193,7 +167,7 @@ interface EventBar {
 }
 
 interface PopupData {
-  booking: Beds24Booking;
+  booking: BookingListEntry;
   channel: string;
   colour: string;
   nights: number;
@@ -202,7 +176,7 @@ interface PopupData {
 
 /* ── Component ─────────────────────────────────────────────────────── */
 interface BookingCalendarProps {
-  bookings: Beds24Booking[];
+  bookings: BookingListEntry[];
   showPrices?: boolean;
   showChannels?: boolean;
   /** Débloque le bloc de partage voyageur (lien du guide + code de la serrure). */
@@ -363,9 +337,10 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         // Booking overlaps the month if arrival < end-of-month AND departure > start-of-month
         return b.arrival <= lastDateStr && b.departure > firstDateStr;
       })
-      // Ni une demande ni une option n'existent pour le rôle viewer — voir
-      // UNCONFIRMED_STATUSES et HELD_STATUSES. Le filtre est ici, sur la source des barres,
-      // et non au rendu : la barre ne doit pas exister, pas seulement être invisible.
+      // Ni une demande ni une option n'existent pour le rôle viewer. Le vrai filtre est
+      // côté serveur, dans /api/dashboard/bookings : la réponse ne les porte déjà plus.
+      // Celui-ci reste comme seconde ceinture, et sert la « vue viewer » de l'admin, qui
+      // prévisualise avec des données complètes.
       .filter((b) => isAdmin || provisionalKind(b.status) === null)
       .map((b) => {
         const channel = normalizeChannel(b.referer, b.channel);
@@ -1075,7 +1050,9 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                 )}
               </div>
 
-              {showPrices && (
+              {/* `price` est absent du DTO servi au rôle restreint : le `?? 0` n'est pas une
+                  valeur de repli mais la trace que ce bloc ne s'affiche jamais sans lui. */}
+              {showPrices && popup.booking.price !== undefined && (
                 <div>
                   <p className="text-xs text-gray-400">Montant</p>
                   <p className="mt-0.5 font-medium text-gray-900">{formatEuro(popup.booking.price)}</p>

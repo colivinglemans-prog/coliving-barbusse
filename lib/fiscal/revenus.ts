@@ -2,8 +2,8 @@ import { getBookings, getDailyPrices } from "@/lib/beds24";
 import type { Beds24Booking } from "@/lib/types";
 import type { BienFiscal } from "./config";
 import { computeCABooking, computeCommissionBooking } from "./commissions";
+import { EXCLUDED_STATUSES } from "@sejour/socle/lib/booking-status";
 
-const EXCLUDED_STATUSES = new Set(["cancelled", "black"]);
 
 export interface RevenusBien {
   bienId: string;

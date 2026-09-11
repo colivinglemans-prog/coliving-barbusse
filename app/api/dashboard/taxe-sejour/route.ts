@@ -9,8 +9,8 @@ import {
   type QuarterTotals,
   type TaxeSejourLine,
 } from "@/lib/taxe-sejour";
+import { EXCLUDED_STATUSES } from "@sejour/socle/lib/booking-status";
 
-const EXCLUDED_STATUSES = new Set(["cancelled", "black"]);
 
 export interface TaxeSejourResponse {
   year: number;

@@ -6,10 +6,23 @@ import {
   beds24StripeToPayload,
   stripeToPayload,
 } from "@/lib/invoice-payload";
+import { guard } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
+/**
+ * Pré-remplissage d'une facture depuis une réservation Beds24 ou un paiement Stripe.
+ *
+ * **Admin uniquement, vérifié ici.** La réponse porte la réservation Beds24 **brute** —
+ * `getBookingById` demande `includeInfoItems`, donc le PIN de la serrure, plus les montants
+ * et les coordonnées du voyageur. Sa seule protection était le préfixe d'URL du middleware :
+ * un matcher oublié ou un chemin déplacé et tout ressortait. La donnée la plus sensible du
+ * dashboard ne doit pas dépendre d'un unique point de contrôle.
+ */
 export async function GET(request: NextRequest) {
+  const refus = await guard.denyNonAdmin(request);
+  if (refus) return refus;
+
   try {
     const bookingIdParam = request.nextUrl.searchParams.get("bookingId");
     const stripeIdParam = request.nextUrl.searchParams.get("stripeId");

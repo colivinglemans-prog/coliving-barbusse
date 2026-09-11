@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { Beds24Booking } from "@/lib/types";
+import type { AdminBookingListItem } from "@sejour/socle/lib/booking-dto";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 
 function formatDateFr(iso: string): string {
@@ -71,7 +71,7 @@ export default function InvoicesListPage() {
   const [tab, setTab] = useState<SourceTab>("beds24");
 
   // Beds24 state
-  const [bookings, setBookings] = useState<Beds24Booking[]>([]);
+  const [bookings, setBookings] = useState<AdminBookingListItem[]>([]);
   const [beds24Loading, setBeds24Loading] = useState(true);
   const [beds24Error, setBeds24Error] = useState("");
   const [manualId, setManualId] = useState("");
@@ -96,7 +96,7 @@ export default function InvoicesListPage() {
           `/api/dashboard/bookings?arrivalFrom=${arrivalFrom}&arrivalTo=${arrivalTo}`,
         );
         if (!res.ok) throw new Error("Erreur de chargement des réservations");
-        const data: Beds24Booking[] = await res.json();
+        const data: AdminBookingListItem[] = await res.json();
         setBookings(data);
       } catch (err) {
         setBeds24Error(err instanceof Error ? err.message : "Erreur inconnue");

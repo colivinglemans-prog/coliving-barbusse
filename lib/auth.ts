@@ -1,56 +1,45 @@
-import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { createAuth } from "@sejour/socle/lib/auth";
+import { createRouteGuard } from "@sejour/socle/lib/auth-guard";
 
-const COOKIE_NAME = "dashboard_token";
-
-function getSecret() {
-  const secret = process.env.DASHBOARD_SECRET;
-  if (!secret) throw new Error("DASHBOARD_SECRET is not set");
-  return new TextEncoder().encode(secret);
-}
-
+/**
+ * Authentification du dashboard — configuration locale du mécanisme du socle.
+ *
+ * Le JWT, le cookie, le repli de rôle et la résolution des mots de passe nommés vivent dans
+ * `@sejour/socle/lib/auth`. Ne restent ici que les valeurs propres à ce site.
+ *
+ * ⚠️ **Ce module ne doit jamais importer `next/headers`** : `proxy.ts` s'en sert et tourne en
+ * runtime edge. La pose et le retrait du cookie sont dans `@sejour/socle/lib/auth-cookie`,
+ * importés directement par les deux routes de connexion/déconnexion, qui tournent en Node.
+ *
+ * Deux points ont changé au passage au socle :
+ *
+ * 1. **Le repli est `viewer`, plus `admin`.** `getTokenRole` retombait sur `"admin"` dans son
+ *    `catch` : un jeton illisible, expiré ou forgé valait les pleins pouvoirs. En cas de
+ *    doute, le moins de droits possible — aucune reconnexion légitime n'y perd, `createToken`
+ *    pose toujours le claim `role`.
+ * 2. `COOKIE_NAME` et `getSecret()` ne sont plus recopiés dans `middleware.ts`,
+ *    `bookings/[id]/notes` et `bookings/[id]/nuki-code`. Les deux derniers en étaient des
+ *    copies octet pour octet.
+ */
 export type DashboardRole = "admin" | "viewer";
 
-export async function createToken(role: DashboardRole = "admin"): Promise<string> {
-  return new SignJWT({ role })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("90d")
-    .sign(getSecret());
-}
+export const auth = createAuth<DashboardRole>({
+  adminRole: "admin",
+  restrictedRole: "viewer",
+  fallbackRole: "viewer",
+  roles: ["admin", "viewer"],
+  // `DASHBOARD_PASSWORD_VIEWER`, et toute variable nommée qui le prolonge
+  // (`DASHBOARD_PASSWORD_VIEWER_Sylvie`), pour révoquer une personne sans toucher aux autres.
+  restrictedPasswordPrefixes: ["DASHBOARD_PASSWORD_VIEWER"],
+});
 
-export async function verifyToken(token: string): Promise<boolean> {
-  try {
-    await jwtVerify(token, getSecret());
-    return true;
-  } catch {
-    return false;
-  }
-}
+/** Contrôle de rôle dans un handler de route : la deuxième porte, après le proxy. */
+export const guard = createRouteGuard(auth);
 
-export async function getTokenRole(token: string): Promise<DashboardRole> {
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    return (payload.role as DashboardRole) ?? "admin";
-  } catch {
-    return "admin";
-  }
-}
+export const COOKIE_NAME = auth.cookieName;
 
-export async function setAuthCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 90, // 90 days
-    path: "/",
-  });
-}
+export const createToken = auth.createToken;
+export const verifyToken = auth.verifyToken;
 
-export async function removeAuthCookie() {
-  const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
-}
-
-export { COOKIE_NAME };
+/** Conservé sous son nom d'origine : ses appelants le connaissent ainsi. */
+export const getTokenRole = auth.roleFromToken;

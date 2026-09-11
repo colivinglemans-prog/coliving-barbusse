@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { getBookingById } from "@/lib/beds24";
-
-const COOKIE_NAME = "dashboard_token";
+import { guard } from "@/lib/auth";
 
 /**
  * Beds24 dépose le PIN de la serrure Nuki dans les infoItems de la réservation,
@@ -10,34 +8,20 @@ const COOKIE_NAME = "dashboard_token";
  */
 const NUKI_INFO_CODE = "NUKI_PIN";
 
-function getSecret() {
-  const secret = process.env.DASHBOARD_SECRET;
-  if (!secret) throw new Error("DASHBOARD_SECRET is not set");
-  return new TextEncoder().encode(secret);
-}
-
 /**
- * Code d'accès d'une réservation. Route dédiée et admin-only : le PIN ne doit
- * jamais transiter dans le payload du calendrier, que le rôle viewer peut lire.
+ * Code d'accès d'une réservation. Route dédiée et admin-only : le PIN ne doit jamais
+ * transiter dans le payload du calendrier, que le rôle `viewer` peut lire.
+ *
+ * C'est aussi la seule route qui demande `includeInfoItems` sur une réservation isolée
+ * (via `getBookingById`) : la liste générale ne les réclame pas, et l'archive locale s'en
+ * voit dépouillée dans `getBookings`.
  */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const token = req.cookies.get(COOKIE_NAME)?.value;
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  let role = "admin";
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    role = (payload.role as string) ?? "admin";
-  } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const refus = await guard.denyNonAdmin(req);
+  if (refus) return refus;
 
   const { id: idStr } = await params;
   const id = Number(idStr);
