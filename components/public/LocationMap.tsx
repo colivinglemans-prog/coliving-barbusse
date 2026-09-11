@@ -79,7 +79,7 @@ export default function LocationMap() {
         <Popup>
           <strong>Parc du Gué de Maulny</strong>
           <br />
-          16 ha au bord de l'Huisne
+          16 ha au bord de l’Huisne
         </Popup>
       </Marker>
     </MapContainer>
