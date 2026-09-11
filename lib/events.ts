@@ -1,3 +1,5 @@
+import { addDays, daysBetween as dayDiff } from "@sejour/socle/lib/dates";
+
 export interface LeMansEvent {
   name: string;
   /** Inclusive start date YYYY-MM-DD */
@@ -75,17 +77,14 @@ export const LE_MANS_EVENTS: LeMansEvent[] = [
  */
 const EVENT_EXT_DAYS = 2;
 
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T00:00:00");
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
-}
-
-function dayDiff(from: string, to: string): number {
-  const a = new Date(from + "T00:00:00");
-  const b = new Date(to + "T00:00:00");
-  return Math.round((b.getTime() - a.getTime()) / 86_400_000);
-}
+/*
+ * Les deux helpers de date de ce fichier venaient du socle et y retournent — le local
+ * `addDays` composait minuit en heure locale, avançait le jour en heure locale, puis relisait
+ * le résultat avec `toISOString()`, c'est-à-dire en UTC. Depuis Paris, la fenêtre étendue
+ * d'un événement reculait donc d'un jour, et un séjour rattrapé de justesse par un événement
+ * changeait d'étiquette selon le fuseau de la machine : « SWS Karting Finals 2026 » sur
+ * Vercel, aucun événement en développement, pour la même réservation.
+ */
 
 /**
  * Number of nights of a stay [arrival, departure[ that fall inside an event's

@@ -12,10 +12,20 @@ import {
   Legend,
 } from "recharts";
 import type { MonthRevenue } from "@/lib/types";
+import {
+  CHART_AXIS,
+  CHART_GRID,
+  CHART_LEGEND,
+  CHART_TOOLTIP_STYLE,
+  chartAxisIn,
+} from "@sejour/socle/lib/chart-theme";
 
 interface RevenueChartProps {
   data: MonthRevenue[];
 }
+
+/** Violet du RevPAR : la courbe, son axe et ses points le partagent. */
+const REVPAR_COLOUR = "#8b5cf6";
 
 const SERIES_LABELS: Record<string, string> = {
   realized: "Réalisé",
@@ -35,26 +45,15 @@ export default function RevenueChart({ data }: RevenueChartProps) {
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} barGap={0}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-            <XAxis
-              dataKey="month"
-              tick={{ fontSize: 12, fill: "#9ca3af" }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              yAxisId="revenue"
-              tick={{ fontSize: 12, fill: "#9ca3af" }}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(v) => `${v} €`}
-            />
+            <CartesianGrid {...CHART_GRID} />
+            <XAxis dataKey="month" {...CHART_AXIS} />
+            <YAxis yAxisId="revenue" {...CHART_AXIS} tickFormatter={(v) => `${v} €`} />
+            {/* L'axe de droite prend la couleur de sa courbe : sans ça, rien ne dit lequel
+                des deux axes lit le RevPAR. */}
             <YAxis
               yAxisId="revpar"
               orientation="right"
-              tick={{ fontSize: 12, fill: "#8b5cf6" }}
-              tickLine={false}
-              axisLine={false}
+              {...chartAxisIn(REVPAR_COLOUR)}
               tickFormatter={(v) => `${v} €`}
             />
             <Tooltip
@@ -62,16 +61,11 @@ export default function RevenueChart({ data }: RevenueChartProps) {
                 `${Number(value).toLocaleString("fr-FR")} €`,
                 SERIES_LABELS[String(name)] ?? name,
               ]}
-              contentStyle={{
-                borderRadius: "12px",
-                border: "none",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              }}
+              contentStyle={CHART_TOOLTIP_STYLE}
             />
             <Legend
+              {...CHART_LEGEND}
               formatter={(value) => SERIES_LABELS[String(value)] ?? value}
-              iconType="circle"
-              wrapperStyle={{ fontSize: "12px", color: "#6b7280" }}
             />
             <Bar
               yAxisId="revenue"
@@ -91,9 +85,9 @@ export default function RevenueChart({ data }: RevenueChartProps) {
               yAxisId="revpar"
               type="monotone"
               dataKey="revpar"
-              stroke="#8b5cf6"
+              stroke={REVPAR_COLOUR}
               strokeWidth={2}
-              dot={{ r: 3, fill: "#8b5cf6" }}
+              dot={{ r: 3, fill: REVPAR_COLOUR }}
               activeDot={{ r: 5 }}
             />
           </ComposedChart>
