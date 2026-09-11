@@ -3,20 +3,101 @@ import { getArchivedBookings } from "./bookings-archive";
 
 const BEDS24_API_URL = "https://api.beds24.com/v2";
 
-async function beds24Fetch<T>(path: string, params?: Record<string, string>): Promise<T> {
-  const token = process.env.BEDS24_API_TOKEN;
-  if (!token) throw new Error("BEDS24_API_TOKEN is not set");
-
+function beds24Url(path: string, params?: Record<string, string>): string {
   const url = new URL(`${BEDS24_API_URL}${path}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
+  return url.toString();
+}
 
-  const res = await fetch(url.toString(), {
+async function beds24Fetch<T>(path: string, params?: Record<string, string>): Promise<T> {
+  const token = process.env.BEDS24_API_TOKEN;
+  if (!token) throw new Error("BEDS24_API_TOKEN is not set");
+
+  const res = await fetch(beds24Url(path, params), {
     headers: { token },
     next: { revalidate: 60 },
   });
 
+  if (!res.ok) {
+    throw new Error(`Beds24 API error: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
+/*
+ * Lecture publique : un second jeton, qui ne sait rien des réservations.
+ *
+ * `/api/availability` et les pages vitrine ne consultent que l'inventaire. Les servir avec
+ * `BEDS24_API_TOKEN` revenait à poser `read:bookings-personal` et `read:bookings-financial`
+ * dans l'environnement du point d'entrée le plus exposé du site — celui qu'un visiteur
+ * anonyme atteint, et le premier qu'on sonde.
+ *
+ * `BEDS24_PUBLIC_REFRESH_TOKEN` ne porte que `read:inventory` et `read:properties`. Présenté
+ * à `/bookings`, Beds24 répond 401 : vérifié, pas supposé. S'il fuite, l'attaquant apprend
+ * quelles dates sont libres, information que la page affiche déjà.
+ *
+ * Un refresh token plutôt qu'un long life token, pour la même raison que côté Albiez : ses
+ * 30 jours sont repoussés à chaque usage, alors que les 90 jours d'un long life sont fermes
+ * et imposeraient un renouvellement manuel, potentiellement en pleine saison.
+ *
+ * Repli assumé : jeton absent, refusé ou révoqué, on refait l'appel avec le jeton principal
+ * en journalisant quoi régénérer. On perd la séparation des privilèges le temps de réagir,
+ * ce qui vaut mieux qu'un tunnel de réservation éteint sans prévenir.
+ */
+let publicTokenCache: { token: string; expiresAt: number } | null = null;
+
+const REGENERER_PUBLIC =
+  "Régénérer BEDS24_PUBLIC_REFRESH_TOKEN (scopes read:inventory, read:properties).";
+
+async function getBeds24PublicToken(): Promise<string | null> {
+  const refreshToken = process.env.BEDS24_PUBLIC_REFRESH_TOKEN;
+  if (!refreshToken) return null;
+
+  const cached = publicTokenCache;
+  if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
+
+  const res = await fetch(`${BEDS24_API_URL}/authentication/token`, {
+    headers: { refreshToken },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    publicTokenCache = null;
+    console.error(`Beds24 : jeton public refusé (${res.status}). ${REGENERER_PUBLIC}`);
+    return null;
+  }
+  const data = (await res.json()) as { token?: string; expiresIn?: number };
+  if (!data.token) {
+    publicTokenCache = null;
+    console.error(`Beds24 : jeton public sans token dans la réponse. ${REGENERER_PUBLIC}`);
+    return null;
+  }
+  publicTokenCache = {
+    token: data.token,
+    expiresAt: Date.now() + (data.expiresIn ?? 86_400) * 1000,
+  };
+  return data.token;
+}
+
+async function beds24FetchPublic<T>(
+  path: string,
+  params?: Record<string, string>,
+): Promise<T> {
+  const token = await getBeds24PublicToken();
+  if (!token) return beds24Fetch<T>(path, params);
+
+  const res = await fetch(beds24Url(path, params), {
+    headers: { token },
+    next: { revalidate: 60 },
+  });
+
+  if (res.status === 401) {
+    publicTokenCache = null;
+    console.error(`Beds24 : jeton public rejeté sur ${path}. ${REGENERER_PUBLIC}`);
+    return beds24Fetch<T>(path, params);
+  }
   if (!res.ok) {
     throw new Error(`Beds24 API error: ${res.status} ${res.statusText}`);
   }
@@ -198,7 +279,7 @@ export async function getAvailability(
   from: string,
   to: string,
 ): Promise<Record<string, boolean>> {
-  const data = await beds24Fetch<{ data: AvailabilityRoom[] }>(
+  const data = await beds24FetchPublic<{ data: AvailabilityRoom[] }>(
     "/inventory/rooms/availability",
     { startDate: from, endDate: to, propertyId: String(propertyId) },
   );
@@ -223,7 +304,7 @@ export async function getFullyBookedDates(
   from: string,
   to: string,
 ): Promise<Set<string>> {
-  const data = await beds24Fetch<{ data: AvailabilityRoom[] }>(
+  const data = await beds24FetchPublic<{ data: AvailabilityRoom[] }>(
     "/inventory/rooms/availability",
     { startDate: from, endDate: to, propertyId: String(propertyId) },
   );
@@ -271,7 +352,7 @@ export async function getDailyPrices(
   from: string,
   to: string,
 ): Promise<Record<string, number>> {
-  const data = await beds24Fetch<{ data: CalendarRoom[] }>(
+  const data = await beds24FetchPublic<{ data: CalendarRoom[] }>(
     "/inventory/rooms/calendar",
     {
       propertyId: String(propertyId),
@@ -301,7 +382,7 @@ export async function getMinStay(
   from: string,
   to: string,
 ): Promise<Record<string, number>> {
-  const data = await beds24Fetch<{ data: CalendarRoom[] }>(
+  const data = await beds24FetchPublic<{ data: CalendarRoom[] }>(
     "/inventory/rooms/calendar",
     {
       propertyId: String(propertyId),
