@@ -73,63 +73,21 @@ export interface DashboardStats {
   projection: RevenueProjection;
 }
 
-export interface Beds24Booking {
-  id: number;
-  propertyId: number;
-  roomId: number;
-  arrival: string;
-  departure: string;
-  firstName: string;
-  lastName: string;
-  status: string;
-  price: number;
-  referer: string;
-  channel: string;
-  numAdult: number;
-  numChild: number;
-  bookingTime: string;
-  // Contact / billing fields (Beds24 v2 /bookings response)
-  title?: string;      // Civilité OU nom de société (souvent mal utilisé par les clients)
-  email?: string;
-  mobile?: string;
-  phone?: string;
-  company?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  postcode?: string;
-  country?: string;
-  comments?: string;   // Guest comments (printed on invoice)
-  notes?: string;      // Internal notes (NOT printed)
-  arrivalTime?: string;
-  invoiceItems?: Beds24InvoiceItem[];
-  infoItems?: Beds24InfoItem[];
-}
-
-export interface Beds24InfoItem {
-  id?: number;
-  bookingId?: number;
-  createTime?: string; // ISO 8601 UTC, ex "2026-05-19T12:59:05Z"
-  code: string;
-  text: string;
-}
-
-export interface Beds24InvoiceItem {
-  id?: number;
-  type?: string;          // "charge", "payment", etc.
-  description?: string;
-  qty?: number;
-  amount?: number;        // per unit
-  lineTotal?: number;     // some responses include this pre-computed
-  vatRate?: number;
-  invoiceId?: number | string;
-  status?: string;
-}
-
-export interface Beds24Property {
-  id: number;
-  name: string;
-}
+/**
+ * Format de transport de Beds24 — **monté dans le socle au Lot 2**.
+ *
+ * Réexporté ici sous ses noms d'origine pour que les dix modules qui parlent vraiment à
+ * l'API — factures, taxe de séjour, commissions, code Nuki, notifications d'arrivée — gardent
+ * leur import. Ils ont besoin de la forme brute, avec `invoiceItems` et `infoItems` ; tout ce
+ * qui **calcule** doit passer par `Booking` (`@sejour/socle/lib/booking`), auquel
+ * `lib/beds24.ts` traduit.
+ */
+export type {
+  Beds24Booking,
+  Beds24InfoItem,
+  Beds24InvoiceItem,
+  Beds24Property,
+} from "@sejour/socle/lib/beds24-types";
 
 // ─── Heatzy Pilote Pro ──────────────────────────────────────
 

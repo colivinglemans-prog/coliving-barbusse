@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { getBookings } from "@/lib/beds24";
+import { getBookingsWithArchive } from "@/lib/bookings";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import type { Beds24Booking } from "@/lib/types";
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const arrivalFrom = addDays(today, -3);
     const arrivalTo = addDays(today, 1);
 
-    const bookings = await getBookings({
+    const bookings = await getBookingsWithArchive({
       arrivalFrom,
       arrivalTo,
       includeInfoItems: true,

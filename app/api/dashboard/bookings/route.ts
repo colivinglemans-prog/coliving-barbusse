@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { projectBookings } from "@sejour/socle/lib/booking-dto";
-import { getBookings } from "@/lib/beds24";
+import { getBookingsWithArchive } from "@/lib/bookings";
 import { auth, guard } from "@/lib/auth";
 
 /**
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = request.nextUrl;
-    const bookings = await getBookings({
+    const bookings = await getBookingsWithArchive({
       arrivalFrom: searchParams.get("arrivalFrom") ?? undefined,
       arrivalTo: searchParams.get("arrivalTo") ?? undefined,
       departureFrom: searchParams.get("departureFrom") ?? undefined,
