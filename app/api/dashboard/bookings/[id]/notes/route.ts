@@ -1,33 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { updateBookingNotes } from "@/lib/beds24";
+import { guard } from "@/lib/auth";
 
-const COOKIE_NAME = "dashboard_token";
-
-function getSecret() {
-  const secret = process.env.DASHBOARD_SECRET;
-  if (!secret) throw new Error("DASHBOARD_SECRET is not set");
-  return new TextEncoder().encode(secret);
-}
-
+/**
+ * Écriture d'une consigne de ménage sur une réservation.
+ *
+ * **Admin uniquement.** Le rôle `viewer` lit les notes — elles sont écrites pour lui — mais
+ * ne les modifie pas. Le contrôle est ici et pas seulement dans l'interface : un bouton
+ * masqué n'empêche personne d'appeler la route à la main.
+ *
+ * Le triptyque `COOKIE_NAME` / `getSecret()` / `jwtVerify` qui ouvrait ce fichier était une
+ * copie octet pour octet de celui de `nuki-code`. Il vit maintenant dans le socle.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const token = req.cookies.get(COOKIE_NAME)?.value;
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  let role = "admin";
-  try {
-    const { payload } = await jwtVerify(token, getSecret());
-    role = (payload.role as string) ?? "admin";
-  } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const refus = await guard.denyNonAdmin(req);
+  if (refus) return refus;
 
   const { id: idStr } = await params;
   const id = Number(idStr);

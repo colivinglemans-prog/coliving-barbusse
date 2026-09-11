@@ -6,7 +6,7 @@ Site vitrine + dashboard privé pour un coliving au Mans (Airbnb, Booking, Abrit
 
 - **Framework** : Next.js 16.1.6 (App Router, React 19, TypeScript)
 - **Styling** : Tailwind CSS v4
-- **Auth** : JWT via `jose` (HS256, cookie httpOnly, 90 jours)
+- **Auth** : JWT via `jose` (HS256, cookie httpOnly, 90 jours) — mécanique dans `@sejour/socle`
 - **Charts** : Recharts (dashboard)
 - **PDF** : `@react-pdf/renderer` (factures LMNP, dashboard)
 - **Paiements** : Stripe (lecture seule, utilisée pour générer des factures acquittées)
@@ -39,7 +39,7 @@ app/
     chambres/         # Suites + ReservationCalendar
     guide-arrivee/    # Guide voyageurs noindex (accès, Wi-Fi QR, chauffage, café, lits d'appoint, checkout)
     seminaires/
-    # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via middleware (4 locales).
+    # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via proxy.ts (5 locales).
     # Le calendrier de dispo est sur la homepage (#disponibilite) et /chambres.
   (dashboard)/        # Dashboard privé (stats, calendrier, chauffage) — hors [locale]
   api/
@@ -85,7 +85,9 @@ lib/
   # désormais dans @sejour/socle — voir sa CLAUDE.md.
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
-  auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
+  auth.ts             # Configuration locale de @sejour/socle/lib/auth : rôles, préfixes
+                      # de mots de passe, `guard` de route. N'importe PAS next/headers
+                      # (proxy.ts tourne en edge) : les cookies sont dans le socle.
   beds24.ts           # Client API Beds24 (cache Next.js 60s : next.revalidate)
   heatzy.ts           # Client API Heatzy + logique scheduling
   email.ts            # Alertes email via Resend
@@ -113,7 +115,8 @@ data/
 public/images/
   house/              # 12 photos de la maison
   rooms/              # 9 dossiers chambre (chambre-1 à chambre-9)
-middleware.ts         # Auth JWT + 301 redirects anciennes URLs vers /fr/*
+proxy.ts              # Ex-middleware.ts (nom de Next 16). Configure createDashboardProxy
+                      # du socle : redirections legacy (5 locales), cookie, bornage viewer.
 vercel.json           # Config Vercel (crons quotidiens)
 ```
 
@@ -124,7 +127,10 @@ vercel.json           # Config Vercel (crons quotidiens)
 - **Images** : toujours optimisées avant commit — resize max 1920px + JPEG qualité 82 (mozjpeg). Script : `node scripts/compress-images.mjs` (traite `public/images/*` > 400 KB, convertit PNG → JPG). **À lancer systématiquement à chaque nouvel ajout de photo.** Mettre à jour les refs `.png` → `.jpg` dans le code si conversion.
 - **Images externes** : Airbnb CDN (`a0.muscache.com`) configuré dans `next.config.ts`
 - **Droits photo** : ne jamais committer une image sans licence claire. Les photos de presse des organisateurs (ACO, Porsche Club Motorsport France) et les previews Getty/stock sont protégées — vérifier les métadonnées XMP (`dc:rights`, `xmpRights:Marked`) avant usage. Sources sûres : Wikimedia Commons (CC BY / CC BY-SA), Unsplash, ou nos propres photos. Une licence à attribution **exige** de remplir `BlogPostMeta.imageCredit` (auteur + page source + licence) : le crédit est rendu en légende sous la photo de l'article, avec le libellé localisé `PHOTO_CREDIT_LABEL`.
-- **Rôles auth** : `admin` (accès complet) et `viewer` (calendrier + chauffage lecture/contrôle)
+- **Rôles auth** : `admin` (accès complet) et `viewer` (calendrier + chauffage lecture/contrôle).
+  Mécanique dans `@sejour/socle/lib/auth` — voir sa CLAUDE.md, section « Lot 1 ».
+  **Un jeton illisible vaut `viewer`, jamais `admin`** : le `catch` de `getTokenRole`
+  retombait sur `"admin"`, ce qui faisait d'un jeton invalide un passe-droit.
 - **Photos** : triées par ordre alphabétique des noms de fichiers
 - **Capacité** : **20 personnes** (9 chambres doubles ; chambres 8 et 9 avec clic-clac 1 place en plus). Source : `PROPERTY_INFO.maxGuests` + clé i18n `sleeping.doubleBedSofa` (rendue pour les chambres d'index ≥ 7 dans `SleepingArrangement`).
 - **Zoom photo** : composant partagé [components/public/Lightbox.tsx](components/public/Lightbox.tsx) (plein écran, clavier ←/→/Échap, swipe tactile, scroll lock). Utilisé par SleepingArrangement (par chambre), CommonSpaces, Garden. La galerie d'accueil PhotoGallery garde sa propre implémentation historique.
@@ -203,6 +209,34 @@ migrer vers Beds24 (source unique). Propagation vers Airbnb :
 **Côté site** : badge « −7% en réservation directe » dans
 [ReservationCalendar.tsx](components/public/ReservationCalendar.tsx) (clé i18n `calendar.directDiscount`,
 5 langues). **Détail complet (plan + config Beds24 + résultats vérifiés)** : [docs/refonte-pricing.md](docs/refonte-pricing.md).
+
+## Cloisonnement du dashboard
+
+Trois portes, dans cet ordre. Aucune n'est suffisante seule.
+
+| Porte | Où | Ce qu'elle fait |
+|---|---|---|
+| `proxy.ts` | racine | Cookie exigé sur `/dashboard` et `/api/dashboard`. **Liste blanche** des chemins ouverts à `viewer` — l'ancien middleware tenait une liste noire de quatre préfixes, et c'est ainsi que `bookings` est resté ouvert. |
+| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`. |
+| DTO | `@sejour/socle/lib/booking-dto` | `/api/dashboard/bookings` projette vers `BookingListItem` (15 champs) ou `AdminBookingListItem` (+`price`, `email`, `mobile`, `phone`, `country`). |
+
+**La fuite fermée le 2026-09-11.** `/api/dashboard/bookings` n'avait aucun contrôle de rôle et
+renvoyait l'objet Beds24 intégral. Mesuré en `viewer` sur
+`?arrivalFrom=2025-01-01&arrivalTo=2026-06-30` : **73 clés et 37 `NUKI_PIN` avant, 15 clés et
+0 après**. Les 37 PIN venaient de `data/bookings-archive.json` — 37 de ses 42 lignes en
+portent un — et **pas** de l'API : Beds24 ne renvoie `infoItems` que si on les demande.
+
+**Deux corrections, pas une.**
+
+1. À la source : `getBookings()` dépouille les réservations archivées de leurs `infoItems` et
+   `invoiceItems` quand l'appelant ne les a pas demandés — symétrie avec l'API, où ce qu'on
+   n'a pas demandé n'est pas là.
+2. À la sortie : le DTO en liste blanche, qui protège aussi des champs que Beds24 ajoutera.
+
+⚠️ **`includeInfoItems: true` reste légitime à trois endroits** : `getBookingById` (donc
+`nuki-code` et `invoices/prefill`, toutes deux admin-only), `findBookingByStripeIds` (matching
+`STRIPEPAYMENT`), et le cron `checkin-notifications`, dont c'est la raison d'être — il lit le
+code `CHECKIN`. Ce cron est derrière `CRON_SECRET` et n'envoie que vers ntfy.
 
 ## Beds24 API (v2)
 
@@ -366,7 +400,7 @@ un merge transparent :
 - **Filets de colonnes** : une couche hors flux (`absolute inset-0 grid grid-cols-7`) et non des bordures de cases. Une case ne couvre que la ligne des numéros : le trait s'arrêtait avant les barres et on ne pouvait pas aligner la fin d'un séjour sur son jour. Ce ne peut pas être des éléments de grille étendus sur `grid-row: 1 / -1` — le placement automatique refuse les cellules occupées et repousserait les sept cases en deuxième ligne. Placée *avant* les barres dans le DOM, la couche passe au-dessus des fonds de cases et en dessous des séjours, donc ne coupe aucune pilule. Hiérarchie : `gray-300` pour l'en-tête des jours, `gray-200` pour la grille.
 - **Légende** : l'entrée « Événement circuit » s'affiche quel que soit le rôle. Les filets sont apparus dans la grille, ils doivent être nommés même en vue viewer, où les couleurs de canal sont masquées.
 - **Réservations non confirmées** (`UNCONFIRMED_STATUSES` = `new`, `request`, `inquiry`) : **absentes de la vue viewer**, et en **ardoise rayée** (`#94a3b8` + hachures 45°) avec un marqueur `?` en vue admin, au lieu de la couleur du canal. Le planning du ménage doit dire les nuits vendues, pas les nuits peut-être vendues — quelqu'un qui se déplace pour une réservation qui n'a jamais existé s'est déplacé pour rien. Les rayures parce que la couleur seule ne suffit pas : le canal « Autre » est déjà en gris et la vue viewer peint tout en `#FF385C`. La popup explique le statut quand il n'est pas `confirmed`.
-  - ⚠️ **C'est un filtre d'affichage, pas un contrôle d'accès.** `/api/dashboard/bookings` n'a aucune vérification de rôle : le navigateur d'un viewer reçoit toujours toutes les réservations, montants compris. C'est déjà vrai de `showPrices` et `showChannels`, purement cosmétiques. Pour que ce soit un vrai cloisonnement il faudrait filtrer dans la route selon le JWT.
+  - ✅ **C'est désormais une seconde ceinture, plus le seul contrôle.** `/api/dashboard/bookings` vérifie le rôle et **retire les provisoires de la réponse** avant de l'envoyer : un viewer reçoit 50 réservations là où l'admin en reçoit 55. Le filtre du composant reste, il sert la « vue viewer » de l'admin, qui prévisualise avec des données complètes. Les constantes vivent dans `@sejour/socle/lib/booking-status`.
 - **Options commerciales** (`HELD_STATUSES` = `black`) : **même sort que les non confirmées** — absentes de la vue viewer, ardoise rayée en admin — mais étiquetées **« OPTION »** au lieu de « ? ». Beds24 appelle `black` un blocage ; l'usage ici est commercial. L'option Spartner Travel du 31 mai au 14 juin 2027 est une affaire à 21 718 € sur les 24 Heures, saisie à la main pour tenir les dates pendant la négociation : ni une nuit vendue, ni une demande de renseignement.
   - Le libellé d'une barre retombe sur `company` puis `title` quand prénom et nom sont vides — c'est le cas des options saisies à la main. « Spartner Travel » vaut mieux que « · 1 voy. », ce que l'ancien libellé affichait. `title` en dernier car Beds24 y met la civilité aussi souvent que le nom de société.
   - `cancelled` n'est traité nulle part : l'API Beds24 n'en renvoie pas sur nos fenêtres. Si cela changeait, une annulée s'afficherait comme une réservation ordinaire.
@@ -660,7 +694,7 @@ avant l'arrivée. Le champ `kind` de `InvoicePayload` vaut `standard` (défaut),
 
 ### Restrictions
 
-- `/dashboard/invoices/**` et `/api/dashboard/invoices/**` : middleware bloque viewer (redirect / 403).
+- `/dashboard/invoices/**` et `/api/dashboard/invoices/**` : `proxy.ts` bloque viewer (redirect / 403) — et `invoices/prefill` **revérifie elle-même** : elle renvoie la réservation Beds24 brute, PIN de serrure compris, et ne doit pas dépendre d'un seul point de contrôle.
 - Numérotation séquentielle **continue** (obligation légale FR) : le compteur n'est incrémenté qu'à la génération réelle, pas à l'ouverture du formulaire. Le bouton **Aperçu** (`POST …/generate?preview=1`) rend le PDF avec le numéro fictif `PREVIEW_NUMBER` sans toucher au compteur — relire un brouillon ne creuse plus de trou dans la série. La sentinelle est en ASCII pur car elle transite par l'en-tête `X-Invoice-Number`.
 
 ## Dashboard Fiscalité LMNP / LMP (`/dashboard/fiscal`)
@@ -773,7 +807,7 @@ Exemple résa Direct (85615323) : Σ(daily rates) + Ménage 250 + Draps 140 **�
 
 ### Restrictions
 
-- `/dashboard/fiscal/**` et `/api/dashboard/fiscal/**` : middleware bloque viewer.
+- `/dashboard/fiscal/**` et `/api/dashboard/fiscal/**` : `proxy.ts` bloque viewer.
 - Le moteur ne gère que l'année en cours + config JSON correspondante.
 - Le barème IR coded est celui 2025 (revenus 2025 imposés 2026). À mettre à jour au moment du PLF 2026 définitif.
 

@@ -1,13 +1,7 @@
 import { getBookings } from "./beds24";
 import { todayParis, tomorrowParis } from "@sejour/socle/lib/time";
 import type { Beds24Booking } from "./types";
-
-const EXCLUDED_STATUSES = new Set(["cancelled", "black"]);
-
-function isExcluded(status: string | undefined): boolean {
-  if (!status) return false;
-  return EXCLUDED_STATUSES.has(status.toLowerCase());
-}
+import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
 
 export async function getActiveBookings(): Promise<Beds24Booking[]> {
   const today = todayParis();
@@ -25,7 +19,7 @@ export async function getActiveBookings(): Promise<Beds24Booking[]> {
 
   return [...byDate, ...active]
     .filter((b, i, arr) => arr.findIndex((x) => x.id === b.id) === i)
-    .filter((b) => !isExcluded(b.status));
+    .filter((b) => !isExcludedStatus(b.status));
 }
 
 export function countGuests(

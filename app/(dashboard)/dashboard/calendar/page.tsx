@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Beds24Booking } from "@/lib/types";
+import type { BookingListEntry } from "@sejour/socle/lib/booking-dto";
 import type { DashboardRole } from "@/lib/auth";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
 
 export default function CalendarPage() {
-  const [bookings, setBookings] = useState<Beds24Booking[]>([]);
+  const [bookings, setBookings] = useState<BookingListEntry[]>([]);
   const [actualRole, setActualRole] = useState<DashboardRole>("admin");
   const [viewAsViewer, setViewAsViewer] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,7 +36,7 @@ export default function CalendarPage() {
         }
 
         if (!bookingsRes.ok) throw new Error("Erreur de chargement");
-        const data: Beds24Booking[] = await bookingsRes.json();
+        const data: BookingListEntry[] = await bookingsRes.json();
         setBookings(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erreur inconnue");

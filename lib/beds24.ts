@@ -261,7 +261,26 @@ export async function getBookings(params?: {
     statuses: params?.statuses,
   }).filter((b) => !liveIds.has(b.id));
 
-  return [...live, ...archived];
+  /*
+   * Symétrie avec l'API : ce qu'on n'a pas demandé n'est pas là.
+   *
+   * Beds24 ne renvoie `infoItems` et `invoiceItems` que si on les réclame — l'archive, elle,
+   * est un JSON local qui les porte toujours, et **37 de ses 42 lignes contiennent un
+   * `NUKI_PIN`**. Sans ce filtre, un appelant qui n'a rien demandé reçoit quand même les
+   * codes de serrure, uniquement parce que la réservation est ancienne.
+   *
+   * C'est la fermeture **à la source**, en amont du DTO de `/api/dashboard/bookings`. Les
+   * deux existent : celui-ci empêche la donnée d'entrer dans le processus, l'autre l'empêche
+   * d'en sortir.
+   */
+  const conforme = archived.map((b) => {
+    const copie = { ...b };
+    if (!params?.includeInfoItems) delete copie.infoItems;
+    if (!params?.includeInvoiceItems) delete copie.invoiceItems;
+    return copie;
+  });
+
+  return [...live, ...conforme];
 }
 
 export async function getBookingById(id: number): Promise<Beds24Booking | null> {

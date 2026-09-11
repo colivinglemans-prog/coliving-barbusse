@@ -3,6 +3,7 @@ import { getBookings, getProperties, getDailyPrices } from "@/lib/beds24";
 import { normalizeChannel } from "@sejour/socle/lib/channels";
 import { findEventForStay } from "@/lib/events";
 import type { DashboardStats, RevenueMode, MonthRevenue, Beds24Booking, BookingSummary, SplitMetric } from "@/lib/types";
+import { EXCLUDED_STATUSES } from "@sejour/socle/lib/booking-status";
 
 function getDateRange(period: string): { from: string; to: string } {
   const now = new Date();
@@ -125,7 +126,6 @@ const WHOLE_HOUSE_PROPERTY_ID = 303771;
 
 // Statuts exclus de toutes les stats (annulations + blocages propriétaire à 0 €).
 // Cohérent avec lib/bookings.ts et lib/fiscal/revenus.ts.
-const EXCLUDED_STATUSES = new Set(["cancelled", "black"]);
 
 function computeOccupancyByMonth(
   bookings: Beds24Booking[],
