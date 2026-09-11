@@ -52,33 +52,59 @@ let publicTokenCache: { token: string; expiresAt: number } | null = null;
 const REGENERER_PUBLIC =
   "Régénérer BEDS24_PUBLIC_REFRESH_TOKEN (scopes read:inventory, read:properties).";
 
-async function getBeds24PublicToken(): Promise<string | null> {
+/**
+ * Échange le refresh token public contre un access token, sans passer par le cache.
+ *
+ * Exporté pour le cron keepalive, au même titre que son homologue en écriture : Beds24
+ * invalide tout refresh token qui n'a pas servi depuis 30 jours. On pourrait croire celui-ci
+ * entretenu par le trafic de la page publique, mais le cache de 60 s des réponses fait qu'une
+ * visite ne déclenche pas forcément un échange — et une saison creuse ne prévient pas. Sa mort
+ * n'éteindrait pas le site : le repli vers le jeton principal prendrait le relais, en silence,
+ * et on aurait reperdu la séparation des privilèges sans le savoir.
+ *
+ * Contrairement à `getBeds24PublicToken`, cette fonction lève : le cron doit échouer bruyamment.
+ */
+export async function refreshBeds24PublicToken(): Promise<{ token: string; expiresIn: number }> {
   const refreshToken = process.env.BEDS24_PUBLIC_REFRESH_TOKEN;
-  if (!refreshToken) return null;
-
-  const cached = publicTokenCache;
-  if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
-
+  if (!refreshToken) {
+    throw new Error("BEDS24_PUBLIC_REFRESH_TOKEN non défini");
+  }
   const res = await fetch(`${BEDS24_API_URL}/authentication/token`, {
     headers: { refreshToken },
     cache: "no-store",
   });
+  const body = await res.text();
   if (!res.ok) {
     publicTokenCache = null;
-    console.error(`Beds24 : jeton public refusé (${res.status}). ${REGENERER_PUBLIC}`);
-    return null;
+    throw new Error(`Beds24 auth publique ${res.status}: ${body.slice(0, 200)}`);
   }
-  const data = (await res.json()) as { token?: string; expiresIn?: number };
+  const data = JSON.parse(body) as { token?: string; expiresIn?: number };
   if (!data.token) {
     publicTokenCache = null;
-    console.error(`Beds24 : jeton public sans token dans la réponse. ${REGENERER_PUBLIC}`);
-    return null;
+    throw new Error("Beds24 auth publique : token manquant dans la réponse");
   }
+  const expiresIn = data.expiresIn ?? 86_400;
   publicTokenCache = {
     token: data.token,
-    expiresAt: Date.now() + (data.expiresIn ?? 86_400) * 1000,
+    expiresAt: Date.now() + expiresIn * 1000,
   };
-  return data.token;
+  return { token: data.token, expiresIn };
+}
+
+async function getBeds24PublicToken(): Promise<string | null> {
+  if (!process.env.BEDS24_PUBLIC_REFRESH_TOKEN) return null;
+
+  const cached = publicTokenCache;
+  if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
+
+  try {
+    const { token } = await refreshBeds24PublicToken();
+    return token;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Beds24 : ${message}. ${REGENERER_PUBLIC}`);
+    return null;
+  }
 }
 
 async function beds24FetchPublic<T>(
