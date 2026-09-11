@@ -206,17 +206,37 @@ migrer vers Beds24 (source unique). Propagation vers Airbnb :
 
 ## Beds24 API (v2)
 
-Deux tokens coexistent, selon le besoin en écriture :
+**Trois tokens depuis le 2026-09-11 — un par chemin, pas par verbe.** Rotation complète après
+la découverte de quatre secrets en clair dans `.claude/settings.json`.
 
-**`BEDS24_API_TOKEN`** — Long life token (read-only, ~91 jours)
-- Les long life tokens Beds24 ne supportent **que les scopes read** (limitation plateforme).
-- Généré via *Beds24 → Settings → Account → API → Long life token* avec les scopes :
-  - `read:bookings`, `read:bookings-personal`, `read:bookings-financial`
-  - `read:inventory` (requis pour `/inventory/rooms/availability` — calendrier public, dispo)
-  - `read:properties` (requis pour `/properties`)
-- Utilisé directement dans le header `token:` par `beds24Fetch()` ([lib/beds24.ts](lib/beds24.ts)).
+| Variable | `deviceName` | Scopes | Chemin servi |
+|---|---|---|---|
+| `BEDS24_PUBLIC_REFRESH_TOKEN` | `coliving-barbusse-public-2026-09` | `read:inventory`, `read:properties` | `/api/availability`, vitrine |
+| `BEDS24_READ_REFRESH_TOKEN` | `coliving-barbusse-lecture-2026-09b` | + `read:bookings`, `read:bookings-personal`, `read:bookings-financial` | dashboard, factures, fiscal |
+| `BEDS24_REFRESH_TOKEN` | `coliving-barbusse-ecriture-2026-09` | `read:bookings`, `write:bookings` | consignes de ménage |
 
-**`BEDS24_REFRESH_TOKEN`** — Refresh token (utilisé uniquement pour les writes)
+Vérifiés contre l'API, pas supposés : le public reçoit `401` sur `/bookings`, la lecture ne
+peut pas écrire, l'écriture ne voit ni `price`, ni `commission`, ni `invoiceItems`.
+
+**Pourquoi la page publique a le sien.** `/api/availability` est le point d'entrée le plus
+exposé du site, et il ne consulte que l'inventaire. Le servir avec le jeton du dashboard
+revenait à poser `read:bookings-personal` et `read:bookings-financial` là où arrive un visiteur
+anonyme. Sur 401, le repli va vers le jeton de **lecture** — jamais vers l'écriture.
+
+**Plus aucun long life token.** `BEDS24_API_TOKEN` a été retiré le 2026-09-11. Un long life ne
+porte que des scopes read (limitation plateforme), ce qui force de toute façon un second jeton
+pour l'écriture ; et sa durée de vie ne se laisse pas établir — celui d'avant, créé le 24/04,
+affichait encore 90 jours restants 140 jours plus tard, alors que la documentation annonce
+90 jours fermes. Un refresh token meurt après 30 jours sans usage, mais l'échéance glisse à
+chaque échange, et le cron keepalive entretient les trois plutôt que de parier sur le trafic.
+
+⚠️ **`vercel env add --force` ne remplace pas toujours une variable `Secret` existante**, et
+échoue en silence si l'on masque sa sortie. Pour une rotation : `vercel env rm` puis
+`vercel env add`. L'âge affiché par `vercel env ls` est la date de **création**, pas de mise à
+jour — il ne prouve rien. La seule vérification qui tranche est le keepalive, qui échange
+réellement chaque jeton et nomme celui qui échoue.
+
+**Le refresh token s'obtient ainsi :**
 - Obtenu via un *Invite code* (à usage unique, ~20 min de validité) avec scopes read + `write:bookings`.
 - Échange invite code → refresh token via `scripts/beds24-setup.mjs <INVITE_CODE>` OU via curl direct :
   ```bash
@@ -777,9 +797,24 @@ Le reset vérifie après application que les devices ont bien pris les changemen
 
 Beds24 **invalide un refresh token qui n'a pas servi depuis 30 jours** (`401 Token not valid`).
 
-- Le refresh token (`BEDS24_REFRESH_TOKEN`) ne sert qu'aux **écritures** : ajout de note sur une réservation via `updateBookingNotes()`. Les lectures utilisent `BEDS24_API_TOKEN` (long life token, scopes read seuls), qui lui n'expire pas de cette façon.
-- L'écriture étant rare, le refresh token mourait de lui-même. Le cron `/api/cron/beds24-keepalive` appelle `GET /authentication/token` chaque lundi 4 h pour le garder vivant.
-- En cas d'échec → email d'alerte (`sendBeds24Alert`) contenant la procédure de régénération.
+Le cron `/api/cron/beds24-keepalive` force l'échange des **trois** refresh tokens chaque lundi
+4 h, hors cache — c'est l'échange qui repousse l'échéance, pas la lecture d'un access token
+encore valide gardé en mémoire. Aucun des trois ne s'entretient seul de façon fiable :
+
+- **écriture** : ne sert qu'aux consignes de ménage, bien trop rare.
+- **lecture** : le dashboard n'est ouvert que par intermittence, et le cache de 60 s des
+  réponses espace encore les échanges.
+- **publique** : on pourrait la croire entretenue par le trafic, mais une saison creuse ne
+  prévient pas.
+
+Les trois sont tentés même si le premier échoue — un jeton mort ne doit pas en entraîner un
+second — et chaque échec déclenche un email d'alerte (`sendBeds24Alert`) nommant les scopes
+exacts à régénérer pour cette voie-là.
+
+⚠️ **Deux des trois morts seraient silencieuses.** Si le jeton public meurt, le repli vers la
+lecture prend le relais : le tunnel continue de fonctionner, en ayant reperdu la séparation des
+privilèges, sans que rien ne le signale à l'écran. Seul le keepalive rend cette dégradation
+visible. C'est sa vraie raison d'être, plus encore que l'expiration.
 
 **Régénérer le refresh token** (si l'alerte tombe, ou en cas de `401 Token not valid`) :
 
@@ -810,10 +845,14 @@ DASHBOARD_PASSWORD       # Mot de passe admin
 DASHBOARD_PASSWORD_VIEWER # Mot de passe viewer (calendrier + chauffage)
 DASHBOARD_PASSWORD_VIEWER_* # Mots de passe viewer nommés, même accès (ex: DASHBOARD_PASSWORD_VIEWER_Sylvie)
 DASHBOARD_SECRET         # Secret JWT (HS256)
-BEDS24_API_TOKEN         # Long life token Beds24 (read-only, scopes read:bookings*)
-BEDS24_REFRESH_TOKEN     # Refresh token Beds24 (long life, scope write:bookings) pour l'édition des notes.
-                         # Obtenu via: invite code (Settings → API → Invites) → scripts/beds24-setup.mjs
-                         # Les long life tokens ne supportent que les scopes read.
+BEDS24_PUBLIC_REFRESH_TOKEN # Page publique : read:inventory, read:properties. Rien d'autre.
+BEDS24_READ_REFRESH_TOKEN   # Dashboard, factures, fiscal : + read:bookings & -personal & -financial.
+                            # Aussi utilisé par scripts/beds24-backup.mjs.
+BEDS24_REFRESH_TOKEN        # Consignes de ménage : read:bookings, write:bookings. Ne voit pas l'argent.
+                            # Les trois sont des refresh tokens — plus aucun long life depuis le 2026-09-11.
+                            # Obtenus via un invite code (Settings → API → Invites) échangé par
+                            # scripts/beds24-setup.mjs, soit GET /authentication/setup.
+                            # JAMAIS /authentication/token : il consomme le code sans montrer le token.
 HEATZY_EMAIL             # Email du compte Heatzy
 HEATZY_PASSWORD          # Mot de passe du compte Heatzy
 CRON_SECRET              # Secret pour les cron jobs

@@ -7,7 +7,9 @@
 //                                      réinjecté dans les dashboards par lib/bookings-archive.ts
 //
 // Usage : node --env-file=.env.local scripts/beds24-backup.mjs
-// Requiert BEDS24_API_TOKEN (scopes read:bookings*) dans l'environnement.
+// Requiert BEDS24_READ_REFRESH_TOKEN dans l'environnement — le jeton de lecture du dashboard,
+// seul à porter read:bookings-personal et read:bookings-financial. Le long life token
+// BEDS24_API_TOKEN qui servait ici a été retiré le 2026-09-11 : voir l'en-tête de lib/beds24.ts.
 
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -16,9 +18,22 @@ import { dirname, join } from "node:path";
 const API_URL = "https://api.beds24.com/v2";
 const ARCHIVED_PROPERTY_IDS = new Set([310268]); // "Coliving Henri Barbusse" (location à la chambre)
 
-const token = process.env.BEDS24_API_TOKEN;
+const refreshToken = process.env.BEDS24_READ_REFRESH_TOKEN;
+if (!refreshToken) {
+  console.error("✗ BEDS24_READ_REFRESH_TOKEN manquant. Lance : node --env-file=.env.local scripts/beds24-backup.mjs");
+  process.exit(1);
+}
+
+// Un refresh token s'échange contre un access token de 24 h ; c'est ce dernier qui part en
+// en-tête `token:` sur chaque appel.
+const authRes = await fetch(`${API_URL}/authentication/token`, { headers: { refreshToken } });
+if (!authRes.ok) {
+  console.error(`✗ Échange du refresh token refusé (${authRes.status}) : ${(await authRes.text()).slice(0, 200)}`);
+  process.exit(1);
+}
+const { token } = await authRes.json();
 if (!token) {
-  console.error("✗ BEDS24_API_TOKEN manquant. Lance : node --env-file=.env.local scripts/beds24-backup.mjs");
+  console.error("✗ Beds24 n'a pas renvoyé d'access token.");
   process.exit(1);
 }
 
