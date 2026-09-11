@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import type { FiscalResponse, FiscalBienDetail } from "@/app/api/dashboard/fiscal/route";
-import type { Orientation, Echeance } from "@/lib/fiscal/orientations";
+import type { Orientation, Echeance } from "@sejour/socle/lib/fiscal/orientations";
 
 function formatEur(n: number, withDecimals = false): string {
   const abs = Math.abs(n);

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import InvoiceForm from "@/components/dashboard/InvoiceForm";
-import { emptyPayload, type InvoicePayload } from "@/lib/invoice-payload";
+import { emptyPayload, type InvoicePayload } from "@sejour/socle/lib/invoice-payload";
 
 function NewInvoiceContent() {
   const searchParams = useSearchParams();

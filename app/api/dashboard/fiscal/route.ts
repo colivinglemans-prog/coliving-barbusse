@@ -1,21 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  loadFiscalConfig,
   sumCharges,
   type FiscalConfig,
   type BienFiscal,
-} from "@/lib/fiscal/config";
-import { computeRevenusBien, type RevenusBien } from "@/lib/fiscal/revenus";
+} from "@sejour/socle/lib/fiscal/config";
+import { computeRevenusBien, type RevenusBien } from "@sejour/socle/lib/fiscal/revenus";
 import {
   computeBICBien,
   sumResultatsBIC,
   type ResultatBICBien,
   type ResultatBICTotaux,
-} from "@/lib/fiscal/bic";
-import { computeIRImpact, type IRImpactResult } from "@/lib/fiscal/ir";
-import { testLMP, type LMPTestResult } from "@/lib/fiscal/lmp-test";
-import { computeCotisations, type CotisationsResult } from "@/lib/fiscal/cotisations";
-import { buildOrientations, type OrientationsResult } from "@/lib/fiscal/orientations";
+} from "@sejour/socle/lib/fiscal/bic";
+import { computeIRImpact, type IRImpactResult } from "@sejour/socle/lib/fiscal/ir";
+import { testLMP, type LMPTestResult } from "@sejour/socle/lib/fiscal/lmp-test";
+import {
+  computeCotisations,
+  type CotisationsResult,
+} from "@sejour/socle/lib/fiscal/cotisations";
+import {
+  buildOrientations,
+  type OrientationsResult,
+} from "@sejour/socle/lib/fiscal/orientations";
+import {
+  loadFiscalConfig,
+  FISCAL_COLLECTIVITE,
+  FISCAL_REVENUS_DEPS,
+} from "@/lib/fiscal";
 
 export interface FiscalBienDetail {
   bienId: string;
@@ -94,7 +104,7 @@ export async function GET(req: NextRequest) {
   try {
     biensDetails = await Promise.all(
       config.year.biens.map(async (bien): Promise<FiscalBienDetail> => {
-        const revenus = await computeRevenusBien(bien, year);
+        const revenus = await computeRevenusBien(bien, year, FISCAL_REVENUS_DEPS);
         const bic = computeBICBien(bien, revenus, useProjected);
         return {
           bienId: bien.id,
@@ -147,6 +157,7 @@ export async function GET(req: NextRequest) {
     lmpTest,
     hasMeubleTourismeClasse: hasAnyClasse,
     year,
+    collectivite: FISCAL_COLLECTIVITE,
   });
 
   const response: FiscalResponse = {

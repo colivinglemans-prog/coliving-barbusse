@@ -93,6 +93,14 @@ export interface StripePaymentDetail extends StripePaymentSummary {
   state: string;
   country: string;
   phone: string;
+  /**
+   * Libellé imprimé sur la facture acquittée.
+   *
+   * C'est ici qu'on nomme le prestataire, et nulle part ailleurs :
+   * `InvoicePaymentDetail` du socle exige le libellé sans le deviner, précisément pour que
+   * le gabarit n'écrive pas « Carte bancaire » sur ce qui serait un virement.
+   */
+  method: string;
 }
 
 export async function getStripePayment(id: string): Promise<StripePaymentDetail | null> {
@@ -118,5 +126,6 @@ export async function getStripePayment(id: string): Promise<StripePaymentDetail 
     postcode: addr?.postal_code ?? "",
     state: addr?.state ?? "",
     country: addr?.country ?? "",
+    method: "Carte bancaire via Stripe",
   };
 }
