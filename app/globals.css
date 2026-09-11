@@ -1,92 +1,29 @@
 @import "tailwindcss";
+@import "@sejour/socle/ui/theme.css";
 
-@theme inline {
-  --color-background: #ffffff;
-  --color-foreground: #222222;
-  --color-primary: #FF385C;
-  --color-primary-dark: #E31C5F;
-  --color-secondary: #717171;
-  --color-border: #DDDDDD;
-  --color-light-bg: #F7F7F7;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/*
+ * Les valeurs du site. La structure — les noms des tokens, la mise en forme des articles,
+ * `.hide-scrollbar`, le respect de `prefers-reduced-motion` — vient du socle ; ici on ne
+ * pose que ce qui fait l'identité du Mans : le rose Airbnb.
+ */
+:root {
+  --site-background: #ffffff;
+  --site-foreground: #222222;
+  --site-primary: #ff385c;
+  --site-primary-dark: #e31c5f;
+  --site-secondary: #717171;
+  --site-border: #dddddd;
+  --site-light-bg: #f7f7f7;
 
-html {
-  color-scheme: light only;
-}
-
-body {
-  background-color: #ffffff;
-  color: #222222;
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-}
-
-html {
-  scroll-behavior: smooth;
+  /* Couleurs du corps des articles du blog. */
+  --site-prose-body: #333333;
+  --site-prose-lead: #555555;
+  --site-prose-heading: #222222;
+  --site-prose-link: #ff385c;
+  --site-prose-link-hover: #e31c5f;
 }
 
-[id] {
-  scroll-margin-top: 5rem;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.prose-article {
-  color: #333333;
-  line-height: 1.75;
-}
+/* Le chapô des articles est un cran plus grand ici que la valeur par défaut du socle. */
 .prose-article .lead {
   font-size: 1.125rem;
-  color: #555555;
-  margin-bottom: 2rem;
-}
-.prose-article h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #222222;
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
-}
-.prose-article h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #222222;
-  margin-top: 1.75rem;
-  margin-bottom: 0.5rem;
-}
-.prose-article p {
-  margin-bottom: 1.25rem;
-}
-.prose-article ul,
-.prose-article ol {
-  margin-bottom: 1.25rem;
-  padding-left: 1.5rem;
-}
-.prose-article ul {
-  list-style-type: disc;
-}
-.prose-article ol {
-  list-style-type: decimal;
-}
-.prose-article li {
-  margin-bottom: 0.4rem;
-}
-.prose-article strong {
-  color: #222222;
-  font-weight: 600;
-}
-.prose-article a {
-  color: #FF385C;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.prose-article a:hover {
-  color: #E31C5F;
 }

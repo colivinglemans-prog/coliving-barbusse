@@ -1,4 +1,4 @@
-import { normalizeChannel, type Channel } from "./channel";
+import { normalizeChannel, type Channel } from "@sejour/socle/lib/channels";
 import type { Beds24Booking, Beds24InvoiceItem } from "./types";
 
 export type Provenance = "France" | "Étranger" | "Inconnue";

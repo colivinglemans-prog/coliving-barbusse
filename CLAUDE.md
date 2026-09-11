@@ -81,15 +81,14 @@ lib/
       de/             # 20 articles DE (Link hrefs préfixés /de)
       es/             # 20 articles ES (Link hrefs préfixés /es)
   events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
-  periodes.ts         # Vacances scolaires par zone + semaines de fêtes — PORT du module d'Albiez (voir plus bas)
+  # periodes.ts, calendar-utils.ts, channel.ts, cron-auth.ts, ntfy.ts et time.ts vivent
+  # désormais dans @sejour/socle — voir sa CLAUDE.md.
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
   property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
   auth.ts             # JWT (createToken, verifyToken, setAuthCookie)
   beds24.ts           # Client API Beds24 (cache Next.js 60s : next.revalidate)
   heatzy.ts           # Client API Heatzy + logique scheduling
   email.ts            # Alertes email via Resend
-  cron-auth.ts        # Vérification CRON_SECRET pour les cron jobs
-  calendar-utils.ts   # Utilitaires calendrier
   invoice-config.ts   # Config émetteur facture (INVOICE_* env vars)
   invoice-number.ts   # Numérotation séquentielle annuelle (Upstash INCR)
   invoice-payload.ts  # Type InvoicePayload, pré-remplissage Beds24/Stripe, validation
@@ -360,18 +359,13 @@ un merge transparent :
   - Mobile : `max-h-[calc(100vh-2rem)] overflow-y-auto` pour garder le popup dans l'écran
 - **Toggle admin/viewer** : bouton prévisualiser la vue viewer (comme /heating). `isAdmin` et `showChannels` sont des **dépendances du `useMemo` des barres** : ils décident quelles réservations entrent dans la liste et de quelle couleur. Ils manquaient, et basculer en « Vue viewer » gardait donc les barres du rendu précédent — les couleurs de canal restaient affichées.
 
-### Vacances scolaires (`lib/periodes.ts`) — port depuis Albiez
+### Vacances scolaires (`@sejour/socle/lib/periodes`)
 
-Module **copié** depuis Albiez, pas partagé : deux dépôts, deux déploiements, aucun code
-commun. Le fichier est tenu **identique** à `lib/periodes.ts` d'Albiez à son en-tête près,
-pour que toute correction se reporte sans réflexion — d'où quelques fonctions inutilisées ici
-(`findPeriodesForStay`, `periodeLabel`) : Barbusse étiquette ses séjours par événement du
-circuit, pas par période de vacances. Ne pas les supprimer, cela ferait diverger les copies.
+Le module et sa donnée **ont quitté ce dépôt** : ils vivent dans `@sejour/socle`, qui remplace
+la copie manuelle entretenue jusqu'ici entre Albiez et Le Mans. La regénération se lance
+désormais depuis le socle (`node scripts/build-vacances.mjs [année_de_début]`). Ce qui suit
+décrit ce que le calendrier du dashboard en fait ici.
 
-- **Données** : `data/vacances-scolaires.json` (80 périodes, 2023-10 → 2027-07), versionné —
-  c'est de la donnée publique et le site n'a alors aucun appel réseau à l'exécution.
-- **Regénération** : `node scripts/build-vacances.mjs [année_de_début]`, depuis l'open data
-  du ministère. À relancer quand une nouvelle année scolaire est publiée.
 - **Import direct dans le composant**, comme `LE_MANS_EVENTS` — pas via l'API. Albiez, lui,
   filtre au mois côté serveur. Ici le calendrier est déjà un composant client qui embarque
   ses données d'événements ; ajouter 15 Ko de JSON à un bundle de dashboard privé ne
@@ -507,7 +501,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 
 ## Timezone
 
-- Vercel tourne en **UTC** → toute la logique horaire utilise `lib/time.ts` (Europe/Paris)
+- Vercel tourne en **UTC** → toute la logique horaire utilise `@sejour/socle/lib/time` (Europe/Paris)
 - Fonctions : `currentHourParis()`, `todayParis()`, `tomorrowParis()`, `nowParis()`
 - **Ne jamais utiliser** `new Date().getHours()` ou `toISOString().split("T")[0]` directement
 

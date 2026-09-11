@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCronAuth } from "@/lib/cron-auth";
+import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { refreshBeds24WriteToken } from "@/lib/beds24";
 import { sendBeds24Alert } from "@/lib/email";
 

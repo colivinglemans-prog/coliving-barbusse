@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCronAuth } from "@/lib/cron-auth";
+import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import {
   getWaterHeaterStatus,
   getWaterHeaterProfile,
@@ -7,7 +7,7 @@ import {
 } from "@/lib/cozytouch";
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/email";
-import { todayParis, currentHourParis, nowParis } from "@/lib/time";
+import { todayParis, currentHourParis, nowParis } from "@sejour/socle/lib/time";
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {

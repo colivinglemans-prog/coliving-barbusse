@@ -1,14 +1,7 @@
 "use client";
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
-
-const CHANNEL_COLORS: Record<string, string> = {
-  Airbnb: "#FF385C",
-  "Booking.com": "#003580",
-  Abritel: "#F5A623",
-  Direct: "#00A699",
-  Autre: "#d1d5db",
-};
+import { CHANNEL_COLORS, type Channel } from "@sejour/socle/lib/channels";
 
 interface ChannelPieChartProps {
   data: { channel: string; count: number; revenue: number }[];
@@ -59,7 +52,7 @@ export default function ChannelPieChart({ data }: ChannelPieChartProps) {
                   {data.map((entry) => (
                     <Cell
                       key={entry.channel}
-                      fill={CHANNEL_COLORS[entry.channel] ?? "#d1d5db"}
+                      fill={CHANNEL_COLORS[entry.channel as Channel] ?? "#d1d5db"}
                     />
                   ))}
                 </Pie>

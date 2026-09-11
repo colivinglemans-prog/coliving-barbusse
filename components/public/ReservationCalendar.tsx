@@ -8,7 +8,7 @@ import {
   addMonths,
   monthKey,
   addDays,
-} from "@/lib/calendar-utils";
+} from "@sejour/socle/lib/dates";
 import { useTranslation } from "@/lib/i18n";
 
 const PROPERTY_ID = 303771;

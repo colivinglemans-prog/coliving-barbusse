@@ -3,17 +3,9 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { Beds24Booking } from "@/lib/types";
 import { findEventForStay, LE_MANS_EVENTS, shortEventLabel, type LeMansEvent } from "@/lib/events";
-import { bandesPeriodes, PERIODES, type BandePeriode } from "@/lib/periodes";
+import { bandesPeriodes, PERIODES, type BandePeriode } from "@sejour/socle/lib/periodes";
+import { CHANNEL_COLORS, normalizeChannel } from "@sejour/socle/lib/channels";
 import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
-
-/* ── Channel colours (same as ChannelPieChart) ────────────────────── */
-const CHANNEL_COLORS: Record<string, string> = {
-  Airbnb: "#FF385C",
-  "Booking.com": "#003580",
-  Abritel: "#F5A623",
-  Direct: "#00A699",
-  Autre: "#9ca3af",
-};
 
 /*
  * Un événement du circuit n'est pas une réservation, et ne doit pas se lire comme elle.
@@ -151,16 +143,6 @@ function periodTooltip(band: BandePeriode): string {
   return band.sources
     .map((p) => `${p.nom}${p.zone === "Toutes" ? "" : ` — ${p.zone}`} · ${p.debut} → ${p.fin}`)
     .join("\n");
-}
-
-function normalizeChannel(referer: string, channel?: string): string {
-  const c = (channel ?? "").toLowerCase();
-  const r = referer.toLowerCase();
-  if (c === "airbnb" || r.includes("airbnb")) return "Airbnb";
-  if (c.includes("booking") || r.includes("booking")) return "Booking.com";
-  if (c.includes("abritel") || r.includes("abritel") || r.includes("homeaway") || r.includes("vrbo")) return "Abritel";
-  if (c === "direct" || c === "app" || c === "" || r === "") return "Direct";
-  return "Autre";
 }
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
