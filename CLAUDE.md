@@ -122,6 +122,19 @@ vercel.json           # Config Vercel (crons quotidiens)
 
 ## Conventions
 
+### Couleurs : tokens pour la marque, rampe brute pour l'information
+
+Le rose Airbnb passe par les **tokens** du thème (`text-primary`, `bg-primary`,
+`hover:text-primary-dark`, `border-border`, `bg-light-bg`) et non plus par `text-rose-500`, qui
+en était une approximation (`#f43f5e` contre `#ff385c`) recopiée à sept endroits.
+
+**Ce qui reste en Tailwind brut y reste, et ce n'est pas un oubli** : dans `StatsCards`,
+`OccupancyGauge` et `RevenueProjection`, la couleur **est** l'information — émeraude / ambre /
+rose disent un seuil d'occupation, rose et ambre séparent le réalisé du confirmé. Les sept
+tokens sémantiques ne savent pas dire ça, et les y forcer effacerait une donnée. Les écrans
+factures, taxe de séjour et fiscalité n'ont pas été normalisés : ils relèvent du lot suivant.
+
+
 - **Langue de communication** : Français
 - **Path alias** : `@/*` pointe vers la racine du projet
 - **Images** : toujours optimisées avant commit — resize max 1920px + JPEG qualité 82 (mozjpeg). Script : `node scripts/compress-images.mjs` (traite `public/images/*` > 400 KB, convertit PNG → JPG). **À lancer systématiquement à chaque nouvel ajout de photo.** Mettre à jour les refs `.png` → `.jpg` dans le code si conversion.
@@ -414,6 +427,26 @@ un merge transparent :
 
 ## Dashboard stats (`/dashboard`)
 
+> **Lot 3 — ce qui est parti dans `@sejour/socle`** : la ventilation du revenu dans le temps
+> (`spreadRevenue`), le thème Recharts (`lib/chart-theme`) et la barre de navigation
+> (`components/DashboardNav`). Ce qui reste ici est la **composition** : quels graphes,
+> quelles cartes, dans quel ordre — c'est un choix par site, et le socle ne l'impose pas.
+> Détail des modules : `CLAUDE.md` du socle, section « Lot 3 ».
+
+- **La date de référence est celle de Paris, jamais `toISOString()`.** La route composait cinq
+  dates par `toISOString()`, et deux étaient fausses depuis un fuseau à l'est de Greenwich :
+  `new Date(annee, 0, 1).toISOString()` rendait le 31 décembre de l'année précédente (d'où un
+  jour de trop dans `daysRemaining`), et la ventilation par nuit avançait un objet `Date` avec
+  `setDate()` — heure locale — pour le relire avec `toISOString()` — UTC : la nuit du passage à
+  l'heure d'été était comptée deux fois et la dernière du séjour perdue, **459,16 € basculant
+  de mars à avril**. Sans effet sur Vercel, qui tourne en UTC ; faux en développement. La
+  charge utile de `/api/dashboard/stats` est désormais **identique octet pour octet quel que
+  soit le fuseau du serveur**, et c'est ce qu'on vérifie après y avoir touché.
+- **Deux planchers hérités, conservés à dessein.** Le délai moyen de réservation et les nuits
+  futures déjà couvertes passaient par un helper qui plafonnait à un jour ; les deux gardent ce
+  plancher (`nights()`), sans quoi `avgLeadTime.room` passait de 3 à 2. Le `Math.max(0, …)` qui
+  les entoure dit que l'intention était l'inverse : à corriger dans un lot qui assume de
+  déplacer l'indicateur.
 - **Statuts exclus** : la route stats filtre `cancelled`/`black` (`isExcludedStatus`, `@sejour/socle/lib/booking-status`, cohérent avec `lib/bookings.ts` / `lib/fiscal`). Sans ça, les blocages propriétaire à 0 € et annulations faussaient revenus, TJM et occupation.
 - **StatsCards** (9 cartes, indicateurs standard du secteur). Les métriques par nuitée sont affichées **maison entière uniquement** (`SplitMetric.house`) ; l'API calcule toujours `global`/`house`/`room` (utilisés ailleurs, ex. tri `topBookings`).
   - **Revenus totaux** = CA brut (Σ `b.gross`, le `price` de Beds24 après traduction).
@@ -426,7 +459,7 @@ un merge transparent :
   - Bloc "garanti" : réalisé + confirmé = total, avec barre progress
   - 3 scénarios : Minimum garanti / Tendance actuelle (TJM moyen) / Pricing dynamique (prix BeyondPricing × taux occupation)
   - Pricing dynamique via `getDailyPrices` (Beds24 `/inventory/rooms/calendar?includePrices`)
-- **RevenueChart** : Recharts `ComposedChart` par mois — barres réalisé/prévu (axe gauche) + **ligne RevPAR mensuel** (axe droit violet). RevPAR mensuel = (réalisé + réservé) ÷ jours du mois (`MonthRevenue.revpar`).
+- **RevenueChart** : Recharts `ComposedChart` par mois — barres réalisé/prévu (axe gauche) + **ligne RevPAR mensuel** (axe droit violet). Grille, ticks, infobulle et légende viennent de `@sejour/socle/lib/chart-theme` (`CHART_GRID`, `CHART_AXIS`, `CHART_TOOLTIP_STYLE`, `CHART_LEGEND`, `chartAxisIn`) : la trentaine de props était recopiée d'un graphe à l'autre et divergeait déjà (rampe `gray` ici, `slate` chez Albiez). Les valeurs retenues sont celles d'Albiez. RevPAR mensuel = (réalisé + réservé) ÷ jours du mois (`MonthRevenue.revpar`).
 - **BookingsTable** (2 tableaux) :
   - Réservations récentes : triées par **date de réservation** (`bookedAt`, l'horodatage `bookingTime` de Beds24) avec colonne "Réservée"
   - Meilleures réservations (TJM) : triées par TJM avec colonne **Événement** (badge indigo via `findEventForStay`)
@@ -436,7 +469,32 @@ un merge transparent :
 
 ## Dashboard calendrier (`/dashboard/calendar`)
 
-- **Grille mois** avec navigation prev/next, jour férié marqué, aujourd'hui en rose
+> **Lot 3 — le moteur monte, l'enveloppe reste.** `placeSegments` / `Segment` / `laneCount` /
+> `roundedEnds` / `periodTooltip` / `PERIOD_PALETTE` vivent dans
+> `@sejour/socle/lib/calendar-lanes`. L'algorithme de placement en lanes était écrit **deux
+> fois en ligne** dans ce fichier — une fois pour les réservations, une fois pour les
+> événements — puis regroupé par semaine par un troisième `useMemo` qui recalculait les mêmes
+> bornes pour retrouver, par recherche linéaire, le segment qu'il venait de produire.
+> `BookingCalendar.tsx` passe de **1 114 à 946 lignes**.
+>
+> **L'enveloppe n'est pas partagée, et c'est délibéré.** Les deux calendriers divergent sur ce
+> qu'ils peignent (barres d'événements du circuit et rayures « non confirmé » ici, bandeaux de
+> saison de station là-bas), sur leur popup (identité voyageur, partage, événement ici ; net,
+> commission et surcollecte de taxe là-bas) et sur son ancrage (feuille modale mobile ici,
+> carte absolue là-bas). Un composant à slots capable des deux serait plus difficile à lire que
+> les deux composants qu'il remplacerait.
+
+- ⚠️ **Correction de rendu** : un séjour qui **part le 1er du mois suivant** s'affichait comme
+  une pilule d'un seul jour posée sur sa date d'arrivée — la borne de fin se comparait à
+  `new Date(year, mo, daysInMonth + 1)`, c'est-à-dire au 1er du mois suivant, et le jour retenu
+  devenait « 1 ». Il court désormais jusqu'au bord droit du mois, sans arrondi, comme tout
+  séjour qui continue. Aucune réservation de la fenêtre courante n'était concernée (0 sur 55).
+- **Grille mois** avec navigation prev/next, jour férié marqué, aujourd'hui en rose (`bg-primary`)
+  - L'état du mois est un couple `{year, month}` et non une `Date`, comme le calendrier public
+    du site : `addMonths`, `daysInMonth` et `firstDayOfMonth` du socle travaillent dessus.
+  - ⚠️ **La pastille du jour se calculait par `toISOString()`** — donc en UTC. Entre minuit et
+    2 h du matin à Paris l'été, elle se posait sur la veille. `formatDate` du socle compose la
+    chaîne depuis `getFullYear` / `getMonth` / `getDate`.
 - **Événements Le Mans** : un **libellé coloré souligné d'un filet de 3 px** (`EVENT_LINE` / `EVENT_TEXT`), au-dessus des barres de réservation (une seule fois par event, même sur plusieurs jours). Label court via `shortEventLabel`, nom complet en tooltip. Plusieurs events qui overlappent → lanes séparés.
   - **Un événement n'est pas une réservation, et ne se dessine pas comme elle.** Les deux étaient des pilules pleines à texte blanc, de hauteurs voisines (20 px contre 24), et l'indigo saturé pesait autant que le `#003580` de Booking juste en dessous. Pas d'aplat, texte coloré, trait fin : trois différences cumulées valent mieux qu'un écart de teinte, la lecture tenant alors aussi en niveaux de gris et pour un daltonien.
   - Le filet remplace l'arrondi comme signal de continuation : il **se retire de 3 px du côté où l'événement s'arrête vraiment** et file jusqu'au bord de la semaine quand il continue. C'est aussi ce qui sépare deux événements qui s'enchaînent (« Classic » puis « 24h Rollers » début juillet).
@@ -520,6 +578,12 @@ Bloc dans la popup de réservation du calendrier — [components/dashboard/Guest
 
 - `LE_MANS_EVENTS` : 20+ événements du circuit (2025-2027) : 24h Moto, MotoGP, SWS Karting, 24h du Mans, Le Mans Classic, 24h Rollers, 24h Camions, Rotax, Mini OGP, Superbike, Rallye Sarthe, 23H60, 24h Vélo, Porsche Sprint Challenge, Championnat Monde Karting KZ, Euro IAME, Marathon, Slalom ACO, TTE, Fun Cup, Hunaudières Réunions hippiques
 - `findEventForStay(arrival, departure)` : retourne le nom du 1er événement qui overlap (±2 jours margin). Utilisé dans stats + calendrier popup
+  - ⚠️ **Les deux helpers de date locaux sont partis dans `@sejour/socle/lib/dates`.** Le
+    `addDays` d'ici composait minuit en heure locale, avançait en heure locale, puis relisait le
+    résultat par `toISOString()` — en UTC. Depuis Paris, la fenêtre étendue d'un événement
+    reculait d'un jour, et un séjour rattrapé de justesse changeait d'étiquette selon le fuseau
+    de la machine : « SWS Karting Finals 2026 » sur Vercel, aucun événement en développement,
+    pour la même réservation (id 85565041).
 - `findEventOnDay(dateStr)` : retourne l'événement qui contient ce jour (sans margin). Utilisé dans calendrier
 - `shortEventLabel(name)` : label court pour affichage compact (ex: "24h Mans", "MotoGP", "Classic")
 - `getEventByName(name)` : retrouve un événement par son nom exact. Utilisé par les articles de blog
@@ -609,6 +673,14 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 - Vercel tourne en **UTC** → toute la logique horaire utilise `@sejour/socle/lib/time` (Europe/Paris)
 - Fonctions : `currentHourParis()`, `todayParis()`, `tomorrowParis()`, `nowParis()`
 - **Ne jamais utiliser** `new Date().getHours()` ou `toISOString().split("T")[0]` directement
+- Côté **navigateur**, le jour affiché se compose avec `formatDate` / `parseDate` / `addDays` /
+  `daysBetween` de `@sejour/socle/lib/dates` : un jour y est ce que l'utilisateur voit dans sa
+  grille, pas un instant. `daysBetween` est la seule de ces fonctions à compter en UTC, parce
+  qu'un écart est une quantité et non un jour affiché.
+- **Comment on le vérifie** : lancer `npx next dev` une fois tel quel et une fois avec `TZ=UTC`,
+  et comparer les charges utiles. Elles doivent être identiques octet pour octet — c'est ce qui
+  a révélé les 459,16 € qui basculaient de mars à avril, et ce qui prouve aujourd'hui que
+  `/api/dashboard/stats` ne dépend plus du fuseau.
 
 ## Logique check-in/check-out (transitions)
 

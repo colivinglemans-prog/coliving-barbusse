@@ -19,7 +19,7 @@ export default function RevenueModeSelector({ value, onChange }: RevenueModeSele
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as RevenueMode)}
-      className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 focus:border-rose-400 focus:outline-none focus:ring-1 focus:ring-rose-400"
+      className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
     >
       {MODES.map((m) => (
         <option key={m.value} value={m.value}>

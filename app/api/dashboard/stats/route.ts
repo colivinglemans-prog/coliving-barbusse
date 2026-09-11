@@ -5,6 +5,9 @@ import { findEventForStay } from "@/lib/events";
 import type { DashboardStats, RevenueMode, MonthRevenue, BookingSummary, SplitMetric } from "@/lib/types";
 import type { Booking } from "@sejour/socle/lib/booking";
 import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
+import { addDays, daysBetween, formatDate, parseDate } from "@sejour/socle/lib/dates";
+import { todayParis } from "@sejour/socle/lib/time";
+import { spreadRevenue } from "@sejour/socle/lib/stats";
 
 /**
  * Ces statistiques ne connaissent plus la forme Beds24 : elles travaillent sur le `Booking`
@@ -20,12 +23,28 @@ import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
  * départ vaut zéro nuit dans le domaine, mais le TJM et la durée moyenne de cette page
  * divisent par ce nombre depuis toujours. Changer la convention ici déplacerait des
  * indicateurs sans rapport avec ce lot.
+ *
+ * **Toutes les dates se composent en heure de Paris, plus jamais par `toISOString()`.**
+ * Ce fichier en comptait cinq, et deux d'entre elles étaient fausses :
+ *
+ * - `new Date(annee, 0, 1).toISOString()` rendait « 2025-12-31 » pour le 1er janvier 2026 —
+ *   minuit à Paris est 23 h la veille en UTC. Le nombre de jours restants dans l'année en
+ *   sortait décalé d'un cran.
+ * - la ventilation par nuit avançait un objet `Date` avec `setDate()` — qui travaille en
+ *   heure locale — puis relisait le jour avec `toISOString()` — qui travaille en UTC. La nuit
+ *   du 29 mars 2026, jour du passage à l'heure d'été, était donc comptée **deux fois** et la
+ *   dernière du séjour perdue : 459,16 € basculaient de mars à avril.
+ *
+ * Sans effet sur Vercel, qui tourne en UTC ; faux en développement depuis Paris, et c'est
+ * exactement le genre d'écart qui fait douter d'un chiffre sans qu'on sache pourquoi.
  */
 
 function getDateRange(period: string): { from: string; to: string } {
-  const now = new Date();
-  const fromDate = new Date(now);
-  const toDate = new Date(now);
+  // Parti du jour parisien, décalé en arithmétique de calendrier locale : la fenêtre est la
+  // même quel que soit le fuseau de la machine.
+  const today = todayParis();
+  const fromDate = parseDate(today);
+  const toDate = parseDate(today);
 
   switch (period) {
     case "30d":
@@ -53,26 +72,18 @@ function getDateRange(period: string): { from: string; to: string } {
       toDate.setMonth(toDate.getMonth() + 2);
   }
 
-  return {
-    from: fromDate.toISOString().split("T")[0],
-    to: toDate.toISOString().split("T")[0],
-  };
+  return { from: formatDate(fromDate), to: formatDate(toDate) };
 }
 
-function daysBetween(a: string, b: string): number {
-  const msPerDay = 86400000;
-  return Math.max(1, Math.round((new Date(b).getTime() - new Date(a).getTime()) / msPerDay));
-}
-
-/** Signed day difference (peut être 0 ou négatif), contrairement à daysBetween qui plafonne à ≥1. */
-function rawDays(a: string, b: string): number {
-  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
-}
-
-function addDaysStr(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().split("T")[0];
+/**
+ * Nuits d'un séjour, **plafonnées à 1**.
+ *
+ * `daysBetween` du socle rend la valeur exacte, et un séjour arrivée = départ vaut bien zéro
+ * nuit dans le domaine. Mais le TJM et la durée moyenne de cette page divisent par ce nombre
+ * depuis toujours : changer la convention ici déplacerait des indicateurs sans rapport.
+ */
+function nights(a: string, b: string): number {
+  return Math.max(1, daysBetween(a, b));
 }
 
 function addRevenueToMap(
@@ -98,39 +109,19 @@ function computeRevenue(
   const revenueMap = new Map<string, { realized: number; upcoming: number }>();
 
   for (const b of bookings) {
-    const isRealized = b.arrival < today;
-
-    switch (mode) {
-      case "byCheckIn": {
-        const month = b.arrival.substring(0, 7);
-        addRevenueToMap(revenueMap, month, b.gross, isRealized);
-        break;
-      }
-      case "byCheckOut": {
-        const month = b.departure.substring(0, 7);
-        addRevenueToMap(revenueMap, month, b.gross, b.departure <= today);
-        break;
-      }
-      case "byBookingDate": {
-        const bookingDate = b.bookedAt ? b.bookedAt.substring(0, 10) : b.arrival;
-        const month = bookingDate.substring(0, 7);
-        addRevenueToMap(revenueMap, month, b.gross, bookingDate < today);
-        break;
-      }
-      case "averagedPerNight": {
-        const nights = daysBetween(b.arrival, b.departure);
-        const perNight = b.gross / nights;
-        // Spread revenue across each night
-        const start = new Date(b.arrival);
-        for (let i = 0; i < nights; i++) {
-          const d = new Date(start);
-          d.setDate(d.getDate() + i);
-          const dateStr = d.toISOString().split("T")[0];
-          const month = dateStr.substring(0, 7);
-          addRevenueToMap(revenueMap, month, perNight, dateStr < today);
-        }
-        break;
-      }
+    /*
+     * `spreadRevenue` du socle dit **ou** le revenu tombe ; ce qui est « realise » se decide
+     * ici, parce que les deux sites n'en jugent pas pareil et que c'est une convention
+     * d'affichage, pas de calcul. Le depart est le seul jour inclus : une nuit qui s'acheve
+     * aujourd'hui est vendue, alors qu'une arrivee du jour ne l'est pas encore.
+     *
+     * Le montant ventile est le **brut** - le defaut du socle est le net, serie de reference
+     * d'Albiez. Ce dashboard annonce « chiffre d'affaires brut » sur sa premiere carte, et
+     * son historique ne traverse pas la rupture Airbnb de mars 2024.
+     */
+    for (const { day, amount } of spreadRevenue(b, mode, b.gross)) {
+      const realized = mode === "byCheckOut" ? day <= today : day < today;
+      addRevenueToMap(revenueMap, day.substring(0, 7), amount, realized);
     }
   }
 
@@ -153,12 +144,9 @@ function computeOccupancyByMonth(
 
   for (const b of bookings) {
     const roomWeight = b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? TOTAL_ROOMS : 1;
-    const nights = daysBetween(b.arrival, b.departure);
-    const start = new Date(b.arrival);
-    for (let i = 0; i < nights; i++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + i);
-      const month = d.toISOString().split("T")[0].substring(0, 7);
+    const count = nights(b.arrival, b.departure);
+    for (let i = 0; i < count; i++) {
+      const month = addDays(b.arrival, i).substring(0, 7);
       const existing = monthMap.get(month) ?? { occupied: 0, total: 0 };
       existing.occupied += roomWeight;
       monthMap.set(month, existing);
@@ -193,8 +181,8 @@ function occupiedRoomNightsInWindow(
     const weight = b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? TOTAL_ROOMS : 1;
     const start = b.arrival > windowStart ? b.arrival : windowStart;
     const end = b.departure < windowEnd ? b.departure : windowEnd;
-    const nights = rawDays(start, end);
-    if (nights > 0) sum += weight * nights;
+    const count = daysBetween(start, end);
+    if (count > 0) sum += weight * count;
   }
   return sum;
 }
@@ -204,13 +192,13 @@ export async function GET(request: NextRequest) {
     const period = request.nextUrl.searchParams.get("period") ?? "3m";
     const mode = (request.nextUrl.searchParams.get("mode") ?? "averagedPerNight") as RevenueMode;
     const { from, to } = getDateRange(period);
-    const today = new Date().toISOString().split("T")[0];
+    const today = todayParis();
     const currentMonth = today.substring(0, 7);
 
     // Fenêtre glissante pour l'occupation prévisionnelle (90 prochains jours),
     // indépendante de la période sélectionnée. -30j pour capter les séjours en cours.
-    const fwdWindowStart = addDaysStr(today, -30);
-    const fwdWindowEnd = addDaysStr(today, 90);
+    const fwdWindowStart = addDays(today, -30);
+    const fwdWindowEnd = addDays(today, 90);
 
     const [rawBookings, properties, forwardBookings] = await Promise.all([
       getStays({ arrivalFrom: from, arrivalTo: to }),
@@ -280,7 +268,7 @@ export async function GET(request: NextRequest) {
     // les mois futurs invendus (gérés par l'occupation prévisionnelle) et, à l'inverse,
     // on n'exclut plus les mois creux passés (ancien biais qui gonflait le taux).
     const occWindowEnd = to < today ? to : today;
-    const availableRoomNights = TOTAL_ROOMS * Math.max(0, rawDays(from, occWindowEnd));
+    const availableRoomNights = TOTAL_ROOMS * Math.max(0, daysBetween(from, occWindowEnd));
     const occupiedRoomNights = occupiedRoomNightsInWindow(bookings, from, occWindowEnd);
     const occupancyRate =
       availableRoomNights > 0 ? Math.round((occupiedRoomNights / availableRoomNights) * 100) : 0;
@@ -290,7 +278,7 @@ export async function GET(request: NextRequest) {
     const roomBookings = bookings.filter((b) => b.propertyId !== WHOLE_HOUSE_PROPERTY_ID);
 
     function computeNights(list: Booking[]): number {
-      return list.reduce((sum, b) => sum + daysBetween(b.arrival, b.departure), 0);
+      return list.reduce((sum, b) => sum + nights(b.arrival, b.departure), 0);
     }
 
     const totalNights = computeNights(bookings);
@@ -331,7 +319,11 @@ export async function GET(request: NextRequest) {
       if (withBookingTime.length === 0) return 0;
       const totalDays = withBookingTime.reduce((sum, b) => {
         const bookingDate = b.bookedAt!.substring(0, 10);
-        return sum + Math.max(0, daysBetween(bookingDate, b.arrival));
+        // `nights` et non `daysBetween` : ce délai a toujours été plancher à un jour, par
+        // héritage du helper plafonné — une réservation prise le jour de l'arrivée compte
+        // donc 1 et non 0. Le `Math.max(0, …)` qui l'entoure dit que l'intention était
+        // l'inverse, mais corriger ici déplacerait un indicateur sans rapport avec ce lot.
+        return sum + Math.max(0, nights(bookingDate, b.arrival));
       }, 0);
       return Math.round(totalDays / withBookingTime.length);
     }
@@ -352,14 +344,14 @@ export async function GET(request: NextRequest) {
 
     // ─── Occupation prévisionnelle 90 j (occupancy on the books) ─
     const forwardActive = forwardBookings.filter((b) => !isExcludedStatus(b.status));
-    const forwardAvailable = TOTAL_ROOMS * rawDays(today, fwdWindowEnd);
+    const forwardAvailable = TOTAL_ROOMS * daysBetween(today, fwdWindowEnd);
     const forwardOccupied = occupiedRoomNightsInWindow(forwardActive, today, fwdWindowEnd);
     const forwardOccupancy90 =
       forwardAvailable > 0 ? Math.round((forwardOccupied / forwardAvailable) * 100) : 0;
 
     // ─── Booking summaries ───────────────────────────────────
     function toSummary(b: Booking): BookingSummary {
-      const nights = daysBetween(b.arrival, b.departure);
+      const count = nights(b.arrival, b.departure);
       return {
         /*
          * `id` est optionnel sur `Booking` parce que l'archive d'Albiez n'en a pas — ses
@@ -372,9 +364,9 @@ export async function GET(request: NextRequest) {
         guest: `${b.firstName ?? ""} ${b.lastName ?? ""}`.trim() || "—",
         arrival: b.arrival,
         departure: b.departure,
-        nights,
+        nights: count,
         price: Math.round(b.gross * 100) / 100,
-        tjm: nights > 0 ? Math.round(b.gross / nights) : 0,
+        tjm: count > 0 ? Math.round(b.gross / count) : 0,
         channel: b.channel,
         type: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? "house" : "room",
         bookingTime: b.bookedAt ?? undefined,
@@ -395,11 +387,11 @@ export async function GET(request: NextRequest) {
       .slice(0, 10);
 
     // ─── Projection annuelle ─────────────────────────────────
-    const now = new Date();
-    const yearStart = new Date(now.getFullYear(), 0, 1);
-    const yearEnd = new Date(now.getFullYear(), 11, 31);
-    const yearStartStr = yearStart.toISOString().split("T")[0];
-    const yearEndStr = yearEnd.toISOString().split("T")[0];
+    // Composées à la main depuis l'année parisienne : `new Date(annee, 0, 1).toISOString()`
+    // rendait le 31 décembre de l'année précédente depuis un fuseau à l'est de Greenwich.
+    const year = today.substring(0, 4);
+    const yearStartStr = `${year}-01-01`;
+    const yearEndStr = `${year}-12-31`;
     const daysSoFar = Math.max(1, daysBetween(yearStartStr, today));
     const daysInYear = daysBetween(yearStartStr, yearEndStr);
     const daysRemaining = daysInYear - daysSoFar;
@@ -418,7 +410,8 @@ export async function GET(request: NextRequest) {
       .reduce((sum, b) => {
         const start = b.arrival < today ? today : b.arrival;
         const end = b.departure > yearEndStr ? yearEndStr : b.departure;
-        return sum + Math.max(0, daysBetween(start, end));
+        // Même plancher hérité qu'au délai de réservation, conservé pour la même raison.
+        return sum + Math.max(0, nights(start, end));
       }, 0);
     // Uncovered future days = remaining days minus already-booked room-nights / 9 rooms
     const uncoveredDays = Math.max(0, daysRemaining - Math.round(confirmedFutureNights / TOTAL_ROOMS));
@@ -448,12 +441,8 @@ export async function GET(request: NextRequest) {
             const start = b.arrival < today ? today : b.arrival;
             const end = b.departure > yearEndStr ? yearEndStr : b.departure;
             let subtotal = 0;
-            const d = new Date(start + "T00:00:00");
-            const endDate = new Date(end + "T00:00:00");
-            while (d < endDate) {
-              const key = d.toISOString().split("T")[0];
-              subtotal += priceMap[key] ?? 0;
-              d.setDate(d.getDate() + 1);
+            for (let day = start; day < end; day = addDays(day, 1)) {
+              subtotal += priceMap[day] ?? 0;
             }
             return sum + subtotal;
           }, 0);

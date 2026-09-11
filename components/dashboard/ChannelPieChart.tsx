@@ -2,13 +2,14 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { CHANNEL_COLORS, type Channel } from "@sejour/socle/lib/channels";
+import {
+  CHART_LEGEND,
+  CHART_TOOLTIP_STYLE,
+  chartEuro,
+} from "@sejour/socle/lib/chart-theme";
 
 interface ChannelPieChartProps {
   data: { channel: string; count: number; revenue: number }[];
-}
-
-function formatEuro(value: number) {
-  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value);
 }
 
 export default function ChannelPieChart({ data }: ChannelPieChartProps) {
@@ -23,7 +24,7 @@ export default function ChannelPieChart({ data }: ChannelPieChartProps) {
       title: "Revenus par canal",
       subtitle: "Montant total",
       dataKey: "revenue" as const,
-      formatter: (value: number | string) => formatEuro(Number(value)),
+      formatter: (value: number | string) => chartEuro(Number(value)),
     },
   ];
 
@@ -59,16 +60,9 @@ export default function ChannelPieChart({ data }: ChannelPieChartProps) {
                 <Tooltip
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   formatter={chart.formatter as any}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "none",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                  }}
+                  contentStyle={CHART_TOOLTIP_STYLE}
                 />
-                <Legend
-                  iconType="circle"
-                  wrapperStyle={{ fontSize: "12px", color: "#6b7280" }}
-                />
+                <Legend {...CHART_LEGEND} />
               </PieChart>
             </ResponsiveContainer>
           </div>

@@ -6,6 +6,18 @@ import { findEventForStay, LE_MANS_EVENTS, shortEventLabel, type LeMansEvent } f
 import { bandesPeriodes, PERIODES, type BandePeriode } from "@sejour/socle/lib/periodes";
 import { CHANNEL_COLORS, normalizeChannel } from "@sejour/socle/lib/channels";
 import { provisionalKind, type Provisional } from "@sejour/socle/lib/booking-status";
+import {
+  PERIOD_PALETTE,
+  laneCount,
+  periodTooltip,
+  placeSegments,
+  roundedEnds,
+  type LaneBar,
+  type Segment,
+} from "@sejour/socle/lib/calendar-lanes";
+import { addMonths, daysInMonth, firstDayOfMonth, formatDate } from "@sejour/socle/lib/dates";
+import { nightsBetween } from "@sejour/socle/lib/booking";
+import { chartEuro } from "@sejour/socle/lib/chart-theme";
 import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
 
 /*
@@ -33,7 +45,9 @@ const EVENT_TEXT = "#4338ca";
 const PALETTE_PERIODE = {
   vacances: { line: "#34d399", text: "#047857" },
   vacancesLeMans: { line: "#fbbf24", text: "#b45309" },
-  fete: { line: "#fb7185", text: "#be123c" },
+  // Les fêtes viennent du socle : Noël et le Jour de l'An sont la même information ici et sur
+  // l'autre tableau de bord, et c'est la seule entrée de la palette que les deux partagent.
+  fete: PERIOD_PALETTE.fete,
 } as const;
 
 /**
@@ -107,64 +121,38 @@ function palettePeriode(band: BandePeriode) {
     : PALETTE_PERIODE.vacances;
 }
 
-/**
- * Infobulle d'une bande : le libellé compact ne dit pas de quelles périodes il est fait,
- * donc le détail — nom complet, zone, dates réelles — se lit au survol, une ligne par
- * période. C'est aussi là que réapparaît la zone sortante d'un week-end de bascule absorbé :
- * le libellé simplifie, l'infobulle dit toute la vérité.
+/*
+ * ⚠️ **Cinq helpers ont disparu d'ici, et l'un d'eux était faux.**
+ *
+ * `periodTooltip` était identique caractère pour caractère à celui d'Albiez : il est monté
+ * dans `@sejour/socle/lib/calendar-lanes` avec le moteur de placement. `addMonths`,
+ * `diffDays` et `formatEuro` avaient chacun leur jumeau ailleurs dans ce dépôt.
+ *
+ * `toDateStr(d) { return d.toISOString().split("T")[0] }` servait à savoir quel jour
+ * entourer : `toISOString()` convertit en UTC, et pour un visiteur à l'est de Greenwich la
+ * date recule d'un jour tôt le matin — entre minuit et 2 h à Paris l'été, la pastille du jour
+ * se posait sur la veille. `formatDate` du socle compose la chaîne depuis `getFullYear` /
+ * `getMonth` / `getDate` et ne passe jamais par UTC.
  */
-function periodTooltip(band: BandePeriode): string {
-  return band.sources
-    .map((p) => `${p.nom}${p.zone === "Toutes" ? "" : ` — ${p.zone}`} · ${p.debut} → ${p.fin}`)
-    .join("\n");
-}
-
-/* ── Helpers ───────────────────────────────────────────────────────── */
 const MONTH_NAMES = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
-function toDateStr(d: Date) {
-  return d.toISOString().split("T")[0];
-}
-
-function addMonths(d: Date, n: number) {
-  return new Date(d.getFullYear(), d.getMonth() + n, 1);
-}
-
-function diffDays(a: string, b: string) {
-  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86_400_000);
-}
-
-function formatEuro(v: number) {
-  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
-}
-
 /* ── Types ─────────────────────────────────────────────────────────── */
-interface BookingBar {
+/**
+ * Les barres sont exprimées dans la forme qu'attend `placeSegments` : jours du mois, plus les
+ * deux bornes qui disent si la barre s'arrête vraiment là ou si elle continue hors du mois.
+ * Chacune ajoute ce que son rendu réclame — le canal et le caractère provisoire pour une
+ * réservation, l'événement lui-même pour une barre de circuit.
+ */
+interface BookingSource {
   booking: BookingListEntry;
   channel: string;
-  colour: string;
-  /** 0-based col start within month grid */
-  startCol: number;
-  /** 0-based col end (inclusive) */
-  endCol: number;
-  /** true if the actual arrival day is visible (not clamped to month start) */
-  startsInMonth: boolean;
-  /** true if the actual departure day is visible (not clamped to month end) */
-  endsInMonth: boolean;
   /** Réservation pas encore acquise : ardoise rayée, et absente de la vue viewer. */
   provisional: Provisional | null;
-  label: string;
 }
 
-interface EventBar {
-  event: LeMansEvent;
-  startCol: number;
-  endCol: number;
-  startsInMonth: boolean;
-  endsInMonth: boolean;
-  label: string;
-}
+type BookingBar = LaneBar<BookingSource>;
+type EventBar = LaneBar<LeMansEvent>;
 
 interface PopupData {
   booking: BookingListEntry;
@@ -301,9 +289,11 @@ function NotesEditor({
 }
 
 export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated }: BookingCalendarProps) {
+  // Un couple {année, mois} plutôt qu'une `Date` : le calendrier public du site le fait déjà,
+  // et `addMonths` du socle travaille sur ce couple — plus aucun objet `Date` à promener.
   const [month, setMonth] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return { year: now.getFullYear(), month: now.getMonth() };
   });
   const [popup, setPopup] = useState<PopupData | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -321,14 +311,14 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
     return () => document.removeEventListener("click", handler);
   }, [popup]);
 
-  const year = month.getFullYear();
-  const mo = month.getMonth();
-  const daysInMonth = new Date(year, mo + 1, 0).getDate();
-  // Day of week for 1st: 0=Mon .. 6=Sun
-  const firstDow = (new Date(year, mo, 1).getDay() + 6) % 7;
+  const year = month.year;
+  const mo = month.month;
+  const dayCount = daysInMonth(year, mo);
+  // Jour de la semaine du 1er, lundi = 0.
+  const firstDow = firstDayOfMonth(year, mo);
 
   const firstDateStr = `${year}-${String(mo + 1).padStart(2, "0")}-01`;
-  const lastDateStr = `${year}-${String(mo + 1).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
+  const lastDateStr = `${year}-${String(mo + 1).padStart(2, "0")}-${String(dayCount).padStart(2, "0")}`;
 
   /* ── Compute bars for visible bookings ───────────────────────────── */
   const bars: BookingBar[] = useMemo(() => {
@@ -346,267 +336,123 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         const channel = normalizeChannel(b.referer, b.channel);
         const provisional = provisionalKind(b.status);
         const guests = b.numAdult + b.numChild;
-        const arrDate = new Date(b.arrival + "T00:00:00");
-        const depDate = new Date(b.departure + "T00:00:00");
-        const monthStart = new Date(year, mo, 1);
-        const monthEnd = new Date(year, mo, daysInMonth);
-
-        // Include departure day in the bar (half-cell)
-        const startsInMonth = arrDate >= monthStart;
-        const endsInMonth = depDate <= new Date(year, mo, daysInMonth + 1);
-        const startDay = startsInMonth ? arrDate.getDate() : 1;
-        const endDay = endsInMonth ? depDate.getDate() : daysInMonth;
+        // Comparaisons de chaînes ISO, plus d'objets `Date` : le jour de départ est inclus
+        // dans la barre, où il n'occupe que la moitié gauche de sa case.
+        const startsHere = b.arrival >= firstDateStr;
+        const endsHere = b.departure <= lastDateStr;
+        const startDay = startsHere ? Number(b.arrival.slice(8, 10)) : 1;
+        const endDay = endsHere ? Number(b.departure.slice(8, 10)) : dayCount;
 
         return {
-          booking: b,
-          channel,
+          source: { booking: b, channel, provisional },
           colour: provisional
             ? UNCONFIRMED_COLOUR
             : showChannels
               ? (CHANNEL_COLORS[channel] ?? "#9ca3af")
               : "#FF385C",
-          provisional,
-          startCol: startDay - 1,
-          endCol: Math.max(startDay - 1, endDay - 1),
-          startsInMonth,
-          endsInMonth,
+          startDay,
+          endDay: Math.max(startDay, endDay),
+          startsHere,
+          endsHere,
           label: label(b, guests),
         };
       })
-      .sort((a, b) => a.startCol - b.startCol);
+      .sort((a, b) => a.startDay - b.startDay);
     // `isAdmin` et `showChannels` sont bien des dépendances : ils décident quelles
     // réservations entrent dans la liste et de quelle couleur. Sans eux, basculer en
     // « Vue viewer » gardait les barres du rendu précédent — les couleurs de canal
     // restaient affichées, et les réservations à confirmer avec.
-  }, [bookings, firstDateStr, lastDateStr, year, mo, daysInMonth, isAdmin, showChannels]);
+  }, [bookings, firstDateStr, lastDateStr, dayCount, isAdmin, showChannels]);
 
   /* ── Build weeks (rows) with booking bar assignments ──────────── */
-  const totalCells = firstDow + daysInMonth;
+  const totalCells = firstDow + dayCount;
   const weeks = Math.ceil(totalCells / 7);
 
-  // Assign bars to "lanes" (rows within each week) to avoid overlap.
-  // Uses half-cell precision so a checkout bar (left half of day N) and a check-in
-  // bar (right half of day N) can share the same lane.
-  type BarPlacement = BookingBar & { row: number; weekStart: number; weekEnd: number; isFirstSegment: boolean; isLastSegment: boolean };
-  const barPlacements: BarPlacement[] = useMemo(() => {
-    const placements: BarPlacement[] = [];
-    // Each lane stores [leftHalf, rightHalf] ranges (in half-cell units: col*2 + 0 left, +1 right)
-    const weekLanes: Map<number, [number, number][][]> = new Map();
-
-    for (const bar of bars) {
-      const barStartCell = firstDow + bar.startCol;
-      const barEndCell = firstDow + bar.endCol;
-      const startWeek = Math.floor(barStartCell / 7);
-      const endWeek = Math.floor(barEndCell / 7);
-
-      for (let w = startWeek; w <= endWeek; w++) {
-        const weekCellStart = w * 7;
-        const weekCellEnd = weekCellStart + 6;
-        const visStart = Math.max(barStartCell, weekCellStart);
-        const visEnd = Math.min(barEndCell, weekCellEnd);
-        const colInWeek0 = visStart - weekCellStart;
-        const colInWeek1 = visEnd - weekCellStart;
-
-        // Compute visual half-cell boundaries for this segment
-        const showsArrival = w === startWeek && bar.startsInMonth;
-        const showsDeparture = w === endWeek && bar.endsInMonth;
-        const leftHalf = colInWeek0 * 2 + (showsArrival ? 1 : 0);
-        const rightHalf = colInWeek1 * 2 + 1 - (showsDeparture ? 1 : 0);
-
-        // Find a free lane (no half-cell overlap)
-        if (!weekLanes.has(w)) weekLanes.set(w, []);
-        const lanes = weekLanes.get(w)!;
-        let lane = 0;
-        for (lane = 0; lane < lanes.length; lane++) {
-          const occupied = lanes[lane];
-          const conflict = occupied.some(
-            ([s, e]) => leftHalf <= e && rightHalf >= s,
-          );
-          if (!conflict) break;
-        }
-        if (lane === lanes.length) lanes.push([]);
-        lanes[lane].push([leftHalf, rightHalf]);
-
-        placements.push({
-          ...bar,
-          row: lane,
-          weekStart: colInWeek0,
-          weekEnd: colInWeek1,
-          isFirstSegment: w === startWeek,
-          isLastSegment: w === endWeek,
-        });
-      }
-    }
-    return placements;
-  }, [bars, firstDow]);
-
-  // Group placements by week
-  const placementsByWeek: Map<number, BarPlacement[]> = useMemo(() => {
-    const map = new Map<number, BarPlacement[]>();
-    for (const p of barPlacements) {
-      const barStartCell = firstDow + p.startCol;
-      const barEndCell = firstDow + p.endCol;
-      const startWeek = Math.floor(barStartCell / 7);
-      const endWeek = Math.floor(barEndCell / 7);
-      for (let w = startWeek; w <= endWeek; w++) {
-        if (!map.has(w)) map.set(w, []);
-        // Only add if this is the right week segment
-        const weekCellStart = w * 7;
-        const weekCellEnd = weekCellStart + 6;
-        const visStart = Math.max(barStartCell, weekCellStart);
-        const visEnd = Math.min(barEndCell, weekCellEnd);
-        const colInWeek0 = visStart - weekCellStart;
-        const colInWeek1 = visEnd - weekCellStart;
-        // Find matching placement
-        const match = barPlacements.find(
-          (bp) =>
-            bp.booking.id === p.booking.id &&
-            bp.weekStart === colInWeek0 &&
-            bp.weekEnd === colInWeek1 &&
-            bp.row === p.row,
-        );
-        if (match && !map.get(w)!.includes(match)) {
-          map.get(w)!.push(match);
-        }
-      }
-    }
-    return map;
-  }, [barPlacements, firstDow]);
+  /*
+   * Le placement en lanes vient du socle. Il était écrit ici **deux fois en ligne** — une
+   * fois pour les réservations, une fois pour les événements — puis regroupé par semaine par
+   * un second `useMemo` qui recalculait les mêmes bornes pour retrouver, par recherche
+   * linéaire, le segment qu'il venait de produire. `placeSegments` rend directement la carte
+   * par semaine : les deux `useMemo` et leur recherche disparaissent.
+   */
+  const placementsByWeek = useMemo(
+    () => placeSegments(bars, firstDow, "half-day"),
+    [bars, firstDow],
+  );
 
   /* ── Compute event bars (Le Mans events, indigo) ─────────────────── */
   const eventBars: EventBar[] = useMemo(() => {
     return LE_MANS_EVENTS
       .filter((ev) => ev.start <= lastDateStr && ev.end >= firstDateStr)
       .map((ev) => {
-        const startsInMonth = ev.start >= firstDateStr;
-        const endsInMonth = ev.end <= lastDateStr;
-        const startDay = startsInMonth ? Number(ev.start.slice(8, 10)) : 1;
-        const endDay = endsInMonth ? Number(ev.end.slice(8, 10)) : daysInMonth;
+        const startsHere = ev.start >= firstDateStr;
+        const endsHere = ev.end <= lastDateStr;
+        const startDay = startsHere ? Number(ev.start.slice(8, 10)) : 1;
+        const endDay = endsHere ? Number(ev.end.slice(8, 10)) : dayCount;
         return {
-          event: ev,
-          startCol: startDay - 1,
-          endCol: Math.max(startDay - 1, endDay - 1),
-          startsInMonth,
-          endsInMonth,
+          source: ev,
+          colour: EVENT_LINE,
+          startDay,
+          endDay: Math.max(startDay, endDay),
+          startsHere,
+          endsHere,
           label: shortEventLabel(ev.name),
         };
       })
-      .sort((a, b) => a.startCol - b.startCol);
-  }, [firstDateStr, lastDateStr, daysInMonth]);
+      .sort((a, b) => a.startDay - b.startDay);
+  }, [firstDateStr, lastDateStr, dayCount]);
 
   /* ── Compute school-holiday bands (vacances scolaires + fêtes) ───── */
-  type PeriodSegment = {
-    band: BandePeriode;
-    weekStart: number;
-    weekEnd: number;
-    /** Le libellé ne s'écrit que sur le premier segment de la bande. */
-    isFirstSegment: boolean;
-    /** La composition prend effet à la moitié de ce jour, elle ne vient pas d'avant. */
-    startsHere: boolean;
-    /** Elle cesse à la moitié de ce jour, elle ne continue pas après. */
-    endsHere: boolean;
-  };
-
   /*
-   * Une seule ligne suffit, sans placement en lanes : `bandesPeriodes` a déjà fusionné les
+   * Une seule ligne suffit, et `placeSegments` la rend : `bandesPeriodes` a déjà fusionné les
    * zones d'une même période (« Noël A+B+C ») et découpé aux jours où la composition change
-   * (« Hiver A » → « Hiver A+B »). Deux bandes ne se chevauchent donc jamais — contrairement
-   * aux événements du circuit, qui peuvent être simultanés et réclament des lanes.
+   * (« Hiver A » → « Hiver A+B »), donc deux bandes ne se chevauchent jamais et toutes
+   * retombent sur la ligne 0 — contrairement aux événements du circuit, qui peuvent être
+   * simultanés et réclament de vraies lanes.
    *
    * Les bandes se relaient en demi-journées, comme deux séjours dont l'un part le jour où
    * l'autre arrive : une composition prend effet à la moitié de son premier jour et cesse à
    * la moitié du jour où elle change. D'où une fin portée au *lendemain* du dernier jour de
-   * la composition. C'est propre aux vacances : un événement du circuit, lui, occupe des
-   * journées entières.
+   * la composition, et la granularité `half-day`.
    */
-  const periodSegmentsByWeek: Map<number, PeriodSegment[]> = useMemo(() => {
-    const map = new Map<number, PeriodSegment[]>();
-
-    for (const band of bandesPeriodes(PERIODES, firstDateStr, lastDateStr)) {
+  const periodSegmentsByWeek = useMemo(() => {
+    const bars = bandesPeriodes(PERIODES, firstDateStr, lastDateStr).map((band) => {
       // Hors du mois, le jour de transition n'est pas dessinable : la bande court alors
       // jusqu'au bord droit, où elle vaut pour toute la dernière journée.
       const transitionInMonth = band.fin < lastDateStr;
-      const startDay = Number(band.debut.slice(8, 10));
-      const endDay = transitionInMonth ? Number(band.fin.slice(8, 10)) + 1 : daysInMonth;
+      const palette = palettePeriode(band);
+      return {
+        source: band,
+        colour: palette.line,
+        label: band.libelle,
+        startDay: Number(band.debut.slice(8, 10)),
+        endDay: transitionInMonth ? Number(band.fin.slice(8, 10)) + 1 : dayCount,
+        startsHere: band.debutReel,
+        endsHere: transitionInMonth,
+      };
+    });
+    return placeSegments(bars, firstDow, "half-day");
+  }, [firstDateStr, lastDateStr, dayCount, firstDow]);
 
-      const startCell = firstDow + startDay - 1;
-      const endCell = firstDow + endDay - 1;
-      const startWeek = Math.floor(startCell / 7);
-      const endWeek = Math.floor(endCell / 7);
+  /*
+   * Les événements, eux, tiennent sur des cases pleines : ils occupent des journées
+   * entières, là où une réservation libère la maison le matin de son départ. Un événement
+   * d'un seul jour — « Marathon », une réunion hippique — se réduirait d'ailleurs à rien si
+   * on lui retirait une demi-case de chaque côté.
+   */
+  const eventPlacementsByWeek = useMemo(
+    () => placeSegments(eventBars, firstDow, "full-day"),
+    [eventBars, firstDow],
+  );
 
-      for (let w = startWeek; w <= endWeek; w++) {
-        const weekCellStart = w * 7;
-        const visStart = Math.max(startCell, weekCellStart);
-        const visEnd = Math.min(endCell, weekCellStart + 6);
-
-        if (!map.has(w)) map.set(w, []);
-        map.get(w)!.push({
-          band,
-          weekStart: visStart - weekCellStart,
-          weekEnd: visEnd - weekCellStart,
-          isFirstSegment: w === startWeek,
-          startsHere: w === startWeek && band.debutReel,
-          endsHere: w === endWeek && transitionInMonth,
-        });
-      }
-    }
-    return map;
-  }, [firstDateStr, lastDateStr, daysInMonth, firstDow]);
-
-  type EventPlacement = EventBar & { row: number; weekStart: number; weekEnd: number; isFirstSegment: boolean; isLastSegment: boolean };
-  const eventPlacementsByWeek: Map<number, EventPlacement[]> = useMemo(() => {
-    const map = new Map<number, EventPlacement[]>();
-    // Each lane stores occupied [col0, col1] ranges (full-cell precision)
-    const weekLanes: Map<number, [number, number][][]> = new Map();
-
-    for (const bar of eventBars) {
-      const barStartCell = firstDow + bar.startCol;
-      const barEndCell = firstDow + bar.endCol;
-      const startWeek = Math.floor(barStartCell / 7);
-      const endWeek = Math.floor(barEndCell / 7);
-
-      for (let w = startWeek; w <= endWeek; w++) {
-        const weekCellStart = w * 7;
-        const weekCellEnd = weekCellStart + 6;
-        const visStart = Math.max(barStartCell, weekCellStart);
-        const visEnd = Math.min(barEndCell, weekCellEnd);
-        const colInWeek0 = visStart - weekCellStart;
-        const colInWeek1 = visEnd - weekCellStart;
-
-        if (!weekLanes.has(w)) weekLanes.set(w, []);
-        const lanes = weekLanes.get(w)!;
-        let lane = 0;
-        for (lane = 0; lane < lanes.length; lane++) {
-          const conflict = lanes[lane].some(
-            ([s, e]) => colInWeek0 <= e && colInWeek1 >= s,
-          );
-          if (!conflict) break;
-        }
-        if (lane === lanes.length) lanes.push([]);
-        lanes[lane].push([colInWeek0, colInWeek1]);
-
-        if (!map.has(w)) map.set(w, []);
-        map.get(w)!.push({
-          ...bar,
-          row: lane,
-          weekStart: colInWeek0,
-          weekEnd: colInWeek1,
-          isFirstSegment: w === startWeek,
-          isLastSegment: w === endWeek,
-        });
-      }
-    }
-    return map;
-  }, [eventBars, firstDow]);
-
-  function handleBarClick(bar: BookingBar, e: React.MouseEvent) {
+  function handleBarClick(seg: Segment<BookingSource>, e: React.MouseEvent) {
     e.stopPropagation();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setPopup({
-      booking: bar.booking,
-      channel: bar.channel,
-      colour: bar.colour,
-      nights: diffDays(bar.booking.arrival, bar.booking.departure),
+      booking: seg.source.booking,
+      channel: seg.source.channel,
+      colour: seg.colour,
+      nights: nightsBetween(seg.source.booking.arrival, seg.source.booking.departure),
       rect,
     });
   }
@@ -616,7 +462,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
       {/* Header: month navigation */}
       <div className="mb-6 flex items-center justify-between">
         <button
-          onClick={() => setMonth((m) => addMonths(m, -1))}
+          onClick={() => setMonth((m) => addMonths(m.year, m.month, -1))}
           className="rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-gray-50"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -627,7 +473,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
           {MONTH_NAMES[mo]} {year}
         </h2>
         <button
-          onClick={() => setMonth((m) => addMonths(m, 1))}
+          onClick={() => setMonth((m) => addMonths(m.year, m.month, 1))}
           className="rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-gray-50"
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -648,12 +494,10 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
       {/* Weeks */}
       {Array.from({ length: weeks }, (_, w) => {
         const weekBars = placementsByWeek.get(w) ?? [];
-        const maxLane = weekBars.reduce((m, b) => Math.max(m, b.row), -1);
-        const barRows = maxLane + 1;
+        const barRows = laneCount(weekBars);
         const weekPeriods = periodSegmentsByWeek.get(w) ?? [];
         const weekEvents = eventPlacementsByWeek.get(w) ?? [];
-        const maxEventLane = weekEvents.reduce((m, b) => Math.max(m, b.row), -1);
-        const eventRows = maxEventLane + 1;
+        const eventRows = laneCount(weekEvents);
 
         return (
           <div key={w} className="relative grid grid-cols-7 border-b border-gray-200">
@@ -677,8 +521,8 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
             {Array.from({ length: 7 }, (_, col) => {
               const dayIdx = w * 7 + col - firstDow;
               const day = dayIdx + 1;
-              const isInMonth = day >= 1 && day <= daysInMonth;
-              const today = toDateStr(new Date());
+              const isInMonth = day >= 1 && day <= dayCount;
+              const today = formatDate(new Date());
               const cellDate = isInMonth ? `${year}-${String(mo + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}` : "";
               const isToday = cellDate === today;
 
@@ -691,7 +535,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                     <span
                       className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
                         isToday
-                          ? "bg-rose-500 font-bold text-white"
+                          ? "bg-primary font-bold text-white"
                           : "text-gray-700"
                       }`}
                     >
@@ -716,22 +560,21 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                     // le relais que la moitié droite.
                     const insetStart = ps.startsHere ? halfCell : 0;
                     const insetEnd = ps.endsHere ? halfCell : 0;
-                    const palette = palettePeriode(ps.band);
                     return (
                       <div
-                        key={`${ps.band.debut}-${ps.weekStart}`}
+                        key={`${ps.source.debut}-${ps.startCol}`}
                         className="absolute top-0 h-full"
                         style={{
-                          left: `${ps.weekStart * cellW + insetStart}%`,
-                          width: `${(ps.weekEnd - ps.weekStart + 1) * cellW - insetStart - insetEnd}%`,
+                          left: `${ps.startCol * cellW + insetStart}%`,
+                          width: `${(ps.endCol - ps.startCol + 1) * cellW - insetStart - insetEnd}%`,
                         }}
-                        title={periodTooltip(ps.band)}
+                        title={periodTooltip(ps.source)}
                       >
                         <div
                           className="truncate px-1 text-left text-[10px] font-semibold uppercase leading-[0.85rem] tracking-wide"
-                          style={{ color: palette.text }}
+                          style={{ color: palettePeriode(ps.source).text }}
                         >
-                          {ps.isFirstSegment && ps.band.libelle}
+                          {ps.isFirstSegment && ps.label}
                         </div>
                         {/* Les 3 px de retrait s'ajoutent à la demi-cellule : sans eux les
                             deux filets se toucheraient pile au milieu du samedi de bascule
@@ -739,7 +582,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                         <div
                           className="h-[3px] rounded-full"
                           style={{
-                            backgroundColor: palette.line,
+                            backgroundColor: ps.colour,
                             marginLeft: ps.startsHere ? 3 : 0,
                             marginRight: ps.endsHere ? 3 : 0,
                           }}
@@ -760,21 +603,14 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                     <div key={lane} className="relative mt-0.5 h-[1.15rem]">
                       {laneEvents.map((ep) => {
                         const cellW = 100 / 7;
-                        const left = `${ep.weekStart * cellW}%`;
-                        const width = `${(ep.weekEnd - ep.weekStart + 1) * cellW}%`;
-                        // L'événement tient sur des cases pleines, sans demi-cellule : il
-                        // occupe des journées entières, là où une réservation libère la
-                        // maison le matin de son départ. Un événement d'un seul jour —
-                        // « Marathon », une réunion hippique — se réduirait d'ailleurs à
-                        // rien si on lui retirait une demi-case de chaque côté.
-                        const startsHere = ep.isFirstSegment && ep.startsInMonth;
-                        const endsHere = ep.isLastSegment && ep.endsInMonth;
+                        const left = `${ep.startCol * cellW}%`;
+                        const width = `${(ep.endCol - ep.startCol + 1) * cellW}%`;
                         return (
                           <div
-                            key={`${ep.event.name}-${ep.event.start}-${ep.weekStart}`}
+                            key={`${ep.source.name}-${ep.source.start}-${ep.startCol}`}
                             className="absolute top-0 h-full"
                             style={{ left, width }}
-                            title={ep.event.name}
+                            title={ep.source.name}
                           >
                             {/* Le libellé n'apparaît que sur le premier segment ; les
                                 semaines suivantes ne portent que le filet, à la même
@@ -793,9 +629,9 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                             <div
                               className="h-[3px] rounded-full"
                               style={{
-                                backgroundColor: EVENT_LINE,
-                                marginLeft: startsHere ? 3 : 0,
-                                marginRight: endsHere ? 3 : 0,
+                                backgroundColor: ep.colour,
+                                marginLeft: ep.startsHere ? 3 : 0,
+                                marginRight: ep.endsHere ? 3 : 0,
                               }}
                             />
                           </div>
@@ -814,33 +650,29 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   const laneBars = weekBars.filter((b) => b.row === lane);
                   return (
                     <div key={lane} className="relative mt-0.5 h-6">
-                      {laneBars.map((bp) => {
+                      {laneBars.map((seg) => {
+                        const bp = seg.source;
                         const cellW = 100 / 7; // width of one cell in %
                         const halfCell = cellW / 2;
                         // Half-cell inset on arrival day, half-cell trim on departure day
-                        const insetStart = bp.isFirstSegment && bp.startsInMonth ? halfCell : 0;
-                        const insetEnd = bp.isLastSegment && bp.endsInMonth ? halfCell : 0;
-                        const left = `${bp.weekStart * cellW + insetStart}%`;
-                        const width = `${(bp.weekEnd - bp.weekStart + 1) * cellW - insetStart - insetEnd}%`;
-                        const isStart = bp.isFirstSegment;
-                        // Rounded ends: round-left on arrival, round-right on departure
-                        const roundLeft = bp.isFirstSegment && bp.startsInMonth;
-                        const roundRight = bp.isLastSegment && bp.endsInMonth;
+                        const insetStart = seg.startsHere ? halfCell : 0;
+                        const insetEnd = seg.endsHere ? halfCell : 0;
+                        const left = `${seg.startCol * cellW + insetStart}%`;
+                        const width = `${(seg.endCol - seg.startCol + 1) * cellW - insetStart - insetEnd}%`;
 
                         return (
                           <button
-                            key={`${bp.booking.id}-${bp.weekStart}`}
+                            key={`${bp.booking.id}-${seg.startCol}`}
                             data-bar
-                            onClick={(e) => handleBarClick(bp, e)}
-                            className={`absolute top-0 h-full cursor-pointer overflow-hidden truncate px-1.5 text-left text-[11px] font-medium text-white transition-opacity hover:opacity-90 ${
-                              roundLeft && roundRight ? "rounded-full" :
-                              roundLeft ? "rounded-l-full" :
-                              roundRight ? "rounded-r-full" : ""
-                            }`}
+                            onClick={(e) => handleBarClick(seg, e)}
+                            className={`absolute top-0 h-full cursor-pointer overflow-hidden truncate px-1.5 text-left text-[11px] font-medium text-white transition-opacity hover:opacity-90 ${roundedEnds(
+                              seg.startsHere,
+                              seg.endsHere,
+                            )}`}
                             style={{
                               left,
                               width,
-                              backgroundColor: bp.colour,
+                              backgroundColor: seg.colour,
                               // Les rayures se superposent à l'aplat : la couleur seule ne
                               // suffit pas à dire « provisoire » dans une grille qui a déjà
                               // un canal « Autre » en gris.
@@ -852,7 +684,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                                 : bp.provisional === "unconfirmed"
                                   ? `À confirmer (${bp.booking.status})`
                                   : null,
-                              bp.label,
+                              seg.label,
                               bp.booking.notes ? `📝 ${bp.booking.notes}` : null,
                             ]
                               .filter(Boolean)
@@ -869,10 +701,10 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                             {bp.booking.notes && (
                               <span className="inline" aria-label="Note interne">📝</span>
                             )}
-                            {isStart && (
+                            {seg.isFirstSegment && (
                               <span className="hidden sm:inline">
                                 {bp.provisional || bp.booking.notes ? " " : ""}
-                                {bp.label}
+                                {seg.label}
                               </span>
                             )}
                           </button>
@@ -1055,7 +887,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
               {showPrices && popup.booking.price !== undefined && (
                 <div>
                   <p className="text-xs text-gray-400">Montant</p>
-                  <p className="mt-0.5 font-medium text-gray-900">{formatEuro(popup.booking.price)}</p>
+                  <p className="mt-0.5 font-medium text-gray-900">{chartEuro(popup.booking.price)}</p>
                 </div>
               )}
 

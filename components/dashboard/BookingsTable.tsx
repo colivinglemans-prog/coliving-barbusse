@@ -98,7 +98,7 @@ export default function BookingsTable({ title, bookings, highlightColumn, showBo
       {bookings.length > 5 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-3 text-sm font-medium text-rose-500 hover:text-rose-600"
+          className="mt-3 text-sm font-medium text-primary hover:text-primary-dark"
         >
           {expanded ? "Voir moins" : `Voir les ${bookings.length} réservations`}
         </button>
