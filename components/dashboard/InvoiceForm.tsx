@@ -21,6 +21,9 @@ const inputClass =
 
 const labelClass = "mb-1 block text-xs font-medium text-gray-600";
 
+/** Taux d'acompte pratiqué par défaut — mis en avant pour éviter de cliquer à côté. */
+const DEFAULT_DEPOSIT_RATE = 0.3;
+
 function formatDateFr(iso: string): string {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
@@ -471,9 +474,16 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
                         type="button"
                         onClick={() => applyDepositRate(r)}
                         disabled={payload.stayTotal <= 0}
-                        className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        className={
+                          r === DEFAULT_DEPOSIT_RATE
+                            ? "rounded-full bg-rose-500 px-3 py-1.5 text-xs font-semibold text-white ring-1 ring-rose-500 hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            : "rounded-full bg-white px-3 py-1.5 text-xs font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        }
                       >
                         {r * 100} %
+                        {r === DEFAULT_DEPOSIT_RATE ? (
+                          <span className="ml-1.5 font-normal text-rose-100">défaut</span>
+                        ) : null}
                       </button>
                     ))}
                   </div>
