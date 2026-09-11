@@ -1,52 +1,91 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { refreshBeds24WriteToken } from "@/lib/beds24";
+import { refreshBeds24WriteToken, refreshBeds24PublicToken } from "@/lib/beds24";
 import { sendBeds24Alert } from "@/lib/email";
 
 /**
- * Maintient le refresh token Beds24 en vie.
+ * Maintient les refresh tokens Beds24 en vie.
  *
- * Beds24 invalide un refresh token qui n'a pas servi depuis 30 jours. Il n'est
- * utilisé que par les écritures (ajout de note sur une réservation), trop rares
- * pour l'entretenir : sans ce cron il meurt et l'écriture renvoie
- * `401 Token not valid`. Un appel hebdomadaire suffit largement.
+ * Beds24 invalide un refresh token qui n'a pas servi depuis 30 jours. Le site en a deux, et
+ * aucun des deux ne s'entretient de façon fiable tout seul :
  *
- * En cas d'échec, il faut régénérer un invite code dans Beds24
- * (SETTINGS > ACCOUNT > ACCESS, scopes write:bookings + write:bookings-personal),
- * l'échanger via GET /authentication/setup, et remettre le refreshToken obtenu
- * dans la variable d'env BEDS24_REFRESH_TOKEN (local + Vercel).
+ * - **écriture** (`BEDS24_REFRESH_TOKEN`) : ne sert qu'à poser une note sur une réservation,
+ *   bien trop rare. Sans ce cron il meurt et l'écriture renvoie `401 Token not valid`.
+ * - **lecture publique** (`BEDS24_PUBLIC_REFRESH_TOKEN`) : on pourrait le croire entretenu par
+ *   le trafic de la page de réservation, mais le cache de 60 s des réponses fait qu'une visite
+ *   ne déclenche pas forcément un échange, et une saison creuse ne prévient pas. Surtout, sa
+ *   mort est **silencieuse** : le repli vers le jeton principal prend le relais et le tunnel
+ *   continue de fonctionner, en ayant reperdu la séparation des privilèges sans que personne
+ *   ne le voie.
+ *
+ * Un appel hebdomadaire suffit largement pour les deux. Les deux sont tentés même si le
+ * premier échoue : un jeton mort ne doit pas en entraîner un second.
  */
+
+type Resultat = { ok: true; expiresIn: number } | { ok: false; error: string };
+
+const REPARATION: Record<"ecriture" | "publique", string[]> = {
+  ecriture: [
+    "1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code",
+    "   avec les scopes read:bookings, write:bookings",
+    '2. curl -H "code: <INVITE>" -H "deviceName: coliving-barbusse-ecriture-AAAA-MM" \\',
+    "     https://api.beds24.com/v2/authentication/setup",
+    "3. Copier le champ refreshToken dans BEDS24_REFRESH_TOKEN (.env.local + Vercel)",
+  ],
+  publique: [
+    "1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code",
+    "   avec les scopes read:inventory, read:properties — et RIEN d'autre :",
+    "   ce jeton sert la page publique, il ne doit pas savoir lire une réservation",
+    '2. curl -H "code: <INVITE>" -H "deviceName: coliving-barbusse-public-AAAA-MM" \\',
+    "     https://api.beds24.com/v2/authentication/setup",
+    "3. Copier le champ refreshToken dans BEDS24_PUBLIC_REFRESH_TOKEN (.env.local + Vercel)",
+  ],
+};
+
+const CONSEQUENCE: Record<"ecriture" | "publique", string> = {
+  ecriture: "L'ajout de consignes de ménage sur les réservations est cassé.",
+  publique:
+    "La page publique est retombée sur le jeton du dashboard : elle fonctionne, mais elle " +
+    "tourne désormais avec read:bookings-personal et read:bookings-financial.",
+};
+
+async function entretenir(
+  quoi: "ecriture" | "publique",
+  refresh: () => Promise<{ expiresIn: number }>,
+): Promise<Resultat> {
+  try {
+    const { expiresIn } = await refresh();
+    return { ok: true, expiresIn };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[beds24-keepalive] ${quoi} : échec`, message);
+
+    await sendBeds24Alert(
+      `Refresh token ${quoi} invalide`,
+      [
+        `Le refresh token Beds24 « ${quoi} » ne peut plus être échangé contre un access token.`,
+        CONSEQUENCE[quoi],
+        "",
+        `Erreur : ${message}`,
+        "",
+        "Pour réparer :",
+        ...REPARATION[quoi],
+        "4. Redéployer : npx vercel --prod",
+      ].join("\n"),
+    ).catch((e) => console.error("[beds24-keepalive] alerte email échouée:", e));
+
+    return { ok: false, error: message };
+  }
+}
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const { expiresIn } = await refreshBeds24WriteToken();
-    return NextResponse.json({ ok: true, expiresIn });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[beds24-keepalive] échec:", message);
+  const ecriture = await entretenir("ecriture", refreshBeds24WriteToken);
+  const publique = await entretenir("publique", refreshBeds24PublicToken);
 
-    await sendBeds24Alert(
-      "Refresh token invalide",
-      [
-        "Le refresh token Beds24 ne peut plus être échangé contre un access token.",
-        "L'ajout de notes sur les réservations est donc cassé.",
-        "",
-        `Erreur : ${message}`,
-        "",
-        "Pour réparer :",
-        "1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code",
-        "   avec les scopes read:bookings, read:bookings-personal,",
-        "   write:bookings, write:bookings-personal",
-        "2. curl -H \"code: <INVITE>\" -H \"deviceName: coliving-dashboard\" \\",
-        "     https://api.beds24.com/v2/authentication/setup",
-        "3. Copier le champ refreshToken dans BEDS24_REFRESH_TOKEN (.env.local + Vercel)",
-        "4. Redéployer : npx vercel --prod",
-      ].join("\n"),
-    ).catch((e) => console.error("[beds24-keepalive] alerte email échouée:", e));
-
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
-  }
+  const ok = ecriture.ok && publique.ok;
+  return NextResponse.json({ ok, ecriture, publique }, { status: ok ? 200 : 500 });
 }
