@@ -53,7 +53,9 @@ export async function GET(req: NextRequest) {
   const lines: TaxeSejourLine[] = bookings
     .filter((b) => !EXCLUDED_STATUSES.has((b.status ?? "").toLowerCase()))
     .filter((b) => Boolean(b.arrival) && Boolean(b.departure))
-    .map(computeTaxeSejour);
+    // Le barème est une donnée injectée depuis le Lot 4 : le moteur du socle ne connaît
+    // aucune délibération communale.
+    .map((b) => computeTaxeSejour(b, TAXE_SEJOUR_CONFIG));
 
   const directLines = lines.filter((l) => l.channel === "Direct");
   const collecteesLines = lines.filter((l) => l.channel === "Airbnb" || l.channel === "Booking.com");

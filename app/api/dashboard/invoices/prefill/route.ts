@@ -3,9 +3,9 @@ import { getBookingById, findBookingByStripeIds } from "@/lib/beds24";
 import { getStripePayment } from "@/lib/stripe";
 import {
   beds24ToPayload,
-  beds24StripeToPayload,
-  stripeToPayload,
-} from "@/lib/invoice-payload";
+  beds24PaymentToPayload,
+  paymentToPayload,
+} from "@sejour/socle/lib/invoice-payload";
 import { guard } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -91,8 +91,8 @@ export async function GET(request: NextRequest) {
       booking,
       beds24Matched: Boolean(booking),
       payload: booking
-        ? beds24StripeToPayload(booking, payment)
-        : stripeToPayload(payment),
+        ? beds24PaymentToPayload(booking, payment)
+        : paymentToPayload(payment),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";

@@ -91,21 +91,14 @@ lib/
   beds24.ts           # Client API Beds24 (cache Next.js 60s : next.revalidate)
   heatzy.ts           # Client API Heatzy + logique scheduling
   email.ts            # Alertes email via Resend
-  invoice-config.ts   # Config émetteur facture (INVOICE_* env vars)
-  invoice-number.ts   # Numérotation séquentielle annuelle (Upstash INCR)
-  invoice-payload.ts  # Type InvoicePayload, pré-remplissage Beds24/Stripe, validation
-  invoice-pdf.tsx     # Template React-PDF (bannière logo, LMNP, IBAN ou "payé")
+  invoice-config.ts   # INVOICE_TEMPLATE (branding + mentions) et le préfixe du compteur.
+                      # Le reste est dans @sejour/socle/lib/invoice-config (Lot 4).
+  invoice-number.ts   # Le client Upstash, branché sur createInvoiceNumbering du socle.
+                      # Clé invoice:counter:barbusse:{année}, avec reprise de l'ancienne.
   stripe.ts           # Client Stripe (listRecentPayments, getStripePayment)
-  taxe-sejour.ts      # Calcul taxe Le Mans + groupement trimestres/canaux
-  fiscal/             # Moteur fiscal LMNP/LMP (dashboard Fiscalité)
-    config.ts         # Types + loader JSON annuel + env vars foyer
-    revenus.ts        # Agrégation CA brut Beds24 (via invoiceItems) + projection
-    commissions.ts    # Extraction CA brut + commissions plateforme depuis invoiceItems
-    bic.ts            # Résultat BIC : CA − charges − amort − ARD imputés
-    ir.ts             # Barème IR 2025 + quotient familial plafonné
-    lmp-test.ts       # Test bascule LMP (art. 155-IV CGI)
-    cotisations.ts    # PS 17,2 % ou SSI ~40 % selon régime
-    orientations.ts   # Alertes (seuil 23k€, LMP, classement) + échéances
+  taxe-sejour.ts      # TAXE_SEJOUR_CONFIG — le seul barème du Mans. Moteur au socle.
+  fiscal.ts           # Répertoire des données, accès Beds24 et collectivité, injectés
+                      # dans @sejour/socle/lib/fiscal/* (les 8 fichiers de calcul).
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
   reviews.json        # 22 avis (21 Airbnb + 1 Abritel/Vrbo). Champs: text + hostReply optionnel + sourceLang + translations/hostReplyTranslations pré-générées par DeepL
@@ -773,6 +766,50 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
 
 ## Factures PDF (LMNP)
 
+### Le réglementaire vient du socle (Lot 4)
+
+Factures, taxe de séjour et module fiscal sont montés dans `@sejour/socle` le 2026-09-11.
+Les **mécanismes** y vivent, les **valeurs** restent ici :
+
+| Ici | Là-bas |
+|---|---|
+| `lib/invoice-config.ts` — `INVOICE_TEMPLATE` (nom, accroche, couleur, logo, objet, mention de TVA, pied de page) et `INVOICE_COUNTER_PREFIX` | `@sejour/socle/lib/invoice-config` — lecture des `INVOICE_*`, types |
+| `lib/invoice-number.ts` — le client Upstash | `@sejour/socle/lib/invoice-number` — `createInvoiceNumbering`, `PREVIEW_NUMBER` |
+| — | `@sejour/socle/lib/invoice-payload` — payload, traducteurs, validation |
+| — | `@sejour/socle/lib/invoice-pdf` — gabarit React-PDF |
+| `lib/taxe-sejour.ts` — `TAXE_SEJOUR_CONFIG`, le barème du Mans | `@sejour/socle/lib/taxe-sejour` — le moteur |
+| `lib/fiscal.ts` — répertoire des données, accès Beds24, collectivité | `@sejour/socle/lib/fiscal/*` — les 8 fichiers de calcul |
+
+`lib/invoice-payload.ts`, `lib/invoice-pdf.tsx` et `lib/fiscal/` **n'existent plus ici**.
+`components/dashboard/InvoiceForm.tsx` reste : c'est de la composition d'écran, propre à ce
+site.
+
+**⚠️ La clé du compteur a changé.** `invoice:counter:{année}` est devenue
+`invoice:counter:barbusse:{année}`, pour qu'une seconde entité branchée sur le même Upstash
+ne partage pas la série. `invoice:counter:2026` valait **13** au moment de la bascule : le
+socle **reprend** cette valeur au premier numéro attribué (`legacyKey`), et la série continue
+à `2026-014`. Sans cette reprise, elle serait repartie à `2026-001` et aurait réémis treize
+numéros déjà utilisés. Le paramètre `legacyKey` de `lib/invoice-number.ts` pourra être retiré
+une fois 2026 close.
+
+**⚠️ La mention 293B est dans `INVOICE_TEMPLATE`, pas dans le gabarit.** Elle est
+obligatoire côté socle, sans valeur par défaut : une autre entité, une autre mention, et une
+facture qui porte la mention d'un régime qui n'est pas le sien est irrégulière.
+
+**Le prestataire de paiement se nomme dans `lib/stripe.ts`.** `StripePaymentDetail` porte
+désormais un champ `method` (« Carte bancaire via Stripe »), que le socle exige sans le
+deviner. `beds24StripeToPayload` et `stripeToPayload` s'appellent maintenant
+`beds24PaymentToPayload` et `paymentToPayload`.
+
+**Les clés du barème de taxe de séjour ont été renommées** dans la réponse de
+`/api/dashboard/taxe-sejour` : `city` → `collectivite`, `ratePercent` → `tauxPourcent`,
+`capPerPersonNight` → `plafondParPersonneNuit`, `departmentalRegionalRate` →
+`tauxDepartemental`. Aucune valeur ne change, et aucun composant ne lisait ces clés.
+
+**Le module fiscal n'a qu'un seul consommateur, et c'est une exception assumée** à la
+règle 6 du socle — la SCI d'Albiez est à l'IS et sa comptabilité est chez Indy.fr. La note
+est dans `@sejour/socle/lib/fiscal/README.md`.
+
 Émet une facture PDF pour un paiement (virement attendu **ou** paiement Stripe déjà reçu). Deux sources de pré-remplissage : **Beds24** (réservations/inquiries) et **Stripe** (paiements réussis).
 
 ### Flux (admin only)
@@ -782,7 +819,7 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
    - **Stripe** : derniers paiements Stripe réussis (90 jours).
 2. Clic « Créer une facture » ou saisie d'un ID → page formulaire pré-rempli.
 3. Champs éditables : client (company, nom, adresse, email, tél), séjour, montant, date limite (virement) ou **case « Déjà payé »** avec date + méthode + référence (Stripe).
-4. Clic « Générer le PDF » → le numéro de facture est alloué (`AAAA-NNN` via Upstash `INCR invoice:counter:{year}`) et le PDF est téléchargé.
+4. Clic « Générer le PDF » → le numéro de facture est alloué (`AAAA-NNN` via Upstash `INCR invoice:counter:barbusse:{year}`) et le PDF est téléchargé.
 
 ### Caractéristiques du PDF
 

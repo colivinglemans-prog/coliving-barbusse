@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateInvoicePayload } from "@/lib/invoice-payload";
-import { getInvoiceConfig, InvoiceConfigError } from "@/lib/invoice-config";
+import { validateInvoicePayload } from "@sejour/socle/lib/invoice-payload";
+import { renderInvoicePdf } from "@sejour/socle/lib/invoice-pdf";
+import {
+  getInvoiceConfig,
+  InvoiceConfigError,
+  INVOICE_TEMPLATE,
+} from "@/lib/invoice-config";
 import { getNextInvoiceNumber, PREVIEW_NUMBER } from "@/lib/invoice-number";
-import { renderInvoicePdf } from "@/lib/invoice-pdf";
 
 export const runtime = "nodejs";
 
@@ -40,6 +44,7 @@ export async function POST(request: NextRequest) {
     const pdf = await renderInvoicePdf({
       payload: validation.payload,
       issuer,
+      template: INVOICE_TEMPLATE,
       invoiceNumber,
     });
 

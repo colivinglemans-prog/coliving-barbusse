@@ -144,7 +144,7 @@ export async function getBookings(params?: BookingQuery): Promise<Beds24Booking[
  *
  * Le net soustrait `commission`, que l'API renseigne sur Airbnb et Booking et laisse à zéro
  * en direct. Rien ici ne dépend de `invoiceItems` : le CA fiscal, lui, se reprend ligne à
- * ligne (`lib/fiscal/commissions.ts`) et travaille donc sur la forme brute, pas sur celle-ci.
+ * ligne (`@sejour/socle/lib/fiscal/commissions`) et travaille donc sur la forme brute, pas sur celle-ci.
  */
 export function toBooking(b: Beds24Booking, source: BookingSource = "live"): Booking {
   const gross = Number(b.price ?? 0);

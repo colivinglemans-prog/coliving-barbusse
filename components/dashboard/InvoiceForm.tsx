@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { InvoiceKind, InvoicePayload } from "@/lib/invoice-payload";
+import type { InvoiceKind, InvoicePayload } from "@sejour/socle/lib/invoice-payload";
 
 interface Props {
   initial: InvoicePayload;

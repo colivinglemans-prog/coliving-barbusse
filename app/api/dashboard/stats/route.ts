@@ -133,7 +133,7 @@ const TOTAL_ROOMS = 9;
 const WHOLE_HOUSE_PROPERTY_ID = 303771;
 
 // Statuts exclus de toutes les stats (annulations + blocages propriétaire à 0 €).
-// Cohérent avec lib/bookings.ts et lib/fiscal/revenus.ts.
+// Cohérent avec lib/bookings.ts et @sejour/socle/lib/fiscal/revenus.ts.
 
 function computeOccupancyByMonth(
   bookings: Booking[],
