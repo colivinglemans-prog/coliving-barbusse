@@ -690,6 +690,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     date: "2026-04-22",
     image: "/images/blog/24h-camions.jpg",
     event: "24h-camions-2026",
+    soldOut: true,
+    nextEdition: "2027",
     locales: {
       fr: {
         title: "24 Heures Camions 2026 au Mans : guide du week-end",
