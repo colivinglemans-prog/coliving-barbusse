@@ -2,6 +2,15 @@
 @import "@sejour/socle/ui/theme.css";
 
 /*
+ * Tailwind v4 n'analyse pas `node_modules`, où vit le socle. Sans cette ligne, les classes
+ * employées par ses composants ne sont **pas générées** : le calendrier public a perdu
+ * `aspect-square`, `md:grid-cols-2`, `hidden md:block` et `bg-primary/15` — cases écrasées,
+ * un seul mois au lieu de deux, nuits intermédiaires non teintées. Le piège est que rien ne
+ * le signale : le typage passe, le build passe, seul le rendu est faux.
+ */
+@source "../node_modules/@sejour/socle";
+
+/*
  * Les valeurs du site. La structure — les noms des tokens, la mise en forme des articles,
  * `.hide-scrollbar`, le respect de `prefers-reduced-motion` — vient du socle ; ici on ne
  * pose que ce qui fait l'identité du Mans : le rose Airbnb.
