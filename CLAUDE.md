@@ -66,6 +66,7 @@ app/
       heating-automation/  # Check-in/check-out → mode présence/hors-gel
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
       heating-health/      # Check connectivité + email alertes
+      events-watch/        # Hebdo : rappel des dates d'événements à confirmer / calendrier à remplir (ntfy)
 components/
   public/             # Composants du site vitrine
   dashboard/          # Composants du dashboard
@@ -1057,6 +1058,7 @@ Exemple résa Direct (85615323) : Σ(daily rates) + Ménage 250 + Draps 140 **�
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
+| Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
 
@@ -1107,6 +1109,25 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 - **Statuts ignorés** : `cancelled`, `black`.
 - **Domaine canonique pour les crons externes** : `https://www.coliving-barbusse.fr/api/cron/...` (le 308 redirect de `coliving-barbusse.fr` → `www.` drop le header `Authorization` → 401).
 
+### Veille des dates d'événements (push ntfy, hebdomadaire)
+
+`/api/cron/events-watch`, le lundi matin. Rappelle d'aller vérifier les dates de
+`lib/events.ts` qui ne sont pas encore officielles (`confirmed: false`, aujourd'hui MotoGP
+2027), et de recopier le calendrier de l'année suivante quand le circuit l'a publié.
+
+- **Règles** : dans `@sejour/socle/lib/events-watch`. Ce site n'en tient que les seuils,
+  `EVENTS_WATCH` à côté du catalogue : projection à moins de **120 jours** signalée ; le
+  catalogue de l'année en préparation doit compter au moins **10 entrées** — l'année suivante
+  à partir du **1er octobre** (le calendrier complet du circuit paraît alors sur lemans.org),
+  l'année en cours avant, donc toute l'année ; d'**octobre à décembre**, la fenêtre rappelle
+  où regarder, avec lemans.org en lien de la notification.
+- **Sans état**, contrairement au check-in : pas de clé Redis, pas de kill switch. La même
+  alerte revient chaque lundi tant que le catalogue n'est pas mis à jour, et s'éteint seule
+  ensuite. `?dry=1` rend les alertes sans rien envoyer, `&today=YYYY-MM-DD` permet alors de
+  les lire à une autre date.
+- **Envoi** : même `NTFY_TOPIC` que le check-in, priorité 2 (basse), titre « Veille
+  événements — Coliving Barbusse ». `NTFY_TOPIC` absent → **500**, jamais un envoi ignoré.
+
 ## Variables d'environnement
 
 ```
@@ -1141,7 +1162,7 @@ INVOICE_BANK_NAME        # Nom de la banque
 INVOICE_WEBSITE          # URL du site affichée sur la facture (optionnel)
 STRIPE_SECRET_KEY        # Clé Stripe (restricted read-only suffit) pour lister les paiements
 
-# Notifications push (cron check-in)
+# Notifications push (crons check-in et veille des événements)
 NTFY_TOPIC                            # URL complète du topic ntfy (ex https://ntfy.sh/coliving-barbusse-xxx)
 CHECKIN_NOTIFICATIONS_ENABLED         # Optionnel : "false" pour désactiver les notifs check-in sans redeploy
 

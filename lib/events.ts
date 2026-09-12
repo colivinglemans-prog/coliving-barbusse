@@ -20,6 +20,7 @@
  * est fournie une fois pour toutes à `eventJsonLd` par la page qui l'appelle.
  */
 import type { LocalEvent } from "@sejour/socle/lib/events";
+import type { EventWatchConfig } from "@sejour/socle/lib/events-watch";
 
 export type { LocalEvent };
 
@@ -86,6 +87,28 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
   { key: "24h-mans-2027", name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13", confirmed: true },
   { key: "classic-2027", name: "Le Mans Classic Heritage 2027", start: "2027-07-01", end: "2027-07-04", confirmed: true },
 ];
+
+/**
+ * Les seuils de la veille des dates, lus par `/api/cron/events-watch` — voir
+ * `@sejour/socle/lib/events-watch` pour ce que chaque règle fait.
+ *
+ * Un week-end de course se réserve des mois à l'avance : quatre mois avant une date projetée,
+ * il est temps qu'elle soit officielle. Le calendrier complet du circuit paraît en octobre
+ * pour l'année suivante — d'où la fenêtre d'automne, et le seuil de dix entrées en dessous
+ * duquel le catalogue de l'année suivante n'a visiblement pas encore été recopié.
+ */
+export const EVENTS_WATCH: EventWatchConfig = {
+  deadlineDays: 120,
+  catalogGap: { from: "10-01", minEvents: 10 },
+  publicationWindows: [
+    {
+      from: "10-01",
+      to: "12-31",
+      note: "le calendrier de l'année suivante du circuit paraît en octobre sur lemans.org.",
+      url: "https://www.lemans.org/",
+    },
+  ],
+};
 
 /**
  * Libellé court pour l'affichage en calendrier (« 24h Mans », « MotoGP », « Classic »).
