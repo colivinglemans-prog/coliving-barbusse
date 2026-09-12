@@ -126,6 +126,9 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     selectCheckOut: "Seleziona la data di partenza",
     summary: (nights, checkIn, checkOut, adults, children) =>
       `${nights} nott${nights > 1 ? "i" : "e"} — dal ${checkIn} al ${checkOut} · ${adults} adult${adults > 1 ? "i" : "o"}${children > 0 ? `, ${children} bambin${children > 1 ? "i" : "o"}` : ""}`,
+    close: "Chiudi",
+    previousMonth: "Mese precedente",
+    nextMonth: "Mese successivo",
     monthNames: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"],
     dayNames: ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"],
   },

@@ -126,6 +126,9 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     selectCheckOut: "Wählen Sie Ihr Abreisedatum",
     summary: (nights, checkIn, checkOut, adults, children) =>
       `${nights} Nacht${nights > 1 ? "e" : ""} — vom ${checkIn} bis ${checkOut} · ${adults} Erwachsene${adults > 1 ? "" : "r"}${children > 0 ? `, ${children} Kind${children > 1 ? "er" : ""}` : ""}`,
+    close: "Schließen",
+    previousMonth: "Vorheriger Monat",
+    nextMonth: "Nächster Monat",
     monthNames: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
     dayNames: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
   },

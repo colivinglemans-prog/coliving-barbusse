@@ -126,6 +126,9 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     selectCheckOut: "Selecciona la fecha de salida",
     summary: (nights, checkIn, checkOut, adults, children) =>
       `${nights} noche${nights > 1 ? "s" : ""} — del ${checkIn} al ${checkOut} · ${adults} adulto${adults > 1 ? "s" : ""}${children > 0 ? `, ${children} niño${children > 1 ? "s" : ""}` : ""}`,
+    close: "Cerrar",
+    previousMonth: "Mes anterior",
+    nextMonth: "Mes siguiente",
     monthNames: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
     dayNames: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
   },

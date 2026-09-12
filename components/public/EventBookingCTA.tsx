@@ -1,12 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { addDays, formatDate } from "@sejour/socle/lib/dates";
+import EventBookingCTA, {
+  type EventBookingLabels,
+} from "@sejour/socle/components/EventBookingCTA";
+import type { LocalEvent } from "@/lib/events";
 import type { Locale } from "@/lib/i18n";
+
+/**
+ * Bloc de réservation de fin d'article — l'enveloppe locale du composant du socle.
+ *
+ * Tout le comportement (sondage de `/api/availability`, plus longue plage libre, séjour
+ * minimum le plus strict, trois états, repli en cas de panne) est monté dans
+ * `@sejour/socle/components/EventBookingCTA`. Ne restent ici que les quatre paramètres qui
+ * ne peuvent pas monter : l'identifiant Beds24 de la maison, la route de disponibilité et
+ * ses noms de paramètres, le séjour minimum par défaut, et les libellés dans cinq langues.
+ *
+ * ⚠️ Ce n'est **pas** l'encart « prochaine édition ». Celui-ci est client et demande « la
+ * maison est-elle libre » ; l'autre est serveur et répond « quand est la prochaine
+ * édition ». Ils coexistent sur une même page.
+ */
 
 const PROPERTY_ID = 303771;
 const DEFAULT_MIN_STAY = 2;
 
+/** Étiquettes BCP 47 pour le formatage des dates affichées. */
 const DATE_LOCALE: Record<Locale, string> = {
   fr: "fr-FR",
   en: "en-US",
@@ -15,21 +32,7 @@ const DATE_LOCALE: Record<Locale, string> = {
   es: "es-ES",
 };
 
-interface Copy {
-  /** Titre du bloc quand toute la fenêtre conseillée est libre */
-  availableTitle: string;
-  /** Titre quand seule une partie de la fenêtre est libre */
-  partialTitle: string;
-  /** Titre quand plus rien n'est réservable */
-  soldOutTitle: string;
-  /** Ex. « Du 15 au 21 septembre · 6 nuits » */
-  range: (from: string, to: string, nights: number) => string;
-  pitch: string;
-  soldOutBody: string;
-  book: string;
-  seeCalendar: string;
-  loading: string;
-}
+type Copy = EventBookingLabels;
 
 const COPY: Record<Locale, Copy> = {
   fr: {
@@ -99,208 +102,24 @@ const COPY: Record<Locale, Copy> = {
   },
 };
 
-type Status = "loading" | "full" | "partial" | "soldout" | "error" | "hidden";
-
-interface Props {
+export default function EventBookingCTALocal({
+  locale,
+  event,
+}: {
   locale: Locale;
-  /** Première nuit conseillée (YYYY-MM-DD) */
-  checkIn: string;
-  /** Départ conseillé, exclusif (YYYY-MM-DD) */
-  checkOut: string;
-}
-
-/**
- * Plus longue plage de nuits consécutives libres dans [checkIn, checkOut[.
- * Renvoie null si aucune nuit n'est libre.
- */
-function longestFreeRange(
-  dates: Record<string, boolean>,
-  checkIn: string,
-  checkOut: string,
-): { from: string; to: string; nights: number } | null {
-  let best: { from: string; nights: number } | null = null;
-  let runStart: string | null = null;
-  let run = 0;
-
-  for (let d = checkIn; d < checkOut; d = addDays(d, 1)) {
-    // Une date absente de la réponse est traitée comme libre : mieux vaut
-    // proposer la réservation (Beds24 revalide au checkout) que de masquer
-    // une nuit réellement disponible.
-    if (dates[d] !== false) {
-      if (runStart === null) runStart = d;
-      run += 1;
-      if (!best || run > best.nights) best = { from: runStart, nights: run };
-    } else {
-      runStart = null;
-      run = 0;
-    }
-  }
-
-  if (!best) return null;
-  return { from: best.from, to: addDays(best.from, best.nights), nights: best.nights };
-}
-
-function nightsBetween(from: string, to: string): number {
-  return Math.round(
-    (new Date(`${to}T00:00:00`).getTime() - new Date(`${from}T00:00:00`).getTime()) / 86_400_000,
-  );
-}
-
-/**
- * Bloc de réservation affiché en fin d'article événementiel.
- *
- * Il existe parce que le contenu seul ne convertit pas : sans lui, un lecteur
- * doit repérer un lien texte noyé dans le dernier paragraphe, revenir sur la
- * home, re-scroller jusqu'au calendrier puis ressaisir ses dates. Ici la
- * disponibilité réelle est annoncée et le bouton part sur Beds24 avec les
- * dates déjà remplies.
- *
- * Rendu côté client : les pages de blog sont statiques, la disponibilité doit
- * être lue au moment de la visite et non au build.
- */
-export default function EventBookingCTA({ locale, checkIn, checkOut }: Props) {
-  const t = COPY[locale] ?? COPY.fr;
-  const [status, setStatus] = useState<Status>("loading");
-  const [range, setRange] = useState<{ from: string; to: string; nights: number } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      // Le test se fait ici et non au rendu : la page est statique, un calcul
-      // de « aujourd'hui » côté serveur resterait figé à la date du build (et
-      // provoquerait une erreur d'hydratation une fois l'événement passé).
-      const today = formatDate(new Date());
-      // Événement en cours : on ne propose plus les nuits déjà écoulées.
-      const windowStart = checkIn > today ? checkIn : today;
-      if (windowStart >= checkOut) {
-        setStatus("hidden");
-        return;
-      }
-
-      try {
-        // mode=map borne des jours inclus : la dernière nuit est la veille du départ.
-        const res = await fetch(
-          `/api/availability?mode=map&from=${windowStart}&to=${addDays(checkOut, -1)}`,
-          { cache: "no-store" },
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: {
-          dates?: Record<string, boolean>;
-          minStay?: Record<string, number>;
-        } = await res.json();
-        if (cancelled) return;
-
-        const free = longestFreeRange(data.dates ?? {}, windowStart, checkOut);
-        // Beds24 renvoie les minStay décalés d'un jour par rapport à la fenêtre
-        // demandée : lire la seule clé du jour d'arrivée tombe parfois à côté et
-        // fait silencieusement retomber sur le défaut. On retient donc la
-        // contrainte la plus stricte de la fenêtre — quitte à être conservateur,
-        // mieux vaut taire une plage que d'envoyer sur un séjour que Beds24
-        // refusera au moment de payer.
-        const minStayValues = Object.values(data.minStay ?? {}).filter(
-          (n): n is number => Number.isFinite(n),
-        );
-        const minStay = minStayValues.length
-          ? Math.max(...minStayValues)
-          : DEFAULT_MIN_STAY;
-
-        if (!free || free.nights < minStay) {
-          setRange(null);
-          setStatus("soldout");
-          return;
-        }
-
-        setRange(free);
-        setStatus(free.nights >= nightsBetween(windowStart, checkOut) ? "full" : "partial");
-      } catch {
-        // Une panne d'API ne doit pas faire disparaître le CTA : on retombe sur
-        // les dates conseillées, Beds24 refusera de lui-même si c'est pris.
-        if (cancelled) return;
-        setRange({
-          from: windowStart,
-          to: checkOut,
-          nights: nightsBetween(windowStart, checkOut),
-        });
-        setStatus("error");
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [checkIn, checkOut]);
-
-  function fmt(dateStr: string) {
-    return new Date(`${dateStr}T00:00:00`).toLocaleDateString(DATE_LOCALE[locale], {
-      day: "numeric",
-      month: "long",
-    });
-  }
-
-  const calendarHref = `/${locale}#disponibilite`;
-
-  // Événement terminé : l'article reste en ligne comme archive, sans CTA.
-  if (status === "hidden") return null;
-
-  if (status === "loading") {
-    return (
-      <div className="mt-12 rounded-xl border border-border bg-light-bg px-6 py-8">
-        <p className="text-sm text-secondary">{t.loading}</p>
-      </div>
-    );
-  }
-
-  if (status === "soldout") {
-    return (
-      <div className="mt-12 rounded-xl border border-border bg-light-bg px-6 py-8">
-        <p className="text-lg font-semibold text-foreground">{t.soldOutTitle}</p>
-        <p className="mt-2 text-sm text-secondary">{t.soldOutBody}</p>
-        <a
-          href={calendarHref}
-          className="mt-5 inline-block rounded-lg border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-light-bg"
-        >
-          {t.seeCalendar}
-        </a>
-      </div>
-    );
-  }
-
-  const bookingUrl = range
-    ? `https://beds24.com/booking2.php?propid=${PROPERTY_ID}&layout=1&lang=${locale}` +
-      `&checkin=${range.from}&checkout=${range.to}`
-    : null;
-
+  event: LocalEvent;
+}) {
   return (
-    <div className="mt-12 rounded-xl border border-primary/30 bg-primary/5 px-6 py-8">
-      <p className="text-lg font-semibold text-foreground">
-        {status === "partial" ? t.partialTitle : t.availableTitle}
-      </p>
-      {range && (
-        <p className="mt-1 text-base font-medium text-primary">
-          {t.range(fmt(range.from), fmt(range.to), range.nights)}
-        </p>
-      )}
-      <p className="mt-3 text-sm text-secondary">{t.pitch}</p>
-      <div className="mt-5 flex flex-wrap items-center gap-3">
-        {bookingUrl && (
-          <a
-            href={bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
-          >
-            {t.book}
-          </a>
-        )}
-        <a
-          href={calendarHref}
-          className="inline-block rounded-lg border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-light-bg"
-        >
-          {t.seeCalendar}
-        </a>
-      </div>
-    </div>
+    <EventBookingCTA
+      event={event}
+      propertyId={PROPERTY_ID}
+      lang={locale}
+      bcp47={DATE_LOCALE[locale]}
+      // `mode=map` borne des jours inclus : la dernière nuit est la veille du départ.
+      availabilityUrl={(from, to) => `/api/availability?mode=map&from=${from}&to=${to}`}
+      calendarHref={`/${locale}#disponibilite`}
+      defaultMinStay={DEFAULT_MIN_STAY}
+      labels={COPY[locale] ?? COPY.fr}
+    />
   );
 }
