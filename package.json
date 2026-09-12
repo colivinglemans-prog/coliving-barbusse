@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
-    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#v0.6.1",
+    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#v0.7.0",
     "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^2.0.0",
     "@vercel/speed-insights": "^2.0.0",
