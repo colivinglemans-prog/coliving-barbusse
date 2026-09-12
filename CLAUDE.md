@@ -80,7 +80,8 @@ lib/
       it/             # 20 articles IT (Link hrefs préfixés /it)
       de/             # 20 articles DE (Link hrefs préfixés /de)
       es/             # 20 articles ES (Link hrefs préfixés /es)
-  events.ts           # LE_MANS_EVENTS (calendrier ACO 2026 + Hippodrome) + findEventForStay/findEventOnDay + shortEventLabel
+  events.ts           # LE_MANS_EVENTS (calendrier ACO + Hippodrome) + shortEventLabel.
+                      # Type et fonctions dans @sejour/socle/lib/events (Lot 5).
   # periodes.ts, calendar-utils.ts, channel.ts, cron-auth.ts, ntfy.ts et time.ts vivent
   # désormais dans @sejour/socle — voir sa CLAUDE.md.
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
@@ -212,9 +213,41 @@ migrer vers Beds24 (source unique). Propagation vers Airbnb :
 - ⚠️ Prérequis : connexion Airbnb en **sync type « Prices & Availability »** (sinon les frais ne se poussent pas).
 - Airbnb ne garde nativement que : collecte taxe de séjour (auto) + contenus (photos/description).
 
-**Côté site** : badge « −7% en réservation directe » dans
-[ReservationCalendar.tsx](components/public/ReservationCalendar.tsx) (clé i18n `calendar.directDiscount`,
-5 langues). **Détail complet (plan + config Beds24 + résultats vérifiés)** : [docs/refonte-pricing.md](docs/refonte-pricing.md).
+**Côté site** : badge « −7% en réservation directe » dans le calendrier public (clé i18n
+`calendar.directDiscount`, 5 langues). **Détail complet (plan + config Beds24 + résultats vérifiés)** : [docs/refonte-pricing.md](docs/refonte-pricing.md).
+
+## Calendrier public de réservation
+
+`components/public/ReservationCalendar.tsx` n'est plus qu'une enveloppe : le calendrier vit
+dans **`@sejour/socle/components/ReservationCalendar`** depuis le Lot 5. Les deux sites en
+avaient chacun leur copie, à 80 % identiques — mêmes huit états de case, même table de styles
+chaîne par chaîne, même `fetchAvailability(force)`, même refetch au retour d'onglet gardé à
+30 s, même modale Beds24 ; celle d'Albiez portait en en-tête « porté de celui du Mans ».
+
+Restent ici : `propertyId` (303771), la route `/api/availability?mode=map`, la capacité, et
+les libellés hors section `calendar` — la seule section de dictionnaire commune aux deux
+sites, dont la forme (`CalendarLabels`) est maintenant **définie dans le socle** et vérifiée à
+la compilation des cinq dictionnaires.
+
+**Trois corrections arrivent avec le socle, et elles sont réelles :**
+
+| Correction | Ce qu'il y avait | Conséquence |
+|---|---|---|
+| `sandbox` 3-D Secure sur l'iframe de paiement | un simple `allow="payment"` | La redirection vers la page 3-D Secure de la banque (`allow-top-navigation-by-user-activation`) était à la merci du navigateur. On n'apprend un refus au dernier écran que par le voyageur. |
+| Plafonnement adultes / ados | aucun (`max={20}` et `max={17}` indépendants) | On pouvait composer **37 voyageurs** pour une maison de 20, et ne l'apprendre que sur la page de paiement. |
+| `setAvail((prev) => …)` fonctionnel | `{...availCache}` capturé dans la closure | Deux réponses qui se croisent — changement de mois pendant un refetch de retour d'onglet — se fondaient sur la même photo d'avant, et la seconde écrasait la première. |
+
+Deux détails d'affichage changent aussi, au bénéfice de la version d'Albiez : le bouton
+« Effacer » est une pastille bordée et non un lien souligné, et il apparaît **aussi** quand
+seule l'arrivée est choisie. Les deux chevrons de mois disaient « Photo précédente » à un
+lecteur d'écran — ils empruntaient les libellés de la galerie ; `calendar.previousMonth` /
+`calendar.nextMonth` ont été ajoutés dans les cinq dictionnaires, avec `calendar.close`.
+
+⚠️ **Le moteur de sélection est sorti du composant** vers `@sejour/socle/lib/stay-selection`
+(`isValidCheckIn`, `isValidCheckOut`, `cellState`, `selectionAfterClick`). C'est le chemin qui
+produit le chiffre d'affaires direct : tant qu'il vivait dans un composant client, il n'était
+vérifiable qu'à la souris. Il se teste maintenant sur une vraie réponse Beds24, sans
+navigateur.
 
 ## Cloisonnement du dashboard
 
@@ -569,18 +602,49 @@ Bloc dans la popup de réservation du calendrier — [components/dashboard/Guest
 
 ## Événements Le Mans (`lib/events.ts`)
 
-- `LE_MANS_EVENTS` : 20+ événements du circuit (2025-2027) : 24h Moto, MotoGP, SWS Karting, 24h du Mans, Le Mans Classic, 24h Rollers, 24h Camions, Rotax, Mini OGP, Superbike, Rallye Sarthe, 23H60, 24h Vélo, Porsche Sprint Challenge, Championnat Monde Karting KZ, Euro IAME, Marathon, Slalom ACO, TTE, Fun Cup, Hunaudières Réunions hippiques
-- `findEventForStay(arrival, departure)` : retourne le nom du 1er événement qui overlap (±2 jours margin). Utilisé dans stats + calendrier popup
-  - ⚠️ **Les deux helpers de date locaux sont partis dans `@sejour/socle/lib/dates`.** Le
-    `addDays` d'ici composait minuit en heure locale, avançait en heure locale, puis relisait le
-    résultat par `toISOString()` — en UTC. Depuis Paris, la fenêtre étendue d'un événement
+> **Lot 5 — le type et les fonctions sont montés dans `@sejour/socle/lib/events`.** Il ne
+> reste ici que **les données et les libellés**. Albiez tient l'autre moitié du couple, avec
+> son catalogue de la vallée ; un catalogue est une valeur, il ne monte jamais.
+
+- `LE_MANS_EVENTS` : 40 entrées (2025-2027) — 24h Moto, MotoGP, SWS Karting, 24h du Mans,
+  Le Mans Classic, 24h Rollers, 24h Camions, Rotax, Mini OGP, Superbike, Rallye Sarthe,
+  23H60, 24h Vélo, Porsche Sprint Challenge, Championnat Monde Karting KZ, Euro IAME,
+  Marathon, Slalom ACO, TTE, Fun Cup, et les réunions hippiques des Hunaudières.
+- `shortEventLabel(event)` : libellé court pour le calendrier (« 24h Mans », « MotoGP »,
+  « Classic »). **Reste ici, et y restera** : c'est une table de noms propres du Mans, donc
+  une donnée. Il prend l'événement et non plus son nom, parce qu'il lit `confirmed`.
+
+**Deux champs sont apparus au Lot 5, et l'un remplace une jointure fragile :**
+
+| Champ | Ce qu'il remplace | Pourquoi |
+|---|---|---|
+| `key` | la jointure par **nom** de `getEventByName` | Un nom est de l'affichage : il se corrige, il finira par se traduire, il n'a rien à faire en clé étrangère. Sept réunions hippiques portaient d'ailleurs le même nom, donc la même « clé ». Les cinq articles à événement ont migré (`24h-mans-2027`, `24h-moto-2027`, `classic-2027`, `mondial-karting-2026`, `24h-camions-2026`). |
+| `confirmed` | le suffixe « (à confirmer) » **dans le nom** | Il fallait le reconnaître par sous-chaîne pour afficher le « ? » du calendrier. C'est désormais un champ, et c'est lui qui autorise l'émission du JSON-LD `Event`. Seul `motogp-2027` est à `false` aujourd'hui. |
+
+La **commune** n'est pas portée par les entrées : tout le catalogue se passe au Mans, et elle
+est fournie une fois pour toutes à `eventJsonLd` par la page d'article.
+
+Les fonctions, désormais dans le socle et appelées avec le catalogue en premier argument :
+
+- `findEventForStay(catalog, arrival, departure, { marginDays })` — rend **l'événement**, plus
+  seulement son nom. Marge de 2 jours par défaut, et entre plusieurs candidats c'est celui dont
+  les dates **exactes** recouvrent le plus de nuits qui gagne. Utilisé par les stats et par la
+  popup du calendrier de tableau de bord, qui prennent son `.name`.
+  - ⚠️ **Les deux helpers de date locaux étaient déjà partis dans `@sejour/socle/lib/dates`.**
+    Le `addDays` d'ici composait minuit en heure locale, avançait en heure locale, puis relisait
+    le résultat par `toISOString()` — en UTC. Depuis Paris, la fenêtre étendue d'un événement
     reculait d'un jour, et un séjour rattrapé de justesse changeait d'étiquette selon le fuseau
     de la machine : « SWS Karting Finals 2026 » sur Vercel, aucun événement en développement,
     pour la même réservation (id 85565041).
-- `findEventOnDay(dateStr)` : retourne l'événement qui contient ce jour (sans margin). Utilisé dans calendrier
-- `shortEventLabel(name)` : label court pour affichage compact (ex: "24h Mans", "MotoGP", "Classic")
-- `getEventByName(name)` : retrouve un événement par son nom exact. Utilisé par les articles de blog
-- `stayWindowForEvent(ev)` : fenêtre de séjour conseillée (veille du début → lendemain de la fin), au format `[checkIn, checkOut[` de Beds24
+- `findEventOnDay(catalog, day)` — l'événement qui couvre ce jour, sans marge.
+- `findEventByKey(catalog, key)` — remplace `getEventByName`.
+- `stayWindow(event, { before, after })` — remplace `stayWindowForEvent`, dont les marges
+  étaient figées à −1 / +1. Les défauts donnent exactement l'ancien résultat.
+- `eventJsonLd(event, place)` — **nouveau ici** : le nœud `Event` de schema.org, que ce site
+  n'émettait pas alors qu'il avait la donnée sous la main. Rend `null` tant que les dates ne
+  sont pas officielles : on ne déclare pas une date supposée à Google, qui l'afficherait comme
+  un fait dans un résultat enrichi. Le test est dans le socle, avec le champ qui le commande,
+  pour qu'aucun appelant ne l'oublie.
 
 ## Blog : CTA de réservation sur les articles d'événement
 
@@ -589,10 +653,21 @@ Il existe parce que le contenu seul ne convertissait pas : le seul chemin vers l
 réservation était un lien texte noyé dans le dernier paragraphe, puis retour sur la home,
 re-scroll jusqu'au calendrier et ressaisie des dates.
 
-- Activé par le champ `event` de `BlogPostMeta` (`posts.ts`), qui doit reprendre **le nom
-  exact** d'une entrée de `LE_MANS_EVENTS`. Sans ce champ, aucun CTA n'est rendu.
-- **Ne renseigner `event` que si les dates sont officielles.** MotoGP 2027 en est
-  volontairement dépourvu (dates « à confirmer » côté FIM/Dorna).
+> **Lot 5 — le comportement est monté dans `@sejour/socle/components/EventBookingCTA`.** Ne
+> restent ici que l'identifiant Beds24, la route `/api/availability`, le séjour minimum par
+> défaut et les libellés dans cinq langues. Le composant prend maintenant **l'événement** et
+> calcule lui-même sa fenêtre de séjour.
+>
+> ⚠️ À ne pas confondre avec l'`EventBanner` d'Albiez, monté au socle lui aussi : la bannière
+> est un composant **serveur** qui répond à « quand est la prochaine édition » ; ce CTA est
+> **client** et interroge la disponibilité en direct pour répondre à « la maison est-elle
+> libre ». Les deux coexistent sur une même page et ne doivent pas être fusionnés.
+
+- Activé par le champ `event` de `BlogPostMeta` (`posts.ts`), qui porte **la clé** d'une
+  entrée de `LE_MANS_EVENTS` — plus son nom. Sans ce champ, aucun CTA n'est rendu.
+- Un événement dont les dates ne sont pas officielles (`confirmed: false`) garde son CTA —
+  la maison est libre ou ne l'est pas, la question ne dépend pas de la FIM — mais **n'émet
+  aucun nœud JSON-LD `Event`**. MotoGP 2027 est dans ce cas.
 - Client component : les pages blog sont statiques, la dispo doit être lue à la visite et
   non au build. Il se masque seul si l'événement est passé, et tronque les nuits écoulées
   s'il est en cours.

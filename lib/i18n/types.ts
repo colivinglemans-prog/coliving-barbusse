@@ -1,3 +1,4 @@
+import type { CalendarLabels } from "@sejour/socle/components/ReservationCalendar";
 export type Locale = "fr" | "en" | "it" | "de" | "es";
 
 export interface Dictionary {
@@ -60,24 +61,36 @@ export interface Dictionary {
     showLess: string;
     labels: string[];
   };
-  calendar: {
+  /**
+   * Section du calendrier de réservation.
+   *
+   * **La seule section commune aux deux sites**, et elle suit le composant : sa forme
+   * partagée est `CalendarLabels`, définie dans le socle avec le calendrier qui la consomme.
+   * Ce qui s'y ajoute ici — titre, sous-titre, nom du compteur d'ados et sa note, invite
+   * d'arrivée — reste propre au Mans et passe par d'autres props.
+   *
+   * `checkInLabel` n'est plus rendu par le calendrier : l'état « arrivée choisie, en attente
+   * du départ » affiche l'invite de départ et un bouton d'effacement, sans répéter une date
+   * déjà surlignée dans la grille. La clé reste déclarée, les cinq dictionnaires la portant.
+   *
+   * Toute clé retirée de `CalendarLabels` casserait la compilation des cinq dictionnaires,
+   * ce qui est exactement l'effet recherché.
+   */
+  calendar: CalendarLabels & {
     title: string;
     subtitle: string;
-    loading: string;
-    nights: (n: number) => string;
-    adults: string;
     teens: string;
     teensNote: string;
-    clear: string;
-    bookNow: string;
-    directDiscount: string;
     selectCheckIn: string;
     checkInLabel: string;
-    minStayNote: (n: number) => string;
-    selectCheckOut: string;
-    summary: (nights: number, checkIn: string, checkOut: string, adults: number, children: number) => string;
-    monthNames: string[];
-    dayNames: string[];
+    /**
+     * Libellés d'accessibilité du calendrier. Ils disaient « Photo précédente » avant le
+     * Lot 5 : les deux chevrons empruntaient ceux de la galerie, et un lecteur d'écran
+     * annonçait donc une photo sur un calendrier.
+     */
+    previousMonth: string;
+    nextMonth: string;
+    close: string;
   };
   location: {
     title: string;

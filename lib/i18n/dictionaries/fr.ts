@@ -126,6 +126,9 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     selectCheckOut: "Sélectionnez votre date de départ",
     summary: (nights, checkIn, checkOut, adults, children) =>
       `${nights} nuit${nights > 1 ? "s" : ""} — du ${checkIn} au ${checkOut} · ${adults} adulte${adults > 1 ? "s" : ""}${children > 0 ? `, ${children} enfant${children > 1 ? "s" : ""}` : ""}`,
+    close: "Fermer",
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
     monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
     dayNames: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
   },

@@ -126,6 +126,9 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     selectCheckOut: "Select your check-out date",
     summary: (nights, checkIn, checkOut, adults, children) =>
       `${nights} night${nights > 1 ? "s" : ""} — ${checkIn} to ${checkOut} · ${adults} adult${adults > 1 ? "s" : ""}${children > 0 ? `, ${children} child${children > 1 ? "ren" : ""}` : ""}`,
+    close: "Close",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
     monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
     dayNames: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
   },

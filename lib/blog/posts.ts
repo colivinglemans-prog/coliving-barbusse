@@ -32,10 +32,13 @@ export interface BlogPostMeta {
     licenseUrl: string;
   };
   /**
-   * Nom exact d'un événement de LE_MANS_EVENTS (lib/events.ts). Quand il est
-   * présent et que l'événement est à venir, l'article affiche un bloc de
-   * réservation avec la disponibilité réelle et les dates pré-remplies.
-   * À ne renseigner que si les dates de l'événement sont officielles.
+   * **Clé** d'un événement de `LE_MANS_EVENTS` (`lib/events.ts`), et non son nom : un nom
+   * est de l'affichage, il se corrige et finira par se traduire, il n'a rien à faire en
+   * clé étrangère.
+   *
+   * Quand elle est présente et que l'événement est à venir, l'article affiche un bloc de
+   * réservation avec la disponibilité réelle et les dates pré-remplies, et émet le nœud
+   * JSON-LD `Event` si — et seulement si — les dates sont officielles (`confirmed`).
    */
   event?: string;
   locales: Record<Locale, LocalizedPost>;
@@ -46,7 +49,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "24-heures-moto-le-mans-2027",
     date: "2026-09-01",
     image: "/images/blog/24h-moto.jpg",
-    event: "24 Heures Moto 2027",
+    event: "24h-moto-2027",
     locales: {
       fr: {
         title: "24 Heures Moto Le Mans 2027 (17-18 avril) : guide hébergement et parking",
@@ -124,7 +127,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "le-mans-classic-2027",
     date: "2026-09-01",
     image: "/images/blog/le-mans-classic.jpg",
-    event: "Le Mans Classic Heritage 2027",
+    event: "classic-2027",
     locales: {
       fr: {
         title: "Le Mans Classic Heritage 2027 : guide du rassemblement mondial des voitures anciennes",
@@ -202,7 +205,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "ou-se-loger-24h-du-mans-2027",
     date: "2026-09-01",
     image: "/images/blog/24h-du-mans.jpg",
-    event: "24 Heures du Mans 2027",
+    event: "24h-mans-2027",
     locales: {
       fr: {
         title: "Où se loger pour les 24 Heures du Mans 2027 ?",
@@ -603,7 +606,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "championnat-monde-karting-kz-le-mans",
     date: "2026-04-22",
     image: "/images/blog/mondial-karting-kz.jpg",
-    event: "Championnat du Monde Karting KZ 2026",
+    event: "mondial-karting-2026",
     locales: {
       fr: {
         title: "Championnat du Monde de Karting KZ 2026 au Mans : guide complet",
@@ -686,7 +689,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "24-heures-camions-le-mans",
     date: "2026-04-22",
     image: "/images/blog/24h-camions.jpg",
-    event: "24 Heures Camions 2026",
+    event: "24h-camions-2026",
     locales: {
       fr: {
         title: "24 Heures Camions 2026 au Mans : guide du week-end",

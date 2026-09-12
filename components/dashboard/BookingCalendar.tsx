@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { BookingListEntry } from "@sejour/socle/lib/booking-dto";
-import { findEventForStay, LE_MANS_EVENTS, shortEventLabel, type LeMansEvent } from "@/lib/events";
+import { LE_MANS_EVENTS, shortEventLabel } from "@/lib/events";
+import { findEventForStay, type LocalEvent } from "@sejour/socle/lib/events";
 import { bandesPeriodes, PERIODES, type BandePeriode } from "@sejour/socle/lib/periodes";
 import { CHANNEL_COLORS, normalizeChannel } from "@sejour/socle/lib/channels";
 import { provisionalKind, type Provisional } from "@sejour/socle/lib/booking-status";
@@ -152,7 +153,7 @@ interface BookingSource {
 }
 
 type BookingBar = LaneBar<BookingSource>;
-type EventBar = LaneBar<LeMansEvent>;
+type EventBar = LaneBar<LocalEvent>;
 
 interface PopupData {
   booking: BookingListEntry;
@@ -396,7 +397,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
           endDay: Math.max(startDay, endDay),
           startsHere,
           endsHere,
-          label: shortEventLabel(ev.name),
+          label: shortEventLabel(ev),
         };
       })
       .sort((a, b) => a.startDay - b.startDay);
@@ -899,13 +900,17 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
               )}
 
               {(() => {
-                const event = findEventForStay(popup.booking.arrival, popup.booking.departure);
+                const event = findEventForStay(
+                  LE_MANS_EVENTS,
+                  popup.booking.arrival,
+                  popup.booking.departure,
+                );
                 if (!event) return null;
                 return (
                   <div className="col-span-2">
                     <p className="text-xs text-gray-400">Événement</p>
                     <span className="mt-0.5 inline-block rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
-                      {event}
+                      {event.name}
                     </span>
                   </div>
                 );

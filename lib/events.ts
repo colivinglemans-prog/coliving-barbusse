@@ -1,144 +1,102 @@
-import { addDays, daysBetween as dayDiff } from "@sejour/socle/lib/dates";
+/**
+ * Les événements datés du Mans — circuit Bugatti, hippodrome des Hunaudières, marathon.
+ *
+ * **Il ne reste ici que les données et les libellés.** Le type `LocalEvent` et les fonctions
+ * (`findEventForStay`, `findEventOnDay`, `findEventByKey`, `stayWindow`, `eventJsonLd`) sont
+ * montées dans `@sejour/socle/lib/events`, où Albiez tient l'autre moitié du couple : un
+ * catalogue est une valeur, il ne monte jamais.
+ *
+ * Deux champs sont apparus au passage, et l'un remplace une jointure fragile :
+ *
+ * - `key` — clé stable, jamais affichée, c'est elle que porte `BlogPostMeta.event`. Les
+ *   articles se raccordaient jusqu'ici par le **nom**, qui est de l'affichage : il se
+ *   corrige, il finira par se traduire, et il n'avait rien à faire en clé étrangère. Sept
+ *   réunions hippiques portaient d'ailleurs le même nom, donc la même « clé ».
+ * - `confirmed` — `false` tant que l'organisateur n'a pas publié ses dates. Il remplace le
+ *   suffixe « (à confirmer) » qu'on collait dans le nom et qu'il fallait ensuite reconnaître
+ *   par sous-chaîne, et c'est lui qui autorise l'émission du JSON-LD `Event`.
+ *
+ * La commune n'est pas portée par les entrées : tout le catalogue se passe au Mans, et elle
+ * est fournie une fois pour toutes à `eventJsonLd` par la page qui l'appelle.
+ */
+import type { LocalEvent } from "@sejour/socle/lib/events";
 
-export interface LeMansEvent {
-  name: string;
-  /** Inclusive start date YYYY-MM-DD */
-  start: string;
-  /** Inclusive end date YYYY-MM-DD */
-  end: string;
-}
+export type { LocalEvent };
 
 /**
- * Known Le Mans events with their date ranges.
- * A booking is considered "linked" to an event if its [arrival, departure[ window
- * overlaps the event window (with a small extension to catch early/late stays).
+ * Les événements connus du Mans et leurs dates.
+ *
+ * Une réservation est rattachée à un événement quand sa fenêtre `[arrivée, départ[` recouvre
+ * la fenêtre de l'événement, marge comprise — voir `findEventForStay` dans le socle.
  */
-export const LE_MANS_EVENTS: LeMansEvent[] = [
+export const LE_MANS_EVENTS: LocalEvent[] = [
   // 2025
-  { name: "24 Heures Moto 2025", start: "2025-04-18", end: "2025-04-20" },
-  { name: "MotoGP France 2025", start: "2025-05-09", end: "2025-05-11" },
-  { name: "24 Heures du Mans 2025", start: "2025-06-06", end: "2025-06-15" },
-  { name: "24 Heures Rollers 2025", start: "2025-07-05", end: "2025-07-06" },
-  { name: "Le Mans Classic 2025", start: "2025-07-03", end: "2025-07-06" },
-  { name: "24 Heures Camions 2025", start: "2025-10-04", end: "2025-10-05" },
-  { name: "Marathon du Mans 2025", start: "2025-10-12", end: "2025-10-12" },
+  { key: "24h-moto-2025", name: "24 Heures Moto 2025", start: "2025-04-18", end: "2025-04-20", confirmed: true },
+  { key: "motogp-2025", name: "MotoGP France 2025", start: "2025-05-09", end: "2025-05-11", confirmed: true },
+  { key: "24h-mans-2025", name: "24 Heures du Mans 2025", start: "2025-06-06", end: "2025-06-15", confirmed: true },
+  { key: "24h-rollers-2025", name: "24 Heures Rollers 2025", start: "2025-07-05", end: "2025-07-06", confirmed: true },
+  { key: "classic-2025", name: "Le Mans Classic 2025", start: "2025-07-03", end: "2025-07-06", confirmed: true },
+  { key: "24h-camions-2025", name: "24 Heures Camions 2025", start: "2025-10-04", end: "2025-10-05", confirmed: true },
+  { key: "marathon-2025", name: "Marathon du Mans 2025", start: "2025-10-12", end: "2025-10-12", confirmed: true },
 
   // 2026 — Circuit du Mans (calendrier officiel lemans.org)
-  { name: "Championnat de l'Ouest Karting / Fun Cup 2026", start: "2026-03-28", end: "2026-03-29" },
-  { name: "Superbike 2026", start: "2026-04-04", end: "2026-04-05" },
-  { name: "Championnat Mini OGP / E-TROTT 2026", start: "2026-04-11", end: "2026-04-12" },
-  { name: "24 Heures Moto 2026", start: "2026-04-18", end: "2026-04-19" },
-  { name: "Rallye de la Sarthe 2026", start: "2026-05-02", end: "2026-05-02" },
-  { name: "MotoGP France 2026", start: "2026-05-08", end: "2026-05-10" },
-  { name: "SWS Karting Finals 2026", start: "2026-05-20", end: "2026-05-23" },
-  { name: "Journée Test 24 Heures du Mans 2026", start: "2026-06-01", end: "2026-06-07" },
-  { name: "24 Heures du Mans 2026", start: "2026-06-11", end: "2026-06-15" },
-  { name: "Le Mans Classic 2026", start: "2026-07-02", end: "2026-07-05" },
-  { name: "24 Heures Rollers 2026", start: "2026-07-11", end: "2026-07-12" },
-  { name: "Rotax Max Challenge Karting 2026", start: "2026-07-15", end: "2026-07-18" },
-  { name: "23H60 2026", start: "2026-08-21", end: "2026-08-23" },
-  { name: "24 Heures Vélo 2026", start: "2026-08-29", end: "2026-08-30" },
+  { key: "karting-ouest-2026", name: "Championnat de l'Ouest Karting / Fun Cup 2026", start: "2026-03-28", end: "2026-03-29", confirmed: true },
+  { key: "superbike-2026", name: "Superbike 2026", start: "2026-04-04", end: "2026-04-05", confirmed: true },
+  { key: "mini-ogp-2026", name: "Championnat Mini OGP / E-TROTT 2026", start: "2026-04-11", end: "2026-04-12", confirmed: true },
+  { key: "24h-moto-2026", name: "24 Heures Moto 2026", start: "2026-04-18", end: "2026-04-19", confirmed: true },
+  { key: "rallye-sarthe-2026", name: "Rallye de la Sarthe 2026", start: "2026-05-02", end: "2026-05-02", confirmed: true },
+  { key: "motogp-2026", name: "MotoGP France 2026", start: "2026-05-08", end: "2026-05-10", confirmed: true },
+  { key: "sws-karting-2026", name: "SWS Karting Finals 2026", start: "2026-05-20", end: "2026-05-23", confirmed: true },
+  { key: "test-24h-2026", name: "Journée Test 24 Heures du Mans 2026", start: "2026-06-01", end: "2026-06-07", confirmed: true },
+  { key: "24h-mans-2026", name: "24 Heures du Mans 2026", start: "2026-06-11", end: "2026-06-15", confirmed: true },
+  { key: "classic-2026", name: "Le Mans Classic 2026", start: "2026-07-02", end: "2026-07-05", confirmed: true },
+  { key: "24h-rollers-2026", name: "24 Heures Rollers 2026", start: "2026-07-11", end: "2026-07-12", confirmed: true },
+  { key: "rotax-karting-2026", name: "Rotax Max Challenge Karting 2026", start: "2026-07-15", end: "2026-07-18", confirmed: true },
+  { key: "23h60-2026", name: "23H60 2026", start: "2026-08-21", end: "2026-08-23", confirmed: true },
+  { key: "24h-velo-2026", name: "24 Heures Vélo 2026", start: "2026-08-29", end: "2026-08-30", confirmed: true },
   // Calendrier officiel lemans.org : "Porsche Sprint Challenge" seul (pas de F4 au Mans en 2026).
-  { name: "Porsche Sprint Challenge France 2026", start: "2026-09-11", end: "2026-09-12" },
-  { name: "Championnat du Monde Karting KZ 2026", start: "2026-09-16", end: "2026-09-20" },
-  { name: "24 Heures Camions 2026", start: "2026-09-26", end: "2026-09-27" },
-  { name: "Euro Challenge IAME 2026", start: "2026-10-07", end: "2026-10-11" },
-  { name: "Marathon du Mans 2026", start: "2026-10-11", end: "2026-10-11" },
-  { name: "Inter Écurie / Slalom ACO 2026", start: "2026-11-07", end: "2026-11-08" },
-  { name: "Trophée Tourisme Endurance 2026", start: "2026-11-13", end: "2026-11-15" },
+  { key: "porsche-sprint-2026", name: "Porsche Sprint Challenge France 2026", start: "2026-09-11", end: "2026-09-12", confirmed: true },
+  { key: "mondial-karting-2026", name: "Championnat du Monde Karting KZ 2026", start: "2026-09-16", end: "2026-09-20", confirmed: true },
+  { key: "24h-camions-2026", name: "24 Heures Camions 2026", start: "2026-09-26", end: "2026-09-27", confirmed: true },
+  { key: "iame-karting-2026", name: "Euro Challenge IAME 2026", start: "2026-10-07", end: "2026-10-11", confirmed: true },
+  { key: "marathon-2026", name: "Marathon du Mans 2026", start: "2026-10-11", end: "2026-10-11", confirmed: true },
+  { key: "slalom-aco-2026", name: "Inter Écurie / Slalom ACO 2026", start: "2026-11-07", end: "2026-11-08", confirmed: true },
+  { key: "tte-2026", name: "Trophée Tourisme Endurance 2026", start: "2026-11-13", end: "2026-11-15", confirmed: true },
   // Hippodrome des Hunaudières 2026 (réunions hippiques)
-  { name: "Réunion hippique Hunaudières", start: "2026-03-04", end: "2026-03-04" },
-  { name: "Réunion hippique Hunaudières", start: "2026-03-10", end: "2026-03-10" },
-  { name: "Réunion hippique Hunaudières", start: "2026-03-21", end: "2026-03-21" },
-  { name: "Réunion hippique Hunaudières", start: "2026-04-05", end: "2026-04-05" },
-  { name: "Réunion hippique Hunaudières", start: "2026-05-03", end: "2026-05-03" },
-  { name: "Réunion hippique Hunaudières", start: "2026-05-08", end: "2026-05-08" },
-  { name: "Réunion hippique Hunaudières", start: "2026-05-21", end: "2026-05-21" },
+  { key: "hippodrome-2026", name: "Réunion hippique Hunaudières", start: "2026-03-04", end: "2026-03-04", confirmed: true },
+  { key: "hippodrome-2026-03-10", name: "Réunion hippique Hunaudières", start: "2026-03-10", end: "2026-03-10", confirmed: true },
+  { key: "hippodrome-2026-03-21", name: "Réunion hippique Hunaudières", start: "2026-03-21", end: "2026-03-21", confirmed: true },
+  { key: "hippodrome-2026-04-05", name: "Réunion hippique Hunaudières", start: "2026-04-05", end: "2026-04-05", confirmed: true },
+  { key: "hippodrome-2026-05-03", name: "Réunion hippique Hunaudières", start: "2026-05-03", end: "2026-05-03", confirmed: true },
+  { key: "hippodrome-2026-05-08", name: "Réunion hippique Hunaudières", start: "2026-05-08", end: "2026-05-08", confirmed: true },
+  { key: "hippodrome-2026-05-21", name: "Réunion hippique Hunaudières", start: "2026-05-21", end: "2026-05-21", confirmed: true },
   // GP Explorer : plus d’édition. La 3e (« The Last Race », 3-5 octobre 2025) était la
   // dernière ; ne rien attendre pour 2026 ou après.
 
   // 2027 — uniquement les dates officiellement annoncées par les organisateurs.
   // Le calendrier complet du circuit (lemans.org) paraît habituellement en octobre
   // pour l'année suivante : revenir le compléter à ce moment-là.
-  { name: "Exclusive Drive 2027", start: "2027-03-19", end: "2027-03-21" },
-  { name: "24 Heures Moto 2027", start: "2027-04-16", end: "2027-04-19" },
+  { key: "exclusive-drive-2027", name: "Exclusive Drive 2027", start: "2027-03-19", end: "2027-03-21", confirmed: true },
+  { key: "24h-moto-2027", name: "24 Heures Moto 2027", start: "2027-04-16", end: "2027-04-19", confirmed: true },
   // ATTENTION : le calendrier MotoGP 2027 n'est PAS officiel à ce jour
   // (tickets.motogp.com affiche « no official date » pour la France). Le 7-9 mai vient
   // des revendeurs de billets, d'autres sources annoncent le 14-16 mai. Ne rien bloquer
   // ni tarifer sur cette base avant publication du calendrier FIM/Dorna.
-  { name: "MotoGP France 2027 (à confirmer)", start: "2027-05-07", end: "2027-05-09" },
-  { name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13" },
-  { name: "Le Mans Classic Heritage 2027", start: "2027-07-01", end: "2027-07-04" },
+  { key: "motogp-2027", name: "MotoGP France 2027", start: "2027-05-07", end: "2027-05-09", confirmed: false },
+  { key: "24h-mans-2027", name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13", confirmed: true },
+  { key: "classic-2027", name: "Le Mans Classic Heritage 2027", start: "2027-07-01", end: "2027-07-04", confirmed: true },
 ];
 
 /**
- * Extension (in days) applied around an event to catch bookings that arrive early
- * or leave late for the occasion.
+ * Libellé court pour l'affichage en calendrier (« 24h Mans », « MotoGP », « Classic »).
+ *
+ * Reste ici, et y restera : c'est une table de noms propres du Mans, c'est-à-dire une
+ * donnée. Un événement dont les dates ne sont pas encore officielles est suffixé « ? » —
+ * l'information vient maintenant de `confirmed` et non plus d'une sous-chaîne du nom.
  */
-const EVENT_EXT_DAYS = 2;
-
-/*
- * Les deux helpers de date de ce fichier venaient du socle et y retournent — le local
- * `addDays` composait minuit en heure locale, avançait le jour en heure locale, puis relisait
- * le résultat avec `toISOString()`, c'est-à-dire en UTC. Depuis Paris, la fenêtre étendue
- * d'un événement reculait donc d'un jour, et un séjour rattrapé de justesse par un événement
- * changeait d'étiquette selon le fuseau de la machine : « SWS Karting Finals 2026 » sur
- * Vercel, aucun événement en développement, pour la même réservation.
- */
-
-/**
- * Number of nights of a stay [arrival, departure[ that fall inside an event's
- * core dates [start, end] (both inclusive → exclusive end = end + 1 day).
- */
-function coreOverlapNights(arrival: string, departure: string, start: string, end: string): number {
-  const overlapStart = arrival > start ? arrival : start;
-  const evtEndExcl = addDays(end, 1);
-  const overlapEnd = departure < evtEndExcl ? departure : evtEndExcl;
-  return Math.max(0, dayDiff(overlapStart, overlapEnd));
-}
-
-/**
- * Find the event best matching a stay [arrival, departure[.
- * Candidates are events overlapping the extended window (±EVENT_EXT_DAYS);
- * among them we prefer the one whose *core* dates overlap the stay the most,
- * so a stay during one event isn't mislabelled with an adjacent event whose
- * extension window it merely grazes. Ties keep chronological (array) order.
- * Returns the event name or null.
- */
-export function findEventForStay(arrival: string, departure: string): string | null {
-  let best: { name: string; core: number } | null = null;
-  for (const ev of LE_MANS_EVENTS) {
-    const winStart = addDays(ev.start, -EVENT_EXT_DAYS);
-    const winEnd = addDays(ev.end, EVENT_EXT_DAYS);
-    // Overlap test: arrival <= winEnd AND departure > winStart
-    if (arrival <= winEnd && departure > winStart) {
-      const core = coreOverlapNights(arrival, departure, ev.start, ev.end);
-      if (!best || core > best.core) {
-        best = { name: ev.name, core };
-      }
-    }
-  }
-  return best ? best.name : null;
-}
-
-/**
- * Find the event (exact core dates, no extension) that includes a given day.
- * Returns the event or null.
- */
-export function findEventOnDay(dateStr: string): LeMansEvent | null {
-  for (const ev of LE_MANS_EVENTS) {
-    if (dateStr >= ev.start && dateStr <= ev.end) return ev;
-  }
-  return null;
-}
-
-/**
- * Short label for calendar display (e.g., "24h Mans", "MotoGP", "Le Mans Classic").
- * Un événement dont la date n'est pas encore officielle est suffixé « ? ».
- */
-export function shortEventLabel(name: string): string {
-  const base = baseEventLabel(name);
-  return name.includes("à confirmer") ? `${base} ?` : base;
+export function shortEventLabel(event: LocalEvent): string {
+  const base = baseEventLabel(event.name);
+  return event.confirmed ? base : `${base} ?`;
 }
 
 function baseEventLabel(name: string): string {
@@ -167,23 +125,4 @@ function baseEventLabel(name: string): string {
   if (name.includes("Trophée Tourisme")) return "TTE";
   if (name.includes("Exclusive Drive")) return "Exclusive Drive";
   return name;
-}
-
-/**
- * Retrouve un événement par son nom exact (tel qu'il figure dans LE_MANS_EVENTS).
- * Utilisé par les articles de blog qui référencent un événement via `BlogPostMeta.event`.
- * Renvoie undefined si le nom ne correspond à rien : l'appelant doit alors
- * simplement ne rien afficher plutôt que de casser la page.
- */
-export function getEventByName(name: string): LeMansEvent | undefined {
-  return LE_MANS_EVENTS.find((ev) => ev.name === name);
-}
-
-/**
- * Fenêtre de séjour conseillée pour un événement : on arrive la veille du
- * premier jour et on repart le lendemain du dernier. Les dates sont au format
- * [checkIn, checkOut[ attendu par Beds24.
- */
-export function stayWindowForEvent(ev: LeMansEvent): { checkIn: string; checkOut: string } {
-  return { checkIn: addDays(ev.start, -1), checkOut: addDays(ev.end, 1) };
 }

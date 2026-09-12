@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
-import { getEventByName, stayWindowForEvent } from "@/lib/events";
+import { LE_MANS_EVENTS } from "@/lib/events";
+import { eventJsonLd, findEventByKey } from "@sejour/socle/lib/events";
 import EventBookingCTA from "@/components/public/EventBookingCTA";
 import type { Locale } from "@/lib/i18n";
 
@@ -419,11 +420,16 @@ export default async function BlogPost({
   const isSoldOut = !!post.soldOut;
   const nextPost = post.supersededBy ? getPostBySlug(post.supersededBy) : undefined;
 
-  // Fenêtre de séjour conseillée pour l'événement de l'article, quand il en
-  // référence un. Le composant décide lui-même de s'afficher ou non selon la
-  // disponibilité réelle et la date du jour.
-  const linkedEvent = post.event ? getEventByName(post.event) : undefined;
-  const stayWindow = linkedEvent ? stayWindowForEvent(linkedEvent) : undefined;
+  // L'événement de l'article, quand il en référence un — par sa clé. Le bloc de
+  // réservation décide lui-même de s'afficher ou non selon la disponibilité réelle et la
+  // date du jour ; il calcule sa fenêtre de séjour à partir de l'événement.
+  const linkedEvent = post.event ? findEventByKey(LE_MANS_EVENTS, post.event) : undefined;
+  // `eventJsonLd` rend `null` tant que les dates ne sont pas officielles : on ne déclare
+  // pas une date supposée à Google, qui l'afficherait comme un fait. Le test est dans le
+  // socle, avec le champ qui le commande, pour qu'aucun appelant ne l'oublie.
+  const eventNode = linkedEvent
+    ? eventJsonLd(linkedEvent, { commune: "Le Mans", region: "Pays de la Loire" })
+    : null;
 
   return (
     <article className="mx-auto max-w-3xl px-6 py-12">
@@ -431,6 +437,14 @@ export default async function BlogPost({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {/* Deuxième bloc JSON-LD, indépendant du premier : deux nœuds sur une page sont
+          valides et se lisent mieux qu'un `@graph` dont les entrées n'ont rien à se dire. */}
+      {eventNode && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventNode) }}
+        />
+      )}
       <nav className="text-sm text-secondary">
         <Link href={`/${locale}/blog`} className="hover:text-foreground">
           {backLabel}
@@ -507,13 +521,7 @@ export default async function BlogPost({
         <Content />
       </div>
 
-      {stayWindow && (
-        <EventBookingCTA
-          locale={locale}
-          checkIn={stayWindow.checkIn}
-          checkOut={stayWindow.checkOut}
-        />
-      )}
+      {linkedEvent && <EventBookingCTA locale={locale} event={linkedEvent} />}
     </article>
   );
 }

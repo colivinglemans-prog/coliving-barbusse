@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProperties, getDailyPrices } from "@/lib/beds24";
 import { getStays } from "@/lib/bookings";
-import { findEventForStay } from "@/lib/events";
+import { LE_MANS_EVENTS } from "@/lib/events";
+import { findEventForStay } from "@sejour/socle/lib/events";
 import type { DashboardStats, RevenueMode, MonthRevenue, BookingSummary, SplitMetric } from "@/lib/types";
 import type { Booking } from "@sejour/socle/lib/booking";
 import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
@@ -370,7 +371,9 @@ export async function GET(request: NextRequest) {
         channel: b.channel,
         type: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? "house" : "room",
         bookingTime: b.bookedAt ?? undefined,
-        event: findEventForStay(b.arrival, b.departure),
+        // Le nom, et non l'événement entier : c'est une étiquette d'affichage dans le
+        // tableau des séjours, pas une jointure.
+        event: findEventForStay(LE_MANS_EVENTS, b.arrival, b.departure)?.name ?? null,
       };
     }
 
