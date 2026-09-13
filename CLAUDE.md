@@ -460,6 +460,17 @@ un merge transparent :
 > quelles cartes, dans quel ordre — c'est un choix par site, et le socle ne l'impose pas.
 > Détail des modules : `CLAUDE.md` du socle, section « Lot 3 ».
 
+> **Lot B de la convergence des stats (socle `v2.0.0`, 2026-09-13)** : le tri par statut se fait
+> **une fois**, par `soldBookings()` en tête de route — `new` compte comme vendu (statut de
+> rangement d'une résa OTA déjà confirmée), `request`, `inquiry`, `black`, `cancelled` jamais.
+> Le brut se définit **une seule fois**, dans `toBooking` (`lib/beds24.ts`) : `price` moins la
+> taxe de séjour lue dans les lignes de facture, commission par `commissionOf`, `units` = 9 pour
+> la maison entière. `getStays` demande toujours les lignes de facture, ce n'est plus un
+> paramètre. La route porte sa garde `denyNonAdmin`. Mesuré : `period=fiscal` 77 246,92 →
+> **76 024,50 €** (−404,72 d'`inquiry`, −817,70 de taxe), et **le même 76 024,50 €** sur la page
+> fiscale — c'est l'invariant `INV-FISCAL-1` du protocole du socle. « Tendance actuelle » et
+> « Pricing dynamique » disparaissent au Lot C, avec la charge utile unique.
+
 - **La date de référence est celle de Paris, jamais `toISOString()`.** La route composait cinq
   dates par `toISOString()`, et deux étaient fausses depuis un fuseau à l'est de Greenwich :
   `new Date(annee, 0, 1).toISOString()` rendait le 31 décembre de l'année précédente (d'où un
@@ -938,6 +949,20 @@ avant l'arrivée. Le champ `kind` de `InvoicePayload` vaut `standard` (défaut),
 Estimation indicative de l'imposition (IR + PS/SSI) et du test de bascule LMP,
 à partir des résas Beds24 + charges saisies + données foyer. **Ne remplace pas
 la déclaration officielle** (faite via LMNP.ai pour ce dossier).
+
+> **Depuis le Lot B (socle `v2.0.0`, 2026-09-13), la page lit le `Booking`, plus les lignes de
+> facture.** Le CA « reconstitué depuis les `invoiceItems` » rendait un **net** pour Airbnb — les
+> lignes sont le versement hôte, la commission n'y figure jamais — et un brut pour les autres :
+> 3 884,19 € d'écart avec la page de statistiques sur le même jeu. `lib/fiscal.ts` fournit
+> `fetchStays: getStays(...).then(soldBookings)`, le module du socle lit `gross` et `commission`.
+> Commissions 2026 : 0 → **9 541,59 €** (7 649,57 réalisées + 1 892,02 à venir, même prorata de
+> nuits que le CA). **Le défaut est contractuel** (réalisé + confirmé) ; la simulation d'année
+> pleine — mot pour mot la « Tendance actuelle » bannie des stats — ne s'obtient que par
+> `?projected=true`, et l'écran ne l'expose pas. Effet à connaître : le conseil « micro-social si
+> recettes < 77 700 € » se compare désormais au contractuel (77 368,85 € au 2026-09-13) et
+> basculera à mesure que le carnet se remplit. Le bien manuel « Dahlias » n'entre dans aucun
+> invariant. Dette : Abritel n'apparaît pas sur `/dashboard/taxe-sejour` (la route ne garde que
+> Direct, Airbnb, Booking.com) ; la réponse fiscale ne porte pas le mode projeté.
 
 ### Contexte utilisateur (fiscalité 2026)
 
