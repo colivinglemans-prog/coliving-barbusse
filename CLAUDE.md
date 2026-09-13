@@ -374,10 +374,23 @@ Beds24 (coût d'abonnement) — l'activité est désormais **maison entière uni
 réservations n'existent donc plus dans l'API. On les conserve pour les dashboards + le moteur fiscal via
 un merge transparent :
 
-- **Sauvegarde** : `scripts/beds24-backup.mjs` aspire tout le compte par API et écrit deux fichiers :
+- **Sauvegarde** : `scripts/beds24-backup.mjs` aspire tout le compte par API et écrit deux fichiers,
+  **tous deux ignorés par git depuis le 2026-09-13** — ils portent noms, e-mails et téléphones des
+  voyageurs, et ce dépôt est public (ils y ont été versionnés du 24/07 au 13/09, un commit, `e807f68`) :
   - `data/beds24-raw-backup.json` — dump brut intégral (disaster recovery, **non lu au runtime**).
   - `data/bookings-archive.json` — sous-ensemble `propertyId ∈ ARCHIVED_PROPERTY_IDS` (310268),
-    **lu au runtime**. Lancer : `node --env-file=.env.local scripts/beds24-backup.mjs`.
+    **lu au runtime en local seulement**. Lancer : `node --env-file=.env.local scripts/beds24-backup.mjs`.
+- **En production, l'archive vient de la variable `HISTORIQUE_BARBUSSE`** : le JSON minifié, sans
+  `infoItems` (les codes de serrure n'ouvrent plus rien), gzippé puis base64 — 12,5 Ko pour 42 séjours.
+  Cascade de chargement identique à Albiez : variable → fichier local → rien, avec `archiveOrigin()`
+  pour que le dashboard puisse le dire. Régénérer la valeur :
+  `node -e 'const z=require("zlib"),f=require("fs");const a=JSON.parse(f.readFileSync("data/bookings-archive.json","utf8")).map(({infoItems,...b})=>b);process.stdout.write(z.gzipSync(Buffer.from(JSON.stringify(a))).toString("base64"))' | npx vercel env add HISTORIQUE_BARBUSSE production --force`
+  — puis déployer. Vercel plafonne l'ensemble des variables d'un déploiement à 64 Ko.
+- **Corrections dans l'archive** (la propriété n'existe plus dans Beds24, on corrige le fichier) :
+  `81056833` prix 182 → 160 € (remise manuelle de −22 € non répercutée dans `price`, paiement encaissé
+  160 €) ; lignes de facture périmées retirées sur `80768054`, `82274645`, `80467451` (réservations
+  modifiées dont l'ancien jeu de lignes cohabitait avec le nouveau). Après quoi `price = Σ lignes
+  (+ commission Airbnb)` tient sur 59 lignes vendues sur 59.
 - **Merge** : [lib/bookings-archive.ts](lib/bookings-archive.ts) (`ARCHIVED_PROPERTY_IDS`, `withArchive()`) sur le mécanisme générique `createArchive`
   (`@sejour/socle/lib/archive`) : dédup par `id`, **le live gagne**, on n'injecte que les résas
   archivées absentes du live et matchant les mêmes filtres (dates + statuts).

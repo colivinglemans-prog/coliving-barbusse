@@ -46,3 +46,9 @@ next-env.d.ts
 # fiches A4 generees : contiennent le mot de passe Wi-Fi et le code de la serrure
 # (le depot est public) - regenerer avec scripts/generate-print-sheets.mjs
 docs/print/
+
+# historique Beds24 : noms, e-mails, telephones des voyageurs (le depot est public).
+# En production il vient de la variable HISTORIQUE_BARBUSSE (gzip + base64) ; en local,
+# `node --env-file=.env.local scripts/beds24-backup.mjs` regenere les deux fichiers.
+data/bookings-archive.json
+data/beds24-raw-backup.json
