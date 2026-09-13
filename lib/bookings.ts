@@ -38,17 +38,27 @@ export async function getBookingsWithArchive(params?: BookingQuery): Promise<Bed
 /**
  * Les mêmes réservations, ramenées au type canonique `Booking` du socle.
  *
- * C'est l'entrée de tout ce qui **calcule** — revenus, occupation, graphes. Ce qui a besoin
- * de `invoiceItems`, de `infoItems` ou des 73 champs bruts passe par
- * `getBookingsWithArchive` : facturation, fiscal, taxe de séjour, code Nuki.
+ * C'est l'entrée de tout ce qui **calcule** — revenus, occupation, graphes, fiscal. Ce qui a
+ * besoin de `infoItems` ou des 73 champs bruts passe par `getBookingsWithArchive` :
+ * facturation, taxe de séjour, code Nuki.
+ *
+ * **Les lignes de facture sont toujours demandées, et ce n'est pas un paramètre.** `toBooking`
+ * en a besoin pour retirer la taxe de séjour du brut ; un appelant qui les oublierait aurait
+ * un `gross` taxe comprise sur sa page et hors taxe sur la page d'à côté — 779,01 € d'écart
+ * sans message d'erreur. Ce qui n'est pas paramétrable ne s'oublie pas. Les `infoItems`, eux,
+ * ne sont jamais demandés : c'est la fermeture à la source des codes de serrure, et rien de
+ * l'une ni l'autre liste n'est recopié dans le `Booking`.
  *
  * L'origine est portée par la ligne elle-même : une réservation absente du live vient de
  * l'archive, et le dashboard peut le dire au lieu de le deviner.
  */
-export async function getStays(params?: BookingQuery): Promise<Booking[]> {
-  const live = await getBookings(params);
+export type StaysQuery = Omit<BookingQuery, "includeInvoiceItems" | "includeInfoItems">;
+
+export async function getStays(params?: StaysQuery): Promise<Booking[]> {
+  const query: BookingQuery = { ...params, includeInvoiceItems: true, includeInfoItems: false };
+  const live = await getBookings(query);
   const liveIds = new Set(live.map((b) => b.id));
-  return fusionner(live, params).map((b) =>
+  return fusionner(live, query).map((b) =>
     toBooking(b, liveIds.has(b.id) ? "live" : "archive"),
   );
 }

@@ -1,4 +1,6 @@
 import { normalizeChannel } from "@sejour/socle/lib/channels";
+import { commissionOf } from "@sejour/socle/lib/commissions";
+import { touristTaxFromInvoiceItems } from "@sejour/socle/lib/taxe-sejour";
 import { nightsBetween, type Booking, type BookingSource } from "@sejour/socle/lib/booking";
 import {
   createBeds24Client,
@@ -142,13 +144,31 @@ export async function getBookings(params?: BookingQuery): Promise<Beds24Booking[
  * l'horodatage complet de Beds24 : le tri des réservations récentes s'en sert, et un
  * consommateur qui veut le jour tronque à dix caractères.
  *
- * Le net soustrait `commission`, que l'API renseigne sur Airbnb et Booking et laisse à zéro
- * en direct. Rien ici ne dépend de `invoiceItems` : le CA fiscal, lui, se reprend ligne à
- * ligne (`@sejour/socle/lib/fiscal/commissions`) et travaille donc sur la forme brute, pas sur celle-ci.
+ * **C'est ici, et nulle part ailleurs, que le brut est défini.** `price` fait foi — il est le
+ * brut sur les quatre canaux, prouvé au centime le 2026-09-13 : Airbnb `price = versement
+ * hôte + commission` (39/41), Booking.com `price = hébergement + ménage + City tax` (3/3),
+ * direct `price = Σ charges taxe comprise` (12/14), Abritel 1/1. On en retire la seule chose
+ * qui n'est pas un revenu, la taxe de séjour lue dans les lignes de facture ; la commission
+ * vient de `commissionOf` (le champ d'abord, les lignes en repli). La page fiscale lit ces
+ * champs : elle reconstituait un CA depuis les lignes, et rendait un net pour Airbnb — la
+ * commission n'y figure jamais — contre un brut pour les autres.
+ *
+ * Deux réservations modifiées (`82274645`, `80467451`) gardent l'ancienne ligne à côté de la
+ * nouvelle, une (`81056833`) une remise manuelle non répercutée dans `price` : `price` fait
+ * foi quand même, +22,00 € d'erreur documentée valent mieux qu'une heuristique de
+ * dédoublonnage. Rien de `invoiceItems` ni `infoItems` n'est recopié dans le `Booking`.
+ *
+ * `units` : la maison entière remplit les neuf logements, une chambre un seul — c'est le
+ * poids de la ligne dans la nuitée-logement, l'unité unique du dashboard.
  */
+const WHOLE_HOUSE_PROPERTY_ID = 303771;
+const WHOLE_HOUSE_UNITS = 9;
+
 export function toBooking(b: Beds24Booking, source: BookingSource = "live"): Booking {
-  const gross = Number(b.price ?? 0);
-  const commission = Number(b.commission ?? 0);
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const touristTax = touristTaxFromInvoiceItems(b.invoiceItems);
+  const gross = round2(Number(b.price ?? 0) - touristTax);
+  const commission = round2(commissionOf(b));
   return {
     ref: String(b.id),
     channel: normalizeChannel(b.referer, b.channel),
@@ -156,8 +176,10 @@ export function toBooking(b: Beds24Booking, source: BookingSource = "live"): Boo
     departure: b.departure,
     nights: nightsBetween(b.arrival, b.departure),
     gross,
-    net: gross - commission,
+    net: round2(gross - commission),
     commission,
+    touristTax,
+    units: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? WHOLE_HOUSE_UNITS : 1,
     source,
     id: b.id,
     propertyId: b.propertyId,

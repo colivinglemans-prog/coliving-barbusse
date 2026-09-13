@@ -7,10 +7,14 @@ import {
   INVOICE_TEMPLATE,
 } from "@/lib/invoice-config";
 import { getNextInvoiceNumber, PREVIEW_NUMBER } from "@/lib/invoice-number";
+import { guard } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
+  const refus = await guard.denyNonAdmin(request);
+  if (refus) return refus;
+
   try {
     const body = await request.json().catch(() => null);
     const validation = validateInvoicePayload(body);

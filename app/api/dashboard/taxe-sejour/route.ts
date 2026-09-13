@@ -9,7 +9,8 @@ import {
   type QuarterTotals,
   type TaxeSejourLine,
 } from "@/lib/taxe-sejour";
-import { EXCLUDED_STATUSES } from "@sejour/socle/lib/booking-status";
+import { countsAsSold } from "@sejour/socle/lib/booking-status";
+import { guard } from "@/lib/auth";
 
 
 export interface TaxeSejourResponse {
@@ -30,6 +31,9 @@ export interface TaxeSejourResponse {
 }
 
 export async function GET(req: NextRequest) {
+  const refus = await guard.denyNonAdmin(req);
+  if (refus) return refus;
+
   const year = Number(req.nextUrl.searchParams.get("year")) || new Date().getFullYear();
 
   const from = `${year}-01-01`;
@@ -51,7 +55,7 @@ export async function GET(req: NextRequest) {
   }
 
   const lines: TaxeSejourLine[] = bookings
-    .filter((b) => !EXCLUDED_STATUSES.has((b.status ?? "").toLowerCase()))
+    .filter((b) => countsAsSold(b.status))
     .filter((b) => Boolean(b.arrival) && Boolean(b.departure))
     // Le barème est une donnée injectée depuis le Lot 4 : le moteur du socle ne connaît
     // aucune délibération communale.

@@ -637,7 +637,7 @@ function DetailParBien({ biens }: { biens: FiscalBienDetail[] }) {
                 </td>
                 <td
                   className="px-4 py-3 text-right text-gray-700"
-                  title={`Commissions Airbnb/Booking détectées dans les invoiceItems Beds24\nYTD : ${formatEur(b.revenus.commissionsRealized)}\nProjection année : ${formatEur(b.revenus.commissionsProjected)}`}
+                  title={`Commissions de canal déclarées à Beds24 (champ commission)\nRéalisé : ${formatEur(b.revenus.commissionsRealized)}\nÀ venir : ${formatEur(b.revenus.commissionsUpcoming)}\nSimulation année : ${formatEur(b.revenus.commissionsProjected)}`}
                 >
                   {formatEur(b.bic.commissionsPlateformes)}
                   {b.bic.ca > 0 && (

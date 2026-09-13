@@ -26,6 +26,7 @@ import {
   FISCAL_COLLECTIVITE,
   FISCAL_REVENUS_DEPS,
 } from "@/lib/fiscal";
+import { guard } from "@/lib/auth";
 
 export interface FiscalBienDetail {
   bienId: string;
@@ -80,8 +81,13 @@ function buildChargesDetail(bien: BienFiscal) {
 }
 
 export async function GET(req: NextRequest) {
+  const refus = await guard.denyNonAdmin(req);
+  if (refus) return refus;
+
   const year = Number(req.nextUrl.searchParams.get("year")) || new Date().getFullYear();
-  const useProjected = req.nextUrl.searchParams.get("projected") !== "false";
+  // `?projected=true` = simulation d'année pleine, valeur non opposable. Le défaut est le
+  // contractuel : réalisé + confirmé. La projection était le défaut jusqu'au Lot B.
+  const useProjected = req.nextUrl.searchParams.get("projected") === "true";
 
   let config: FiscalConfig;
   try {

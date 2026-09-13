@@ -1,6 +1,7 @@
 import path from "node:path";
 import { getDailyPrices } from "@/lib/beds24";
-import { getBookingsWithArchive } from "@/lib/bookings";
+import { getStays } from "@/lib/bookings";
+import { soldBookings } from "@sejour/socle/lib/booking-status";
 import {
   loadFiscalConfig as loadFiscalConfigSocle,
   type FiscalConfig,
@@ -19,7 +20,9 @@ import type { RevenusDeps } from "@sejour/socle/lib/fiscal/revenus";
  *    l'application, pas celui du socle.
  * 2. **D'où viennent les réservations.** La fusion avec l'archive est le choix du site : le
  *    Lot 2 l'a sortie du client d'API précisément pour qu'aucune fonction ne complète en
- *    silence ce que Beds24 a renvoyé.
+ *    silence ce que Beds24 a renvoyé. Le fiscal reçoit les **mêmes** `Booking` que la page de
+ *    statistiques, triés par `soldBookings` une fois ici : c'est ce qui rend les deux pages
+ *    réconciliables à l'euro, brut et commissions compris.
  * 3. **Combien de logements** compte un bien qui regroupe plusieurs `propertyId` — le
  *    dénominateur du taux d'occupation. Neuf ici : la maison se loue aussi à la chambre.
  */
@@ -31,7 +34,7 @@ export const FISCAL_DATA_DIR = path.join(process.cwd(), "data", "fiscal");
 export const FISCAL_COLLECTIVITE = "Le Mans Métropole";
 
 export const FISCAL_REVENUS_DEPS: RevenusDeps = {
-  fetchBookings: (params) => getBookingsWithArchive(params),
+  fetchStays: (params) => getStays(params).then(soldBookings),
   fetchDailyPrices: (propertyId, from, to) => getDailyPrices(propertyId, from, to),
   unitsWhenMultiProperty: 9,
 };

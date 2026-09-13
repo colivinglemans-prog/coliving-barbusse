@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guard } from "@/lib/auth";
 import { getProperties, getDailyPrices } from "@/lib/beds24";
 import { getStays } from "@/lib/bookings";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { findEventForStay } from "@sejour/socle/lib/events";
 import type { DashboardStats, RevenueMode, MonthRevenue, BookingSummary, SplitMetric } from "@/lib/types";
 import type { Booking } from "@sejour/socle/lib/booking";
-import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
+import { soldBookings } from "@sejour/socle/lib/booking-status";
 import { addDays, daysBetween, formatDate, parseDate } from "@sejour/socle/lib/dates";
 import { todayParis } from "@sejour/socle/lib/time";
 import { spreadRevenue } from "@sejour/socle/lib/stats";
@@ -189,6 +190,9 @@ function occupiedRoomNightsInWindow(
 }
 
 export async function GET(request: NextRequest) {
+  const refus = await guard.denyNonAdmin(request);
+  if (refus) return refus;
+
   try {
     const period = request.nextUrl.searchParams.get("period") ?? "3m";
     const mode = (request.nextUrl.searchParams.get("mode") ?? "averagedPerNight") as RevenueMode;
@@ -209,7 +213,7 @@ export async function GET(request: NextRequest) {
 
     // Exclut annulations et blocages propriétaire (0 €) qui faussaient revenus,
     // TJM, occupation et le premium événementiel.
-    const bookings = rawBookings.filter((b) => !isExcludedStatus(b.status));
+    const bookings = soldBookings(rawBookings);
 
     // Revenue by month
     const revenueMap = computeRevenue(bookings, mode, today);
@@ -344,7 +348,7 @@ export async function GET(request: NextRequest) {
       bookings.length > 0 ? Math.round((directBookings.length / bookings.length) * 100) : 0;
 
     // ─── Occupation prévisionnelle 90 j (occupancy on the books) ─
-    const forwardActive = forwardBookings.filter((b) => !isExcludedStatus(b.status));
+    const forwardActive = soldBookings(forwardBookings);
     const forwardAvailable = TOTAL_ROOMS * daysBetween(today, fwdWindowEnd);
     const forwardOccupied = occupiedRoomNightsInWindow(forwardActive, today, fwdWindowEnd);
     const forwardOccupancy90 =
