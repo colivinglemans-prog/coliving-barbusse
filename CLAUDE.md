@@ -727,7 +727,13 @@ re-scroll jusqu'au calendrier et ressaisie des dates.
   entrée de `LE_MANS_EVENTS` — plus son nom. Sans ce champ, aucun CTA n'est rendu.
 - Un événement dont les dates ne sont pas officielles (`confirmed: false`) garde son CTA —
   la maison est libre ou ne l'est pas, la question ne dépend pas de la FIM — mais **n'émet
-  aucun nœud JSON-LD `Event`**. MotoGP 2027 est dans ce cas.
+  aucun nœud JSON-LD `Event`**, et depuis le socle v3.3.0 le bloc **dit que les dates sont
+  prévisionnelles** (`COPY[locale].provisionalDates`, une phrase qui se tient seule, y compris
+  dans l'état complet où aucune date n'est affichée). Les 24 Heures Moto 2027 sont dans ce
+  cas : l'article ne cite plus que « avril 2027 » et renvoie à l'édition 2026. L'article
+  MotoGP 2027, lui, reste volontairement **sans `event`** — deux dates rivales circulent
+  (7-9 mai chez les revendeurs, 14-16 mai ailleurs), proposer une fenêtre serait pire que se
+  taire. La phrase est formulée sans nommer l'organisateur pour servir tout futur cas.
 - Client component : les pages blog sont statiques, la dispo doit être lue à la visite et
   non au build. Il se masque seul si l'événement est passé, et tronque les nuits écoulées
   s'il est en cours.

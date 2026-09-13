@@ -47,6 +47,8 @@ const COPY: Record<Locale, Copy> = {
     book: "Voir le prix et réserver",
     seeCalendar: "Voir le calendrier",
     loading: "Vérification des disponibilités…",
+    provisionalDates:
+      "Dates prévisionnelles : l'organisateur n'a pas encore publié le calendrier, les nuits proposées suivent l'édition précédente. Nous mettrons cette page à jour dès l'annonce.",
   },
   en: {
     availableTitle: "Our house is available for this event",
@@ -60,6 +62,8 @@ const COPY: Record<Locale, Copy> = {
     book: "See price and book",
     seeCalendar: "View calendar",
     loading: "Checking availability…",
+    provisionalDates:
+      "Provisional dates: the organiser has not yet published the calendar; the suggested nights follow the previous edition. We will update this page as soon as the dates are announced.",
   },
   it: {
     availableTitle: "La nostra casa è disponibile per questo evento",
@@ -73,12 +77,14 @@ const COPY: Record<Locale, Copy> = {
     book: "Vedi il prezzo e prenota",
     seeCalendar: "Vedi il calendario",
     loading: "Verifica delle disponibilità…",
+    provisionalDates:
+      "Date provvisorie: l'organizzatore non ha ancora pubblicato il calendario, le notti proposte seguono l'edizione precedente. Aggiorneremo questa pagina appena saranno annunciate.",
   },
   de: {
     availableTitle: "Unser Haus ist für diese Veranstaltung verfügbar",
     partialTitle: "Für diese Veranstaltung sind noch Nächte frei",
     soldOutTitle: "Für diese Veranstaltung ausgebucht",
-    range: (f, t, n) => `Vom ${f} bis ${t} · ${n} Nacht${n > 1 ? "e" : ""}`,
+    range: (f, t, n) => `Vom ${f} bis ${t} · ${n} N${n > 1 ? "ächte" : "acht"}`,
     pitch:
       "9 private Suiten mit eigenem Bad, bis zu 20 Personen, 215 m². Direktbuchung, ohne Plattformprovision.",
     soldOutBody:
@@ -86,6 +92,8 @@ const COPY: Record<Locale, Copy> = {
     book: "Preis ansehen und buchen",
     seeCalendar: "Kalender ansehen",
     loading: "Verfügbarkeit wird geprüft…",
+    provisionalDates:
+      "Vorläufige Termine: Der Veranstalter hat den Kalender noch nicht veröffentlicht, die vorgeschlagenen Nächte folgen der vorigen Ausgabe. Wir aktualisieren diese Seite, sobald sie bekannt sind.",
   },
   es: {
     availableTitle: "Nuestra casa está disponible para este evento",
@@ -99,6 +107,8 @@ const COPY: Record<Locale, Copy> = {
     book: "Ver el precio y reservar",
     seeCalendar: "Ver el calendario",
     loading: "Comprobando disponibilidad…",
+    provisionalDates:
+      "Fechas provisionales: el organizador aún no ha publicado el calendario, las noches propuestas siguen la edición anterior. Actualizaremos esta página en cuanto se anuncien.",
   },
 };
 

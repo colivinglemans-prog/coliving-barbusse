@@ -12,8 +12,10 @@ export default function Article() {
 
       <h2>Wann findet das 24-Stunden-Motorradrennen 2027 statt?</h2>
       <p>
-        Die 50. Ausgabe findet am Wochenende des <strong>17. und 18. April 2027</strong>{" "}
-        statt. Die Trainings beginnen am Donnerstag, das Qualifying am Freitag, und der
+        Die 50. Ausgabe findet im <strong>April 2027</strong> auf dem Circuit Bugatti statt.
+        Der ACO hat die genauen Termine noch nicht veröffentlicht: Die Ausgabe 2026 fand am 18.
+        und 19. April statt, und wir aktualisieren diese Seite, sobald sie bekannt gegeben
+        werden. Die Trainings beginnen am Donnerstag, das Qualifying am Freitag, und der
         Rennstart erfolgt am Samstag um 15 Uhr. Die wahre Herausforderung: die ganze
         Nacht wach zu bleiben, um den Sonnenaufgang über der Strecke am Sonntagmorgen
         zu erleben.

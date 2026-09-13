@@ -11,7 +11,9 @@ export default function Article() {
 
       <h2>Quand ont lieu les 24 Heures Moto 2027 ?</h2>
       <p>
-        La 50ᵉ édition se tient le week-end du <strong>17 et 18 avril 2027</strong>. Les essais
+        La 50ᵉ édition se tient en <strong>avril 2027</strong> sur le circuit Bugatti. L'ACO
+        n'a pas encore publié les dates exactes : l'édition 2026 s'est courue les 18 et 19 avril,
+        et nous mettrons cette page à jour dès l'annonce officielle. Les essais
         commencent le jeudi, les qualifications le vendredi, et le départ de la course est donné
         le samedi à 15h. Le vrai défi : tenir éveillé toute la nuit pour voir le lever de
         soleil sur la piste dimanche matin.
