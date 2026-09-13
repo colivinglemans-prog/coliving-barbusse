@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getExtraDevices, saveExtraDevices, getFullZoneConfig } from "@/lib/heatzy";
 import type { HeatzyMode } from "@/lib/types";
+import { guard } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const body = await request.json();
     const { did, name, zoneId, defaultMode, replaceDid } = body as {

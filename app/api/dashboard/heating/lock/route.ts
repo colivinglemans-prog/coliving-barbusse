@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLockedDevices, saveLockedDevices, setDeviceMode } from "@/lib/heatzy";
+import { guard } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   const locked = [...await getLockedDevices()];
   return NextResponse.json({ lockedDevices: locked });
 }
 
 export async function POST(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const body = await request.json();
     const { deviceId, lock } = body as { deviceId: string; lock: boolean };

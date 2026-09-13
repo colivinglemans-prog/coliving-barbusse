@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules, getSummerMode } from "@/lib/heatzy";
 import { getBookingsWithArchive } from "@/lib/bookings";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
+import { guard } from "@/lib/auth";
 
 function hasActiveReservation(
   bookings: { arrival: string; departure: string }[],
@@ -30,7 +31,10 @@ function getTargetTemp(
   return undefined;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const config = await getFullZoneConfig();
     const allDeviceConfigs = config.zones.flatMap((z) =>

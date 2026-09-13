@@ -6,10 +6,14 @@ import {
   refreshState,
 } from "@/lib/cozytouch";
 import type { CozytouchDHWMode } from "@/lib/types";
+import { guard } from "@/lib/auth";
 
 const VALID_MODES: CozytouchDHWMode[] = ["autoMode", "manualEcoActive", "manualEcoInactive"];
 
 export async function POST(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const body = await request.json();
     const { action } = body;

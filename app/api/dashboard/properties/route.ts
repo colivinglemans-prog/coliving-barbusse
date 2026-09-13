@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getProperties } from "@/lib/beds24";
+import { guard } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const refus = await guard.denyNonAdmin(request);
+  if (refus) return refus;
+
   try {
     const properties = await getProperties();
     return NextResponse.json(properties);

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setDeviceMode, setZoneMode, setAllDevicesMode } from "@/lib/heatzy";
 import type { HeatzyMode } from "@/lib/types";
+import { guard } from "@/lib/auth";
 
 const VALID_MODES: Set<string> = new Set(["cft", "eco", "fro", "stop", "presence"]);
 
 export async function POST(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const body = await request.json();
     const { zoneId, deviceId, mode } = body as {

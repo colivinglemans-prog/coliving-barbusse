@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getWaterHeaterStatus, getDeviceURLs, getRawStates } from "@/lib/cozytouch";
+import { guard } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const status = await getWaterHeaterStatus();
 

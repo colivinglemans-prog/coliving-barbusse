@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listRecentPayments } from "@/lib/stripe";
+import { guard } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
+  const refus = await guard.denyNonAdmin(request);
+  if (refus) return refus;
+
   try {
     const limit = Number(request.nextUrl.searchParams.get("limit") ?? 50);
     const daysBack = Number(request.nextUrl.searchParams.get("daysBack") ?? 90);

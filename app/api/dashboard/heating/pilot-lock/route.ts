@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFullZoneConfig, setDevicePilotLock } from "@/lib/heatzy";
+import { guard } from "@/lib/auth";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function POST(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const body = await request.json();
     const { locked, deviceId } = body as {

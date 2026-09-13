@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAvailability } from "@/lib/beds24";
+import { guard } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
+  const refus = await guard.deny(request, ["admin", "viewer"]);
+  if (refus) return refus;
+
   try {
     const { searchParams } = request.nextUrl;
     const propertyId = searchParams.get("propertyId");
