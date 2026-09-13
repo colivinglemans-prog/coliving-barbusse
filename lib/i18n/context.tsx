@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext } from "react";
 import type { Locale, Dictionary } from "./types";
 import { fr } from "./dictionaries/fr";
 import { en } from "./dictionaries/en";
@@ -13,32 +13,30 @@ const dictionaries: Record<Locale, Dictionary> = { fr, en, it, de, es };
 interface I18nContextValue {
   locale: Locale;
   t: Dictionary;
-  setLocale: (locale: Locale) => void;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+/**
+ * La langue vient du segment d'URL (`/fr/…`, `/de/…`), pas d'un état client : il n'y a donc
+ * pas de `setLocale`, on change de langue en changeant d'URL. C'est ce que faisait déjà le
+ * sélecteur du `Header`, avec un `<Link>` — le `setLocale` qui vivait ici n'avait aucun
+ * appelant, et le cookie `locale` qu'il posait aucun lecteur.
+ *
+ * `<html lang>` est écrit par `app/[locale]/layout.tsx`, qui est le layout **racine** : ce
+ * composant n'a plus à le corriger dans un `useEffect` après l'hydratation. C'est ce qui
+ * corrige le vrai défaut — le HTML servi à Google et aux lecteurs d'écran annonçait `fr`
+ * sur `/de`, `/es` et `/it`, et un `useEffect` ne rattrape ni l'un ni l'autre.
+ */
 export function I18nProvider({
-  initialLocale,
+  locale,
   children,
 }: {
-  initialLocale: Locale;
+  locale: Locale;
   children: React.ReactNode;
 }) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale);
-
-  const setLocale = useCallback((newLocale: Locale) => {
-    setLocaleState(newLocale);
-    document.cookie = `locale=${newLocale};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`;
-    document.documentElement.lang = newLocale;
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
-
   return (
-    <I18nContext.Provider value={{ locale, t: dictionaries[locale], setLocale }}>
+    <I18nContext.Provider value={{ locale, t: dictionaries[locale] }}>
       {children}
     </I18nContext.Provider>
   );

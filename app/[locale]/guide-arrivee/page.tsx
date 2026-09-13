@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import type { Locale } from "@/lib/i18n";
+import { alternatesFor, arrivalGuidePath } from "@/lib/seo";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
 import WifiQRCode from "@/components/guide/WifiQRCode";
 
-const SITE_URL = "https://www.coliving-barbusse.fr";
 const HERO_IMAGE = "/images/house/3-maison-AI.jpg";
 const FEATURED_BLOG_SLUGS = [
   "restos-bars-magasins-le-mans",
@@ -547,23 +547,13 @@ export async function generateMetadata({
   const { locale: rawLocale } = await params;
   const locale = (rawLocale as Lang) in T ? (rawLocale as Lang) : "fr";
   const t = T[locale];
-  const url = `${SITE_URL}/${locale}/guide-arrivee`;
-
   return {
     title: t.titleTag,
     description: t.desc,
+    // Guide remis après réservation : hors index, mais explorable — c'est la condition
+    // pour que ce `noindex` soit lu. Un `Disallow` dans `robots.txt` ferait l'inverse.
     robots: { index: false, follow: true },
-    alternates: {
-      canonical: url,
-      languages: {
-        fr: `${SITE_URL}/fr/guide-arrivee`,
-        en: `${SITE_URL}/en/guide-arrivee`,
-        it: `${SITE_URL}/it/guide-arrivee`,
-        de: `${SITE_URL}/de/guide-arrivee`,
-        es: `${SITE_URL}/es/guide-arrivee`,
-        "x-default": `${SITE_URL}/fr/guide-arrivee`,
-      },
-    },
+    alternates: alternatesFor(locale, arrivalGuidePath),
   };
 }
 

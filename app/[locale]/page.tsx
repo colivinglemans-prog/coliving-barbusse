@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { alternatesFor, homePath, openGraphLocales } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
+import { isLocale } from "@/lib/i18n";
 import PhotoGallery from "@/components/public/PhotoGallery";
 import PropertyHeader from "@/components/public/PropertyHeader";
 import Highlights from "@/components/public/Highlights";
@@ -14,8 +17,6 @@ import AirbnbReviews from "@/components/public/AirbnbReviews";
 import BlogSection from "@/components/public/BlogSection";
 import HouseRules from "@/components/public/HouseRules";
 
-const SITE_URL = "https://www.coliving-barbusse.fr";
-
 const DESCRIPTIONS: Record<string, string> = {
   fr: "Maison de 215 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV. Idéal groupes, événements et séjours d'entreprise. Jusqu'à 20 personnes.",
   en: "215 m² house with 9 twin bedrooms and en-suite bathrooms in Le Mans. Near Bugatti Circuit and TGV station. Ideal for groups, events and corporate stays. Up to 20 guests.",
@@ -24,39 +25,25 @@ const DESCRIPTIONS: Record<string, string> = {
   es: "Casa de 215 m² con 9 habitaciones dobles y baños privados en Le Mans. Cerca del Circuito Bugatti y la estación TGV. Ideal para grupos, eventos y estancias de empresa. Hasta 20 personas.",
 };
 
-const OG_LOCALES: Record<string, string> = {
-  fr: "fr_FR",
-  en: "en_US",
-  it: "it_IT",
-  de: "de_DE",
-  es: "es_ES",
-};
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  // Un segment qui n'est pas une langue servie n'a pas de métadonnées : le layout rend un
+  // 404 juste après. Sans ce garde-fou, `openGraphLocales` lit `LOCALE_META["zz"]` et
+  // `/zz` répond 500 au lieu de 404 — `generateMetadata` s'exécute avant le `notFound`.
+  if (!isLocale(locale)) return {};
   const description = DESCRIPTIONS[locale] ?? DESCRIPTIONS.fr;
 
   return {
     description,
     openGraph: {
-      url: `${SITE_URL}/${locale}`,
-      locale: OG_LOCALES[locale] ?? "fr_FR",
+      url: `${SITE_URL}${homePath(locale)}`,
+      ...openGraphLocales(locale),
     },
-    alternates: {
-      canonical: `${SITE_URL}/${locale}`,
-      languages: {
-        fr: `${SITE_URL}/fr`,
-        en: `${SITE_URL}/en`,
-        it: `${SITE_URL}/it`,
-        de: `${SITE_URL}/de`,
-        es: `${SITE_URL}/es`,
-        "x-default": `${SITE_URL}/fr`,
-      },
-    },
+    alternates: alternatesFor(locale, homePath),
   };
 }
 

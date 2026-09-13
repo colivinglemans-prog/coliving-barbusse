@@ -1,16 +1,18 @@
 import { createDashboardProxy } from "@sejour/socle/lib/proxy";
+import { localeFromAcceptLanguage } from "@sejour/socle/lib/locales";
 import { auth } from "@/lib/auth";
 
 /**
  * Proxy du site — anciennement `middleware.ts`, renommé pour Next 16 où l'ancien nom est
  * déprécié.
  *
- * Trois responsabilités sans rapport entre elles, que Next oblige à loger dans le même
+ * Quatre responsabilités sans rapport entre elles, que Next oblige à loger dans le même
  * fichier. Elles sont ici des **données** passées au socle, plus six tests en ligne répétés :
  *
- * 1. Les anciennes URLs, préfixées par leur langue depuis l'i18n.
- * 2. Le cookie du dashboard, pages **et** routes d'API.
- * 3. Le bornage du rôle `viewer`.
+ * 1. `/` → la langue du visiteur.
+ * 2. Les anciennes URLs, préfixées par leur langue depuis l'i18n.
+ * 3. Le cookie du dashboard, pages **et** routes d'API.
+ * 4. Le bornage du rôle `viewer`.
  *
  * ⚠️ Ce fichier tourne en runtime edge. Il n'importe que `@/lib/auth`, qui ne tire pas
  * `next/headers` — les helpers de cookie sont dans un module à part, réservé aux routes Node.
@@ -18,6 +20,20 @@ import { auth } from "@/lib/auth";
 export const proxy = createDashboardProxy({
   auth,
   restrictedRole: "viewer",
+
+  /**
+   * La racine part vers la langue du visiteur.
+   *
+   * C'était une `app/page.tsx` qui lisait les en-têtes et testait `startsWith` sur le
+   * **premier** tag seulement : un navigateur annonçant `fr;q=0.2, de` partait sur `/fr`,
+   * et un `de-AT` sur `/fr` aussi, faute de couper la région. `localeFromAcceptLanguage`
+   * fait le vrai tri par poids `q=` de la RFC 9110, sur la langue de base.
+   *
+   * Le déplacer ici a un second effet, qui est la raison principale : la racine de `app/`
+   * ne contient plus de page, ce qui permet à `app/[locale]/layout.tsx` d'être un layout
+   * racine et de rendre `<html lang={locale}>`.
+   */
+  localeRedirect: { path: "/", negotiate: localeFromAcceptLanguage },
 
   /**
    * Ce que `viewer` a le droit d'atteindre : le calendrier, le chauffage et le chauffe-eau —
@@ -67,6 +83,7 @@ export const proxy = createDashboardProxy({
 
 export const config = {
   matcher: [
+    "/",
     "/blog/:path*",
     "/chambres/:path*",
     "/reservation/:path*",

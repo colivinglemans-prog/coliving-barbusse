@@ -5,273 +5,173 @@ import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { eventJsonLd, findEventByKey } from "@sejour/socle/lib/events";
 import EventBookingCTA from "@/components/public/EventBookingCTA";
+import { alternatesFor, articleJsonLd, blogPostPath, openGraphLocales } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
+import { isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
-import Article24hDuMans2026 from "@/lib/blog/content/fr/ou-se-loger-24h-du-mans-2026";
-import Article24hMoto from "@/lib/blog/content/fr/24-heures-moto-le-mans";
-import ArticleMotoGP from "@/lib/blog/content/fr/motogp-france-le-mans";
-import ArticleLeMansClassic from "@/lib/blog/content/fr/le-mans-classic";
-import ArticleJardin from "@/lib/blog/content/fr/jardin-securise-le-mans";
-import ArticleGPExplorer from "@/lib/blog/content/fr/gp-explorer-le-mans";
-import ArticleTourisme from "@/lib/blog/content/fr/que-visiter-le-mans-sarthe";
-import ArticleRestos from "@/lib/blog/content/fr/restos-bars-magasins-le-mans";
-import ArticleEntreprises from "@/lib/blog/content/fr/entreprises-proches-le-mans";
-import ArticleHippodrome from "@/lib/blog/content/fr/hippodrome-des-hunaudieres";
-import Article24hRollers from "@/lib/blog/content/fr/24-heures-rollers-le-mans";
-import ArticleSeminaire from "@/lib/blog/content/fr/seminaire-entreprise-le-mans";
-import ArticleSWSKarting from "@/lib/blog/content/fr/sws-karting-finals-le-mans";
-import Article24hCamions from "@/lib/blog/content/fr/24-heures-camions-le-mans";
-import ArticleMondialKarting from "@/lib/blog/content/fr/championnat-monde-karting-kz-le-mans";
+/**
+ * Le contenu de chaque article, chargé à la demande.
+ *
+ * Les imports sont **paresseux**, et c'est tout l'objet de cette table : ce fichier en
+ * portait cent en tête — vingt articles fois cinq langues — pour n'en rendre qu'un seul.
+ * Le bundler ne peut pas deviner lequel, donc les cent partaient dans le graphe de la page.
+ *
+ * Les chemins restent des **littéraux**. Une expression `content/${locale}/${slug}` ferait
+ * perdre au bundler son analyse statique : il ne saurait plus quels modules produire. C'est
+ * la seule raison de la longueur de cette table, et il ne faut pas chercher à l'abréger.
+ */
+type ContentLoader = () => Promise<{ default: React.ComponentType }>;
 
-import ArticleEN24hDuMans2026 from "@/lib/blog/content/en/ou-se-loger-24h-du-mans-2026";
-import ArticleEN24hMoto from "@/lib/blog/content/en/24-heures-moto-le-mans";
-import ArticleENMotoGP from "@/lib/blog/content/en/motogp-france-le-mans";
-import ArticleENLeMansClassic from "@/lib/blog/content/en/le-mans-classic";
-import ArticleENJardin from "@/lib/blog/content/en/jardin-securise-le-mans";
-import ArticleENGPExplorer from "@/lib/blog/content/en/gp-explorer-le-mans";
-import ArticleENTourisme from "@/lib/blog/content/en/que-visiter-le-mans-sarthe";
-import ArticleENRestos from "@/lib/blog/content/en/restos-bars-magasins-le-mans";
-import ArticleENEntreprises from "@/lib/blog/content/en/entreprises-proches-le-mans";
-import ArticleENHippodrome from "@/lib/blog/content/en/hippodrome-des-hunaudieres";
-import ArticleEN24hRollers from "@/lib/blog/content/en/24-heures-rollers-le-mans";
-import ArticleENSeminaire from "@/lib/blog/content/en/seminaire-entreprise-le-mans";
-import ArticleENSWSKarting from "@/lib/blog/content/en/sws-karting-finals-le-mans";
-import ArticleEN24hCamions from "@/lib/blog/content/en/24-heures-camions-le-mans";
-import ArticleENMondialKarting from "@/lib/blog/content/en/championnat-monde-karting-kz-le-mans";
-
-import ArticleIT24hDuMans2026 from "@/lib/blog/content/it/ou-se-loger-24h-du-mans-2026";
-import ArticleIT24hMoto from "@/lib/blog/content/it/24-heures-moto-le-mans";
-import ArticleITMotoGP from "@/lib/blog/content/it/motogp-france-le-mans";
-import ArticleITLeMansClassic from "@/lib/blog/content/it/le-mans-classic";
-import ArticleITJardin from "@/lib/blog/content/it/jardin-securise-le-mans";
-import ArticleITGPExplorer from "@/lib/blog/content/it/gp-explorer-le-mans";
-import ArticleITTourisme from "@/lib/blog/content/it/que-visiter-le-mans-sarthe";
-import ArticleITRestos from "@/lib/blog/content/it/restos-bars-magasins-le-mans";
-import ArticleITEntreprises from "@/lib/blog/content/it/entreprises-proches-le-mans";
-import ArticleITHippodrome from "@/lib/blog/content/it/hippodrome-des-hunaudieres";
-import ArticleIT24hRollers from "@/lib/blog/content/it/24-heures-rollers-le-mans";
-import ArticleITSeminaire from "@/lib/blog/content/it/seminaire-entreprise-le-mans";
-import ArticleITSWSKarting from "@/lib/blog/content/it/sws-karting-finals-le-mans";
-import ArticleIT24hCamions from "@/lib/blog/content/it/24-heures-camions-le-mans";
-import ArticleITMondialKarting from "@/lib/blog/content/it/championnat-monde-karting-kz-le-mans";
-
-import ArticleDE24hDuMans2026 from "@/lib/blog/content/de/ou-se-loger-24h-du-mans-2026";
-import ArticleDE24hMoto from "@/lib/blog/content/de/24-heures-moto-le-mans";
-import ArticleDEMotoGP from "@/lib/blog/content/de/motogp-france-le-mans";
-import ArticleDELeMansClassic from "@/lib/blog/content/de/le-mans-classic";
-import ArticleDEJardin from "@/lib/blog/content/de/jardin-securise-le-mans";
-import ArticleDEGPExplorer from "@/lib/blog/content/de/gp-explorer-le-mans";
-import ArticleDETourisme from "@/lib/blog/content/de/que-visiter-le-mans-sarthe";
-import ArticleDERestos from "@/lib/blog/content/de/restos-bars-magasins-le-mans";
-import ArticleDEEntreprises from "@/lib/blog/content/de/entreprises-proches-le-mans";
-import ArticleDEHippodrome from "@/lib/blog/content/de/hippodrome-des-hunaudieres";
-import ArticleDE24hRollers from "@/lib/blog/content/de/24-heures-rollers-le-mans";
-import ArticleDESeminaire from "@/lib/blog/content/de/seminaire-entreprise-le-mans";
-import ArticleDESWSKarting from "@/lib/blog/content/de/sws-karting-finals-le-mans";
-import ArticleDE24hCamions from "@/lib/blog/content/de/24-heures-camions-le-mans";
-import ArticleDEMondialKarting from "@/lib/blog/content/de/championnat-monde-karting-kz-le-mans";
-
-import ArticleES24hDuMans2026 from "@/lib/blog/content/es/ou-se-loger-24h-du-mans-2026";
-import ArticleES24hMoto from "@/lib/blog/content/es/24-heures-moto-le-mans";
-import ArticleESMotoGP from "@/lib/blog/content/es/motogp-france-le-mans";
-import ArticleESLeMansClassic from "@/lib/blog/content/es/le-mans-classic";
-import ArticleESJardin from "@/lib/blog/content/es/jardin-securise-le-mans";
-import ArticleESGPExplorer from "@/lib/blog/content/es/gp-explorer-le-mans";
-import ArticleESTourisme from "@/lib/blog/content/es/que-visiter-le-mans-sarthe";
-import ArticleESRestos from "@/lib/blog/content/es/restos-bars-magasins-le-mans";
-import ArticleESEntreprises from "@/lib/blog/content/es/entreprises-proches-le-mans";
-import ArticleESHippodrome from "@/lib/blog/content/es/hippodrome-des-hunaudieres";
-import ArticleES24hRollers from "@/lib/blog/content/es/24-heures-rollers-le-mans";
-import ArticleESSeminaire from "@/lib/blog/content/es/seminaire-entreprise-le-mans";
-import ArticleESSWSKarting from "@/lib/blog/content/es/sws-karting-finals-le-mans";
-import ArticleES24hCamions from "@/lib/blog/content/es/24-heures-camions-le-mans";
-import ArticleESMondialKarting from "@/lib/blog/content/es/championnat-monde-karting-kz-le-mans";
-
-const SITE_URL = "https://www.coliving-barbusse.fr";
-
-// Editions 2027 (les editions 2026 restent en ligne comme archives)
-import Article24hMoto2027 from "@/lib/blog/content/fr/24-heures-moto-le-mans-2027";
-import ArticleLeMansClassic2027 from "@/lib/blog/content/fr/le-mans-classic-2027";
-import Article24hDuMans2027 from "@/lib/blog/content/fr/ou-se-loger-24h-du-mans-2027";
-import ArticleMotoGP2027 from "@/lib/blog/content/fr/motogp-france-le-mans-2027";
-
-import ArticleEN24hMoto2027 from "@/lib/blog/content/en/24-heures-moto-le-mans-2027";
-import ArticleENLeMansClassic2027 from "@/lib/blog/content/en/le-mans-classic-2027";
-import ArticleEN24hDuMans2027 from "@/lib/blog/content/en/ou-se-loger-24h-du-mans-2027";
-import ArticleENMotoGP2027 from "@/lib/blog/content/en/motogp-france-le-mans-2027";
-
-import ArticleIT24hMoto2027 from "@/lib/blog/content/it/24-heures-moto-le-mans-2027";
-import ArticleITLeMansClassic2027 from "@/lib/blog/content/it/le-mans-classic-2027";
-import ArticleIT24hDuMans2027 from "@/lib/blog/content/it/ou-se-loger-24h-du-mans-2027";
-import ArticleITMotoGP2027 from "@/lib/blog/content/it/motogp-france-le-mans-2027";
-
-import ArticleDE24hMoto2027 from "@/lib/blog/content/de/24-heures-moto-le-mans-2027";
-import ArticleDELeMansClassic2027 from "@/lib/blog/content/de/le-mans-classic-2027";
-import ArticleDE24hDuMans2027 from "@/lib/blog/content/de/ou-se-loger-24h-du-mans-2027";
-import ArticleDEMotoGP2027 from "@/lib/blog/content/de/motogp-france-le-mans-2027";
-
-import ArticleES24hMoto2027 from "@/lib/blog/content/es/24-heures-moto-le-mans-2027";
-import ArticleESLeMansClassic2027 from "@/lib/blog/content/es/le-mans-classic-2027";
-import ArticleES24hDuMans2027 from "@/lib/blog/content/es/ou-se-loger-24h-du-mans-2027";
-import ArticleESMotoGP2027 from "@/lib/blog/content/es/motogp-france-le-mans-2027";
-
-import ArticlePorsche from "@/lib/blog/content/fr/porsche-sprint-challenge-le-mans";
-import ArticleENPorsche from "@/lib/blog/content/en/porsche-sprint-challenge-le-mans";
-import ArticleITPorsche from "@/lib/blog/content/it/porsche-sprint-challenge-le-mans";
-import ArticleDEPorsche from "@/lib/blog/content/de/porsche-sprint-challenge-le-mans";
-import ArticleESPorsche from "@/lib/blog/content/es/porsche-sprint-challenge-le-mans";
-
-const CONTENT: Record<string, Record<Locale, React.ComponentType>> = {
+const CONTENT: Record<string, Record<Locale, ContentLoader>> = {
   "24-heures-moto-le-mans-2027": {
-    fr: Article24hMoto2027,
-    en: ArticleEN24hMoto2027,
-    it: ArticleIT24hMoto2027,
-    de: ArticleDE24hMoto2027,
-    es: ArticleES24hMoto2027,
+    fr: () => import("@/lib/blog/content/fr/24-heures-moto-le-mans-2027"),
+    en: () => import("@/lib/blog/content/en/24-heures-moto-le-mans-2027"),
+    it: () => import("@/lib/blog/content/it/24-heures-moto-le-mans-2027"),
+    de: () => import("@/lib/blog/content/de/24-heures-moto-le-mans-2027"),
+    es: () => import("@/lib/blog/content/es/24-heures-moto-le-mans-2027"),
   },
   "le-mans-classic-2027": {
-    fr: ArticleLeMansClassic2027,
-    en: ArticleENLeMansClassic2027,
-    it: ArticleITLeMansClassic2027,
-    de: ArticleDELeMansClassic2027,
-    es: ArticleESLeMansClassic2027,
+    fr: () => import("@/lib/blog/content/fr/le-mans-classic-2027"),
+    en: () => import("@/lib/blog/content/en/le-mans-classic-2027"),
+    it: () => import("@/lib/blog/content/it/le-mans-classic-2027"),
+    de: () => import("@/lib/blog/content/de/le-mans-classic-2027"),
+    es: () => import("@/lib/blog/content/es/le-mans-classic-2027"),
   },
   "ou-se-loger-24h-du-mans-2027": {
-    fr: Article24hDuMans2027,
-    en: ArticleEN24hDuMans2027,
-    it: ArticleIT24hDuMans2027,
-    de: ArticleDE24hDuMans2027,
-    es: ArticleES24hDuMans2027,
+    fr: () => import("@/lib/blog/content/fr/ou-se-loger-24h-du-mans-2027"),
+    en: () => import("@/lib/blog/content/en/ou-se-loger-24h-du-mans-2027"),
+    it: () => import("@/lib/blog/content/it/ou-se-loger-24h-du-mans-2027"),
+    de: () => import("@/lib/blog/content/de/ou-se-loger-24h-du-mans-2027"),
+    es: () => import("@/lib/blog/content/es/ou-se-loger-24h-du-mans-2027"),
   },
   "motogp-france-le-mans-2027": {
-    fr: ArticleMotoGP2027,
-    en: ArticleENMotoGP2027,
-    it: ArticleITMotoGP2027,
-    de: ArticleDEMotoGP2027,
-    es: ArticleESMotoGP2027,
+    fr: () => import("@/lib/blog/content/fr/motogp-france-le-mans-2027"),
+    en: () => import("@/lib/blog/content/en/motogp-france-le-mans-2027"),
+    it: () => import("@/lib/blog/content/it/motogp-france-le-mans-2027"),
+    de: () => import("@/lib/blog/content/de/motogp-france-le-mans-2027"),
+    es: () => import("@/lib/blog/content/es/motogp-france-le-mans-2027"),
   },
   "porsche-sprint-challenge-le-mans": {
-    fr: ArticlePorsche,
-    en: ArticleENPorsche,
-    it: ArticleITPorsche,
-    de: ArticleDEPorsche,
-    es: ArticleESPorsche,
+    fr: () => import("@/lib/blog/content/fr/porsche-sprint-challenge-le-mans"),
+    en: () => import("@/lib/blog/content/en/porsche-sprint-challenge-le-mans"),
+    it: () => import("@/lib/blog/content/it/porsche-sprint-challenge-le-mans"),
+    de: () => import("@/lib/blog/content/de/porsche-sprint-challenge-le-mans"),
+    es: () => import("@/lib/blog/content/es/porsche-sprint-challenge-le-mans"),
   },
   "jardin-securise-le-mans": {
-    fr: ArticleJardin,
-    en: ArticleENJardin,
-    it: ArticleITJardin,
-    de: ArticleDEJardin,
-    es: ArticleESJardin,
+    fr: () => import("@/lib/blog/content/fr/jardin-securise-le-mans"),
+    en: () => import("@/lib/blog/content/en/jardin-securise-le-mans"),
+    it: () => import("@/lib/blog/content/it/jardin-securise-le-mans"),
+    de: () => import("@/lib/blog/content/de/jardin-securise-le-mans"),
+    es: () => import("@/lib/blog/content/es/jardin-securise-le-mans"),
   },
   "ou-se-loger-24h-du-mans-2026": {
-    fr: Article24hDuMans2026,
-    en: ArticleEN24hDuMans2026,
-    it: ArticleIT24hDuMans2026,
-    de: ArticleDE24hDuMans2026,
-    es: ArticleES24hDuMans2026,
+    fr: () => import("@/lib/blog/content/fr/ou-se-loger-24h-du-mans-2026"),
+    en: () => import("@/lib/blog/content/en/ou-se-loger-24h-du-mans-2026"),
+    it: () => import("@/lib/blog/content/it/ou-se-loger-24h-du-mans-2026"),
+    de: () => import("@/lib/blog/content/de/ou-se-loger-24h-du-mans-2026"),
+    es: () => import("@/lib/blog/content/es/ou-se-loger-24h-du-mans-2026"),
   },
   "24-heures-moto-le-mans": {
-    fr: Article24hMoto,
-    en: ArticleEN24hMoto,
-    it: ArticleIT24hMoto,
-    de: ArticleDE24hMoto,
-    es: ArticleES24hMoto,
+    fr: () => import("@/lib/blog/content/fr/24-heures-moto-le-mans"),
+    en: () => import("@/lib/blog/content/en/24-heures-moto-le-mans"),
+    it: () => import("@/lib/blog/content/it/24-heures-moto-le-mans"),
+    de: () => import("@/lib/blog/content/de/24-heures-moto-le-mans"),
+    es: () => import("@/lib/blog/content/es/24-heures-moto-le-mans"),
   },
   "motogp-france-le-mans": {
-    fr: ArticleMotoGP,
-    en: ArticleENMotoGP,
-    it: ArticleITMotoGP,
-    de: ArticleDEMotoGP,
-    es: ArticleESMotoGP,
+    fr: () => import("@/lib/blog/content/fr/motogp-france-le-mans"),
+    en: () => import("@/lib/blog/content/en/motogp-france-le-mans"),
+    it: () => import("@/lib/blog/content/it/motogp-france-le-mans"),
+    de: () => import("@/lib/blog/content/de/motogp-france-le-mans"),
+    es: () => import("@/lib/blog/content/es/motogp-france-le-mans"),
   },
   "le-mans-classic": {
-    fr: ArticleLeMansClassic,
-    en: ArticleENLeMansClassic,
-    it: ArticleITLeMansClassic,
-    de: ArticleDELeMansClassic,
-    es: ArticleESLeMansClassic,
+    fr: () => import("@/lib/blog/content/fr/le-mans-classic"),
+    en: () => import("@/lib/blog/content/en/le-mans-classic"),
+    it: () => import("@/lib/blog/content/it/le-mans-classic"),
+    de: () => import("@/lib/blog/content/de/le-mans-classic"),
+    es: () => import("@/lib/blog/content/es/le-mans-classic"),
   },
   "gp-explorer-le-mans": {
-    fr: ArticleGPExplorer,
-    en: ArticleENGPExplorer,
-    it: ArticleITGPExplorer,
-    de: ArticleDEGPExplorer,
-    es: ArticleESGPExplorer,
+    fr: () => import("@/lib/blog/content/fr/gp-explorer-le-mans"),
+    en: () => import("@/lib/blog/content/en/gp-explorer-le-mans"),
+    it: () => import("@/lib/blog/content/it/gp-explorer-le-mans"),
+    de: () => import("@/lib/blog/content/de/gp-explorer-le-mans"),
+    es: () => import("@/lib/blog/content/es/gp-explorer-le-mans"),
   },
   "que-visiter-le-mans-sarthe": {
-    fr: ArticleTourisme,
-    en: ArticleENTourisme,
-    it: ArticleITTourisme,
-    de: ArticleDETourisme,
-    es: ArticleESTourisme,
+    fr: () => import("@/lib/blog/content/fr/que-visiter-le-mans-sarthe"),
+    en: () => import("@/lib/blog/content/en/que-visiter-le-mans-sarthe"),
+    it: () => import("@/lib/blog/content/it/que-visiter-le-mans-sarthe"),
+    de: () => import("@/lib/blog/content/de/que-visiter-le-mans-sarthe"),
+    es: () => import("@/lib/blog/content/es/que-visiter-le-mans-sarthe"),
   },
   "restos-bars-magasins-le-mans": {
-    fr: ArticleRestos,
-    en: ArticleENRestos,
-    it: ArticleITRestos,
-    de: ArticleDERestos,
-    es: ArticleESRestos,
+    fr: () => import("@/lib/blog/content/fr/restos-bars-magasins-le-mans"),
+    en: () => import("@/lib/blog/content/en/restos-bars-magasins-le-mans"),
+    it: () => import("@/lib/blog/content/it/restos-bars-magasins-le-mans"),
+    de: () => import("@/lib/blog/content/de/restos-bars-magasins-le-mans"),
+    es: () => import("@/lib/blog/content/es/restos-bars-magasins-le-mans"),
   },
   "entreprises-proches-le-mans": {
-    fr: ArticleEntreprises,
-    en: ArticleENEntreprises,
-    it: ArticleITEntreprises,
-    de: ArticleDEEntreprises,
-    es: ArticleESEntreprises,
+    fr: () => import("@/lib/blog/content/fr/entreprises-proches-le-mans"),
+    en: () => import("@/lib/blog/content/en/entreprises-proches-le-mans"),
+    it: () => import("@/lib/blog/content/it/entreprises-proches-le-mans"),
+    de: () => import("@/lib/blog/content/de/entreprises-proches-le-mans"),
+    es: () => import("@/lib/blog/content/es/entreprises-proches-le-mans"),
   },
   "hippodrome-des-hunaudieres": {
-    fr: ArticleHippodrome,
-    en: ArticleENHippodrome,
-    it: ArticleITHippodrome,
-    de: ArticleDEHippodrome,
-    es: ArticleESHippodrome,
+    fr: () => import("@/lib/blog/content/fr/hippodrome-des-hunaudieres"),
+    en: () => import("@/lib/blog/content/en/hippodrome-des-hunaudieres"),
+    it: () => import("@/lib/blog/content/it/hippodrome-des-hunaudieres"),
+    de: () => import("@/lib/blog/content/de/hippodrome-des-hunaudieres"),
+    es: () => import("@/lib/blog/content/es/hippodrome-des-hunaudieres"),
   },
   "24-heures-rollers-le-mans": {
-    fr: Article24hRollers,
-    en: ArticleEN24hRollers,
-    it: ArticleIT24hRollers,
-    de: ArticleDE24hRollers,
-    es: ArticleES24hRollers,
+    fr: () => import("@/lib/blog/content/fr/24-heures-rollers-le-mans"),
+    en: () => import("@/lib/blog/content/en/24-heures-rollers-le-mans"),
+    it: () => import("@/lib/blog/content/it/24-heures-rollers-le-mans"),
+    de: () => import("@/lib/blog/content/de/24-heures-rollers-le-mans"),
+    es: () => import("@/lib/blog/content/es/24-heures-rollers-le-mans"),
   },
   "seminaire-entreprise-le-mans": {
-    fr: ArticleSeminaire,
-    en: ArticleENSeminaire,
-    it: ArticleITSeminaire,
-    de: ArticleDESeminaire,
-    es: ArticleESSeminaire,
+    fr: () => import("@/lib/blog/content/fr/seminaire-entreprise-le-mans"),
+    en: () => import("@/lib/blog/content/en/seminaire-entreprise-le-mans"),
+    it: () => import("@/lib/blog/content/it/seminaire-entreprise-le-mans"),
+    de: () => import("@/lib/blog/content/de/seminaire-entreprise-le-mans"),
+    es: () => import("@/lib/blog/content/es/seminaire-entreprise-le-mans"),
   },
   "sws-karting-finals-le-mans": {
-    fr: ArticleSWSKarting,
-    en: ArticleENSWSKarting,
-    it: ArticleITSWSKarting,
-    de: ArticleDESWSKarting,
-    es: ArticleESSWSKarting,
+    fr: () => import("@/lib/blog/content/fr/sws-karting-finals-le-mans"),
+    en: () => import("@/lib/blog/content/en/sws-karting-finals-le-mans"),
+    it: () => import("@/lib/blog/content/it/sws-karting-finals-le-mans"),
+    de: () => import("@/lib/blog/content/de/sws-karting-finals-le-mans"),
+    es: () => import("@/lib/blog/content/es/sws-karting-finals-le-mans"),
   },
   "24-heures-camions-le-mans": {
-    fr: Article24hCamions,
-    en: ArticleEN24hCamions,
-    it: ArticleIT24hCamions,
-    de: ArticleDE24hCamions,
-    es: ArticleES24hCamions,
+    fr: () => import("@/lib/blog/content/fr/24-heures-camions-le-mans"),
+    en: () => import("@/lib/blog/content/en/24-heures-camions-le-mans"),
+    it: () => import("@/lib/blog/content/it/24-heures-camions-le-mans"),
+    de: () => import("@/lib/blog/content/de/24-heures-camions-le-mans"),
+    es: () => import("@/lib/blog/content/es/24-heures-camions-le-mans"),
   },
   "championnat-monde-karting-kz-le-mans": {
-    fr: ArticleMondialKarting,
-    en: ArticleENMondialKarting,
-    it: ArticleITMondialKarting,
-    de: ArticleDEMondialKarting,
-    es: ArticleESMondialKarting,
+    fr: () => import("@/lib/blog/content/fr/championnat-monde-karting-kz-le-mans"),
+    en: () => import("@/lib/blog/content/en/championnat-monde-karting-kz-le-mans"),
+    it: () => import("@/lib/blog/content/it/championnat-monde-karting-kz-le-mans"),
+    de: () => import("@/lib/blog/content/de/championnat-monde-karting-kz-le-mans"),
+    es: () => import("@/lib/blog/content/es/championnat-monde-karting-kz-le-mans"),
   },
 };
 
-const OG_LOCALES: Record<Locale, string> = {
-  fr: "fr_FR",
-  en: "en_US",
-  it: "it_IT",
-  de: "de_DE",
-  es: "es_ES",
-};
-
+/*
+ * `DATE_LOCALE` reste ici, et n'est pas remplacé par le `bcp47` de `LOCALE_META`. Ce n'est
+ * pas la même chose : `LOCALE_META.bcp47` vise `en-GB`, ce tableau `en-US`, et c'est un
+ * **format de date affiché** — « 5 January 2026 » contre « January 5, 2026 ». Le changer
+ * modifierait le texte des articles, ce qui n'est pas l'objet.
+ */
 const DATE_LOCALE: Record<Locale, string> = {
   fr: "fr-FR",
   en: "en-US",
@@ -334,13 +234,14 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { locale: rawLocale, slug } = await params;
-  const locale = rawLocale as Locale;
+  const { locale, slug } = await params;
+  if (!isLocale(locale)) return {};
   const post = getPostBySlug(slug);
   if (!post) return { title: "Article introuvable" };
 
   const loc = getLocalizedPost(post, locale);
-  const url = `${SITE_URL}/${locale}/blog/${post.slug}`;
+  const pathFor = blogPostPath(post.slug);
+  const url = `${SITE_URL}${pathFor(locale)}`;
   const image = `${SITE_URL}${post.image}`;
 
   return {
@@ -350,17 +251,7 @@ export async function generateMetadata({
     // Une edition passee remplacee par la suivante ne doit plus concurrencer
     // celle-ci dans l'index : on la desindexe tout en gardant ses liens suivis.
     ...(post.supersededBy ? { robots: { index: false, follow: true } } : {}),
-    alternates: {
-      canonical: url,
-      languages: {
-        fr: `${SITE_URL}/fr/blog/${post.slug}`,
-        en: `${SITE_URL}/en/blog/${post.slug}`,
-        it: `${SITE_URL}/it/blog/${post.slug}`,
-        de: `${SITE_URL}/de/blog/${post.slug}`,
-        es: `${SITE_URL}/es/blog/${post.slug}`,
-        "x-default": `${SITE_URL}/fr/blog/${post.slug}`,
-      },
-    },
+    alternates: alternatesFor(locale, pathFor),
     openGraph: {
       title: loc.title,
       description: loc.description,
@@ -368,7 +259,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.date,
       images: [{ url: image, width: 1200, height: 630, alt: loc.title }],
-      locale: OG_LOCALES[locale] ?? "fr_FR",
+      ...openGraphLocales(locale),
     },
     twitter: {
       card: "summary_large_image",
@@ -390,30 +281,18 @@ export default async function BlogPost({
   if (!post) notFound();
 
   const loc = getLocalizedPost(post, locale);
-  const Content = CONTENT[slug]?.[locale];
-  if (!Content) notFound();
+  const loader = CONTENT[slug]?.[locale];
+  if (!loader) notFound();
+  const { default: Content } = await loader();
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: loc.title,
+  const jsonLd = articleJsonLd({
+    locale,
+    pathFor: blogPostPath(post.slug),
+    title: loc.title,
     description: loc.description,
-    image: `${SITE_URL}${post.image}`,
-    datePublished: post.date,
-    dateModified: post.date,
-    author: {
-      "@type": "Organization",
-      name: "Coliving Barbusse",
-      url: SITE_URL,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Coliving Barbusse",
-      url: SITE_URL,
-    },
-    mainEntityOfPage: `${SITE_URL}/${locale}/blog/${post.slug}`,
-    inLanguage: locale,
-  };
+    imageUrl: `${SITE_URL}${post.image}`,
+    date: post.date,
+  });
 
   const dateLocale = DATE_LOCALE[locale] ?? "fr-FR";
   const backLabel = BACK_LABEL[locale] ?? BACK_LABEL.fr;

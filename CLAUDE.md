@@ -31,9 +31,10 @@ npx vercel --prod # Déployer en production
 
 ```
 app/
-  page.tsx            # Redirige / vers /fr /en /it /de ou /es selon Accept-Language
+  # Pas de layout.tsx ni de page.tsx à la racine : deux layouts racines (voir i18n).
+  # `/` est négocié par proxy.ts (localeRedirect).
   [locale]/           # Site vitrine 5 langues (/fr/*, /en/*, /it/*, /de/*, /es/*)
-    layout.tsx        # Wrap I18nProvider avec locale depuis params (SUPPORTED = fr/en/it/de/es)
+    layout.tsx        # Layout RACINE du site : <html lang={locale}>, I18nProvider, metadata
     page.tsx          # Homepage (metadata/JSON-LD localisés, inclut ReservationCalendar)
     blog/
     chambres/         # Suites + ReservationCalendar
@@ -41,7 +42,9 @@ app/
     seminaires/
     # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via proxy.ts (5 locales).
     # Le calendrier de dispo est sur la homepage (#disponibilite) et /chambres.
-  (dashboard)/        # Dashboard privé (stats, calendrier, chauffage) — hors [locale]
+  (dashboard)/
+    layout.tsx        # Second layout RACINE : <html lang="fr">, noindex
+    dashboard/        # Dashboard privé (stats, calendrier, chauffage) — hors [locale]
   api/
     auth/             # Login, logout, me
     availability/     # Disponibilité Beds24 (public)
@@ -147,15 +150,24 @@ factures, taxe de séjour et fiscalité n'ont pas été normalisés : ils relèv
 
 ## i18n (5 langues : fr / en / it / de / es)
 
-- `Locale` type : `"fr" | "en" | "it" | "de" | "es"` ([lib/i18n/types.ts](lib/i18n/types.ts))
-- Dictionnaires dans `lib/i18n/dictionaries/{fr,en,it,de,es}.ts` — structure typée par `Dictionary`. Toute nouvelle clé doit être ajoutée aux 5 dicos.
-- Layout `app/[locale]/layout.tsx` valide la locale contre `SUPPORTED = ["fr", "en", "it", "de", "es"]`.
-- Root `app/page.tsx` redirige `/` vers la locale détectée via `Accept-Language` (fallback `fr`).
-- Header (`components/Header.tsx`) : dropdown 5 langues + swap pathname `/{old}/...` → `/{new}/...`.
-- Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 5 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`.
+- `Locale`, `LOCALES`, `DEFAULT_LOCALE`, `LOCALE_META`, `isLocale`, `localeFromAcceptLanguage` viennent de **`@sejour/socle/lib/locales`** et sont ré-exportés par `lib/i18n`. Ne plus redéclarer la liste des langues nulle part — c'est ce qui avait laissé `/chambres` annoncer quatre `hreflang` sur cinq.
+- Dictionnaires dans `lib/i18n/dictionaries/{fr,en,it,de,es}.ts` — structure typée par `Dictionary`. Toute nouvelle clé doit être ajoutée aux 5 dicos. Les dictionnaires **restent ici**, le socle ne prend jamais de contenu.
+- **`app/[locale]/layout.tsx` est le layout racine** : il rend `<html lang={locale}>` et valide la locale avec `isLocale`. `app/(dashboard)/layout.tsx` est le second layout racine (`lang="fr"`, `noindex`). Il n'y a plus d'`app/layout.tsx` — en ajouter un casserait le `lang` des cinq langues.
+- `/` est négocié par `proxy.ts` (`localeRedirect` + `localeFromAcceptLanguage`, vrai tri par poids `q=` conforme RFC 9110). Il n'y a plus d'`app/page.tsx`.
+- Header (`components/Header.tsx`) : dropdown 5 langues (libellés depuis `LOCALE_META[l].short`) + swap pathname `/{old}/...` → `/{new}/...`.
+- `I18nProvider` n'a **pas** de `setLocale` : on change de langue en changeant d'URL. Ne pas réintroduire de cookie de langue ni de `document.documentElement.lang`.
+- Blog : `BLOG_POSTS.locales` typé `Record<Locale, LocalizedPost>` — chaque post doit avoir les 5 metadata. Le composant article est résolu via `CONTENT[slug][locale]` dans `app/[locale]/blog/[slug]/page.tsx`, où les entrées sont des **imports paresseux** (`() => import(...)`). Les chemins doivent rester des littéraux : une expression `content/${locale}/${slug}` ferait perdre au bundler son analyse statique.
 - Pages avec T object local (seminaires, guide-arrivee, chambres) : maintenir les 5 entrées dans le `Record<Locale, ...>`.
 - **Liens vers Beds24** : l'URL `booking2.php` doit porter `&lang=${locale}` pour que la page de paiement ET les Auto Actions soient dans la bonne langue. Les codes `Locale` (fr/en/it/de/es) sont déjà au format ISO 639-1 attendu par Beds24, pas de mapping nécessaire. Voir [components/public/ReservationCalendar.tsx](components/public/ReservationCalendar.tsx). Prérequis Beds24 : langues activées sur la booking page (Settings → Properties → Booking Page → Languages).
-- Quand on ajoute une 6ᵉ locale : étendre `Locale`, créer le dico, étendre `SUPPORTED` + `LOCALES` Header + `generateStaticParams` slug, ajouter au root redirect, créer les 20 articles de blog + traduire `BLOG_POSTS.locales` + tous les T objects + `PROPERTY_INFO.checkIn/checkOut` + middleware regex `/reservation`. Toutes les `alternates.languages` (homepage, blog index, slug, chambres, seminaires, guide-arrivee) doivent inclure la nouvelle locale. `app/sitemap.ts` a sa propre liste `locales` (5 langues + `x-default` sur le FR via le helper `languagesFor`) : l'étendre aussi, sinon les URLs de la nouvelle locale ne sont pas soumises à Google.
+- Quand on ajoute une 6ᵉ locale : elle se déclare **dans le socle** (`lib/locales.ts` : `Locale`, `LOCALES`, `LOCALE_META`), et tout ce qui en dérive suit seul — `generateStaticParams`, les `hreflang` des six pages, le sitemap, la négociation de `/`. Reste à faire ici, et seulement ici : créer le dictionnaire, traduire tous les objets `T` locaux (seminaires, guide-arrivee, chambres), `PROPERTY_INFO.checkIn/checkOut`, les 20 articles de blog et leurs `BLOG_POSTS.locales`, et étendre la regex `/reservation` du `proxy.ts`.
+
+## SEO
+
+- `lib/seo.ts` compose **`@sejour/socle/lib/seo`** avec l'URL et le nom du site, et ne déclare plus que les chemins : `homePath`, `roomsPath`, `seminarsPath`, `arrivalGuidePath`, `blogPath`, `blogPostPath`.
+- Toute page déclare ses `alternates` avec `alternatesFor(locale, unPathFor)` — **jamais** de liste `languages` écrite à la main.
+- `app/sitemap.ts` construit ses `hreflang` avec le **même** `hreflangMap` que le `<head>`. Il conserve deux règles métier propres au site : le filtre `!post.supersededBy`, et pas de `lastModified` sur les pages statiques.
+- `openGraph` : la fusion de Next est **en surface**. Une page qui déclare un bloc `openGraph` remplace celui du layout et perd `og:image` / `og:site_name` — c'est le cas de l'accueil, des séminaires et des articles. Le layout porte `openGraphLocales(locale)` pour les autres.
+- `app/robots.ts` ne bloque que `/dashboard/` et `/api/dashboard/`. **Ne pas y remettre `/api/`** : Googlebot exécute le JS du calendrier et le photographierait vide.
 
 ## Données externes
 

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
+import { alternatesFor, blogPath } from "@/lib/seo";
+import { isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
-
-const SITE_URL = "https://www.coliving-barbusse.fr";
 
 const DESCRIPTIONS: Record<Locale, string> = {
   fr: "Conseils et guides pratiques pour séjourner au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.",
@@ -42,25 +42,15 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  const { locale: rawLocale } = await params;
-  const locale = rawLocale as Locale;
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
   const title = "Blog — Coliving Barbusse Le Mans";
   const description = DESCRIPTIONS[locale] ?? DESCRIPTIONS.fr;
 
   return {
     title,
     description,
-    alternates: {
-      canonical: `${SITE_URL}/${locale}/blog`,
-      languages: {
-        fr: `${SITE_URL}/fr/blog`,
-        en: `${SITE_URL}/en/blog`,
-        it: `${SITE_URL}/it/blog`,
-        de: `${SITE_URL}/de/blog`,
-        es: `${SITE_URL}/es/blog`,
-        "x-default": `${SITE_URL}/fr/blog`,
-      },
-    },
+    alternates: alternatesFor(locale, blogPath),
   };
 }
 

@@ -1,5 +1,17 @@
 import type { CalendarLabels } from "@sejour/socle/components/ReservationCalendar";
-export type Locale = "fr" | "en" | "it" | "de" | "es";
+import type { Locale } from "@sejour/socle/lib/locales";
+
+/**
+ * `Locale` est **déclaré au socle** (`@sejour/socle/lib/locales`) et seulement ré-exporté
+ * ici, pour que les appelants continuent d'écrire `@/lib/i18n`.
+ *
+ * Il l'était auparavant en double : une union des cinq codes ici, une autre dans le
+ * `SUPPORTED` du layout, une troisième dans le `locales` du sitemap — que le sitemap
+ * commentait d'ailleurs d'un « doit rester aligné sur… ». Un commentaire n'aligne rien.
+ *
+ * Le `Dictionary` ci-dessous, lui, ne monte pas : c'est une traduction, donc une valeur.
+ */
+export type { Locale };
 
 export interface Dictionary {
   header: {

@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import SleepingArrangement from "@/components/public/SleepingArrangement";
 import Amenities from "@/components/public/Amenities";
 import ReservationCalendar from "@/components/public/ReservationCalendar";
+import { alternatesFor, roomsPath } from "@/lib/seo";
 import type { Locale } from "@/lib/i18n";
-
-const SITE_URL = "https://www.coliving-barbusse.fr";
 
 const T: Record<Locale, { title: string; sub: string; metaTitle: string; metaDesc: string }> = {
   fr: {
@@ -51,16 +50,12 @@ export async function generateMetadata({
   return {
     title: t.metaTitle,
     description: t.metaDesc,
-    alternates: {
-      canonical: `${SITE_URL}/${locale}/chambres`,
-      languages: {
-        fr: `${SITE_URL}/fr/chambres`,
-        en: `${SITE_URL}/en/chambres`,
-        it: `${SITE_URL}/it/chambres`,
-        de: `${SITE_URL}/de/chambres`,
-        "x-default": `${SITE_URL}/fr/chambres`,
-      },
-    },
+    // La liste écrite à la main qui était ici déclarait quatre langues sur les cinq
+    // servies : `/es/chambres` existait, se rendait, et n'était annoncée nulle part.
+    // Pas de bloc `openGraph` : celui du layout, désormais construit par langue, couvre
+    // cette page. En redéclarer un ici le **remplacerait** — la fusion de Next est en
+    // surface — et la page perdrait son `og:image` et son `og:site_name`.
+    alternates: alternatesFor(locale, roomsPath),
   };
 }
 

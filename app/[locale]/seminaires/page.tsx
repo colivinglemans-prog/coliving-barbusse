@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { alternatesFor, openGraphLocales, seminarsPath } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 import type { Locale } from "@/lib/i18n";
 
-const SITE_URL = "https://www.coliving-barbusse.fr";
 const WHATSAPP = "https://wa.me/33620921005";
 const EMAIL = "contact@coliving-barbusse.fr";
 
@@ -210,35 +211,17 @@ export async function generateMetadata({
   const { locale: rawLocale } = await params;
   const locale = (rawLocale as Lang) in T ? (rawLocale as Lang) : "fr";
   const t = T[locale];
-  const url = `${SITE_URL}/${locale}/seminaires`;
-
-  const ogLocaleMap: Record<Lang, string> = {
-    fr: "fr_FR",
-    en: "en_US",
-    it: "it_IT",
-    de: "de_DE",
-    es: "es_ES",
-  };
+  const url = `${SITE_URL}${seminarsPath(locale)}`;
 
   return {
     title: t.titleTag,
     description: t.desc,
-    alternates: {
-      canonical: url,
-      languages: {
-        fr: `${SITE_URL}/fr/seminaires`,
-        en: `${SITE_URL}/en/seminaires`,
-        it: `${SITE_URL}/it/seminaires`,
-        de: `${SITE_URL}/de/seminaires`,
-        es: `${SITE_URL}/es/seminaires`,
-        "x-default": `${SITE_URL}/fr/seminaires`,
-      },
-    },
+    alternates: alternatesFor(locale, seminarsPath),
     openGraph: {
       title: t.titleTag,
       description: t.desc,
       url,
-      locale: ogLocaleMap[locale],
+      ...openGraphLocales(locale),
       type: "website",
     },
   };
