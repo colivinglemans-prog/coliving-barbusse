@@ -1,501 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
 import { guard } from "@/lib/auth";
-import { getProperties, getDailyPrices } from "@/lib/beds24";
+import { toBooking } from "@/lib/beds24";
 import { getStays } from "@/lib/bookings";
-import { LE_MANS_EVENTS } from "@/lib/events";
+import { archiveOrigin, withArchive } from "@/lib/bookings-archive";
+import { LE_MANS_EVENTS, shortEventLabel } from "@/lib/events";
 import { findEventForStay } from "@sejour/socle/lib/events";
-import type { DashboardStats, RevenueMode, MonthRevenue, BookingSummary, SplitMetric } from "@/lib/types";
-import type { Booking } from "@sejour/socle/lib/booking";
 import { soldBookings } from "@sejour/socle/lib/booking-status";
-import { addDays, daysBetween, formatDate, parseDate } from "@sejour/socle/lib/dates";
+import { computeDashboardStats, parseStatsQuery } from "@sejour/socle/lib/dashboard-stats";
 import { todayParis } from "@sejour/socle/lib/time";
-import { spreadRevenue } from "@sejour/socle/lib/stats";
 
 /**
- * Ces statistiques ne connaissent plus la forme Beds24 : elles travaillent sur le `Booking`
- * du socle, auquel `lib/beds24.ts` traduit les réservations vivantes comme les archivées.
+ * La charge utile de la page de statistiques — **la même que chez Albiez**, calculée par la
+ * même fonction du socle.
  *
- * Trois conséquences visibles dans le code ci-dessous : le canal est déjà normalisé (plus de
- * `normalizeChannel` à chaque boucle), le montant s'appelle `gross` — c'est le prix payé par
- * le voyageur, avant commission — et la date de réservation s'appelle `bookedAt`, toujours
- * comparable lexicographiquement.
+ * Cette route faisait 501 lignes. Elle publiait deux RevPAR différents sur la même page, une
+ * « tendance actuelle » qui extrapolait un tarif moyen sur les jours non couverts, un « pricing
+ * dynamique » qui changeait tout seul d'une heure à l'autre, et des triplets global/maison/
+ * chambre pour une activité qui ne se loue plus à la chambre. Tout cela est parti — décision de
+ * l'exploitant, arbitrage du douanier du 2026-09-12. Il ne reste que ce qui est propre à ce
+ * bien : d'où viennent les séjours (Beds24 plus l'archive de la location à la chambre), neuf
+ * logements louables, et le repère des lignes — l'événement du circuit, là où Albiez écrit la
+ * période de vacances.
  *
- * Le nombre de nuits reste calculé ici par `daysBetween`, qui **plafonne à 1**, et non pris
- * dans `booking.nights`, qui rend la valeur exacte. C'est délibéré : un séjour arrivée =
- * départ vaut zéro nuit dans le domaine, mais le TJM et la durée moyenne de cette page
- * divisent par ce nombre depuis toujours. Changer la convention ici déplacerait des
- * indicateurs sans rapport avec ce lot.
- *
- * **Toutes les dates se composent en heure de Paris, plus jamais par `toISOString()`.**
- * Ce fichier en comptait cinq, et deux d'entre elles étaient fausses :
- *
- * - `new Date(annee, 0, 1).toISOString()` rendait « 2025-12-31 » pour le 1er janvier 2026 —
- *   minuit à Paris est 23 h la veille en UTC. Le nombre de jours restants dans l'année en
- *   sortait décalé d'un cran.
- * - la ventilation par nuit avançait un objet `Date` avec `setDate()` — qui travaille en
- *   heure locale — puis relisait le jour avec `toISOString()` — qui travaille en UTC. La nuit
- *   du 29 mars 2026, jour du passage à l'heure d'été, était donc comptée **deux fois** et la
- *   dernière du séjour perdue : 459,16 € basculaient de mars à avril.
- *
- * Sans effet sur Vercel, qui tourne en UTC ; faux en développement depuis Paris, et c'est
- * exactement le genre d'écart qui fait douter d'un chiffre sans qu'on sache pourquoi.
+ * L'unité est la nuitée-logement : une nuit de maison entière remplit 9 logements sur 9, une
+ * chambre 1 sur 9 — c'est `toBooking` qui pose ce poids, le socle ne fait que le lire.
  */
-
-function getDateRange(period: string): { from: string; to: string } {
-  // Parti du jour parisien, décalé en arithmétique de calendrier locale : la fenêtre est la
-  // même quel que soit le fuseau de la machine.
-  const today = todayParis();
-  const fromDate = parseDate(today);
-  const toDate = parseDate(today);
-
-  switch (period) {
-    case "30d":
-      fromDate.setDate(fromDate.getDate() - 15);
-      toDate.setDate(toDate.getDate() + 15);
-      break;
-    case "3m":
-      fromDate.setMonth(fromDate.getMonth() - 1);
-      toDate.setMonth(toDate.getMonth() + 2);
-      break;
-    case "6m":
-      fromDate.setMonth(fromDate.getMonth() - 3);
-      toDate.setMonth(toDate.getMonth() + 3);
-      break;
-    case "1y":
-      fromDate.setMonth(fromDate.getMonth() - 6);
-      toDate.setMonth(toDate.getMonth() + 6);
-      break;
-    case "fiscal":
-      fromDate.setMonth(0, 1);
-      toDate.setMonth(11, 31);
-      break;
-    default:
-      fromDate.setMonth(fromDate.getMonth() - 1);
-      toDate.setMonth(toDate.getMonth() + 2);
-  }
-
-  return { from: formatDate(fromDate), to: formatDate(toDate) };
-}
+const UNITS_TOTAL = 9;
 
 /**
- * Nuits d'un séjour, **plafonnées à 1**.
- *
- * `daysBetween` du socle rend la valeur exacte, et un séjour arrivée = départ vaut bien zéro
- * nuit dans le domaine. Mais le TJM et la durée moyenne de cette page divisent par ce nombre
- * depuis toujours : changer la convention ici déplacerait des indicateurs sans rapport.
+ * L'activité a commencé en novembre 2025 : une fenêtre qui part du 1er janvier 2025 couvre tout,
+ * archive comprise, en une requête. Les blocs de comparaison ont besoin de l'historique complet
+ * quelle que soit la période choisie.
  */
-function nights(a: string, b: string): number {
-  return Math.max(1, daysBetween(a, b));
-}
-
-function addRevenueToMap(
-  map: Map<string, { realized: number; upcoming: number }>,
-  month: string,
-  amount: number,
-  isRealized: boolean,
-) {
-  const existing = map.get(month) ?? { realized: 0, upcoming: 0 };
-  if (isRealized) {
-    existing.realized += amount;
-  } else {
-    existing.upcoming += amount;
-  }
-  map.set(month, existing);
-}
-
-function computeRevenue(
-  bookings: Booking[],
-  mode: RevenueMode,
-  today: string,
-): Map<string, { realized: number; upcoming: number }> {
-  const revenueMap = new Map<string, { realized: number; upcoming: number }>();
-
-  for (const b of bookings) {
-    /*
-     * `spreadRevenue` du socle dit **ou** le revenu tombe ; ce qui est « realise » se decide
-     * ici, parce que les deux sites n'en jugent pas pareil et que c'est une convention
-     * d'affichage, pas de calcul. Le depart est le seul jour inclus : une nuit qui s'acheve
-     * aujourd'hui est vendue, alors qu'une arrivee du jour ne l'est pas encore.
-     *
-     * Le montant ventile est le **brut** - le defaut du socle est le net, serie de reference
-     * d'Albiez. Ce dashboard annonce « chiffre d'affaires brut » sur sa premiere carte, et
-     * son historique ne traverse pas la rupture Airbnb de mars 2024.
-     */
-    for (const { day, amount } of spreadRevenue(b, mode, b.gross)) {
-      const realized = mode === "byCheckOut" ? day <= today : day < today;
-      addRevenueToMap(revenueMap, day.substring(0, 7), amount, realized);
-    }
-  }
-
-  return revenueMap;
-}
-
-// Property 303771 = whole house (counts as 9 rooms), Property 310268 = per room (1 room each)
-const TOTAL_ROOMS = 9;
-const WHOLE_HOUSE_PROPERTY_ID = 303771;
-
-// Statuts exclus de toutes les stats (annulations + blocages propriétaire à 0 €).
-// Cohérent avec lib/bookings.ts et @sejour/socle/lib/fiscal/revenus.ts.
-
-function computeOccupancyByMonth(
-  bookings: Booking[],
-): Map<string, { occupied: number; total: number }> {
-  // Count room-nights per month
-  // Each booking contributes room-nights: whole-house = 9, per-room = 1
-  const monthMap = new Map<string, { occupied: number; total: number }>();
-
-  for (const b of bookings) {
-    const roomWeight = b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? TOTAL_ROOMS : 1;
-    const count = nights(b.arrival, b.departure);
-    for (let i = 0; i < count; i++) {
-      const month = addDays(b.arrival, i).substring(0, 7);
-      const existing = monthMap.get(month) ?? { occupied: 0, total: 0 };
-      existing.occupied += roomWeight;
-      monthMap.set(month, existing);
-    }
-  }
-
-  // Fill in total room-nights per month (9 rooms × days in month)
-  for (const [month, data] of monthMap) {
-    const year = parseInt(month.substring(0, 4));
-    const m = parseInt(month.substring(5, 7));
-    const daysInMonth = new Date(year, m, 0).getDate();
-    data.total = TOTAL_ROOMS * daysInMonth;
-    // Cap occupied at total (overlapping bookings)
-    data.occupied = Math.min(data.occupied, data.total);
-  }
-
-  return monthMap;
-}
-
-/**
- * Room-nights occupées à l'intérieur de [windowStart, windowEnd[.
- * Maison entière = 9 room-nights/nuit, chambre seule = 1. Sert au taux
- * d'occupation calendaire (réalisé) et à l'occupation prévisionnelle (on the books).
- */
-function occupiedRoomNightsInWindow(
-  bookings: Booking[],
-  windowStart: string,
-  windowEnd: string,
-): number {
-  let sum = 0;
-  for (const b of bookings) {
-    const weight = b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? TOTAL_ROOMS : 1;
-    const start = b.arrival > windowStart ? b.arrival : windowStart;
-    const end = b.departure < windowEnd ? b.departure : windowEnd;
-    const count = daysBetween(start, end);
-    if (count > 0) sum += weight * count;
-  }
-  return sum;
-}
+const FIRST_ARRIVAL = "2025-01-01";
 
 export async function GET(request: NextRequest) {
   const refus = await guard.denyNonAdmin(request);
   if (refus) return refus;
 
+  const { period, mode } = parseStatsQuery(request.nextUrl.searchParams);
+  const window = { arrivalFrom: FIRST_ARRIVAL, arrivalTo: `${Number(todayParis().slice(0, 4)) + 1}-12-31` };
+
+  // Beds24 peut être injoignable : l'archive doit rester consultable, et la page le dit dans un
+  // bandeau au lieu d'afficher zéro. Le détail de l'erreur reste dans les logs.
+  let bookings;
+  let beds24Error: string | null = null;
   try {
-    const period = request.nextUrl.searchParams.get("period") ?? "3m";
-    const mode = (request.nextUrl.searchParams.get("mode") ?? "averagedPerNight") as RevenueMode;
-    const { from, to } = getDateRange(period);
-    const today = todayParis();
-    const currentMonth = today.substring(0, 7);
-
-    // Fenêtre glissante pour l'occupation prévisionnelle (90 prochains jours),
-    // indépendante de la période sélectionnée. -30j pour capter les séjours en cours.
-    const fwdWindowStart = addDays(today, -30);
-    const fwdWindowEnd = addDays(today, 90);
-
-    const [rawBookings, properties, forwardBookings] = await Promise.all([
-      getStays({ arrivalFrom: from, arrivalTo: to }),
-      getProperties(),
-      getStays({ arrivalFrom: fwdWindowStart, arrivalTo: fwdWindowEnd }),
-    ]);
-
-    // Exclut annulations et blocages propriétaire (0 €) qui faussaient revenus,
-    // TJM, occupation et le premium événementiel.
-    const bookings = soldBookings(rawBookings);
-
-    // Revenue by month
-    const revenueMap = computeRevenue(bookings, mode, today);
-
-    // Occupancy by month (always based on actual nights)
-    const occupancyMap = computeOccupancyByMonth(bookings);
-
-    // Build all months in range (ensure continuous months for fiscal view)
-    const allMonths = new Set<string>();
-    let [curY, curM] = from.substring(0, 7).split("-").map(Number);
-    const [endY, endM] = to.substring(0, 7).split("-").map(Number);
-    while (curY < endY || (curY === endY && curM <= endM)) {
-      allMonths.add(`${curY}-${String(curM).padStart(2, "0")}`);
-      curM++;
-      if (curM > 12) { curM = 1; curY++; }
-    }
-    for (const key of revenueMap.keys()) allMonths.add(key);
-    for (const key of occupancyMap.keys()) allMonths.add(key);
-
-    const revenueByMonth: MonthRevenue[] = Array.from(allMonths)
-      .sort()
-      .map((month) => {
-        const rev = revenueMap.get(month) ?? { realized: 0, upcoming: 0 };
-        const occ = occupancyMap.get(month);
-        const occupancyRate = occ ? Math.round((occ.occupied / occ.total) * 100) : 0;
-        // RevPAR mensuel = revenu du mois (réalisé + réservé) ÷ nuits disponibles.
-        // La maison = 1 unité louable → nuits dispo = jours du mois.
-        const [mY, mM] = month.split("-").map(Number);
-        const daysInMonth = new Date(mY, mM, 0).getDate();
-        const revpar = daysInMonth > 0 ? Math.round((rev.realized + rev.upcoming) / daysInMonth) : 0;
-        return {
-          month,
-          realized: Math.round(rev.realized * 100) / 100,
-          upcoming: Math.round(rev.upcoming * 100) / 100,
-          isFuture: month > currentMonth,
-          occupancyRate,
-          revpar,
-        };
-      });
-
-    // Channel distribution
-    const channelMap = new Map<string, { count: number; revenue: number }>();
-    for (const b of bookings) {
-      const channel = b.channel;
-      const existing = channelMap.get(channel) ?? { count: 0, revenue: 0 };
-      channelMap.set(channel, {
-        count: existing.count + 1,
-        revenue: existing.revenue + b.gross,
-      });
-    }
-    const channelDistribution = Array.from(channelMap.entries()).map(
-      ([channel, data]) => ({ channel, ...data }),
+    bookings = soldBookings(await getStays(window));
+  } catch (e) {
+    console.error("Beds24 injoignable :", e instanceof Error ? e.message : e);
+    beds24Error = "Beds24 est injoignable : seul l'historique archivé est affiché.";
+    bookings = soldBookings(
+      withArchive([], window, { invoiceItems: true }).map((b) => toBooking(b, "archive")),
     );
-
-    // Taux d'occupation global — calendaire, sur la partie *écoulée* de la période
-    // (façon YTD). Nuits disponibles = 9 chambres × jours écoulés. On ne compte pas
-    // les mois futurs invendus (gérés par l'occupation prévisionnelle) et, à l'inverse,
-    // on n'exclut plus les mois creux passés (ancien biais qui gonflait le taux).
-    const occWindowEnd = to < today ? to : today;
-    const availableRoomNights = TOTAL_ROOMS * Math.max(0, daysBetween(from, occWindowEnd));
-    const occupiedRoomNights = occupiedRoomNightsInWindow(bookings, from, occWindowEnd);
-    const occupancyRate =
-      availableRoomNights > 0 ? Math.round((occupiedRoomNights / availableRoomNights) * 100) : 0;
-
-    // ─── Split bookings by type ──────────────────────────────
-    const houseBookings = bookings.filter((b) => b.propertyId === WHOLE_HOUSE_PROPERTY_ID);
-    const roomBookings = bookings.filter((b) => b.propertyId !== WHOLE_HOUSE_PROPERTY_ID);
-
-    function computeNights(list: Booking[]): number {
-      return list.reduce((sum, b) => sum + nights(b.arrival, b.departure), 0);
-    }
-
-    const totalNights = computeNights(bookings);
-    const houseNights = computeNights(houseBookings);
-    const roomNights = computeNights(roomBookings);
-
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.gross, 0);
-    const houseRevenue = houseBookings.reduce((sum, b) => sum + b.gross, 0);
-    const roomRevenue = roomBookings.reduce((sum, b) => sum + b.gross, 0);
-
-    // TJM (Tarif Journalier Moyen / ADR)
-    const tjm: SplitMetric = {
-      global: totalNights > 0 ? Math.round(totalRevenue / totalNights) : 0,
-      house: houseNights > 0 ? Math.round(houseRevenue / houseNights) : 0,
-      room: roomNights > 0 ? Math.round(roomRevenue / roomNights) : 0,
-    };
-
-    // RevPAR (Revenue Per Available Night) = TJM × taux d'occupation.
-    // Contrairement au TJM (revenu par nuit *vendue*), le RevPAR intègre les
-    // nuits vides : il est donc toujours ≤ TJM et reflète le rendement réel.
-    const occRatio = occupancyRate / 100;
-    const revpar: SplitMetric = {
-      global: Math.round(tjm.global * occRatio),
-      house: Math.round(tjm.house * occRatio),
-      room: Math.round(tjm.room * occRatio),
-    };
-
-    // Durée moyenne de séjour
-    const avgStay: SplitMetric = {
-      global: bookings.length > 0 ? Math.round((totalNights / bookings.length) * 10) / 10 : 0,
-      house: houseBookings.length > 0 ? Math.round((houseNights / houseBookings.length) * 10) / 10 : 0,
-      room: roomBookings.length > 0 ? Math.round((roomNights / roomBookings.length) * 10) / 10 : 0,
-    };
-
-    // Délai moyen de réservation (jours entre bookingTime et arrival)
-    function computeAvgLeadTime(list: Booking[]): number {
-      const withBookingTime = list.filter((b) => b.bookedAt);
-      if (withBookingTime.length === 0) return 0;
-      const totalDays = withBookingTime.reduce((sum, b) => {
-        const bookingDate = b.bookedAt!.substring(0, 10);
-        // `nights` et non `daysBetween` : ce délai a toujours été plancher à un jour, par
-        // héritage du helper plafonné — une réservation prise le jour de l'arrivée compte
-        // donc 1 et non 0. Le `Math.max(0, …)` qui l'entoure dit que l'intention était
-        // l'inverse, mais corriger ici déplacerait un indicateur sans rapport avec ce lot.
-        return sum + Math.max(0, nights(bookingDate, b.arrival));
-      }, 0);
-      return Math.round(totalDays / withBookingTime.length);
-    }
-
-    const avgLeadTime: SplitMetric = {
-      global: computeAvgLeadTime(bookings),
-      house: computeAvgLeadTime(houseBookings),
-      room: computeAvgLeadTime(roomBookings),
-    };
-
-    // ─── Part des réservations directes (0 commission) ───────
-    const directBookings = bookings.filter((b) => b.channel === "Direct");
-    const directRevenue = directBookings.reduce((s, b) => s + b.gross, 0);
-    const directRevenueShare =
-      totalRevenue > 0 ? Math.round((directRevenue / totalRevenue) * 100) : 0;
-    const directBookingShare =
-      bookings.length > 0 ? Math.round((directBookings.length / bookings.length) * 100) : 0;
-
-    // ─── Occupation prévisionnelle 90 j (occupancy on the books) ─
-    const forwardActive = soldBookings(forwardBookings);
-    const forwardAvailable = TOTAL_ROOMS * daysBetween(today, fwdWindowEnd);
-    const forwardOccupied = occupiedRoomNightsInWindow(forwardActive, today, fwdWindowEnd);
-    const forwardOccupancy90 =
-      forwardAvailable > 0 ? Math.round((forwardOccupied / forwardAvailable) * 100) : 0;
-
-    // ─── Booking summaries ───────────────────────────────────
-    function toSummary(b: Booking): BookingSummary {
-      const count = nights(b.arrival, b.departure);
-      return {
-        /*
-         * `id` est optionnel sur `Booking` parce que l'archive d'Albiez n'en a pas — ses
-         * lignes viennent d'exports de canal, qui ne portent aucun identifiant Beds24. Ici
-         * les deux sources en ont un : l'API le rend toujours, et l'archive de ce site l'a
-         * conservé. L'assertion dit ce fait plutôt que de fabriquer un `0` de repli, qui
-         * s'afficherait comme une vraie réservation introuvable.
-         */
-        id: b.id!,
-        guest: `${b.firstName ?? ""} ${b.lastName ?? ""}`.trim() || "—",
-        arrival: b.arrival,
-        departure: b.departure,
-        nights: count,
-        price: Math.round(b.gross * 100) / 100,
-        tjm: count > 0 ? Math.round(b.gross / count) : 0,
-        channel: b.channel,
-        type: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? "house" : "room",
-        bookingTime: b.bookedAt ?? undefined,
-        // Le nom, et non l'événement entier : c'est une étiquette d'affichage dans le
-        // tableau des séjours, pas une jointure.
-        event: findEventForStay(LE_MANS_EVENTS, b.arrival, b.departure)?.name ?? null,
-      };
-    }
-
-    // Réservations récentes (10 dernières par date de réservation)
-    const recentBookings = [...bookings]
-      .sort((a, b) => (b.bookedAt || "").localeCompare(a.bookedAt || ""))
-      .slice(0, 10)
-      .map(toSummary);
-
-    // Top réservations par TJM
-    const topBookings = [...bookings]
-      .map(toSummary)
-      .sort((a, b) => b.tjm - a.tjm)
-      .slice(0, 10);
-
-    // ─── Projection annuelle ─────────────────────────────────
-    // Composées à la main depuis l'année parisienne : `new Date(annee, 0, 1).toISOString()`
-    // rendait le 31 décembre de l'année précédente depuis un fuseau à l'est de Greenwich.
-    const year = today.substring(0, 4);
-    const yearStartStr = `${year}-01-01`;
-    const yearEndStr = `${year}-12-31`;
-    const daysSoFar = Math.max(1, daysBetween(yearStartStr, today));
-    const daysInYear = daysBetween(yearStartStr, yearEndStr);
-    const daysRemaining = daysInYear - daysSoFar;
-
-    // Realized = past bookings, Confirmed = future bookings already booked
-    const realizedRevenue = bookings
-      .filter((b) => b.arrival < today)
-      .reduce((sum, b) => sum + b.gross, 0);
-    const confirmedUpcoming = bookings
-      .filter((b) => b.arrival >= today)
-      .reduce((sum, b) => sum + b.gross, 0);
-
-    // Count future days already covered by confirmed bookings
-    const confirmedFutureNights = bookings
-      .filter((b) => b.departure > today)
-      .reduce((sum, b) => {
-        const start = b.arrival < today ? today : b.arrival;
-        const end = b.departure > yearEndStr ? yearEndStr : b.departure;
-        // Même plancher hérité qu'au délai de réservation, conservé pour la même raison.
-        return sum + Math.max(0, nights(start, end));
-      }, 0);
-    // Uncovered future days = remaining days minus already-booked room-nights / 9 rooms
-    const uncoveredDays = Math.max(0, daysRemaining - Math.round(confirmedFutureNights / TOTAL_ROOMS));
-
-    const avgDailyRevenue = daysSoFar > 0 ? realizedRevenue / daysSoFar : 0;
-
-    const minimumRevenue = realizedRevenue + confirmedUpcoming;
-    const projectedRevenue = minimumRevenue + avgDailyRevenue * uncoveredDays;
-
-    // Dynamic pricing projection: fetch Beds24 daily prices × occupancy ratio
-    const occupancyRatio = occupancyRate / 100;
-    let dynamicPricingRevenue: number | null = null;
-    if (uncoveredDays > 0) {
-      try {
-        const priceMap = await getDailyPrices(WHOLE_HOUSE_PROPERTY_ID, today, yearEndStr);
-        // Sum daily prices for the rest of the year, weighted by occupancy ratio
-        let futurePricingSum = 0;
-        for (const [dateStr, price] of Object.entries(priceMap)) {
-          if (dateStr >= today && dateStr <= yearEndStr) {
-            futurePricingSum += price;
-          }
-        }
-        // Subtract already-confirmed nights to avoid double-counting
-        const confirmedFuturePricingSum = bookings
-          .filter((b) => b.departure > today)
-          .reduce((sum, b) => {
-            const start = b.arrival < today ? today : b.arrival;
-            const end = b.departure > yearEndStr ? yearEndStr : b.departure;
-            let subtotal = 0;
-            for (let day = start; day < end; day = addDays(day, 1)) {
-              subtotal += priceMap[day] ?? 0;
-            }
-            return sum + subtotal;
-          }, 0);
-        const uncoveredPricingSum = Math.max(0, futurePricingSum - confirmedFuturePricingSum);
-        dynamicPricingRevenue = Math.round(minimumRevenue + uncoveredPricingSum * occupancyRatio);
-      } catch (err) {
-        console.warn("[stats] Dynamic pricing fetch failed:", err);
-        dynamicPricingRevenue = null;
-      }
-    }
-
-    const projection = {
-      projectedRevenue: Math.round(projectedRevenue),
-      daysRemaining,
-      avgDailyRevenue: Math.round(avgDailyRevenue * 100) / 100,
-      realizedRevenue: Math.round(realizedRevenue * 100) / 100,
-      confirmedUpcoming: Math.round(confirmedUpcoming * 100) / 100,
-      minimumRevenue: Math.round(minimumRevenue * 100) / 100,
-      dynamicPricingRevenue,
-      occupancyRatio: Math.round(occupancyRatio * 1000) / 1000,
-    };
-
-    const stats: DashboardStats = {
-      revenueByMonth,
-      occupancyRate,
-      channelDistribution,
-      totalRevenue,
-      totalBookings: bookings.length,
-      tjm,
-      revpar,
-      avgStay,
-      avgLeadTime,
-      directRevenueShare,
-      directBookingShare,
-      forwardOccupancy90,
-      recentBookings,
-      topBookings,
-      projection,
-    };
-
-    return NextResponse.json(stats);
-  } catch (error) {
-    // Détail dans les logs, message générique au client : depuis que le transport Beds24 vient
-    // du socle, `error.message` embarque le chemin appelé et 200 caractères de la réponse de
-    // l'API. C'est bon à lire dans Vercel, pas à renvoyer dans un navigateur.
-    console.error("[stats] échec :", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "Statistiques momentanément indisponibles" }, { status: 500 });
   }
+
+  const payload = computeDashboardStats({
+    bookings,
+    mode,
+    period,
+    unitsTotal: UNITS_TOTAL,
+    markerOf: (b) => {
+      const event = findEventForStay(LE_MANS_EVENTS, b.arrival, b.departure);
+      return event ? shortEventLabel(event) : null;
+    },
+    warnings: { archiveMissing: archiveOrigin() === "absente", beds24Error },
+  });
+
+  return NextResponse.json(payload);
 }

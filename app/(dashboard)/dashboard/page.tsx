@@ -1,109 +1,25 @@
-"use client";
-
-import { useEffect, useState, useCallback } from "react";
-import type { DashboardStats, RevenueMode } from "@/lib/types";
-import StatsCards from "@/components/dashboard/StatsCards";
-import RevenueChart from "@/components/dashboard/RevenueChart";
-import ChannelPieChart from "@/components/dashboard/ChannelPieChart";
-import OccupancyGauge from "@/components/dashboard/OccupancyGauge";
-import PeriodSelector from "@/components/dashboard/PeriodSelector";
-import RevenueModeSelector from "@/components/dashboard/RevenueModeSelector";
 import DashboardNav from "@/components/dashboard/DashboardNav";
-import BookingsTable from "@/components/dashboard/BookingsTable";
-import RevenueProjection from "@/components/dashboard/RevenueProjection";
+import StatsDashboard from "@sejour/socle/components/StatsDashboard";
 
+/**
+ * La page de statistiques est **la même que chez Albiez**, au titre, au sous-titre et à la
+ * couleur d'accent près : c'est le composant du socle qui la dessine, les huit cartes et leurs
+ * définitions imprimées comprises. Elle est destinée à être montrée à un banquier — rien
+ * d'extrapolé n'y figure, et les deux biens se lisent avec les mêmes définitions.
+ *
+ * L'accent est le rose du site ; il ne vit que sur les courbes des graphes. Les cartes restent
+ * blanches : le rose signifie Airbnb sur les graphes par canal, et Airbnb n'est qu'un canal
+ * sur quatre.
+ */
 export default function Dashboard() {
-  const [period, setPeriod] = useState("fiscal");
-  const [mode, setMode] = useState<RevenueMode>("averagedPerNight");
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const fetchStats = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/dashboard/stats?period=${period}&mode=${mode}`);
-      if (!res.ok) throw new Error("Erreur de chargement");
-      const data = await res.json();
-      setStats(data);
-    } catch {
-      setError("Impossible de charger les statistiques. Vérifiez votre token Beds24.");
-    } finally {
-      setLoading(false);
-    }
-  }, [period, mode]);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
-
   return (
     <>
       <DashboardNav />
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Dashboard
-          </h1>
-          <div className="flex flex-wrap items-center gap-3">
-            <RevenueModeSelector value={mode} onChange={setMode} />
-            <PeriodSelector value={period} onChange={setPeriod} />
-          </div>
-        </div>
-
-        {loading && (
-          <div className="flex items-center justify-center py-24">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary" />
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-2xl bg-rose-50 p-6 text-rose-600">
-            {error}
-          </div>
-        )}
-
-        {stats && !loading && (
-          <div className="space-y-6">
-            <StatsCards
-              totalRevenue={stats.totalRevenue}
-              totalBookings={stats.totalBookings}
-              occupancyRate={stats.occupancyRate}
-              tjm={stats.tjm}
-              revpar={stats.revpar}
-              avgStay={stats.avgStay}
-              avgLeadTime={stats.avgLeadTime}
-              directRevenueShare={stats.directRevenueShare}
-              directBookingShare={stats.directBookingShare}
-              forwardOccupancy90={stats.forwardOccupancy90}
-            />
-
-            <RevenueProjection projection={stats.projection} />
-
-            <RevenueChart data={stats.revenueByMonth} />
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <BookingsTable
-                title="Réservations récentes"
-                bookings={stats.recentBookings}
-                highlightColumn="bookingTime"
-                showBookingTime
-              />
-              <BookingsTable
-                title="Meilleures réservations (TJM)"
-                bookings={stats.topBookings}
-                highlightColumn="tjm"
-                showEvent
-              />
-            </div>
-
-            <ChannelPieChart data={stats.channelDistribution} />
-
-            <OccupancyGauge rate={stats.occupancyRate} monthlyData={stats.revenueByMonth} />
-          </div>
-        )}
-      </div>
+      <StatsDashboard
+        title="Coliving Barbusse — statistiques"
+        subtitle="Rue Henri Barbusse, Le Mans · quatre canaux réunis"
+        accent="#FF385C"
+      />
     </>
   );
 }
