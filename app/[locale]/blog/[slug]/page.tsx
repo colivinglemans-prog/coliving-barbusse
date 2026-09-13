@@ -307,7 +307,13 @@ export default async function BlogPost({
   // pas une date supposée à Google, qui l'afficherait comme un fait. Le test est dans le
   // socle, avec le champ qui le commande, pour qu'aucun appelant ne l'oublie.
   const eventNode = linkedEvent
-    ? eventJsonLd(linkedEvent, { commune: "Le Mans", region: "Pays de la Loire" })
+    ? eventJsonLd(
+        linkedEvent,
+        { commune: "Le Mans", region: "Pays de la Loire" },
+        // La description et l'image sont celles de l'article, dans la langue de la page : le socle
+        // ne connaît pas l'i18n, c'est ici qu'on sait ce qu'on rend.
+        { description: loc.description, imageUrl: `${SITE_URL}${post.image}` },
+      )
     : null;
 
   return (

@@ -667,7 +667,17 @@ Bloc dans la popup de réservation du calendrier — [components/dashboard/Guest
 | Champ | Ce qu'il remplace | Pourquoi |
 |---|---|---|
 | `key` | la jointure par **nom** de `getEventByName` | Un nom est de l'affichage : il se corrige, il finira par se traduire, il n'a rien à faire en clé étrangère. Sept réunions hippiques portaient d'ailleurs le même nom, donc la même « clé ». Les cinq articles à événement ont migré (`24h-mans-2027`, `24h-moto-2027`, `classic-2027`, `mondial-karting-2026`, `24h-camions-2026`). |
-| `confirmed` | le suffixe « (à confirmer) » **dans le nom** | Il fallait le reconnaître par sous-chaîne pour afficher le « ? » du calendrier. C'est désormais un champ, et c'est lui qui autorise l'émission du JSON-LD `Event`. Seul `motogp-2027` est à `false` aujourd'hui. |
+| `confirmed` | le suffixe « (à confirmer) » **dans le nom** | Il fallait le reconnaître par sous-chaîne pour afficher le « ? » du calendrier. C'est désormais un champ, et c'est lui qui autorise l'émission du JSON-LD `Event`. À `false` aujourd'hui : `motogp-2027` et, depuis le 2026-09-13, `24h-moto-2027` — 24h-motos.com dit « les dates officielles seront communiquées prochainement », les 16-19 avril sont une projection. |
+
+**Trois champs de plus depuis le socle v3.2.0**, optionnels et renseignés seulement sur les
+entrées reliées à un article : `organizer` (l'organisateur **véritable** — `ACO`, une
+constante du fichier, ou Peter Auto pour le Classic — jamais nous), `performer` (le plateau :
+FIA WEC, FIM EWC, FIA ETRC, FIA Karting) et `tickets` (la billetterie officielle et son prix
+d'entrée, jamais notre maison ; à retirer si l'épreuve est complète, le nœud affirme
+`InStock`). Ce sont les champs `organizer`, `performer` et `offers` du nœud `Event` que la
+Search Console réclamait le 2026-09-13. Sans billetterie ouverte (24h du Mans 2027, Classic
+2027), `tickets` reste absent et Google garde son avertissement « offers manquant » — on ne
+déclare pas une vente qui n'existe pas.
 
 La **commune** n'est pas portée par les entrées : tout le catalogue se passe au Mans, et elle
 est fournie une fois pour toutes à `eventJsonLd` par la page d'article.
@@ -688,11 +698,13 @@ Les fonctions, désormais dans le socle et appelées avec le catalogue en premie
 - `findEventByKey(catalog, key)` — remplace `getEventByName`.
 - `stayWindow(event, { before, after })` — remplace `stayWindowForEvent`, dont les marges
   étaient figées à −1 / +1. Les défauts donnent exactement l'ancien résultat.
-- `eventJsonLd(event, place)` — **nouveau ici** : le nœud `Event` de schema.org, que ce site
-  n'émettait pas alors qu'il avait la donnée sous la main. Rend `null` tant que les dates ne
-  sont pas officielles : on ne déclare pas une date supposée à Google, qui l'afficherait comme
-  un fait dans un résultat enrichi. Le test est dans le socle, avec le champ qui le commande,
-  pour qu'aucun appelant ne l'oublie.
+- `eventJsonLd(event, place, article?)` — **nouveau ici** : le nœud `Event` de schema.org, que
+  ce site n'émettait pas alors qu'il avait la donnée sous la main. Rend `null` tant que les
+  dates ne sont pas officielles : on ne déclare pas une date supposée à Google, qui
+  l'afficherait comme un fait dans un résultat enrichi. Le test est dans le socle, avec le
+  champ qui le commande, pour qu'aucun appelant ne l'oublie. Depuis v3.2.0, la page lui passe
+  aussi `{ description: loc.description, imageUrl }` — la description de l'article dans la
+  langue de la page et sa couverture en URL absolue : le socle ne connaît pas l'i18n.
 
 ## Blog : CTA de réservation sur les articles d'événement
 
@@ -1173,7 +1185,7 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 ### Veille des dates d'événements (push ntfy, hebdomadaire)
 
 `/api/cron/events-watch`, le lundi matin. Rappelle d'aller vérifier les dates de
-`lib/events.ts` qui ne sont pas encore officielles (`confirmed: false`, aujourd'hui MotoGP
+`lib/events.ts` qui ne sont pas encore officielles (`confirmed: false`, aujourd'hui MotoGP 2027 et 24 Heures Moto
 2027), et de recopier le calendrier de l'année suivante quand le circuit l'a publié.
 
 - **Règles** : dans `@sejour/socle/lib/events-watch`. Ce site n'en tient que les seuils,

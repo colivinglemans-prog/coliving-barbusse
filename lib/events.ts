@@ -24,6 +24,9 @@ import type { EventWatchConfig } from "@sejour/socle/lib/events-watch";
 
 export type { LocalEvent };
 
+/** L'organisateur de presque tout ce qui se court au Mans — une seule écriture pour le nommer. */
+const ACO = { name: "Automobile Club de l'Ouest", url: "https://www.lemans.org/" };
+
 /**
  * Les événements connus du Mans et leurs dates.
  *
@@ -57,8 +60,27 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
   { key: "24h-velo-2026", name: "24 Heures Vélo 2026", start: "2026-08-29", end: "2026-08-30", confirmed: true },
   // Calendrier officiel lemans.org : "Porsche Sprint Challenge" seul (pas de F4 au Mans en 2026).
   { key: "porsche-sprint-2026", name: "Porsche Sprint Challenge France 2026", start: "2026-09-11", end: "2026-09-12", confirmed: true },
-  { key: "mondial-karting-2026", name: "Championnat du Monde Karting KZ 2026", start: "2026-09-16", end: "2026-09-20", confirmed: true },
-  { key: "24h-camions-2026", name: "24 Heures Camions 2026", start: "2026-09-26", end: "2026-09-27", confirmed: true },
+  // Les entrées reliées à un article portent en plus l'organisateur, le plateau et la billetterie
+  // officielle : ce sont les champs `organizer`, `performer` et `offers` du nœud JSON-LD `Event`
+  // que la Search Console réclame. Toujours l'organisateur véritable, jamais nous ; toujours sa
+  // billetterie, jamais notre maison. Sources : lemans.org, 24h-camions.com (2026-09-13).
+  {
+    key: "mondial-karting-2026", name: "Championnat du Monde Karting KZ 2026", start: "2026-09-16", end: "2026-09-20", confirmed: true,
+    url: "https://www.lemans.org/",
+    organizer: ACO,
+    performer: { name: "FIA Karting", url: "https://www.fiakarting.com/" },
+    // 12 € = enceinte générale du dimanche, tarif public (lemans.org, relevé le 2026-09-13).
+    tickets: { url: "https://ticket.lemans.org/", price: { amount: 12, currency: "EUR" } },
+  },
+  {
+    key: "24h-camions-2026", name: "24 Heures Camions 2026", start: "2026-09-26", end: "2026-09-27", confirmed: true,
+    url: "https://www.24h-camions.com/",
+    organizer: ACO,
+    performer: { name: "FIA European Truck Racing Championship", url: "https://www.fiaetrc.com/" },
+    // 53 € = billet plein tarif enceinte générale, prix en vigueur depuis le 1er juillet 2026
+    // (40 € membres ACO, gratuit moins de 16 ans) — 24h-camions.com, relevé le 2026-09-13.
+    tickets: { url: "https://ticket.24h-camions.com/", price: { amount: 53, currency: "EUR" } },
+  },
   { key: "iame-karting-2026", name: "Euro Challenge IAME 2026", start: "2026-10-07", end: "2026-10-11", confirmed: true },
   { key: "marathon-2026", name: "Marathon du Mans 2026", start: "2026-10-11", end: "2026-10-11", confirmed: true },
   { key: "slalom-aco-2026", name: "Inter Écurie / Slalom ACO 2026", start: "2026-11-07", end: "2026-11-08", confirmed: true },
@@ -78,14 +100,31 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
   // Le calendrier complet du circuit (lemans.org) paraît habituellement en octobre
   // pour l'année suivante : revenir le compléter à ce moment-là.
   { key: "exclusive-drive-2027", name: "Exclusive Drive 2027", start: "2027-03-19", end: "2027-03-21", confirmed: true },
-  { key: "24h-moto-2027", name: "24 Heures Moto 2027", start: "2027-04-16", end: "2027-04-19", confirmed: true },
+  // 24h-motos.com (2026-09-13) : « Les dates officielles seront communiquées prochainement. »
+  // Les 16-19 avril sont une projection : pas de JSON-LD tant que l'ACO n'a pas publié.
+  {
+    key: "24h-moto-2027", name: "24 Heures Moto 2027", start: "2027-04-16", end: "2027-04-19", confirmed: false,
+    url: "https://www.24h-motos.com/",
+    organizer: ACO,
+    performer: { name: "FIM Endurance World Championship", url: "https://www.fimewc.com/" },
+  },
   // ATTENTION : le calendrier MotoGP 2027 n'est PAS officiel à ce jour
   // (tickets.motogp.com affiche « no official date » pour la France). Le 7-9 mai vient
   // des revendeurs de billets, d'autres sources annoncent le 14-16 mai. Ne rien bloquer
   // ni tarifer sur cette base avant publication du calendrier FIM/Dorna.
   { key: "motogp-2027", name: "MotoGP France 2027", start: "2027-05-07", end: "2027-05-09", confirmed: false },
-  { key: "24h-mans-2027", name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13", confirmed: true },
-  { key: "classic-2027", name: "Le Mans Classic Heritage 2027", start: "2027-07-01", end: "2027-07-04", confirmed: true },
+  {
+    key: "24h-mans-2027", name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13", confirmed: true,
+    url: "https://www.24h-lemans.com/",
+    organizer: ACO,
+    performer: { name: "FIA World Endurance Championship", url: "https://www.fiawec.com/" },
+  },
+  {
+    key: "classic-2027", name: "Le Mans Classic Heritage 2027", start: "2027-07-01", end: "2027-07-04", confirmed: true,
+    url: "https://www.lemansclassic.com/",
+    // Co-organisé avec l'ACO ; Peter Auto porte l'événement et sa billetterie.
+    organizer: { name: "Peter Auto", url: "https://www.peterauto.fr/" },
+  },
 ];
 
 /**
