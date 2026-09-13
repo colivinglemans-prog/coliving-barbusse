@@ -128,7 +128,7 @@ export default function TaxeSejourPage() {
             Saisie manuelle (Direct)
           </TabButton>
           <TabButton active={tab === "collectees"} onClick={() => setTab("collectees")}>
-            Tiers collecteur (Airbnb / Booking)
+            Tiers collecteur (Airbnb / Booking / Abritel)
           </TabButton>
         </div>
 
@@ -449,9 +449,12 @@ function CollecteesTab({ data }: { data: TaxeSejourResponse }) {
       <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">
         <p className="font-semibold">Déclaration simplifiée via tiers collecteur</p>
         <p className="mt-1">
-          Airbnb et Booking.com collectent et reversent la taxe directement. Dans l&apos;extranet,
-          indique simplement les périodes où le logement a été proposé sur chaque plateforme
-          (1<sup>er</sup> janvier → 31 décembre {year} pour ce coliving proposé à l&apos;année).
+          Airbnb, Booking.com et Abritel collectent et reversent la taxe directement : les trois
+          sont des opérateurs numériques intermédiaires de paiement, tenus à cette collecte au
+          réel par les articles L.2333-33 et L.2333-34 du CGCT depuis le 1<sup>er</sup> janvier
+          2019. Dans l&apos;extranet, indique simplement les périodes où le logement a été proposé
+          sur chaque plateforme (1<sup>er</sup> janvier → 31 décembre {year} pour ce coliving
+          proposé à l&apos;année).
         </p>
         <p className="mt-2">
           <strong>Colonne &laquo; Calculé &raquo;</strong> : formule Le Mans appliquée sur le prix HT Beds24.{" "}
@@ -459,25 +462,43 @@ function CollecteesTab({ data }: { data: TaxeSejourResponse }) {
           trouvées dans les invoice items Beds24. L&apos;écart permet de valider que nos calculs
           correspondent à ce que la plateforme a réellement collecté.
         </p>
+        <p className="mt-2">
+          Toutes les plateformes ne font pas transiter leur collecte par Beds24 : quand aucune
+          ligne de taxe n&apos;arrive (cas d&apos;Airbnb et d&apos;Abritel), le perçu est affiché
+          &laquo; — &raquo;, c&apos;est-à-dire <strong>non renseigné</strong>, et non 0 €. Le montant
+          reste à rapprocher du relevé de la plateforme.
+        </p>
       </div>
 
       {collectees.channels.map((c) => (
         <ChannelBlock key={c.channel} channel={c} year={year} />
       ))}
-
-      <p className="text-xs text-gray-400">Abritel n&apos;est pas pris en compte.</p>
     </div>
   );
 }
 
+/**
+ * Couleur d'en-tête par canal. Les teintes suivent `CHANNEL_COLORS` du socle (Airbnb rose,
+ * Booking bleu nuit, Abritel bleu clair) sans importer les hex : Tailwind a besoin de classes
+ * littérales.
+ */
+const CHANNEL_TEXT_COLOR: Record<string, string> = {
+  Airbnb: "text-rose-500",
+  "Booking.com": "text-indigo-600",
+  Abritel: "text-sky-600",
+};
+
 function ChannelBlock({ channel, year }: { channel: ChannelTotals; year: number }) {
   const [open, setOpen] = useState(channel.bookingsCount > 0);
-  const color = channel.channel === "Airbnb" ? "text-rose-500" : "text-indigo-600";
+  const color = CHANNEL_TEXT_COLOR[channel.channel] ?? "text-gray-700";
   const periodLabel = `Du 01/01/${year} au 31/12/${year}`;
 
   const collectedTotal = channel.lines.reduce((sum, l) => sum + (l.taxCollected ?? 0), 0);
   const linesWithCollected = channel.lines.filter((l) => l.taxCollected !== null).length;
   const hasCollectedData = linesWithCollected > 0;
+  // Des séjours, mais pas une seule ligne de taxe remontée par Beds24 : on le dit, au lieu
+  // de laisser un blanc que l'œil lirait comme « rien à percevoir ».
+  const collecteNonRenseignee = !hasCollectedData && channel.bookingsCount > 0;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
@@ -500,6 +521,14 @@ function ChannelBlock({ channel, year }: { channel: ChannelTotals; year: number 
             {hasCollectedData && (
               <span className="text-xs text-gray-500" title={`Somme des lignes de taxe détectées sur ${linesWithCollected}/${channel.bookingsCount} séjours`}>
                 {formatEur(collectedTotal)} perçu ({linesWithCollected}/{channel.bookingsCount})
+              </span>
+            )}
+            {collecteNonRenseignee && (
+              <span
+                className="text-xs text-gray-400"
+                title="Cette plateforme ne fait transiter aucune ligne de taxe de séjour par Beds24 : le montant réellement collecté est inconnu ici, il n'est pas nul."
+              >
+                perçu non renseigné
               </span>
             )}
           </div>

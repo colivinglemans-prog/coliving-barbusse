@@ -10,8 +10,27 @@ import {
   type TaxeSejourLine,
 } from "@/lib/taxe-sejour";
 import { countsAsSold } from "@sejour/socle/lib/booking-status";
+import type { Channel } from "@sejour/socle/lib/channels";
 import { guard } from "@/lib/auth";
 
+/**
+ * Les canaux dont la plateforme collecte et reverse elle-même la taxe de séjour.
+ *
+ * Airbnb, Booking.com **et Abritel/Vrbo** sont tous trois des opérateurs numériques
+ * intermédiaires de paiement : la collecte au réel de la taxe de séjour et son reversement à
+ * la collectivité leur incombent de plein droit depuis le 1er janvier 2019 (art. L.2333-33 et
+ * L.2333-34 du CGCT). Abritel manquait ici : une réservation Abritel n'apparaissait ni en
+ * direct, ni en tiers collecteur, donc nulle part dans une pièce de préparation déclarative.
+ *
+ * `Autre` — cinquième valeur de `Channel` dans le socle — n'a volontairement aucune place
+ * dans ce partage. `normalizeChannel` ne le renvoie jamais (une réservation non identifiée
+ * est rangée en `Direct`) ; seule une donnée d'archive peut le porter. Si une telle ligne
+ * arrivait ici, elle tomberait **nulle part**, exactement comme Abritel avant cette
+ * correction. On ne le corrige pas par anticipation : décider si un séjour `Autre` relève du
+ * direct ou d'un tiers collecteur suppose de savoir qui a encaissé, et cela ne s'arbitre pas
+ * à l'aveugle.
+ */
+const CANAUX_TIERS_COLLECTEURS: Channel[] = ["Airbnb", "Booking.com", "Abritel"];
 
 export interface TaxeSejourResponse {
   year: number;
@@ -62,10 +81,10 @@ export async function GET(req: NextRequest) {
     .map((b) => computeTaxeSejour(b, TAXE_SEJOUR_CONFIG));
 
   const directLines = lines.filter((l) => l.channel === "Direct");
-  const collecteesLines = lines.filter((l) => l.channel === "Airbnb" || l.channel === "Booking.com");
+  const collecteesLines = lines.filter((l) => CANAUX_TIERS_COLLECTEURS.includes(l.channel));
 
   const directQuarters = groupByQuarter(directLines, year);
-  const collecteesChannels = groupByChannel(collecteesLines, ["Airbnb", "Booking.com"]);
+  const collecteesChannels = groupByChannel(collecteesLines, CANAUX_TIERS_COLLECTEURS);
 
   const response: TaxeSejourResponse = {
     year,
@@ -79,6 +98,11 @@ export async function GET(req: NextRequest) {
     collectees: {
       channels: collecteesChannels,
       totalTax: collecteesLines.reduce((sum, l) => sum + l.taxTotal, 0),
+      // Somme des montants de taxe **effectivement remontés** par Beds24. Un `taxCollected`
+      // à `null` (Airbnb et Abritel ne font transiter aucune ligne de taxe) n'est pas un
+      // zéro : c'est une absence d'information. Il n'ajoute rien à ce total, et l'affichage
+      // doit dire « non renseigné » plutôt que « 0 € » — d'où le `null` conservé jusqu'à la
+      // page, jamais aplati en amont.
       totalTaxCollected: collecteesLines.reduce(
         (sum, l) => sum + (l.taxCollected ?? 0),
         0,
