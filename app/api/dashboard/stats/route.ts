@@ -22,10 +22,12 @@ import { todayParis } from "@sejour/socle/lib/time";
  * logements louables, et le repère des lignes — l'événement du circuit, là où Albiez écrit la
  * période de vacances.
  *
- * L'unité est la nuitée-logement : une nuit de maison entière remplit 9 logements sur 9, une
- * chambre 1 sur 9 — c'est `toBooking` qui pose ce poids, le socle ne fait que le lire.
+ * L'unité est la **nuit de maison** : un logement louable, la maison ; une nuit de chambre de
+ * l'époque à la chambre pèse un neuvième — c'est `toBooking` qui pose ce poids, le socle ne fait
+ * que le lire. Décision de l'exploitant du 2026-09-13 : les indicateurs se lisent à la nuit de
+ * maison, pas à la chambre.
  */
-const UNITS_TOTAL = 9;
+const UNITS_TOTAL = 1;
 
 /**
  * L'activité a commencé en novembre 2025 : une fenêtre qui part du 1er janvier 2025 couvre tout,

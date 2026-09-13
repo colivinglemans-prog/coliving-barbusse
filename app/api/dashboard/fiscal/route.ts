@@ -24,7 +24,7 @@ import {
 import {
   loadFiscalConfig,
   FISCAL_COLLECTIVITE,
-  FISCAL_REVENUS_DEPS,
+  fiscalDeps,
 } from "@/lib/fiscal";
 import { guard } from "@/lib/auth";
 
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
   try {
     biensDetails = await Promise.all(
       config.year.biens.map(async (bien): Promise<FiscalBienDetail> => {
-        const revenus = await computeRevenusBien(bien, year, FISCAL_REVENUS_DEPS);
+        const revenus = await computeRevenusBien(bien, year, fiscalDeps(useProjected));
         const bic = computeBICBien(bien, revenus, useProjected);
         return {
           bienId: bien.id,

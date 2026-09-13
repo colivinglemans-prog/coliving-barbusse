@@ -473,12 +473,23 @@ un merge transparent :
 > quelles cartes, dans quel ordre — c'est un choix par site, et le socle ne l'impose pas.
 > Détail des modules : `CLAUDE.md` du socle, section « Lot 3 ».
 
+> **Lots C + D (socle `v3.0.0`, 2026-09-13)** : la page `/dashboard` est le composant
+> `@sejour/socle/components/StatsDashboard` (titre, sous-titre, accent `#FF385C`) et la route
+> `app/api/dashboard/stats/route.ts` ne fait plus que fournir les séjours vendus, `unitsTotal = 1`
+> (**l'unité est la nuit de maison** ; une nuit de chambre de l'époque pèse 1/9, posé par `toBooking`),
+> l'événement du circuit comme repère et les avertissements à `computeDashboardStats`. « Tendance
+> actuelle », « Pricing dynamique », fenêtres glissantes, triplets maison/chambre, camembert et huit
+> composants ont disparu. Paramètres : `?period=currentYear|previousYear|rolling12m|all&mode=…`.
+> L'accent des graphes est `#334155`, pas le rose du site : `#FF385C` est la couleur du canal Airbnb.
+> Le fiscal ne lit les prix Beds24 que si `?projected=true` (`fiscalDeps(simulate)`).
+> Détail et critère chiffré : `CLAUDE.md` et `docs/PROTOCOLE-TEST.md` du socle, sections « Lots C + D ».
+
 > **Lot B de la convergence des stats (socle `v2.0.0`, 2026-09-13)** : le tri par statut se fait
 > **une fois**, par `soldBookings()` en tête de route — `new` compte comme vendu (statut de
 > rangement d'une résa OTA déjà confirmée), `request`, `inquiry`, `black`, `cancelled` jamais.
 > Le brut se définit **une seule fois**, dans `toBooking` (`lib/beds24.ts`) : `price` moins la
-> taxe de séjour lue dans les lignes de facture, commission par `commissionOf`, `units` = 9 pour
-> la maison entière. `getStays` demande toujours les lignes de facture, ce n'est plus un
+> taxe de séjour lue dans les lignes de facture, commission par `commissionOf`, `units` = 1 pour
+> la maison entière et 1/9 pour une chambre de l'époque (unité : la nuit de maison, depuis les Lots C+D). `getStays` demande toujours les lignes de facture, ce n'est plus un
 > paramètre. La route porte sa garde `denyNonAdmin`. Mesuré : `period=fiscal` 77 246,92 →
 > **76 024,50 €** (−404,72 d'`inquiry`, −817,70 de taxe), et **le même 76 024,50 €** sur la page
 > fiscale — c'est l'invariant `INV-FISCAL-1` du protocole du socle. « Tendance actuelle » et

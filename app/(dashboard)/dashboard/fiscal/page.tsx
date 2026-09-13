@@ -116,7 +116,8 @@ function InfoBanner() {
       <p className="font-semibold">Estimation indicative — LMNP au réel simplifié</p>
       <p className="mt-1">
         Les chiffres ci-dessous sont calculés à partir du CA Beds24 contractuel — réalisé et
-        confirmé, sans rien d&apos;extrapolé —, des charges
+        confirmé, sans rien d&apos;extrapolé, imputé à la nuit (la convention « réparti par
+        nuit » de la page de statistiques) —, des charges
         et amortissements saisis dans <code className="rounded bg-amber-100 px-1">data/fiscal/{"{"}année{"}"}.json</code>,
         et des paramètres foyer (TMI, revenu, parts) en variables d&apos;environnement.
         Aucune valeur ne remplace le travail de votre expert-comptable.

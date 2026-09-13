@@ -158,11 +158,17 @@ export async function getBookings(params?: BookingQuery): Promise<Beds24Booking[
  * foi quand même, +22,00 € d'erreur documentée valent mieux qu'une heuristique de
  * dédoublonnage. Rien de `invoiceItems` ni `infoItems` n'est recopié dans le `Booking`.
  *
- * `units` : la maison entière remplit les neuf logements, une chambre un seul — c'est le
- * poids de la ligne dans la nuitée-logement, l'unité unique du dashboard.
+ * `units` : **l'unité du dashboard est la nuit de maison.** Une nuit de maison entière vaut 1,
+ * une nuit de chambre de l'époque à la chambre vaut un neuvième. L'arbitre avait d'abord posé
+ * l'inverse — la maison à 9, la chambre à 1 — pour rendre l'historique à la chambre exact ; le
+ * résultat montrait un prix moyen de 58 € et un RevPAR de 25 €, des chiffres de chambre pour une
+ * activité qui ne se loue plus qu'en maison entière. L'exploitant a tranché le 2026-09-13 : les
+ * indicateurs se lisent à la nuit de maison, et l'époque chambre pèse ce qu'elle vaut, un
+ * neuvième de maison par nuit. L'occupation ne change pas ; le prix par nuit et le RevPAR sont
+ * ceux d'une maison.
  */
 const WHOLE_HOUSE_PROPERTY_ID = 303771;
-const WHOLE_HOUSE_UNITS = 9;
+const ROOMS_IN_HOUSE = 9;
 
 export function toBooking(b: Beds24Booking, source: BookingSource = "live"): Booking {
   const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -179,7 +185,7 @@ export function toBooking(b: Beds24Booking, source: BookingSource = "live"): Boo
     net: round2(gross - commission),
     commission,
     touristTax,
-    units: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? WHOLE_HOUSE_UNITS : 1,
+    units: b.propertyId === WHOLE_HOUSE_PROPERTY_ID ? 1 : 1 / ROOMS_IN_HOUSE,
     source,
     id: b.id,
     propertyId: b.propertyId,

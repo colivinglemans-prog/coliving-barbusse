@@ -33,11 +33,22 @@ export const FISCAL_DATA_DIR = path.join(process.cwd(), "data", "fiscal");
 /** Collectivité citée par les orientations (exonérations de CFE, meublés classés). */
 export const FISCAL_COLLECTIVITE = "Le Mans Métropole";
 
-export const FISCAL_REVENUS_DEPS: RevenusDeps = {
-  fetchStays: (params) => getStays(params).then(soldBookings),
-  fetchDailyPrices: (propertyId, from, to) => getDailyPrices(propertyId, from, to),
-  unitsWhenMultiProperty: 9,
-};
+/**
+ * Les prix journaliers Beds24 ne sont lus que si la **simulation** est demandée : sans eux le
+ * module rend `dynamicPricingTotal: null`, ce que l'écran sait afficher. Avant, chaque
+ * chargement de la page appelait l'API des prix pour un chiffre qu'elle n'affichait jamais.
+ */
+export function fiscalDeps(simulate: boolean): RevenusDeps {
+  return {
+    fetchStays: (params) => getStays(params).then(soldBookings),
+    fetchDailyPrices: simulate
+      ? (propertyId, from, to) => getDailyPrices(propertyId, from, to)
+      : undefined,
+    // Les nuits sont deja ponderees par le poids en logements de chaque ligne (une chambre = 1/9
+    // de maison) : le denominateur est la maison, une.
+    unitsWhenMultiProperty: 1,
+  };
+}
 
 export function loadFiscalConfig(year: number): FiscalConfig {
   return loadFiscalConfigSocle(year, { dir: FISCAL_DATA_DIR });
