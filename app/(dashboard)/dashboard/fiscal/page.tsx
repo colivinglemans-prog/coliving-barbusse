@@ -115,7 +115,8 @@ function InfoBanner() {
     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
       <p className="font-semibold">Estimation indicative — LMNP au réel simplifié</p>
       <p className="mt-1">
-        Les chiffres ci-dessous sont calculés à partir du CA Beds24 projeté, des charges
+        Les chiffres ci-dessous sont calculés à partir du CA Beds24 contractuel — réalisé et
+        confirmé, sans rien d&apos;extrapolé —, des charges
         et amortissements saisis dans <code className="rounded bg-amber-100 px-1">data/fiscal/{"{"}année{"}"}.json</code>,
         et des paramètres foyer (TMI, revenu, parts) en variables d&apos;environnement.
         Aucune valeur ne remplace le travail de votre expert-comptable.
@@ -486,7 +487,7 @@ function SimulateurWhatIf({ data }: { data: FiscalResponse }) {
 
       <div className="mt-5 grid gap-5 md:grid-cols-3">
         <SliderInput
-          label="CA annuel"
+          label="CA (réalisé + confirmé)"
           value={caSim}
           onChange={setCaSim}
           min={0}
@@ -588,7 +589,7 @@ function DetailParBien({ biens }: { biens: FiscalBienDetail[] }) {
             <tr>
               <th className="px-4 py-3 text-left">Bien</th>
               <th className="px-4 py-3 text-left">Source</th>
-              <th className="px-4 py-3 text-right">CA projeté</th>
+              <th className="px-4 py-3 text-right">CA contractuel</th>
               <th className="px-4 py-3 text-right">Réalisé</th>
               <th className="px-4 py-3 text-right">Confirmé</th>
               <th className="px-4 py-3 text-right">Charges manuelles</th>
