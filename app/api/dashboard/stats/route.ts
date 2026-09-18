@@ -3,8 +3,8 @@ import { guard } from "@/lib/auth";
 import { toBooking } from "@/lib/beds24";
 import { getStays } from "@/lib/bookings";
 import { archiveOrigin, withArchive } from "@/lib/bookings-archive";
-import { LE_MANS_EVENTS, shortEventLabel } from "@/lib/events";
-import { findEventForStay } from "@sejour/socle/lib/events";
+import { eventForStay, shortEventLabel } from "@/lib/events";
+import { getUnlinkedEvents } from "@/lib/event-links";
 import { soldBookings } from "@sejour/socle/lib/booking-status";
 import { computeDashboardStats, parseStatsQuery } from "@sejour/socle/lib/dashboard-stats";
 import { todayParis } from "@sejour/socle/lib/time";
@@ -57,13 +57,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Les rattachements d'événement déliés à la main : le repère des lignes doit dire la même
+  // chose que la popup du calendrier, où le déliement a été écrit.
+  const unlinkedEvents = await getUnlinkedEvents();
+
   const payload = computeDashboardStats({
     bookings,
     mode,
     period,
     unitsTotal: UNITS_TOTAL,
     markerOf: (b) => {
-      const event = findEventForStay(LE_MANS_EVENTS, b.arrival, b.departure);
+      // Une ligne d'archive sans identifiant Beds24 n'a jamais pu être déliée : `-1` ne
+      // rencontre aucun couple stocké, et l'étiquetage automatique s'applique.
+      const event = eventForStay(b.id ?? -1, b.arrival, b.departure, unlinkedEvents);
       return event ? shortEventLabel(event) : null;
     },
     warnings: { archiveMissing: archiveOrigin() === "absente", beds24Error },

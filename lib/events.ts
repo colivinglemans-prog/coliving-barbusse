@@ -19,7 +19,7 @@
  * La commune n'est pas portée par les entrées : tout le catalogue se passe au Mans, et elle
  * est fournie une fois pour toutes à `eventJsonLd` par la page qui l'appelle.
  */
-import type { LocalEvent } from "@sejour/socle/lib/events";
+import { findEventForStay, type LocalEvent } from "@sejour/socle/lib/events";
 import type { EventWatchConfig } from "@sejour/socle/lib/events-watch";
 
 export type { LocalEvent };
@@ -187,4 +187,37 @@ function baseEventLabel(name: string): string {
   if (name.includes("Trophée Tourisme")) return "TTE";
   if (name.includes("Exclusive Drive")) return "Exclusive Drive";
   return name;
+}
+
+/**
+ * La forme stockée d'un rattachement délié : `<id de réservation>:<clé d'événement>`.
+ *
+ * Vit ici plutôt que dans `lib/event-links.ts` — qui écrit ces couples dans Redis — parce que
+ * le calendrier du tableau de bord est un composant client : lui faire importer le module de
+ * stockage embarquerait le client Upstash dans le bundle du navigateur.
+ */
+export function eventLinkRef(bookingId: number, eventKey: string): string {
+  return `${bookingId}:${eventKey}`;
+}
+
+/**
+ * L'événement d'une réservation, **déliements honorés**.
+ *
+ * Le seul point d'entrée à utiliser pour étiqueter une réservation : le calendrier et le
+ * repère des statistiques doivent dire la même chose, et deux appels séparés à
+ * `findEventForStay` suivis de deux filtres écrits à la main finissent toujours par diverger.
+ *
+ * Délier ne fait **pas** repêcher le candidat suivant : la croix de la popup dit « cette
+ * réservation n'a rien à voir avec cet événement », pas « propose-m'en un autre ». Une
+ * réservation déliée n'a donc plus d'événement, jusqu'à ce que le catalogue bouge.
+ */
+export function eventForStay(
+  bookingId: number,
+  arrival: string,
+  departure: string,
+  unlinked: readonly string[] = [],
+): LocalEvent | undefined {
+  const event = findEventForStay(LE_MANS_EVENTS, arrival, departure);
+  if (!event) return undefined;
+  return unlinked.includes(eventLinkRef(bookingId, event.key)) ? undefined : event;
 }

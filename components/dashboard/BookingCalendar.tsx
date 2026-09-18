@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import type { BookingListEntry } from "@sejour/socle/lib/booking-dto";
-import { LE_MANS_EVENTS, shortEventLabel } from "@/lib/events";
+import { eventLinkRef, LE_MANS_EVENTS, shortEventLabel } from "@/lib/events";
 import { findEventForStay, type LocalEvent } from "@sejour/socle/lib/events";
 import { bandesPeriodes, PERIODES, type BandePeriode } from "@sejour/socle/lib/periodes";
 import { CHANNEL_COLORS, normalizeChannel } from "@sejour/socle/lib/channels";
@@ -171,6 +171,13 @@ interface BookingCalendarProps {
   /** Débloque le bloc de partage voyageur (lien du guide + code de la serrure). */
   isAdmin?: boolean;
   onNotesUpdated?: (bookingId: number, notes: string) => void;
+  /**
+   * Les rattachements d'événement déliés à la main, en couples `<id>:<clé>` — voir
+   * `lib/event-links.ts`. Vide par défaut : sans eux, l'étiquetage est celui de
+   * l'heuristique seule, ce qui est l'état d'avant le bouton.
+   */
+  unlinkedEvents?: readonly string[];
+  onEventLinkChanged?: (bookingId: number, eventKey: string, unlinked: boolean) => void;
 }
 
 /* ── Notes editor (admin editable, viewer read-only) ────────────── */
@@ -289,7 +296,113 @@ function NotesEditor({
   );
 }
 
-export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated }: BookingCalendarProps) {
+/* ── Étiquette d'événement, avec sa croix de déliement ───────────── */
+/**
+ * L'événement rattaché à une réservation, et de quoi démentir le rattachement.
+ *
+ * Le rattachement est une **heuristique de dates** (`findEventForStay`, marge de deux jours)
+ * et elle se trompe : une semaine de chantier qui mord sur le week-end des 24 Heures se
+ * retrouve étiquetée « 24h Mans ». La croix écrit le démenti, qui vaut pour le calendrier
+ * **et** pour le repère des statistiques — c'est la même liste qui est lue des deux côtés.
+ *
+ * Le bloc reste affiché après le déliement, en gris et sans pastille : un clic malheureux se
+ * rattrape sur place, et l'événement démenti reste lisible. Il disparaît pour de bon au
+ * rechargement, l'heuristique n'ayant alors plus rien à proposer.
+ *
+ * **Le rôle restreint voit l'étiquette, jamais la croix.** Délier change des nombres qu'il ne
+ * voit pas ; la route d'écriture le refuse de toute façon.
+ */
+function EventLink({
+  bookingId,
+  event,
+  unlinked,
+  editable,
+  onChanged,
+}: {
+  bookingId: number;
+  event: LocalEvent;
+  unlinked: boolean;
+  editable: boolean;
+  onChanged: (unlinked: boolean) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function toggle(next: boolean) {
+    setSaving(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/dashboard/bookings/${bookingId}/event-link`, {
+        method: next ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventKey: event.key }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      onChanged(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "erreur inconnue");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (unlinked && !editable) return null;
+
+  return (
+    <div className="col-span-2">
+      <p className="text-xs text-gray-400">Événement</p>
+      <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+        <span
+          className={
+            unlinked
+              ? "inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-400 line-through"
+              : "inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700"
+          }
+        >
+          {event.name}
+        </span>
+
+        {editable && !unlinked && (
+          <button
+            type="button"
+            title="Délier — cette réservation n'a rien à voir avec cet événement"
+            aria-label={`Délier de « ${event.name} »`}
+            disabled={saving}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggle(true);
+            }}
+            className="rounded-full p-0.5 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-700 disabled:opacity-50"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
+        {editable && unlinked && (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggle(false);
+            }}
+            className="text-[10px] font-medium text-gray-500 underline underline-offset-2 hover:text-gray-700 disabled:opacity-50"
+          >
+            {saving ? "…" : "Rétablir"}
+          </button>
+        )}
+      </div>
+      {error && <p className="mt-1 text-[10px] text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated, unlinkedEvents = [], onEventLinkChanged }: BookingCalendarProps) {
   // Un couple {année, mois} plutôt qu'une `Date` : le calendrier public du site le fait déjà,
   // et `addMonths` du socle travaille sur ce couple — plus aucun objet `Date` à promener.
   const [month, setMonth] = useState(() => {
@@ -900,6 +1013,10 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
               )}
 
               {(() => {
+                // `findEventForStay` et non `eventForStay` : c'est le seul endroit qui veut
+                // l'événement proposé par l'heuristique **même quand il a été délié**, pour
+                // pouvoir l'afficher barré et offrir « Rétablir ». Partout ailleurs, c'est
+                // `eventForStay` qui tranche.
                 const event = findEventForStay(
                   LE_MANS_EVENTS,
                   popup.booking.arrival,
@@ -907,12 +1024,16 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                 );
                 if (!event) return null;
                 return (
-                  <div className="col-span-2">
-                    <p className="text-xs text-gray-400">Événement</p>
-                    <span className="mt-0.5 inline-block rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
-                      {event.name}
-                    </span>
-                  </div>
+                  <EventLink
+                    key={eventLinkRef(popup.booking.id, event.key)}
+                    bookingId={popup.booking.id}
+                    event={event}
+                    unlinked={unlinkedEvents.includes(eventLinkRef(popup.booking.id, event.key))}
+                    editable={isAdmin}
+                    onChanged={(unlinked) =>
+                      onEventLinkChanged?.(popup.booking.id, event.key, unlinked)
+                    }
+                  />
                 );
               })()}
 

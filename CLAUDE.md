@@ -706,6 +706,39 @@ Les fonctions, désormais dans le socle et appelées avec le catalogue en premie
   aussi `{ description: loc.description, imageUrl }` — la description de l'article dans la
   langue de la page et sa couverture en URL absolue : le socle ne connaît pas l'i18n.
 
+### Délier une réservation d'un événement
+
+Le rattachement est une **heuristique de dates**, et elle se trompe : une semaine de chantier
+qui mord sur le week-end des 24 Heures se retrouve étiquetée « 24h Mans », ce qui fausse le
+repère des statistiques autant que la lecture du calendrier. La popup du calendrier porte donc
+une **croix à côté du nom de l'événement** ; elle écrit un démenti, et le démenti gagne
+toujours sur l'heuristique.
+
+- **Ce qui est stocké est le couple `<id de réservation>:<clé d'événement>`**, jamais le seul
+  identifiant : la croix dit « cette réservation n'a rien à voir avec *cet* événement », et
+  c'est tout ce qu'elle dit. Délier ne fait **pas** repêcher le candidat suivant — une
+  réservation déliée n'a plus d'événement, jusqu'à ce que le catalogue bouge.
+- **Redis (`event-links:unlinked`, un `SET`) et non Beds24.** La note interne est le seul champ
+  qu'on sache écrire chez Beds24, et elle est lue par la personne du ménage : y cacher un
+  marqueur technique la salirait. Surtout, **42 lignes de l'historique n'existent plus dans
+  Beds24** et doivent pouvoir être déliées comme les autres. Variables `KV_REST_API_URL` /
+  `KV_REST_API_TOKEN`, celles du chauffage et des crons.
+- **Échec ouvert à la lecture, franc à l'écriture.** Redis injoignable ⇒ aucun déliement lu,
+  donc l'étiquetage d'origine : on préfère une étiquette de trop à un calendrier qui ne
+  s'affiche pas. À l'écriture, la route rend **503** plutôt que d'annoncer un enregistrement
+  qui n'a pas eu lieu.
+- **Une seule fonction tranche** : `eventForStay(bookingId, arrival, departure, unlinked)`
+  dans [lib/events.ts](lib/events.ts). La route des stats l'appelle pour son `markerOf` ; la
+  popup appelle `findEventForStay` **sans** le filtre, pour afficher l'événement démenti barré
+  et offrir « Rétablir » — un clic malheureux se rattrape sur place.
+- **Portes** : `GET /api/dashboard/event-links` est ouverte à `viewer` (l'étiquette s'affiche
+  sans condition de rôle, la servir au seul admin la ferait réapparaître chez lui) ;
+  `POST` / `DELETE /api/dashboard/bookings/[id]/event-link` sont **admin only** — délier change
+  des nombres que le `viewer` ne voit pas. Les deux verbes sont idempotents (`sadd` / `srem`).
+- `eventLinkRef(bookingId, eventKey)` vit dans [lib/events.ts](lib/events.ts) et non dans
+  [lib/event-links.ts](lib/event-links.ts) : le calendrier est un composant client, lui faire
+  importer le module de stockage embarquerait le client Upstash dans le bundle du navigateur.
+
 ## Blog : CTA de réservation sur les articles d'événement
 
 `components/public/EventBookingCTA.tsx` affiche un bloc de réservation en fin d'article.
