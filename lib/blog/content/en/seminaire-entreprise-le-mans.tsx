@@ -92,13 +92,20 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>Our house: accommodation built for a team of 9</h2>
+      <h2>Our house: accommodation built for a team of 10 to 12</h2>
 
-      <h3>9 private suites: one per team member</h3>
+      <h3>11 people housed without anyone sharing a bed</h3>
       <p>
-        Unlike a hotel, each person has their own bedroom with private bathroom. No
-        compromise, no hierarchy between rooms: everyone is on equal footing. Ideal
-        to avoid logistical friction.
+        The house has <strong>9 private suites</strong>, each with its own bathroom,
+        desk and individual key. In seminar configuration that means{" "}
+        <strong>7 single-occupancy bedrooms and 2 twin bedrooms</strong> — the latter
+        have a double bed and a single sofa bed, so nobody shares a bed. That is{" "}
+        <strong>11 participants housed</strong>, and up to 20 sleeping places if the
+        group is happy to share the double beds.
+      </p>
+      <p>
+        Unlike a hotel, there is no hierarchy between rooms: everyone is on equal
+        footing, with their own bathroom. A hotel twin never gives you that.
       </p>
 
       <h3>Modular workspaces</h3>
@@ -108,18 +115,26 @@ export default function Article() {
       <ul>
         <li>
           <strong>Kitchen with central island</strong>: the most beautiful room in the
-          house. The central island seats <strong>8 to 10 people</strong> — perfect for
-          a circle workshop, a design sprint, a strategic breakfast or a friendly
-          working lunch.
+          house, and the real workspace. The island seats{" "}
+          <strong>12 people</strong> — perfect for a circle workshop, a design sprint, a
+          strategic breakfast or a working lunch. It is the only room that seats 12
+          indoors with heating, which makes it the reference capacity all year round.
         </li>
         <li>
-          <strong>Zen space → meeting room</strong>: calm, bright space ideal for
-          brainstorms and workshops with 9-10 people (April to October — room is not
-          heated in winter).
+          <strong>Living room</strong>: heated year-round, with a{" "}
+          <strong>large smart TV and an HDMI input</strong> — everyone plugs in their
+          laptop for a presentation or a debrief. It is also the room for informal
+          discussions and co-working sessions.
         </li>
         <li>
-          <strong>Living room</strong>: cosy, heated year-round, perfect for informal
-          discussions, co-working sessions or relaxed debriefs.
+          <strong>Zen space</strong>: calm, bright room for brainstorms and small-group
+          workshops, <strong>April to October</strong> — it is unheated, so it does not
+          replace the island in winter.
+        </li>
+        <li>
+          <strong>Enclosed 90 m² south-facing garden</strong>: the large tables seat{" "}
+          <strong>20 people</strong> in the warm season. This is what lets a group go
+          beyond 12 participants, but only from April to September.
         </li>
         <li>
           <strong>Sunroom</strong>: extends the living room and kitchen for more
@@ -131,14 +146,15 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        <strong>Whiteboards, flipcharts and video projector</strong> available on
-        request — just tell us what you need.
+        We do not provide meeting equipment: no flipchart, no whiteboard, no video
+        projector. The living room does however have a large smart TV with an HDMI
+        input, which replaces the projector for most presentations.
       </p>
 
-      <h3>High-speed Wi-Fi and Ethernet socket</h3>
+      <h3>High-speed Wi-Fi</h3>
       <p>
-        Each bedroom has an Ethernet socket and high-speed Wi-Fi for seamless video
-        calls, uploads or file sharing.
+        High-speed Wi-Fi throughout the house, for seamless video calls, uploads or
+        file sharing.
       </p>
 
       <h3>Gym + zen space = recovery</h3>
@@ -176,9 +192,11 @@ export default function Article() {
 
       <h3>Indicative accommodation rate</h3>
       <p>
-        Whole-house rental for 9 guests, 2 nights: <strong>~€150-250/night/person
-        depending on season</strong> (excl. circuit activities and catering). Far
-        cheaper than 9 equivalent 3-4★ hotel rooms.
+        Whole-house rental for a team of 10 to 12, 2 nights:{" "}
+        <strong>~€150-250/night/person depending on season</strong> (excl. circuit
+        activities and catering). Compare that with 10 equivalent 3-4★ hotel rooms, on
+        top of which you still have to rent a meeting room — here the workspace comes
+        with the house.
       </p>
 
       <h3>Services for professionals</h3>
@@ -189,12 +207,15 @@ export default function Article() {
         <li><strong>WhatsApp contact 7 days a week</strong> for any specific request</li>
       </ul>
 
-      <h3>On request</h3>
+      <h3>Local providers to complete your stay</h3>
+      <p>
+        We do not organise these services ourselves, but local professionals can handle
+        them directly:
+      </p>
       <ul>
         <li>Local caterers for on-site meals (breakfast, lunch, dinner)</li>
-        <li>Meeting equipment: video projector, flipcharts, whiteboard</li>
-        <li>Taxi transfers station/circuit/house</li>
-        <li>Liaison with the ACO to book circuit activities</li>
+        <li>Taxis for station/circuit/house transfers</li>
+        <li>Team-building activity providers (karting, simulators, EVA…)</li>
       </ul>
 
       <h2>Why choose this over a traditional seminar hotel?</h2>
@@ -225,8 +246,9 @@ export default function Article() {
       <p>
         To organise your corporate seminar in Le Mans, start by checking{" "}
         <Link href="/en#disponibilite">our real-time availability</Link>, then
-        contact us via WhatsApp to fine-tune the programme (ACO activities, catering,
-        meeting equipment). We help you build a turnkey stay.
+        contact us via WhatsApp to settle the dates and the number of participants. For
+        circuit activities and catering, we point you to the local providers who handle
+        them.
       </p>
       <p>
         See also:{" "}

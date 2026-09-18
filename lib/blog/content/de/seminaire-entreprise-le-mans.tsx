@@ -94,13 +94,21 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>Unser Haus: die Unterkunft für ein 9-köpfiges Team</h2>
+      <h2>Unser Haus: die Unterkunft für ein Team von 10 bis 12</h2>
 
-      <h3>9 private Suiten: eine pro Mitarbeiter</h3>
+      <h3>11 Personen untergebracht, ohne dass jemand ein Bett teilt</h3>
       <p>
-        Anders als in einem Hotel verfügt jeder über sein eigenes Zimmer mit
-        eigenem Bad. Keine Kompromisse, keine Hierarchie zwischen den Zimmern:
-        Alle sind gleichgestellt. Ideal, um logistische Reibungen zu vermeiden.
+        Das Haus hat <strong>9 private Suiten</strong>, jede mit eigenem Bad,
+        Schreibtisch und eigenem Schlüssel. In Seminarkonfiguration ergibt das{" "}
+        <strong>7 Einzelzimmer und 2 Zweibettzimmer</strong> — letztere haben ein
+        Doppelbett und ein Einzel-Schlafsofa, niemand teilt also ein Bett. Das
+        sind <strong>11 untergebrachte Teilnehmende</strong>, und bis zu 20
+        Schlafplätze, wenn die Gruppe bereit ist, die Doppelbetten zu teilen.
+      </p>
+      <p>
+        Anders als in einem Hotel gibt es keine Hierarchie zwischen den Zimmern:
+        Alle sind gleichgestellt, jede Person mit eigenem Bad. Ein Hotel-Twin
+        bietet das nie.
       </p>
 
       <h3>Modulierbare Arbeitsbereiche</h3>
@@ -110,20 +118,29 @@ export default function Article() {
       <ul>
         <li>
           <strong>Küche mit zentraler Insel</strong>: das schönste Zimmer des
-          Hauses. Die zentrale Insel bietet Platz für{" "}
-          <strong>8 bis 10 Personen im Sitzen</strong> — die perfekte
-          Konfiguration für einen Workshop im Kreis, einen Design Sprint, ein
-          strategisches Frühstück oder ein geselliges Arbeitsessen.
+          Hauses — und der eigentliche Arbeitsbereich. Die Insel bietet Platz für{" "}
+          <strong>12 Personen im Sitzen</strong> — die perfekte Konfiguration für
+          einen Workshop im Kreis, einen Design Sprint, ein strategisches
+          Frühstück oder ein Arbeitsessen. Es ist der einzige Raum mit 12
+          Sitzplätzen im beheizten Innenbereich und damit die
+          Referenzkapazität für das ganze Jahr.
         </li>
         <li>
-          <strong>Zen-Raum → Besprechungsraum</strong>: ruhiger und heller Raum,
-          ideal für Brainstormings und Workshops mit 9-10 Personen (April bis
-          Oktober — Raum im Winter unbeheizt).
+          <strong>Wohnzimmer</strong>: ganzjährig beheizt, mit{" "}
+          <strong>großem Smart-TV und HDMI-Eingang</strong> — jeder schließt
+          seinen Laptop für eine Präsentation oder ein Debriefing an. Hier finden
+          auch informelle Diskussionen und Co-Working-Sessions statt.
         </li>
         <li>
-          <strong>Wohnzimmer</strong>: gesellig, ganzjährig beheizt, perfekt für
-          informelle Diskussionen, Co-Working-Sessions oder entspannte
-          Debriefings.
+          <strong>Zen-Raum</strong>: ruhiger, heller Raum für Brainstormings und
+          Workshops in kleiner Runde, <strong>von April bis Oktober</strong> — er
+          ist unbeheizt und ersetzt die Kücheninsel im Winter nicht.
+        </li>
+        <li>
+          <strong>Eingezäunter Südgarten, 90 m²</strong>: die großen Tische
+          bieten in der warmen Jahreszeit <strong>20 Personen</strong> Platz. Nur
+          so lassen sich mehr als 12 Teilnehmende unterbringen — und das nur von
+          April bis September.
         </li>
         <li>
           <strong>Wintergarten</strong>: verlängert Wohnzimmer und Küche für
@@ -136,15 +153,15 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        <strong>Whiteboards, Flipcharts und Beamer</strong> auf Anfrage
-        verfügbar — sagen Sie uns, was Sie brauchen.
+        Wir stellen kein Besprechungsmaterial: weder Flipchart noch Whiteboard noch
+        Beamer. Das Wohnzimmer verfügt dafür über einen großen Smart-TV mit
+        HDMI-Eingang, der den Beamer für die meisten Präsentationen ersetzt.
       </p>
 
-      <h3>Breitband-WLAN und Ethernet-Anschluss</h3>
+      <h3>Breitband-WLAN</h3>
       <p>
-        Jedes Zimmer verfügt über einen Ethernet-Anschluss und ein
-        Breitband-WLAN, um Videokonferenzen abzuhalten, Dateien hochzuladen oder
-        zu teilen — ohne jegliche Einschränkung.
+        Breitband-WLAN im ganzen Haus, um Videokonferenzen abzuhalten, Dateien
+        hochzuladen oder zu teilen — ohne jegliche Einschränkung.
       </p>
 
       <h3>Fitnessraum + Zen-Bereich = Erholung</h3>
@@ -182,10 +199,11 @@ export default function Article() {
 
       <h3>Indikativer Unterkunftspreis</h3>
       <p>
-        Vermietung des gesamten Hauses für 9 Personen, 2 Nächte:{" "}
+        Vermietung des gesamten Hauses für ein Team von 10 bis 12, 2 Nächte:{" "}
         <strong>~150-250 €/Nacht/Person je nach Saison</strong> (ohne
-        Rennstreckenaktivitäten und Verpflegung). Deutlich günstiger als 9
-        gleichwertige 3-4-Sterne-Hotelzimmer.
+        Rennstreckenaktivitäten und Verpflegung). Zum Vergleich: 10 gleichwertige
+        3-4-Sterne-Hotelzimmer, zu denen noch die Miete eines Konferenzraums
+        kommt — hier gehört der Arbeitsbereich zum Haus.
       </p>
 
       <h3>Services für Geschäftskunden</h3>
@@ -196,12 +214,15 @@ export default function Article() {
         <li><strong>WhatsApp-Kontakt 7 Tage/Woche</strong> für jede besondere Anfrage</li>
       </ul>
 
-      <h3>Auf Anfrage</h3>
+      <h3>Lokale Anbieter für Ihren Aufenthalt</h3>
+      <p>
+        Wir organisieren diese Leistungen nicht selbst, lokale Anbieter können sie aber
+        direkt übernehmen:
+      </p>
       <ul>
         <li>Lokale Caterer für Mahlzeiten vor Ort (Frühstück, Mittagessen, Abendessen)</li>
-        <li>Besprechungsmaterial: Beamer, Flipcharts, Whiteboard</li>
-        <li>Taxi-Transfers Bahnhof/Rennstrecke/Haus</li>
-        <li>Vermittlung zum ACO für die Buchung der Aktivitäten</li>
+        <li>Taxis für Transfers Bahnhof/Rennstrecke/Haus</li>
+        <li>Teambuilding-Anbieter (Karting, Simulatoren, EVA…)</li>
       </ul>
 
       <h2>Warum diese Formel statt eines klassischen Seminarhotels?</h2>
@@ -236,9 +257,9 @@ export default function Article() {
       <p>
         Um Ihr Firmenseminar in Le Mans zu organisieren, prüfen Sie zunächst{" "}
         <Link href="/de#disponibilite">unsere Verfügbarkeiten in Echtzeit</Link>,
-        und kontaktieren Sie uns dann über WhatsApp, um das Programm zu verfeinern
-        (ACO-Aktivitäten, Verpflegung, Besprechungsmaterial). Wir helfen Ihnen,
-        einen schlüsselfertigen Aufenthalt zu gestalten.
+        und kontaktieren Sie uns dann über WhatsApp, um Daten und Teilnehmerzahl
+        festzulegen. Für Aktivitäten an der Rennstrecke und die Verpflegung verweisen
+        wir Sie an die lokalen Anbieter, die sie übernehmen.
       </p>
       <p>
         Siehe auch:{" "}

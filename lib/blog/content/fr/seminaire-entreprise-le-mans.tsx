@@ -92,13 +92,21 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>Notre maison : l'hébergement pensé pour une équipe de 9</h2>
+      <h2>Notre maison : l'hébergement pensé pour une équipe de 10 à 12</h2>
 
-      <h3>9 suites privatives : une par collaborateur</h3>
+      <h3>11 personnes logées sans que personne partage un lit</h3>
       <p>
-        Contrairement à un hôtel, chacun dispose de sa propre chambre avec salle de bain
-        privative. Pas de compromis, pas de hiérarchie entre les chambres : tout le
-        monde est logé à la même enseigne. Idéal pour éviter les frictions logistiques.
+        La maison compte <strong>9 suites privatives</strong>, chacune avec sa salle de
+        bain, son bureau et sa clé individuelle. En configuration séminaire, cela donne{" "}
+        <strong>7 chambres individuelles et 2 chambres à deux</strong> — celles-ci
+        disposent d'un lit double et d'un clic-clac une place, donc personne ne partage
+        un lit. Soit <strong>11 participants logés</strong>, et jusqu'à 20 couchages si
+        le groupe accepte de partager les lits doubles.
+      </p>
+      <p>
+        Contrairement à un hôtel, pas de hiérarchie entre les chambres : tout le monde
+        est logé à la même enseigne, avec sa propre salle de bain. Un twin d'hôtel ne
+        donne jamais ça.
       </p>
 
       <h3>Espaces de travail modulables</h3>
@@ -108,18 +116,27 @@ export default function Article() {
       <ul>
         <li>
           <strong>Cuisine avec îlot central</strong> : la plus belle pièce de la
-          maison. L'îlot central accueille <strong>8 à 10 personnes assises</strong> —
-          configuration parfaite pour un atelier en cercle, un design sprint, un petit-déj
-          stratégique ou un déjeuner de travail convivial.
+          maison, et le vrai espace de travail. L'îlot accueille{" "}
+          <strong>12 personnes assises</strong> — configuration parfaite pour un atelier
+          en cercle, un design sprint, un petit-déjeuner stratégique ou un déjeuner de
+          travail. C'est la seule pièce qui tient 12 places assises en intérieur chauffé,
+          donc la capacité de référence toute l'année.
         </li>
         <li>
-          <strong>Salle zen → salle de réunion</strong> : espace calme et lumineux,
-          idéal pour brainstormings et ateliers à 9-10 personnes (avril à octobre —
-          pièce non chauffée en hiver).
+          <strong>Salon</strong> : chauffé toute l'année, avec un{" "}
+          <strong>grand écran smart TV et une entrée HDMI</strong> — chacun branche son
+          portable pour une présentation ou un debrief. C'est aussi la pièce des
+          discussions informelles et des sessions co-working.
         </li>
         <li>
-          <strong>Salon</strong> : convivial, chauffé toute l'année, parfait pour des
-          discussions informelles, sessions co-working ou debriefs détendus.
+          <strong>Salle zen</strong> : espace calme et lumineux pour brainstormings et
+          ateliers en petit comité, <strong>d'avril à octobre</strong> — la pièce n'est
+          pas chauffée, elle ne remplace pas l'îlot en hiver.
+        </li>
+        <li>
+          <strong>Jardin clos de 90 m², plein sud</strong> : les grandes tables
+          accueillent <strong>20 personnes</strong> à la belle saison. C'est ce qui
+          permet de dépasser 12 participants, mais seulement d'avril à septembre.
         </li>
         <li>
           <strong>Véranda</strong> : prolonge le salon et la cuisine pour plus d'espace
@@ -131,14 +148,16 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        <strong>Tableaux blancs, paperboards et vidéoprojecteur</strong> fournissables
-        sur demande — dites-nous ce qu'il vous faut.
+        Nous ne fournissons pas de matériel de réunion : ni paperboard, ni tableau
+        blanc, ni vidéoprojecteur. Le salon dispose en revanche d'un grand écran smart
+        TV avec entrée HDMI, qui remplace le vidéoprojecteur pour la plupart des
+        présentations.
       </p>
 
-      <h3>Wi-Fi haut débit et prise Ethernet</h3>
+      <h3>Wi-Fi haut débit</h3>
       <p>
-        Chaque chambre dispose d'une prise Ethernet et d'un Wi-Fi haut débit pour
-        travailler en visio, uploader ou partager des fichiers sans aucune contrainte.
+        Wi-Fi haut débit dans toute la maison, pour travailler en visio, uploader ou
+        partager des fichiers sans aucune contrainte.
       </p>
 
       <h3>Salle de sport + espace zen = récupération</h3>
@@ -176,10 +195,11 @@ export default function Article() {
 
       <h3>Tarif indicatif hébergement</h3>
       <p>
-        Location de la maison entière pour 9 personnes, 2 nuits :{" "}
+        Location de la maison entière pour une équipe de 10 à 12, 2 nuits :{" "}
         <strong>~150-250 €/nuit/personne selon la période</strong> (hors activités
-        circuit et restauration). Nettement moins cher que 9 chambres d'hôtel 3-4★
-        équivalentes.
+        circuit et restauration). À comparer à 10 chambres d'hôtel 3-4★ équivalentes,
+        auxquelles il faut encore ajouter la location d'une salle de réunion — ici,
+        l'espace de travail vient avec la maison.
       </p>
 
       <h3>Services pour professionnels</h3>
@@ -190,12 +210,15 @@ export default function Article() {
         <li><strong>Contact WhatsApp 7j/7</strong> pour toute demande spécifique</li>
       </ul>
 
-      <h3>Sur demande</h3>
+      <h3>Acteurs locaux pour compléter votre séjour</h3>
+      <p>
+        Nous n'organisons pas ces prestations, mais des professionnels locaux peuvent
+        les prendre en charge directement :
+      </p>
       <ul>
         <li>Traiteurs locaux pour repas sur place (petit-déj, déjeuner, dîner)</li>
-        <li>Matériel de réunion : vidéoprojecteur, paperboards, tableau blanc</li>
-        <li>Transferts taxi gare/circuit/maison</li>
-        <li>Mise en relation avec l'ACO pour la réservation des activités</li>
+        <li>Taxis pour les transferts gare/circuit/maison</li>
+        <li>Prestataires d'activités team-building (karting, simulateurs, EVA…)</li>
       </ul>
 
       <h2>Pourquoi choisir cette formule plutôt qu'un hôtel-séminaire classique ?</h2>
@@ -228,9 +251,9 @@ export default function Article() {
       <p>
         Pour organiser votre séminaire d'entreprise au Mans, consultez d'abord{" "}
         <Link href="/fr#disponibilite">nos disponibilités en temps réel</Link>, puis
-        contactez-nous via WhatsApp pour affiner le programme (activités ACO,
-        restauration, matériel de réunion). Nous vous aidons à bâtir un séjour clé en
-        main.
+        contactez-nous via WhatsApp pour caler les dates et le nombre de participants.
+        Pour les activités au circuit et la restauration, nous vous orientons vers les
+        acteurs locaux qui les prennent en charge.
       </p>
       <p>
         Voir aussi :{" "}

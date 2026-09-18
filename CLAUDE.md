@@ -167,6 +167,7 @@ factures, taxe de séjour et fiscalité n'ont pas été normalisés : ils relèv
 - Toute page déclare ses `alternates` avec `alternatesFor(locale, unPathFor)` — **jamais** de liste `languages` écrite à la main.
 - `app/sitemap.ts` construit ses `hreflang` avec le **même** `hreflangMap` que le `<head>`. Il conserve deux règles métier propres au site : le filtre `!post.supersededBy`, et pas de `lastModified` sur les pages statiques.
 - `openGraph` : la fusion de Next est **en surface**. Une page qui déclare un bloc `openGraph` remplace celui du layout et perd `og:image` / `og:site_name` — c'est le cas de l'accueil, des séminaires et des articles. Le layout porte `openGraphLocales(locale)` pour les autres.
+- **JSON-LD de `/seminaires`** : deux nœuds, `LodgingBusiness#lodging` et `FAQPage#faq`. Celui de l'accueil décrit la maison, celui-ci décrit **ce qu'elle permet en séminaire** — d'où `maximumAttendeeCapacity: 12`, la capacité de travail assis en intérieur chauffé (l'îlot), et non les 20 couchages. Les questions de la `FAQPage` sont celles rendues dans la page, avec des réponses autosuffisantes : Google en extrait une seule, elle doit rester vraie hors contexte.
 - `app/robots.ts` ne bloque que `/dashboard/` et `/api/dashboard/`. **Ne pas y remettre `/api/`** : Googlebot exécute le JS du calendrier et le photographierait vide.
 
 ## Données externes

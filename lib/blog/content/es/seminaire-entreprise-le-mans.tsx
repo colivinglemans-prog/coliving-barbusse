@@ -100,14 +100,22 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>Nuestra casa: el alojamiento pensado para un equipo de 9</h2>
+      <h2>Nuestra casa: el alojamiento pensado para un equipo de 10 a 12</h2>
 
-      <h3>9 suites privadas: una por colaborador</h3>
+      <h3>11 personas alojadas sin que nadie comparta cama</h3>
       <p>
-        A diferencia de un hotel, cada uno dispone de su propia habitación
-        con baño privado. Sin compromisos, sin jerarquía entre las
-        habitaciones: todo el mundo está en igualdad de condiciones. Ideal
-        para evitar fricciones logísticas.
+        La casa cuenta con <strong>9 suites privadas</strong>, cada una con su
+        baño, su escritorio y su llave individual. En configuración seminario
+        eso da <strong>7 habitaciones individuales y 2 habitaciones
+        dobles</strong> — estas últimas tienen una cama doble y un sofá cama
+        individual, así que nadie comparte cama. Son <strong>11 participantes
+        alojados</strong>, y hasta 20 plazas si el grupo acepta compartir las
+        camas dobles.
+      </p>
+      <p>
+        A diferencia de un hotel, sin jerarquía entre las habitaciones: todo el
+        mundo está en igualdad de condiciones, con su propio baño. Una
+        habitación twin de hotel nunca ofrece eso.
       </p>
 
       <h3>Espacios de trabajo modulables</h3>
@@ -117,19 +125,29 @@ export default function Article() {
       <ul>
         <li>
           <strong>Cocina con isla central</strong>: la habitación más bonita
-          de la casa. La isla central acoge a <strong>8 a 10 personas sentadas</strong>{" "}
-          — configuración perfecta para un taller en círculo, un design
-          sprint, un desayuno estratégico o una comida de trabajo convivial.
+          de la casa, y el verdadero espacio de trabajo. La isla acoge a{" "}
+          <strong>12 personas sentadas</strong> — configuración perfecta para un
+          taller en círculo, un design sprint, un desayuno estratégico o una
+          comida de trabajo. Es la única sala con 12 plazas sentadas en interior
+          con calefacción, y por tanto la capacidad de referencia todo el año.
         </li>
         <li>
-          <strong>Sala zen → sala de reuniones</strong>: espacio tranquilo y
-          luminoso, ideal para brainstormings y talleres de 9-10 personas
-          (de abril a octubre — sala sin calefacción en invierno).
+          <strong>Salón</strong>: climatizado todo el año, con una{" "}
+          <strong>gran smart TV y una entrada HDMI</strong> — cada uno conecta su
+          portátil para una presentación o un debrief. Es también la sala de las
+          discusiones informales y de las sesiones de co-working.
         </li>
         <li>
-          <strong>Salón</strong>: acogedor, climatizado todo el año,
-          perfecto para discusiones informales, sesiones de co-working o
-          debriefings relajados.
+          <strong>Sala zen</strong>: espacio tranquilo y luminoso para
+          brainstormings y talleres en grupo reducido, <strong>de abril a
+          octubre</strong> — no tiene calefacción, así que no sustituye a la
+          isla en invierno.
+        </li>
+        <li>
+          <strong>Jardín cerrado de 90 m², orientado al sur</strong>: las grandes
+          mesas acogen a <strong>20 personas</strong> en la buena estación. Es lo
+          que permite superar los 12 participantes, pero solo de abril a
+          septiembre.
         </li>
         <li>
           <strong>Galería acristalada</strong>: prolonga el salón y la
@@ -143,15 +161,15 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        <strong>Pizarras blancas, paperboards y videoproyector</strong>{" "}
-        disponibles bajo petición — díganos qué necesita.
+        No proporcionamos material de reunión: ni paperboard, ni pizarra blanca, ni
+        videoproyector. El salón dispone en cambio de una gran smart TV con entrada
+        HDMI, que sustituye al videoproyector para la mayoría de las presentaciones.
       </p>
 
-      <h3>Wi-Fi de alta velocidad y toma Ethernet</h3>
+      <h3>Wi-Fi de alta velocidad</h3>
       <p>
-        Cada habitación dispone de una toma Ethernet y Wi-Fi de alta
-        velocidad para trabajar en videoconferencia, subir o compartir
-        archivos sin ninguna restricción.
+        Wi-Fi de alta velocidad en toda la casa, para trabajar en videoconferencia,
+        subir o compartir archivos sin ninguna restricción.
       </p>
 
       <h3>Sala de deporte + espacio zen = recuperación</h3>
@@ -190,10 +208,12 @@ export default function Article() {
 
       <h3>Tarifa orientativa de alojamiento</h3>
       <p>
-        Alquiler de la casa entera para 9 personas, 2 noches:{" "}
+        Alquiler de la casa entera para un equipo de 10 a 12, 2 noches:{" "}
         <strong>~150-250 €/noche/persona según la temporada</strong>{" "}
-        (excluyendo actividades en el circuito y restauración). Claramente
-        más barato que 9 habitaciones de hotel de 3-4★ equivalentes.
+        (excluyendo actividades en el circuito y restauración). Compáralo con 10
+        habitaciones de hotel de 3-4★ equivalentes, a las que hay que sumar el
+        alquiler de una sala de reuniones — aquí el espacio de trabajo viene con
+        la casa.
       </p>
 
       <h3>Servicios para profesionales</h3>
@@ -204,12 +224,15 @@ export default function Article() {
         <li><strong>Contacto WhatsApp 7 días/7</strong> para cualquier solicitud específica</li>
       </ul>
 
-      <h3>Bajo petición</h3>
+      <h3>Proveedores locales para completar tu estancia</h3>
+      <p>
+        No organizamos estos servicios nosotros, pero profesionales locales pueden
+        encargarse directamente:
+      </p>
       <ul>
         <li>Caterings locales para comidas in situ (desayuno, almuerzo, cena)</li>
-        <li>Material de reunión: videoproyector, paperboards, pizarra blanca</li>
-        <li>Traslados en taxi estación/circuito/casa</li>
-        <li>Puesta en contacto con el ACO para la reserva de actividades</li>
+        <li>Taxis para traslados estación/circuito/casa</li>
+        <li>Proveedores de actividades team-building (karting, simuladores, EVA…)</li>
       </ul>
 
       <h2>¿Por qué elegir esta fórmula en lugar de un hotel-seminario clásico?</h2>
@@ -245,9 +268,9 @@ export default function Article() {
       <p>
         Para organizar su seminario de empresa en Le Mans, consulte primero{" "}
         <Link href="/es#disponibilite">nuestra disponibilidad en tiempo real</Link>,
-        luego contacte con nosotros por WhatsApp para afinar el programa
-        (actividades ACO, restauración, material de reunión). Le ayudamos a
-        construir una estancia llave en mano.
+        luego contacte con nosotros por WhatsApp para fijar las fechas y el número de
+        participantes. Para las actividades en el circuito y la restauración le
+        orientamos hacia los proveedores locales que se encargan de ellas.
       </p>
       <p>
         Ver también:{" "}

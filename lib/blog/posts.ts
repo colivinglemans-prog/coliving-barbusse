@@ -860,78 +860,83 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/seminaire.jpg",
     locales: {
       fr: {
-        title: "Séminaire d'entreprise au Mans : team-building circuit + coliving 9 personnes",
+        title: "Séminaire d'entreprise au Mans : maison entière pour 10 à 12 personnes",
         description:
-          "Organiser un séminaire au Mans : 9 suites privatives, espaces de réunion modulables, activités team-building au Circuit Bugatti et en Sarthe. Programme type 2 jours et guide complet.",
+          "Organiser un séminaire de 10 à 12 personnes au Mans : 11 couchages sans partager de lit, îlot de 12 places assises, écran HDMI, team-building au Circuit Bugatti. Programme type 2 jours et budget.",
         excerpt:
-          "9 personnes, une maison entière, le circuit mythique à moins de 5 km : la formule idéale pour un séminaire qui combine productivité et cohésion.",
+          "10 à 12 personnes, une maison entière, le circuit mythique à moins de 5 km : 11 participants logés sans partager de lit et 12 places assises pour travailler.",
         keywords: [
           "séminaire entreprise Le Mans",
+          "séminaire 10 personnes Le Mans",
+          "séminaire 12 personnes Le Mans",
+          "location maison séminaire Le Mans",
           "team building Le Mans",
           "séminaire Circuit Bugatti",
           "mise au vert entreprise Sarthe",
-          "location maison séminaire Le Mans",
-          "brainstorm équipe Le Mans",
         ],
       },
       en: {
-        title: "Corporate seminar in Le Mans: circuit team-building + coliving for 9",
+        title: "Corporate seminar in Le Mans: a whole house for 10 to 12 people",
         description:
-          "Organising a seminar in Le Mans: 9 private suites, modular meeting spaces, team-building activities at Bugatti Circuit and in the Sarthe. 2-day example programme and full guide.",
+          "Organising a seminar for 10 to 12 people in Le Mans: 11 guests without sharing a bed, a 12-seat kitchen island, HDMI screen, team-building at Bugatti Circuit. 2-day programme and budget.",
         excerpt:
-          "9 people, a whole house, the legendary circuit less than 5 km away: the ideal formula for a seminar that combines productivity and bonding.",
+          "10 to 12 people, a whole house, the legendary circuit less than 5 km away: 11 guests housed without sharing a bed and 12 seats to work around.",
         keywords: [
           "Le Mans corporate seminar",
+          "seminar for 10 people Le Mans",
+          "seminar for 12 people Le Mans",
+          "Le Mans seminar house rental",
           "Le Mans team building",
           "Bugatti Circuit seminar",
           "company retreat Sarthe",
-          "Le Mans seminar house rental",
-          "team brainstorm Le Mans",
         ],
       },
       it: {
-        title: "Seminario aziendale a Le Mans: team-building al circuito + coliving 9 persone",
+        title: "Seminario aziendale a Le Mans: una casa intera per 10-12 persone",
         description:
-          "Organizzare un seminario a Le Mans: 9 suite private, sale riunioni modulari, attività di team-building al Circuit Bugatti e in Sarthe. Programma tipo di 2 giorni e guida completa.",
+          "Organizzare un seminario per 10-12 persone a Le Mans: 11 posti letto senza condividere il letto, isola da 12 posti a sedere, schermo HDMI, team-building al Circuit Bugatti. Programma di 2 giorni e budget.",
         excerpt:
-          "9 persone, una casa intera, il circuito mitico a meno di 5 km: la formula ideale per un seminario che unisce produttività e coesione.",
+          "10-12 persone, una casa intera, il circuito mitico a meno di 5 km: 11 partecipanti alloggiati senza condividere il letto e 12 posti a sedere per lavorare.",
         keywords: [
           "seminario aziendale Le Mans",
+          "seminario 10 persone Le Mans",
+          "seminario 12 persone Le Mans",
+          "affitto casa seminario Le Mans",
           "team building Le Mans",
           "seminario Circuit Bugatti",
           "ritiro aziendale Sarthe",
-          "affitto casa seminario Le Mans",
-          "brainstorm team Le Mans",
         ],
       },
       de: {
-        title: "Firmenseminar in Le Mans: Team-Building am Circuit + Coliving für 9 Personen",
+        title: "Firmenseminar in Le Mans: ein ganzes Haus für 10 bis 12 Personen",
         description:
-          "Seminar in Le Mans organisieren: 9 Privatsuiten, modulare Tagungsräume, Team-Building-Aktivitäten am Circuit Bugatti und im Sarthe. Beispielprogramm über 2 Tage und vollständiger Guide.",
+          "Seminar für 10 bis 12 Personen in Le Mans organisieren: 11 Schlafplätze ohne geteiltes Bett, Kücheninsel mit 12 Sitzplätzen, HDMI-Bildschirm, Team-Building am Circuit Bugatti. 2-Tages-Programm und Budget.",
         excerpt:
-          "9 Personen, ein ganzes Haus, der legendäre Circuit weniger als 5 km entfernt: die ideale Formel für ein Seminar, das Produktivität und Zusammenhalt vereint.",
+          "10 bis 12 Personen, ein ganzes Haus, der legendäre Circuit weniger als 5 km entfernt: 11 Teilnehmende ohne geteiltes Bett und 12 Sitzplätze zum Arbeiten.",
         keywords: [
           "Firmenseminar Le Mans",
+          "Seminar 10 Personen Le Mans",
+          "Seminar 12 Personen Le Mans",
+          "Seminarhaus Le Mans mieten",
           "Team Building Le Mans",
           "Seminar Circuit Bugatti",
           "Firmenausflug Sarthe",
-          "Seminarhaus Le Mans mieten",
-          "Team Brainstorming Le Mans",
         ],
       },
       es: {
-        title: "Seminario de empresa en Le Mans: team-building en el circuito + coliving 9 personas",
+        title: "Seminario de empresa en Le Mans: una casa entera para 10 a 12 personas",
         description:
-          "Organizar un seminario en Le Mans: 9 suites privadas con baño, espacios de reunión modulables, actividades de team-building en el Circuito Bugatti y en Sarthe. Programa tipo de 2 días y guía completa.",
+          "Organizar un seminario para 10 a 12 personas en Le Mans: 11 plazas sin compartir cama, isla de 12 plazas sentadas, pantalla HDMI, team-building en el Circuito Bugatti. Programa de 2 días y presupuesto.",
         excerpt:
-          "9 personas, una casa entera, el mítico circuito a menos de 5 km: la fórmula ideal para un seminario que combina productividad y cohesión.",
+          "10 a 12 personas, una casa entera, el mítico circuito a menos de 5 km: 11 participantes alojados sin compartir cama y 12 plazas sentadas para trabajar.",
         keywords: [
           "seminario empresa Le Mans",
+          "seminario 10 personas Le Mans",
+          "seminario 12 personas Le Mans",
+          "alquiler casa seminario Le Mans",
           "team building Le Mans",
           "seminario Circuito Bugatti",
           "retiro empresa Sarthe",
-          "alquiler casa seminario Le Mans",
-          "brainstorming equipo Le Mans",
         ],
       },
     },
