@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { AdminBookingListItem } from "@sejour/socle/lib/booking-dto";
+import { provisionalKind } from "@sejour/socle/lib/booking-status";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 
 function formatDateFr(iso: string): string {
@@ -38,9 +39,19 @@ function normalizeChannel(referer: string, channel?: string): ChannelKey {
   return "other";
 }
 
+/**
+ * Une demande, pas une vente — `request` ou `inquiry`, et le socle en est seul juge.
+ *
+ * `new` en faisait partie ici, sixième copie d'un lot de statuts que
+ * `@sejour/socle/lib/booking-status` avait déjà corrigé le 2026-09-12 : sur un canal OTA,
+ * `new` est le statut d'arrivée par défaut tant que l'hôte n'a pas cliqué « Confirmed » dans
+ * Beds24 — un acte de rangement, pas un acte contractuel. La réservation est confirmée, elle a
+ * son code de confirmation et sa commission, et elle se facture comme les autres. Elle
+ * comptait déjà dans les revenus et la taxe de séjour ; elle était rangée « Inquiry » sur
+ * cette seule page.
+ */
 function isInquiry(status: string): boolean {
-  const s = (status ?? "").toLowerCase();
-  return s === "inquiry" || s === "request" || s === "new";
+  return provisionalKind(status) === "unconfirmed";
 }
 
 type FilterKey = "all" | "inquiry" | "direct" | "airbnb" | "booking" | "abritel";

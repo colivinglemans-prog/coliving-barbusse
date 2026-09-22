@@ -60,8 +60,9 @@ const PALETTE_PERIODE = {
  * et le navigateur d'un `viewer` recevait les demandes et les options quand même. La route
  * les retire désormais de la réponse ; ce qui reste ici est une seconde ceinture.
  *
- * - `unconfirmed` (`new`, `request`, `inquiry`) : étiquette « ? », une demande qui peut se
- *   conclure.
+ * - `unconfirmed` (`request`, `inquiry`) : étiquette « ? », une demande qui peut se conclure.
+ *   **`new` n'en est pas** depuis le 2026-09-12 : c'est le statut d'arrivée par défaut d'un
+ *   canal OTA, déjà confirmé côté canal, et il s'affiche comme une réservation ordinaire.
  * - `held` (`black`) : étiquette « OPTION », des dates délibérément tenues.
  *
  * Les deux se ressemblent — même ardoise rayée, même absence en vue viewer — et ne se
