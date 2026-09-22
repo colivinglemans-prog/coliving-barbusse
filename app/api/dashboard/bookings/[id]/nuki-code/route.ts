@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBookingById } from "@/lib/beds24";
+import { getBookingById, nukiCodeOf } from "@/lib/beds24";
 import { guard } from "@/lib/auth";
-
-/**
- * Beds24 dépose le PIN de la serrure Nuki dans les infoItems de la réservation,
- * sous ce code. Il n'apparaît qu'environ 6 jours avant l'arrivée.
- */
-const NUKI_INFO_CODE = "NUKI_PIN";
 
 /**
  * Code d'accès d'une réservation. Route dédiée et admin-only : le PIN ne doit jamais
@@ -35,13 +29,8 @@ export async function GET(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    const item = booking.infoItems?.find(
-      (i) => (i.code ?? "").toUpperCase() === NUKI_INFO_CODE,
-    );
-    const code = item?.text?.trim();
-
     // Ne jamais logger le PIN : le dépôt est public.
-    return NextResponse.json({ code: code || null });
+    return NextResponse.json({ code: nukiCodeOf(booking) });
   } catch (err) {
     console.error("[nuki-code] lookup failed for booking", id, err);
     const message = err instanceof Error ? err.message : "Lookup failed";

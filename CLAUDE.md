@@ -65,6 +65,7 @@ app/
       fiscal/         # Estimation IR + PS/SSI + test LMP
       bookings/[id]/notes/      # POST notes internes (admin only) → Beds24
       bookings/[id]/nuki-code/  # GET code serrure (admin only) ← infoItems NUKI_PIN
+      bookings/[id]/messages/   # GET état des 2 boutons / POST envoi arrivée|départ (admin only)
     cron/
       heating-automation/  # Check-in/check-out → mode présence/hors-gel
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
@@ -270,7 +271,7 @@ Trois portes, dans cet ordre. Aucune n'est suffisante seule.
 | Porte | Où | Ce qu'elle fait |
 |---|---|---|
 | `proxy.ts` | racine | Cookie exigé sur `/dashboard` et `/api/dashboard`. **Liste blanche** des chemins ouverts à `viewer` — l'ancien middleware tenait une liste noire de quatre préfixes, et c'est ainsi que `bookings` est resté ouvert. |
-| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`. |
+| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`. |
 | DTO | `@sejour/socle/lib/booking-dto` | `/api/dashboard/bookings` projette vers `BookingListItem` (15 champs) ou `AdminBookingListItem` (+`price`, `email`, `mobile`, `phone`, `country`). |
 
 **La fuite fermée le 2026-09-11.** `/api/dashboard/bookings` n'avait aucun contrôle de rôle et
@@ -295,17 +296,28 @@ code `CHECKIN`. Ce cron est derrière `CRON_SECRET` et n'envoie que vers ntfy.
 
 ## Beds24 API (v2)
 
-**Trois tokens depuis le 2026-09-11 — un par chemin, pas par verbe.** Rotation complète après
-la découverte de quatre secrets en clair dans `.claude/settings.json`.
+**Quatre tokens — un par chemin, pas par verbe.** Les trois premiers datent du 2026-09-11
+(rotation complète après la découverte de quatre secrets en clair dans
+`.claude/settings.json`) ; la messagerie s'est ajoutée le 2026-09-22.
 
 | Variable | `deviceName` | Scopes | Chemin servi |
 |---|---|---|---|
 | `BEDS24_PUBLIC_REFRESH_TOKEN` | `coliving-barbusse-public-2026-09` | `read:inventory`, `read:properties` | `/api/availability`, vitrine |
 | `BEDS24_READ_REFRESH_TOKEN` | `coliving-barbusse-lecture-2026-09b` | + `read:bookings`, `read:bookings-personal`, `read:bookings-financial` | dashboard, factures, fiscal |
 | `BEDS24_REFRESH_TOKEN` | `coliving-barbusse-ecriture-2026-09` | `read:bookings`, `write:bookings` | consignes de ménage |
+| `BEDS24_MESSAGES_REFRESH_TOKEN` | `coliving-barbusse-messagerie-2026-09` | `read:bookings`, `read:bookings-personal`, `write:bookings-personal` | messages voyageur |
 
 Vérifiés contre l'API, pas supposés : le public reçoit `401` sur `/bookings`, la lecture ne
 peut pas écrire, l'écriture ne voit ni `price`, ni `commission`, ni `invoiceItems`.
+
+**Pourquoi un quatrième plutôt qu'élargir l'écriture.** `/bookings/messages` exige la variante
+`-personal` des scopes, en lecture **comme** en écriture — mesuré le 2026-09-22 : le jeton
+d'écriture, qui porte `read:bookings` + `write:bookings` mais pas `-personal`, reçoit
+`401 Token not valid` sur `GET` comme sur `POST /bookings/messages`, là où le jeton de lecture
+(qui a `read:bookings-personal`) lit le fil sans problème. Poser `write:bookings-personal` sur
+le jeton des consignes de ménage lui aurait donné le droit d'écrire au voyageur pour rien.
+Cette voie n'a **aucun repli** : un envoi qui dégrade silencieusement vers une autre voie
+écrirait sous un autre privilège, ou échouerait en laissant croire que le message est parti.
 
 **Pourquoi la page publique a le sien.** `/api/availability` est le point d'entrée le plus
 exposé du site, et il ne consulte que l'inventaire. Le servir avec le jeton du dashboard
@@ -648,6 +660,65 @@ Bloc dans la popup de réservation du calendrier — [components/dashboard/Guest
 - **Code Nuki** : Beds24 dépose le PIN 6 chiffres dans `infoItems[]` sous `code = "NUKI_PIN"` (champ `text`), environ **6 jours avant l'arrivée** seulement → prévoir l'état « Pas encore généré ». Lu via `GET /api/dashboard/bookings/[id]/nuki-code` (admin only via JWT, re-vérifié dans la route car le middleware ne bloque pas viewer sur `/api/dashboard/bookings`). Route dédiée volontairement : le calendrier charge ~19 mois de résas, hors de question d'y faire transiter les PIN. **Ne jamais logger le PIN — le dépôt est public.**
 - **URL et langues** : `guideUrl()` / `guestLocaleFromCountry()` dans [lib/site.ts](lib/site.ts) ; modèles de message dans [lib/guest-messages.ts](lib/guest-messages.ts) (vouvoiement FR/DE, tutoiement IT/ES, comme le guide).
 - **Presse-papier** : le dashboard est utilisé en mode « app » sur mobile, où `navigator.clipboard` peut être refusé → repli sur un champ sélectionnable, jamais d'échec silencieux.
+
+### Envoi des messages arrivée / départ depuis le calendrier
+
+Deux boutons dans le même bloc de partage — « Arrivée + code » et « Départ » — qui écrivent
+dans le fil de messagerie de la réservation sans passer par l'interface Beds24. Grisés si le
+message est déjà parti, avec sa date ; cliquables sinon.
+
+**Les « Mail & Actions » de Beds24 ne sont pas dans l'API.** La spec complète
+([api.beds24.com/v2/apiV2.yaml](https://api.beds24.com/v2/apiV2.yaml)) ne liste que
+`authentication/*`, `bookings`, `bookings/messages`, `bookings/invoices`, `inventory/*`,
+`accounts`, `properties*`, `channels/*`, `organizations/users`. Impossible de lire l'id d'une
+auto-action, son statut (`sent` / `waiting until due` / `expired`) ou de déclencher son
+« Send Now ». Le `actions` de `POST /bookings` (`notifyGuest`, `notifyHost`…) est autre chose.
+**Ne pas repartir en quête de cet endpoint : il n'existe pas.**
+
+**D'où la reconnaissance par le texte.** L'état des boutons se relit dans
+`GET /bookings/messages?bookingId=…`, pas dans un registre local. C'est la seule source qui
+voie aussi les envois des auto-actions restées actives — vérifié sur la réservation 90939710 :
+« Before arrival - Send Nuki PIN » due à 17:52 → message id 167207957 à 15:52 UTC. Un registre
+maison les ignorerait et le bouton resterait vert après un envoi automatique.
+
+`detectGuestMessageKind()` dans [lib/guest-messages.ts](lib/guest-messages.ts) compare le texte
+normalisé (minuscules, sans diacritiques — les auto-actions envoient « Le depart approche »
+sans accent) à deux jeux d'empreintes par famille : l'en-tête de bienvenue des gabarits Beds24
+(« Bienvenue au Coliving », « Welcome to Coliving ») et le libellé du code des nôtres
+(« Votre code d'accès à la porte » et ses 4 traductions). Seuls les messages `source: "host"`
+comptent, et le fil arrivant du plus récent au plus ancien, le premier vu est le dernier envoi.
+
+⚠️ **Ne jamais reprendre l'URL du guide comme empreinte.** C'était le premier choix — une
+seule ligne couvrait les 5 langues. Mesuré contre le fil réel : la réservation 92941610 porte
+un message écrit à la main (« You can check on our arrival guide… » + le lien) qui passait
+pour un envoi d'arrivée. Or l'arrivée, c'est le PIN, pas le lien : le bouton se serait grisé
+sans que le code soit parti. Beds24 n'a de gabarit d'arrivée qu'en **FR et EN** à ce jour ; en
+ajouter un dans une autre langue oblige à poser son en-tête dans `SIGNATURES`.
+
+**Cohabitation assumée** : les auto-actions « Before arrival - Send Nuki PIN » et
+« Before checkout » restent actives côté Beds24. Les boutons servent à **avancer** un envoi,
+pas à le remplacer. Si un gabarit est modifié dans Beds24, vérifier que son empreinte tient
+encore dans `SIGNATURES` — sinon le bouton redevient cliquable et le voyageur reçoit deux fois.
+
+Autres points de conception, dans [la route](app/api/dashboard/bookings/[id]/messages/route.ts) :
+
+- **Le texte est construit côté serveur.** Un `message` libre posté depuis le navigateur ferait
+  de cette route un relais d'écriture arbitraire vers Airbnb et Booking.com sous notre identité
+  d'hôte. Le client ne choisit que la famille (`arrivee` | `depart`) et la langue.
+- **Garde-fou serveur contre le double envoi** : le fil est relu juste avant d'écrire, `409` si
+  le message est déjà là. Un bouton grisé ne protège de rien (deux onglets, une auto-action
+  partie entre-temps).
+- **Réservations directes** : pas de canal, donc pas de fil. `sendable: false`, bouton grisé avec
+  la raison — l'API accepterait le `POST` mais personne ne le lirait.
+- **Arrivée sans PIN** : refusé (`409`). Beds24 ne dépose le code qu'≈ 6 jours avant l'arrivée ;
+  envoyer avant, c'est griller le bouton pour l'envoi qui compte. Les boutons de copie restent là.
+- **Confirmation avant envoi** : `window.confirm` nommant la langue et le canal. Le message part
+  chez un vrai voyageur et ne se rattrape pas.
+- **Jamais le corps du message dans les logs** : il porte le PIN, et le dépôt est public.
+
+Limites du canal : texte brut, pas de HTML. Booking.com filtre les liens externes — l'URL du
+guide passe sur Airbnb, à vérifier sur Booking.com. Les pièces jointes sont possibles
+(`attachment` base64 + `attachmentName` + `attachmentMimeType`) mais inutilisées ici.
 
 ## Événements Le Mans (`lib/events.ts`)
 
@@ -1183,15 +1254,17 @@ Beds24 **invalide un refresh token qui n'a pas servi depuis 30 jours** (`401 Tok
 
 Le cron `/api/cron/beds24-keepalive` force l'échange des **trois** refresh tokens chaque lundi
 4 h, hors cache — c'est l'échange qui repousse l'échéance, pas la lecture d'un access token
-encore valide gardé en mémoire. Aucun des trois ne s'entretient seul de façon fiable :
+encore valide gardé en mémoire. Aucun des quatre ne s'entretient seul de façon fiable :
 
 - **écriture** : ne sert qu'aux consignes de ménage, bien trop rare.
 - **lecture** : le dashboard n'est ouvert que par intermittence, et le cache de 60 s des
   réponses espace encore les échanges.
 - **publique** : on pourrait la croire entretenue par le trafic, mais une saison creuse ne
   prévient pas.
+- **messagerie** : deux boutons cliqués de loin en loin. Sa mort ne se voit qu'au moment
+  précis où l'on veut écrire au voyageur — c'est-à-dire trop tard.
 
-Les trois sont tentés même si le premier échoue — un jeton mort ne doit pas en entraîner un
+Les quatre sont tentés même si le premier échoue — un jeton mort ne doit pas en entraîner un
 second — et chaque échec déclenche un email d'alerte (`sendBeds24Alert`) nommant les scopes
 exacts à régénérer pour cette voie-là.
 
@@ -1252,7 +1325,9 @@ BEDS24_PUBLIC_REFRESH_TOKEN # Page publique : read:inventory, read:properties. R
 BEDS24_READ_REFRESH_TOKEN   # Dashboard, factures, fiscal : + read:bookings & -personal & -financial.
                             # Aussi utilisé par scripts/beds24-backup.mjs.
 BEDS24_REFRESH_TOKEN        # Consignes de ménage : read:bookings, write:bookings. Ne voit pas l'argent.
-                            # Les trois sont des refresh tokens — plus aucun long life depuis le 2026-09-11.
+BEDS24_MESSAGES_REFRESH_TOKEN # Messages voyageur : read:bookings + read/write:bookings-personal.
+                            # /bookings/messages refuse tout jeton sans la variante -personal.
+                            # Les quatre sont des refresh tokens — plus aucun long life depuis le 2026-09-11.
                             # Obtenus via un invite code (Settings → API → Invites) échangé par
                             # scripts/beds24-setup.mjs, soit GET /authentication/setup.
                             # JAMAIS /authentication/token : il consomme le code sans montrer le token.

@@ -4,14 +4,15 @@ import {
   refreshBeds24WriteToken,
   refreshBeds24ReadToken,
   refreshBeds24PublicToken,
+  refreshBeds24MessagesToken,
 } from "@/lib/beds24";
 import { sendBeds24Alert } from "@/lib/email";
 
 /**
  * Maintient les refresh tokens Beds24 en vie.
  *
- * Beds24 invalide un refresh token qui n'a pas servi depuis 30 jours. Le site en a **trois**
- * depuis le 2026-09-11, et aucun ne s'entretient de façon fiable tout seul :
+ * Beds24 invalide un refresh token qui n'a pas servi depuis 30 jours. Le site en a **quatre**
+ * depuis le 2026-09-22, et aucun ne s'entretient de façon fiable tout seul :
  *
  * - **écriture** (`BEDS24_REFRESH_TOKEN`) : ne sert qu'à poser une note sur une réservation,
  *   bien trop rare. Sans ce cron il meurt et l'écriture renvoie `401 Token not valid`.
@@ -23,11 +24,15 @@ import { sendBeds24Alert } from "@/lib/email";
  *   continue de fonctionner, en ayant reperdu la séparation des privilèges sans que personne
  *   ne le voie.
  *
- * Un appel hebdomadaire suffit largement pour les trois. Les trois sont tentés même si le
+ * - **messagerie** (`BEDS24_MESSAGES_REFRESH_TOKEN`) : deux boutons cliqués de loin en loin
+ *   dans le calendrier. Sa mort ne se voit qu'au moment précis où l'on veut écrire au
+ *   voyageur — c'est-à-dire trop tard.
+ *
+ * Un appel hebdomadaire suffit largement pour les quatre. Les quatre sont tentés même si le
  * premier échoue : un jeton mort ne doit pas en entraîner un second.
  */
 
-type Voie = "ecriture" | "lecture" | "publique";
+type Voie = "ecriture" | "lecture" | "publique" | "messagerie";
 type Resultat = { ok: true; expiresIn: number } | { ok: false; error: string };
 
 const REPARATION: Record<Voie, string[]> = {
@@ -54,6 +59,14 @@ const REPARATION: Record<Voie, string[]> = {
     "     https://api.beds24.com/v2/authentication/setup",
     "3. Copier le champ refreshToken dans BEDS24_PUBLIC_REFRESH_TOKEN (.env.local + Vercel)",
   ],
+  messagerie: [
+    "1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code avec les scopes",
+    "   read:bookings, read:bookings-personal, write:bookings-personal",
+    "   (/bookings/messages exige la variante -personal, en lecture comme en écriture)",
+    '2. curl -H "code: <INVITE>" -H "deviceName: coliving-barbusse-messagerie-AAAA-MM" \\',
+    "     https://api.beds24.com/v2/authentication/setup",
+    "3. Copier le champ refreshToken dans BEDS24_MESSAGES_REFRESH_TOKEN (.env.local + Vercel)",
+  ],
 };
 
 const CONSEQUENCE: Record<Voie, string> = {
@@ -64,6 +77,9 @@ const CONSEQUENCE: Record<Voie, string> = {
   publique:
     "La page publique est retombée sur le jeton de lecture : elle fonctionne, mais elle " +
     "tourne désormais avec read:bookings-personal et read:bookings-financial.",
+  messagerie:
+    "Les boutons d'envoi des messages d'arrivée et de départ du calendrier sont cassés. " +
+    "Les auto-actions Beds24, elles, continuent de tourner.",
 };
 
 async function entretenir(
@@ -104,6 +120,11 @@ export async function GET(request: NextRequest) {
   const lecture = await entretenir("lecture", refreshBeds24ReadToken);
   const ecriture = await entretenir("ecriture", refreshBeds24WriteToken);
 
-  const ok = publique.ok && lecture.ok && ecriture.ok;
-  return NextResponse.json({ ok, publique, lecture, ecriture }, { status: ok ? 200 : 500 });
+  const messagerie = await entretenir("messagerie", refreshBeds24MessagesToken);
+
+  const ok = publique.ok && lecture.ok && ecriture.ok && messagerie.ok;
+  return NextResponse.json(
+    { ok, publique, lecture, ecriture, messagerie },
+    { status: ok ? 200 : 500 },
+  );
 }

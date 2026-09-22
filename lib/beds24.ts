@@ -3,6 +3,7 @@ import { commissionOf } from "@sejour/socle/lib/commissions";
 import { touristTaxFromInvoiceItems } from "@sejour/socle/lib/taxe-sejour";
 import { nightsBetween, type Booking, type BookingSource } from "@sejour/socle/lib/booking";
 import {
+  Beds24Error,
   createBeds24Client,
   expandSpans,
   type Beds24TokenExchange,
@@ -30,6 +31,7 @@ import type {
  * | `BEDS24_PUBLIC_REFRESH_TOKEN` | `coliving-barbusse-public-2026-09` | `read:inventory`, `read:properties` | `/api/availability`, vitrine |
  * | `BEDS24_READ_REFRESH_TOKEN` | `coliving-barbusse-lecture-2026-09b` | + `read:bookings`, `-personal`, `-financial` | dashboard, factures |
  * | `BEDS24_REFRESH_TOKEN` | `coliving-barbusse-ecriture-2026-09` | `read:bookings`, `write:bookings` | consignes de ménage |
+ * | `BEDS24_MESSAGES_REFRESH_TOKEN` | `coliving-barbusse-messagerie-2026-09` | `read:bookings`, `read/write:bookings-personal` | messages voyageur |
  *
  * Les trois vérifiés contre l'API le 2026-09-11, pas supposés : le public reçoit `401` sur
  * `/bookings`, la lecture ne peut pas écrire, l'écriture ne voit ni `price` ni `invoiceItems`.
@@ -70,6 +72,19 @@ const client = createBeds24Client({
     lecture: { env: "BEDS24_READ_REFRESH_TOKEN" },
     /** Consignes de ménage, et rien d'autre. */
     ecriture: { env: "BEDS24_REFRESH_TOKEN" },
+    /**
+     * Fil de messagerie du voyageur — lecture de l'état des boutons et envoi.
+     *
+     * Quatrième voie plutôt qu'un élargissement de l'écriture : `/bookings/messages` exige
+     * la variante `-personal` des scopes (vérifié le 2026-09-22 — le jeton d'écriture, qui
+     * ne l'a pas, reçoit `401 Token not valid` en lecture **comme** en écriture sur cet
+     * endpoint). Poser `write:bookings-personal` sur le jeton des consignes de ménage lui
+     * aurait donné le droit d'écrire au voyageur pour rien.
+     *
+     * **Aucun repli.** Un envoi qui dégrade silencieusement vers une autre voie écrirait
+     * sous un autre privilège, ou échouerait en laissant croire que le message est parti.
+     */
+    messagerie: { env: "BEDS24_MESSAGES_REFRESH_TOKEN" },
   },
 });
 
@@ -89,6 +104,14 @@ export function refreshBeds24PublicToken(): Promise<Beds24TokenExchange> {
  */
 export function refreshBeds24WriteToken(): Promise<Beds24TokenExchange> {
   return client.refresh("ecriture");
+}
+
+/**
+ * Échange forcé du jeton de messagerie — exporté pour le cron keepalive. Deux boutons
+ * cliqués de loin en loin n'entretiennent rien : sans le cron il meurt en 30 jours.
+ */
+export function refreshBeds24MessagesToken(): Promise<Beds24TokenExchange> {
+  return client.refresh("messagerie");
 }
 
 export function updateBookingNotes(id: number, notes: string): Promise<void> {
@@ -208,6 +231,20 @@ export function toBooking(b: Beds24Booking, source: BookingSource = "live"): Boo
     comments: b.comments,
     arrivalTime: b.arrivalTime,
   };
+}
+
+/**
+ * Code de la serrure Nuki, déposé par Beds24 dans les `infoItems` de la réservation. Il
+ * n'apparaît qu'environ 6 jours avant l'arrivée — avant cela, `null`.
+ *
+ * Lu par deux routes (le bloc de partage et l'envoi du message d'arrivée) : le nom du code
+ * vit ici plutôt qu'en double dans chacune.
+ */
+const NUKI_INFO_CODE = "NUKI_PIN";
+
+export function nukiCodeOf(booking: Beds24Booking): string | null {
+  const item = booking.infoItems?.find((i) => (i.code ?? "").toUpperCase() === NUKI_INFO_CODE);
+  return item?.text?.trim() || null;
 }
 
 export async function getBookingById(id: number): Promise<Beds24Booking | null> {
@@ -364,4 +401,79 @@ export async function getMinStay(
     expandSpans(room.calendar, (e) => e.minStay, undefined, result);
   }
   return result;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Messagerie voyageur
+ *
+ * `/bookings/messages` écrit dans le fil de la réservation côté canal : le voyageur reçoit
+ * le message dans Airbnb ou Booking.com, et Beds24 l'horodate. C'est ce qui permet au
+ * dashboard de n'avoir aucun registre local à tenir — l'état des boutons se relit dans le
+ * fil, y compris pour les messages partis par auto-action.
+ *
+ * **Réservations directes** : pas de canal, donc pas de fil. L'API accepte le POST mais
+ * personne ne le reçoit. L'appelant filtre en amont (voir la route API).
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/** Le socle garde son URL de base privée ; on la redit ici pour l'unique appel en POST. */
+const BEDS24_BASE_URL = "https://api.beds24.com/v2";
+
+export interface Beds24Message {
+  id: number;
+  bookingId: number;
+  /** ISO 8601 UTC, tel que Beds24 le rend. */
+  time: string;
+  source: "host" | "guest" | "internalNote" | "system";
+  message: string;
+}
+
+/**
+ * Fil d'une réservation, du plus récent au plus ancien.
+ *
+ * Pas de pagination : Beds24 rend 100 messages par page et les sert dans cet ordre, or on ne
+ * cherche que les deux messages types, forcément récents. Une réservation à plus de
+ * 100 échanges verrait ses plus anciens tomber — sans conséquence ici.
+ */
+export async function getBookingMessages(bookingId: number): Promise<Beds24Message[]> {
+  const data = await client.get<{ data: Beds24Message[] }>("/bookings/messages", {
+    params: { bookingId: String(bookingId) },
+    route: "messagerie",
+    fresh: true,
+  });
+  return data.data ?? [];
+}
+
+/**
+ * Envoie un message au voyageur. Beds24 l'ajoute au fil et le pousse vers le canal.
+ *
+ * Même prudence que `updateNotes` dans le socle : l'API répond parfois **200 avec
+ * `success: false`**, un refus qu'il faut lire dans le corps sous peine d'afficher
+ * « envoyé » alors que rien n'est parti — ce qui, ici, ferait griser un bouton à tort.
+ */
+export async function sendBookingMessage(bookingId: number, message: string): Promise<void> {
+  const t = await client.token("messagerie");
+  const res = await fetch(`${BEDS24_BASE_URL}/bookings/messages`, {
+    method: "POST",
+    headers: { token: t, "Content-Type": "application/json" },
+    body: JSON.stringify([{ bookingId, message }]),
+    cache: "no-store",
+  });
+  const body = await res.text();
+
+  if (!res.ok) {
+    if (res.status === 401) client.invalidate("messagerie");
+    throw new Beds24Error(res.status, "/bookings/messages (POST)", body);
+  }
+
+  let refus: string | null = null;
+  try {
+    const parsed = JSON.parse(body) as { success?: boolean; errors?: unknown; error?: unknown }[];
+    const first = Array.isArray(parsed) ? parsed[0] : null;
+    if (first && first.success === false) {
+      refus = JSON.stringify(first.errors ?? first.error ?? first).slice(0, 300);
+    }
+  } catch {
+    // Corps illisible mais statut 2xx : format inattendu, pas un refus d'envoi.
+  }
+  if (refus) throw new Error(`Beds24 a refusé l'envoi : ${refus}`);
 }
