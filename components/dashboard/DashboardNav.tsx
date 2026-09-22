@@ -13,10 +13,13 @@ import type { DashboardRole } from "@/lib/auth";
  * Les couleurs passent désormais par les sept tokens sémantiques du thème : `text-primary`
  * vaut `#ff385c`, le rose Airbnb exact, là où `text-rose-500` en était une approximation
  * (`#f43f5e`) recopiée à sept endroits.
+ *
+ * Le calendrier est **en tête, et c'est l'accueil** : `/dashboard` y redirige. C'est l'écran
+ * qu'on ouvre tous les jours, là où les statistiques se lisent une fois par mois.
  */
 const LIENS: DashboardLink[] = [
-  { href: "/dashboard", label: "Statistiques", adminOnly: true },
   { href: "/dashboard/calendar", label: "Calendrier", adminOnly: false },
+  { href: "/dashboard/stats", label: "Statistiques", adminOnly: true },
   { href: "/dashboard/heating", label: "Chauffage", adminOnly: false },
   { href: "/dashboard/water-heater", label: "Eau chaude", adminOnly: false },
   { href: "/dashboard/invoices", label: "Factures", adminOnly: true },

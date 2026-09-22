@@ -44,7 +44,8 @@ app/
     # Le calendrier de dispo est sur la homepage (#disponibilite) et /chambres.
   (dashboard)/
     layout.tsx        # Second layout RACINE : <html lang="fr">, noindex
-    dashboard/        # Dashboard privé (stats, calendrier, chauffage) — hors [locale]
+    dashboard/        # Dashboard privé (calendrier d'accueil, stats, chauffage) — hors [locale]
+                      # page.tsx = redirection vers /dashboard/calendar
   api/
     auth/             # Login, logout, me
     availability/     # Disponibilité Beds24 (public)
@@ -490,7 +491,14 @@ un merge transparent :
 
 **Toujours** : offline, consigne modifiée par voyageur
 
-## Dashboard stats (`/dashboard`)
+## Dashboard stats (`/dashboard/stats`)
+
+> **L'accueil du dashboard est le calendrier.** `/dashboard` est une redirection vers
+> `/dashboard/calendar` ; les statistiques ont pris leur propre chemin, `/dashboard/stats`.
+> C'est l'écran qu'on ouvre tous les jours qui accueille, pas celui qu'on montre à un banquier
+> une fois par mois. Une redirection et non le calendrier rendu sur `/dashboard` : les chemins
+> ouverts à `viewer` se lisent **par préfixe**, et `/dashboard` dans `allowedPaths` ouvrirait du
+> même coup factures, fiscal et taxe de séjour.
 
 > **Lot 3 — ce qui est parti dans `@sejour/socle`** : la ventilation du revenu dans le temps
 > (`spreadRevenue`), le thème Recharts (`lib/chart-theme`) et la barre de navigation
@@ -498,7 +506,7 @@ un merge transparent :
 > quelles cartes, dans quel ordre — c'est un choix par site, et le socle ne l'impose pas.
 > Détail des modules : `CLAUDE.md` du socle, section « Lot 3 ».
 
-> **Lots C + D (socle `v3.0.0`, 2026-09-13)** : la page `/dashboard` est le composant
+> **Lots C + D (socle `v3.0.0`, 2026-09-13)** : la page des statistiques est le composant
 > `@sejour/socle/components/StatsDashboard` (titre, sous-titre, accent `#FF385C`) et la route
 > `app/api/dashboard/stats/route.ts` ne fait plus que fournir les séjours vendus, `unitsTotal = 1`
 > (**l'unité est la nuit de maison** ; une nuit de chambre de l'époque pèse 1/9, posé par `toBooking`),

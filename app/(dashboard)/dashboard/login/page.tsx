@@ -20,14 +20,13 @@ export default function Login() {
       });
 
       if (res.ok) {
-        const data = await res.json();
         // Navigation dure (pas router.push) : force le middleware à re-tourner
         // côté serveur avec le cookie fraîchement posé et contourne le Router
         // Cache client (qui pouvait avoir préfetché /dashboard en version login).
-        // Les viewers n'ont pas accès à /dashboard → on les envoie directement
-        // sur le calendrier pour éviter un hop de redirection supplémentaire.
-        window.location.href =
-          data.role === "viewer" ? "/dashboard/calendar" : "/dashboard";
+        // Le calendrier pour tout le monde : c'est l'accueil du dashboard depuis que
+        // /dashboard y redirige, et y aller directement économise le hop — au viewer,
+        // qui n'a de toute façon droit qu'à cet écran, comme à l'administrateur.
+        window.location.href = "/dashboard/calendar";
         return; // garde le spinner actif pendant le chargement de la page
       } else {
         const data = await res.json();
