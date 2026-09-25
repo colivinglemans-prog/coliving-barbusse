@@ -45,6 +45,21 @@
     }
   },
   {
+    "name": "Giovanni",
+    "location": "Italie",
+    "date": "2026-07",
+    "rating": 4,
+    "text": "Spaziosa e pulita, ottima posizione, facilità di parcheggio.",
+    "photo": "",
+    "sourceLang": "it",
+    "translations": {
+      "fr": "Spacieuse et propre, excellent emplacement, facile de se garer.",
+      "en": "Spacious and clean, great location, easy parking.",
+      "de": "Geräumig und sauber, hervorragende Lage, einfaches Parken.",
+      "es": "Espaciosa y limpia, excelente ubicación, fácil aparcamiento."
+    }
+  },
+  {
     "name": "Paul",
     "location": "Singapore",
     "date": "2026-05",
