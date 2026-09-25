@@ -69,8 +69,8 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
     url: "https://www.lemans.org/",
     organizer: ACO,
     performer: { name: "FIA Karting", url: "https://www.fiakarting.com/" },
-    // 12 € = enceinte générale du dimanche, tarif public (lemans.org, relevé le 2026-09-13).
-    tickets: { url: "https://ticket.lemans.org/", price: { amount: 12, currency: "EUR" } },
+    // Pas de `tickets` : l'accès était gratuit (lemans-karting.com, 2026-09-10). Les 12 € relevés
+    // le 2026-09-13 venaient de l'édition 2015 — le nœud déclarait une vente qui n'existait pas.
   },
   {
     key: "24h-camions-2026", name: "24 Heures Camions 2026", start: "2026-09-26", end: "2026-09-27", confirmed: true,
@@ -79,7 +79,8 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
     performer: { name: "FIA European Truck Racing Championship", url: "https://www.fiaetrc.com/" },
     // 53 € = billet plein tarif enceinte générale, prix en vigueur depuis le 1er juillet 2026
     // (40 € membres ACO, gratuit moins de 16 ans) — 24h-camions.com, relevé le 2026-09-13.
-    tickets: { url: "https://ticket.24h-camions.com/", price: { amount: 53, currency: "EUR" } },
+    // Billetterie ouverte le 9 décembre 2025 à 10 h (newsroom.lemans.org, 2025-12-08).
+    tickets: { url: "https://ticket.24h-camions.com/", price: { amount: 53, currency: "EUR" }, validFrom: "2025-12-09" },
   },
   { key: "iame-karting-2026", name: "Euro Challenge IAME 2026", start: "2026-10-07", end: "2026-10-11", confirmed: true },
   { key: "marathon-2026", name: "Marathon du Mans 2026", start: "2026-10-11", end: "2026-10-11", confirmed: true },

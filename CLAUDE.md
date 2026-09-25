@@ -759,6 +759,13 @@ Search Console réclamait le 2026-09-13. Sans billetterie ouverte (24h du Mans 2
 2027), `tickets` reste absent et Google garde son avertissement « offers manquant » — on ne
 déclare pas une vente qui n'existe pas.
 
+`tickets.validFrom` (jour d'ouverture de la billetterie, `YYYY-MM-DD`) est à renseigner avec
+chaque `tickets` : la Search Console le réclamait le 2026-09-25 (« validFrom manquant dans
+offers »). Il se lit dans le communiqué d'ouverture de l'organisateur (newsroom.lemans.org),
+jamais deviné. **Vérifier l'année de la source d'un tarif** : les 12 € du Mondial Karting KZ
+2026 venaient d'un article lemans.org de 2015, alors que l'édition 2026 était en accès
+gratuit — `tickets` a été retiré de l'entrée.
+
 La **commune** n'est pas portée par les entrées : tout le catalogue se passe au Mans, et elle
 est fournie une fois pour toutes à `eventJsonLd` par la page d'article.
 
