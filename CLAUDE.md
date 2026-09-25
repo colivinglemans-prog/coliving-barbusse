@@ -1093,6 +1093,36 @@ est dans `@sejour/socle/lib/fiscal/README.md`.
   - `payload.paid === true` → bloc vert « ✓ Paiement reçu » avec montant, méthode, date, référence Stripe. Bandeau vert « Merci de votre paiement ». La facture vaut reçu.
 - `<View wrap={false}>` sur le bloc paiement pour éviter qu'il soit coupé entre deux pages.
 
+### Réservation payée sur une plateforme (socle v3.5.0)
+
+Airbnb, Booking.com (seulement en « Payments by Booking.com », repéré par l'info
+`BOOKINGCOMBANKTRANS`) et Abritel encaissent pour le compte de l'hôte : le formulaire arrive
+**« Déjà payé » coché**, sans IBAN, méthode « Via Airbnb » / « Via Booking.com » / « Via
+Abritel », référence = numéro de la plateforme (`apiReference`). Avant, toute réservation
+Beds24 arrivait « à payer » et la facture réclamait un virement à un voyageur qui avait payé.
+
+- **La date proposée est le jour de la réservation** (Paris). Beds24 ne transmet la date du
+  débit sur aucun des trois canaux (vérifié sur l'API le 2026-09-25). Un avertissement ambre
+  sous le champ dit pourquoi la vérifier, **renforcé pour un séjour à venir** (paiement en
+  plusieurs fois peut-être incomplet). Il disparaît dès que la date est modifiée.
+- **Arbitrage de l'exploitant (2026-09-25) : toujours pré-remplir**, y compris avant
+  l'arrivée. `le-percepteur` recommandait de laisser la date vide dans ce cas ; le contrôle
+  repose sur l'avertissement.
+- L'avertissement vient de `platformPayment` dans la réponse de `invoices/prefill`
+  (`platformPaymentOf(booking, todayParis())`).
+
+**Emails générés** : l'URL de signature est `SITE_URL` (`www.coliving-barbusse.fr`), plus
+l'adresse Vercel. Pour une réservation de plateforme, l'email complet invite à réserver en
+direct la prochaine fois — **jamais le message court** (collé dans la messagerie de la
+plateforme, qui l'interdit), et **jamais vers une adresse relais** (`@guest.booking.com`,
+`*.airbnb.*`), qui aboutit dans cette même messagerie. Airbnb ne transmet aucune adresse.
+
+**Dette connue (relevée par `le-percepteur`, non traitée)** : `amount = price` inclut la
+taxe de séjour et le PDF l'imprime en une seule ligne « Location saisonnière » (donc en
+« Total HT »). Pour Airbnb, qui collecte et reverse lui-même la taxe, l'hôte facture une somme
+qu'il n'a pas encaissée. Pour Abritel, le voyageur a aussi payé des frais de service
+facturés par Abritel, absents de notre facture.
+
 ### Acompte et solde (séjours facturés en deux temps)
 
 Un séjour d'entreprise se règle en général par un acompte à la réservation puis un solde

@@ -5,7 +5,9 @@ import {
   beds24ToPayload,
   beds24PaymentToPayload,
   paymentToPayload,
+  platformPaymentOf,
 } from "@sejour/socle/lib/invoice-payload";
+import { todayParis } from "@sejour/socle/lib/time";
 import { guard } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -56,6 +58,9 @@ export async function GET(request: NextRequest) {
         source: "beds24",
         booking,
         payload: beds24ToPayload(booking),
+        // Réglée sur une plateforme : la date proposée est celle de la réservation, et
+        // l'écran dit pourquoi elle est à vérifier.
+        platformPayment: platformPaymentOf(booking, todayParis()),
       });
     }
 

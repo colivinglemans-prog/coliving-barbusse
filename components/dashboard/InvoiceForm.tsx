@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import type { InvoiceKind, InvoicePayload } from "@sejour/socle/lib/invoice-payload";
+import { SITE_URL } from "@/lib/site";
 
 interface Props {
   initial: InvoicePayload;
   bookingId?: string;
   stripeId?: string;
+  /**
+   * Réservation réglée sur une plateforme : pourquoi la date de paiement est à vérifier.
+   * Sa présence dit aussi que le séjour a été payé sur une plateforme.
+   */
+  paidAtCaveat?: string;
 }
 
 type FieldErrors = Partial<Record<keyof InvoicePayload, string>>;
@@ -14,6 +20,8 @@ type FieldErrors = Partial<Record<keyof InvoicePayload, string>>;
 interface GeneratedInvoice {
   number: string;
   payload: InvoicePayload;
+  /** Séjour réglé sur une plateforme : l'email invite à réserver en direct la prochaine fois. */
+  viaPlatform: boolean;
 }
 
 const inputClass =
@@ -38,6 +46,29 @@ function formatEur(n: number): string {
   return `${sign}${withSep},${decPart} €`;
 }
 
+/**
+ * Réglée sur une plateforme : on invite à réserver en direct la prochaine fois.
+ *
+ * Jamais par la messagerie d'une plateforme, qui interdit d'orienter le voyageur hors de chez
+ * elle : ni dans le message court, ni vers une adresse relais — Booking.com transmet
+ * `…@guest.booking.com`, qui aboutit dans sa messagerie. Airbnb ne transmet aucune adresse :
+ * celle qu'on saisit est celle que le voyageur a donnée.
+ */
+const PLATFORM_RELAY_RE = /@(guest\.booking\.com|([a-z0-9-]+\.)*airbnb\.[a-z.]+)$/i;
+
+function directBookingInvite(g: GeneratedInvoice): string {
+  if (!g.viaPlatform || !g.payload.paid) return "";
+  if (PLATFORM_RELAY_RE.test(g.payload.email.trim())) return "";
+  return `
+Pour votre prochain séjour, vous pouvez réserver directement sur notre site, à un tarif plus avantageux que sur les plateformes : ${SITE_URL}
+`;
+}
+
+/** « Via Airbnb » → « via Airbnb », pour la phrase ; les noms propres restent intacts. */
+function lowerFirst(s: string): string {
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
 function buildFullEmail(g: GeneratedInvoice): string {
   const p = g.payload;
   const firstName = p.firstName || "Madame, Monsieur";
@@ -49,15 +80,17 @@ Bonjour ${firstName},
 
 Merci pour votre réservation au Coliving Barbusse.
 
-Vous trouverez ci-joint votre facture acquittée (n° ${g.number}) correspondant à votre paiement de ${formatEur(p.amount)} reçu le ${formatDateFr(p.paidAt)}.
+Vous trouverez ci-joint votre facture acquittée (n° ${g.number}) correspondant à ${g.viaPlatform
+  ? `votre séjour, réglé ${lowerFirst(p.paidMethod)} le ${formatDateFr(p.paidAt)} (${formatEur(p.amount)})`
+  : `votre paiement de ${formatEur(p.amount)} reçu le ${formatDateFr(p.paidAt)}`}.
 
 Cette facture vaut reçu — aucun règlement supplémentaire n'est attendu.
-
+${directBookingInvite(g)}
 N'hésitez pas si vous avez la moindre question — par email ou directement sur WhatsApp au +33 6 20 92 10 05.
 
 Bien cordialement,
 Alexandre
-Coliving Barbusse — https://coliving-barbusse.vercel.app`;
+Coliving Barbusse — ${SITE_URL.replace("https://", "")}`;
   }
 
   const subject =
@@ -110,7 +143,7 @@ N'hésitez pas si vous avez la moindre question — par email ou directement sur
 
 Bien cordialement,
 Alexandre
-Coliving Barbusse — https://coliving-barbusse.vercel.app`;
+Coliving Barbusse — ${SITE_URL.replace("https://", "")}`;
 }
 
 function buildShortMessage(g: GeneratedInvoice): string {
@@ -118,7 +151,7 @@ function buildShortMessage(g: GeneratedInvoice): string {
   const firstName = p.firstName || "bonjour";
 
   if (p.paid) {
-    return `Bonjour ${firstName}, vous trouverez ci-joint votre facture acquittée n° ${g.number} (${formatEur(p.amount)}, réglée par carte le ${formatDateFr(p.paidAt)}). Merci pour votre réservation. Bien cordialement, Alexandre.`;
+    return `Bonjour ${firstName}, vous trouverez ci-joint votre facture acquittée n° ${g.number} (${formatEur(p.amount)}, réglée le ${formatDateFr(p.paidAt)}, ${lowerFirst(p.paidMethod)}). Merci pour votre réservation. Bien cordialement, Alexandre.`;
   }
 
   if (p.kind === "acompte") {
@@ -132,7 +165,7 @@ function buildShortMessage(g: GeneratedInvoice): string {
   return `Bonjour ${firstName}, merci pour votre demande. Vous trouverez ci-joint la facture n° ${g.number} pour un règlement par virement : ${formatEur(p.amount)}, à régler avant le ${formatDateFr(p.paymentDueDate)} en indiquant ${g.number} en libellé. Les IBAN/BIC sont sur la facture. Je confirme la réservation dès réception du virement. Bien cordialement, Alexandre.`;
 }
 
-export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
+export default function InvoiceForm({ initial, bookingId, stripeId, paidAtCaveat }: Props) {
   const [payload, setPayload] = useState<InvoicePayload>(initial);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -225,7 +258,7 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
       a.remove();
       URL.revokeObjectURL(url);
       // Un aperçu ne porte pas de numéro : pas de modèles d'email à proposer.
-      if (!preview) setGenerated({ number: invoiceNumber, payload });
+      if (!preview) setGenerated({ number: invoiceNumber, payload, viaPlatform: Boolean(paidAtCaveat) });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
@@ -632,6 +665,9 @@ export default function InvoiceForm({ initial, bookingId, stripeId }: Props) {
                 />
                 {fieldErrors.paidAt && (
                   <p className="mt-1 text-xs text-red-600">{fieldErrors.paidAt}</p>
+                )}
+                {paidAtCaveat && payload.paidAt === initial.paidAt && (
+                  <p className="mt-1 text-xs text-amber-700">{paidAtCaveat}</p>
                 )}
               </div>
               <div>

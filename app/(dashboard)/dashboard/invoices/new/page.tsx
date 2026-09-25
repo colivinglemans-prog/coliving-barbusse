@@ -20,6 +20,7 @@ function NewInvoiceContent() {
   const [payload, setPayload] = useState<InvoicePayload | null>(null);
   const [loading, setLoading] = useState(source !== "empty");
   const [prefillError, setPrefillError] = useState<string | null>(null);
+  const [paidAtCaveat, setPaidAtCaveat] = useState<string | null>(null);
 
   useEffect(() => {
     if (source === "empty") {
@@ -40,6 +41,7 @@ function NewInvoiceContent() {
           throw new Error(body?.error ?? "Échec du pré-remplissage");
         }
         setPayload(body.payload as InvoicePayload);
+        setPaidAtCaveat(body.platformPayment?.caveat ?? null);
       } catch (err) {
         setPrefillError(err instanceof Error ? err.message : "Erreur inconnue");
         setPayload(emptyPayload());
@@ -92,6 +94,7 @@ function NewInvoiceContent() {
             initial={payload}
             bookingId={source === "beds24" ? bookingId : undefined}
             stripeId={source === "stripe" ? stripeId : undefined}
+            paidAtCaveat={paidAtCaveat ?? undefined}
           />
         )}
       </div>
