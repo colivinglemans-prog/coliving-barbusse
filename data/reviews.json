@@ -1,5 +1,20 @@
 [
   {
+    "name": "Maxime",
+    "location": "France",
+    "date": "2026-09",
+    "rating": 5,
+    "text": "Satisfait de notre séjour, gîte parfait et très bien équipé.",
+    "photo": "",
+    "sourceLang": "fr",
+    "translations": {
+      "en": "We were very happy with our stay: a perfect holiday home, very well equipped.",
+      "it": "Soddisfatti del nostro soggiorno, casa vacanze perfetta e molto ben attrezzata.",
+      "de": "Wir waren mit unserem Aufenthalt sehr zufrieden: ein perfektes Ferienhaus, sehr gut ausgestattet.",
+      "es": "Muy satisfechos con nuestra estancia, una casa rural perfecta y muy bien equipada."
+    }
+  },
+  {
     "name": "Vassilis",
     "location": "France",
     "date": "2026-08",
