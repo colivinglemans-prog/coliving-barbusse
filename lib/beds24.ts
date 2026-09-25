@@ -283,6 +283,8 @@ export async function findBookingByStripeIds(
       arrivalFrom,
       arrivalTo,
       includeInfoItems: "true",
+      // Les lignes de facture portent la taxe de séjour, ventilée sur la facture.
+      includeInvoiceItems: "true",
       includeGuests: "true",
     },
   });

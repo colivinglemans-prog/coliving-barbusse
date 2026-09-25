@@ -624,6 +624,35 @@ export default function InvoiceForm({ initial, bookingId, stripeId, paidAtCaveat
               <p className="mt-1 text-xs text-red-600">{fieldErrors.amount}</p>
             )}
           </div>
+          {payload.kind === "standard" && (
+            <div>
+              <label className={labelClass}>Dont taxe de séjour (€)</label>
+              <input
+                className={inputClass}
+                type="number"
+                step="0.01"
+                min="0"
+                value={payload.touristTax}
+                onChange={(e) => update("touristTax", Number(e.target.value))}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Incluse dans le montant, imprimée sur sa propre ligne hors Total HT. 0 = pas de ligne.
+              </p>
+              {fieldErrors.touristTax && (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.touristTax}</p>
+              )}
+            </div>
+          )}
+          <div className="md:col-span-2">
+            <label className={labelClass}>Mention taxe de séjour (optionnelle)</label>
+            <input
+              className={inputClass}
+              type="text"
+              value={payload.touristTaxNote}
+              onChange={(e) => update("touristTaxNote", e.target.value)}
+              placeholder="ex. Taxe de séjour collectée et reversée directement par Airbnb"
+            />
+          </div>
           {!payload.paid && (
             <div>
               <label className={labelClass}>Date limite de paiement *</label>

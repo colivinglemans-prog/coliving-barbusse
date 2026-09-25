@@ -104,6 +104,14 @@ export interface StripePaymentDetail extends StripePaymentSummary {
 }
 
 export async function getStripePayment(id: string): Promise<StripePaymentDetail | null> {
+  // Beds24 note la charge (`ch_…`) dans STRIPEPAYMENT, et la route l'accepte : on remonte
+  // à son Payment Intent, que `paymentIntents.retrieve` exige.
+  if (id.startsWith("ch_")) {
+    const ch = await getClient().charges.retrieve(id);
+    const piId = typeof ch.payment_intent === "string" ? ch.payment_intent : ch.payment_intent?.id;
+    if (!piId) return null;
+    id = piId;
+  }
   const pi = await getClient().paymentIntents.retrieve(id, {
     expand: ["latest_charge", "customer"],
   });

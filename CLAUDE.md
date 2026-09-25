@@ -1093,7 +1093,7 @@ est dans `@sejour/socle/lib/fiscal/README.md`.
   - `payload.paid === true` → bloc vert « ✓ Paiement reçu » avec montant, méthode, date, référence Stripe. Bandeau vert « Merci de votre paiement ». La facture vaut reçu.
 - `<View wrap={false}>` sur le bloc paiement pour éviter qu'il soit coupé entre deux pages.
 
-### Réservation payée sur une plateforme (socle v3.5.1)
+### Réservation payée sur une plateforme (socle v3.5.1+)
 
 Airbnb et Booking.com (seulement en « Payments by Booking.com », repéré par l'info
 `BOOKINGCOMBANKTRANS`) encaissent pour le compte de l'hôte : le formulaire arrive
@@ -1121,11 +1121,26 @@ direct la prochaine fois — **jamais le message court** (collé dans la message
 plateforme, qui l'interdit), et **jamais vers une adresse relais** (`@guest.booking.com`,
 `*.airbnb.*`), qui aboutit dans cette même messagerie. Airbnb ne transmet aucune adresse.
 
-**Taxe de séjour dans le montant (non traité)** : `amount = price`. Chez **Airbnb**, `price`
-= ligne de séjour + commission, **sans taxe** (aucune ligne de taxe sur les 48 réservations
-Airbnb live et archivées, vérifié le 2026-09-25) : Airbnb collecte et reverse la taxe à part.
-Chez **Booking.com** et en **direct**, `price` contient une ligne « City tax » / « Taxe de
-séjour », que le PDF fond dans l'unique ligne « Location saisonnière », donc en « Total HT ».
+### Taxe de séjour sur la facture (socle v3.6.0)
+
+- **Booking.com et direct** : `price` contient la taxe (« City tax », « Taxe de séjour
+  €2,20… »). Le champ **« Dont taxe de séjour »** est pré-rempli depuis les lignes Beds24
+  (`touristTaxFromInvoiceItems`), et le PDF l'imprime sur sa propre ligne : **Total HT =
+  montant − taxe**, puis TVA 0 %, puis « Taxe de séjour », puis Total TTC (inchangé). Avant,
+  la taxe était fondue dans « Location saisonnière » et comptée en HT.
+- **Airbnb** : `price` = séjour + commission, **sans taxe** (0 ligne de taxe sur 48
+  réservations, vérifié le 2026-09-25) — Airbnb collecte et reverse lui-même. Le champ
+  **« Mention taxe de séjour »** est pré-rempli : « Taxe de séjour collectée et reversée
+  directement par Airbnb : elle n'est pas incluse dans cette facture. »
+- **Acompte / solde** : pas de ventilation (forfait), le champ est masqué.
+- **Onglet Stripe** : la taxe n'est ventilée que si le paiement couvre tout le séjour.
+  `findBookingByStripeIds` demande désormais `includeInvoiceItems` pour la lire.
+- `getStripePayment` accepte enfin un `ch_…` (il remonte au Payment Intent) : la route
+  l'annonçait, mais seul un `pi_…` fonctionnait.
+
+À savoir : pour Booking.com, le champ « Demandes du client » arrive avec les métadonnées de
+l'OTA (« THIS RESERVATION HAS BEEN PRE-PAID », « Payment charge is EUR … ») — à vider avant
+d'émettre, sinon elles s'impriment.
 
 ### Acompte et solde (séjours facturés en deux temps)
 
