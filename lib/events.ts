@@ -101,19 +101,21 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
   // Le calendrier complet du circuit (lemans.org) paraît habituellement en octobre
   // pour l'année suivante : revenir le compléter à ce moment-là.
   { key: "exclusive-drive-2027", name: "Exclusive Drive 2027", start: "2027-03-19", end: "2027-03-21", confirmed: true },
-  // 24h-motos.com (2026-09-13) : « Les dates officielles seront communiquées prochainement. »
-  // Les 16-19 avril sont une projection : pas de JSON-LD tant que l'ACO n'a pas publié.
+  // 50e édition, dates officielles annoncées par l'ACO le 2026-09-29. La projection
+  // d'avant (16-19 avril) était fausse d'une semaine.
   {
-    key: "24h-moto-2027", name: "24 Heures Moto 2027", start: "2027-04-16", end: "2027-04-19", confirmed: false,
+    key: "24h-moto-2027", name: "24 Heures Moto 2027", start: "2027-04-08", end: "2027-04-11", confirmed: true,
     url: "https://www.24h-motos.com/",
     organizer: ACO,
     performer: { name: "FIM Endurance World Championship", url: "https://www.fimewc.com/" },
   },
-  // ATTENTION : le calendrier MotoGP 2027 n'est PAS officiel à ce jour
-  // (tickets.motogp.com affiche « no official date » pour la France). Le 7-9 mai vient
-  // des revendeurs de billets, d'autres sources annoncent le 14-16 mai. Ne rien bloquer
-  // ni tarifer sur cette base avant publication du calendrier FIM/Dorna.
-  { key: "motogp-2027", name: "MotoGP France 2027", start: "2027-05-07", end: "2027-05-09", confirmed: false },
+  // Calendrier MotoGP 2027 publié par Dorna le 2026-09-25 : course le dimanche 16 mai.
+  // Le 7-9 mai que diffusaient les revendeurs de billets était faux.
+  // Pas d'`organizer` : le promoteur du GP n'a pas été vérifié, on ne le devine pas.
+  {
+    key: "motogp-2027", name: "MotoGP France 2027", start: "2027-05-14", end: "2027-05-16", confirmed: true,
+    performer: { name: "FIM MotoGP World Championship", url: "https://www.motogp.com/" },
+  },
   {
     key: "24h-mans-2027", name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13", confirmed: true,
     url: "https://www.24h-lemans.com/",

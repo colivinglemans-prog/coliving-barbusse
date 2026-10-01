@@ -54,7 +54,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       fr: {
         title: "24 Heures Moto Le Mans 2027 (avril) : guide hébergement et parking",
         description:
-          "Tout pour organiser votre week-end des 24 Heures Moto 2027 au Mans, 50ᵉ édition en avril (dates officielles à venir) : zones d'hébergement, prix, parking moto, conseils pour groupes de motards.",
+          "Tout pour organiser votre week-end des 24 Heures Moto 2027 au Mans, 50ᵉ édition du 8 au 11 avril : zones d'hébergement, prix, parking moto, conseils pour groupes de motards.",
         excerpt:
           "100 000 spectateurs, une ambiance motards unique et un hébergement bien placé, c'est ce qu'il faut. Voici comment préparer votre week-end.",
         keywords: [
@@ -68,7 +68,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
         title: "24 Hours Motorcycle Le Mans 2027 (April): accommodation and parking guide",
         description:
-          "Everything to plan your 24 Hours Motorcycle 2027 weekend in Le Mans, 50th edition in April (official dates to come): accommodation areas, prices, motorcycle parking, tips for biker groups.",
+          "Everything to plan your 24 Hours Motorcycle 2027 weekend in Le Mans, 50th edition on 8-11 April: accommodation areas, prices, motorcycle parking, tips for biker groups.",
         excerpt:
           "100,000 spectators, a unique biker vibe and a well-located place to stay — here's how to prepare your weekend.",
         keywords: [
@@ -82,7 +82,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       it: {
         title: "24 Ore Moto Le Mans 2027 (aprile): guida ad alloggio e parcheggio",
         description:
-          "Tutto per organizzare il vostro weekend della 24 Ore Moto 2027 a Le Mans, 50ª edizione ad aprile (date ufficiali in arrivo): zone di alloggio, prezzi, parcheggio moto, consigli per gruppi di motociclisti.",
+          "Tutto per organizzare il vostro weekend della 24 Ore Moto 2027 a Le Mans, 50ª edizione dall'8 all'11 aprile: zone di alloggio, prezzi, parcheggio moto, consigli per gruppi di motociclisti.",
         excerpt:
           "100.000 spettatori, un'atmosfera motociclistica unica e un alloggio ben posizionato, ecco quello che serve. Ecco come preparare il vostro weekend.",
         keywords: [
@@ -96,7 +96,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       de: {
         title: "24 Stunden Motorrad Le Mans 2027 (April): Guide für Unterkunft und Parken",
         description:
-          "Alles, um Ihr 24-Stunden-Motorrad-Wochenende 2027 in Le Mans zu organisieren, 50. Ausgabe im April (offizielle Termine folgen): Unterkunftszonen, Preise, Motorradparken, Tipps für Bikergruppen.",
+          "Alles, um Ihr 24-Stunden-Motorrad-Wochenende 2027 in Le Mans zu organisieren, 50. Ausgabe vom 8. bis 11. April: Unterkunftszonen, Preise, Motorradparken, Tipps für Bikergruppen.",
         excerpt:
           "100.000 Zuschauer, eine einzigartige Biker-Atmosphäre und eine gut gelegene Unterkunft — so bereiten Sie Ihr Wochenende vor.",
         keywords: [
@@ -110,7 +110,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       es: {
         title: "24 Horas Moto Le Mans 2027 (abril): guía de alojamiento y parking",
         description:
-          "Todo para organizar su fin de semana de las 24 Horas Moto 2027 en Le Mans, 50ª edición en abril (fechas oficiales por confirmar): zonas de alojamiento, precios, parking moto, consejos para grupos de moteros.",
+          "Todo para organizar su fin de semana de las 24 Horas Moto 2027 en Le Mans, 50ª edición del 8 al 11 de abril: zonas de alojamiento, precios, parking moto, consejos para grupos de moteros.",
         excerpt:
           "100.000 espectadores, un ambiente motero único y un alojamiento bien ubicado: eso es lo que necesita. Así puede preparar su fin de semana.",
         keywords: [
@@ -283,11 +283,12 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "motogp-france-le-mans-2027",
     date: "2026-09-01",
     image: "/images/blog/motogp.jpg",
+    event: "motogp-2027",
     locales: {
       fr: {
         title: "MotoGP France 2027 au Mans : hébergement et conseils pratiques",
         description:
-          "Grand Prix de France MotoGP 2027 au Circuit Bugatti : dates (à confirmer), tarifs hébergement, transport, conseils pour un week-end réussi en famille ou entre amis.",
+          "Grand Prix de France MotoGP 2027 au Circuit Bugatti (14-16 mai), tarifs hébergement, transport, conseils pour un week-end réussi en famille ou entre amis.",
         excerpt:
           "La manche la plus fréquentée du championnat : préparez votre week-end MotoGP au Mans avec notre guide complet.",
         keywords: [
@@ -301,7 +302,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
         title: "MotoGP France 2027 in Le Mans: accommodation and practical tips",
         description:
-          "French MotoGP 2027 at the Bugatti Circuit: dates (to be confirmed), accommodation rates, transport, tips for a great weekend with family or friends.",
+          "French MotoGP 2027 at the Bugatti Circuit (14-16 May), accommodation rates, transport, tips for a great weekend with family or friends.",
         excerpt:
           "The most attended round of the championship: plan your MotoGP weekend in Le Mans with our complete guide.",
         keywords: [
@@ -315,7 +316,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       it: {
         title: "MotoGP Francia 2027 a Le Mans: alloggio e consigli pratici",
         description:
-          "Gran Premio di Francia MotoGP 2027 al Circuit Bugatti: date (da confermare), tariffe alloggio, trasporti, consigli per un weekend riuscito in famiglia o tra amici.",
+          "Gran Premio di Francia MotoGP 2027 al Circuit Bugatti (14-16 maggio), tariffe alloggio, trasporti, consigli per un weekend riuscito in famiglia o tra amici.",
         excerpt:
           "La gara più frequentata del campionato: preparate il vostro weekend MotoGP a Le Mans con la nostra guida completa.",
         keywords: [
@@ -329,7 +330,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       de: {
         title: "MotoGP Frankreich 2027 in Le Mans: Unterkunft und praktische Tipps",
         description:
-          "Frankreich-Grand-Prix MotoGP 2027 auf dem Circuit Bugatti: Termine (noch offen), Unterkunftspreise, Anreise, Tipps für ein gelungenes Wochenende mit Familie oder Freunden.",
+          "Frankreich-Grand-Prix MotoGP 2027 auf dem Circuit Bugatti (14.-16. Mai), Unterkunftspreise, Anreise, Tipps für ein gelungenes Wochenende mit Familie oder Freunden.",
         excerpt:
           "Der meistbesuchte Lauf der Meisterschaft: Planen Sie Ihr MotoGP-Wochenende in Le Mans mit unserem kompletten Guide.",
         keywords: [
@@ -343,7 +344,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       es: {
         title: "MotoGP de Francia 2027 en Le Mans: alojamiento y consejos prácticos",
         description:
-          "Gran Premio de Francia MotoGP 2027 en el Circuito Bugatti: fechas (por confirmar), tarifas de alojamiento, transporte, consejos para un fin de semana logrado en familia o entre amigos.",
+          "Gran Premio de Francia MotoGP 2027 en el Circuito Bugatti (14-16 de mayo), tarifas de alojamiento, transporte, consejos para un fin de semana logrado en familia o entre amigos.",
         excerpt:
           "La cita más concurrida del campeonato: prepare su fin de semana de MotoGP en Le Mans con nuestra guía completa.",
         keywords: [

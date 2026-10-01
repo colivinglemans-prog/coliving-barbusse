@@ -12,9 +12,8 @@ export default function Article() {
 
       <h2>¿Cuándo se celebran las 24 Horas Moto 2027?</h2>
       <p>
-        La 50ª edición se celebra en <strong>abril de 2027</strong> en el circuito Bugatti. El
-        ACO aún no ha publicado las fechas exactas: la edición de 2026 se corrió los días 18 y
-        19 de abril, y actualizaremos esta página en cuanto se anuncien. Los
+        La 50ª edición se celebra <strong>del jueves 8 al domingo 11 de abril de
+        2027</strong> en el circuito Bugatti, en las fechas anunciadas por el ACO. Los
         entrenamientos empiezan el jueves, las clasificaciones el
         viernes y la salida de la carrera se da el sábado a las 15 h. El verdadero
         reto: mantenerse despierto toda la noche para ver salir el sol sobre la pista

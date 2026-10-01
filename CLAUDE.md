@@ -747,7 +747,7 @@ guide passe sur Airbnb, à vérifier sur Booking.com. Les pièces jointes sont p
 | Champ | Ce qu'il remplace | Pourquoi |
 |---|---|---|
 | `key` | la jointure par **nom** de `getEventByName` | Un nom est de l'affichage : il se corrige, il finira par se traduire, il n'a rien à faire en clé étrangère. Sept réunions hippiques portaient d'ailleurs le même nom, donc la même « clé ». Les cinq articles à événement ont migré (`24h-mans-2027`, `24h-moto-2027`, `classic-2027`, `mondial-karting-2026`, `24h-camions-2026`). |
-| `confirmed` | le suffixe « (à confirmer) » **dans le nom** | Il fallait le reconnaître par sous-chaîne pour afficher le « ? » du calendrier. C'est désormais un champ, et c'est lui qui autorise l'émission du JSON-LD `Event`. À `false` aujourd'hui : `motogp-2027` et, depuis le 2026-09-13, `24h-moto-2027` — 24h-motos.com dit « les dates officielles seront communiquées prochainement », les 16-19 avril sont une projection. |
+| `confirmed` | le suffixe « (à confirmer) » **dans le nom** | Il fallait le reconnaître par sous-chaîne pour afficher le « ? » du calendrier. C'est désormais un champ, et c'est lui qui autorise l'émission du JSON-LD `Event`. Les deux dernières projections sont passées à `true` le 2026-10-01, et **toutes deux étaient fausses** : `24h-moto-2027` projeté au 16-19 avril, officiel au **8-11 avril** (ACO, 29/09) ; `motogp-2027` projeté au 7-9 mai sur la foi des revendeurs, officiel au **14-16 mai** (Dorna, 25/09). Une projection ne sert qu'à se souvenir de vérifier. |
 
 **Trois champs de plus depuis le socle v3.2.0**, optionnels et renseignés seulement sur les
 entrées reliées à un article : `organizer` (l'organisateur **véritable** — `ACO`, une
@@ -849,11 +849,10 @@ re-scroll jusqu'au calendrier et ressaisie des dates.
   la maison est libre ou ne l'est pas, la question ne dépend pas de la FIM — mais **n'émet
   aucun nœud JSON-LD `Event`**, et depuis le socle v3.3.0 le bloc **dit que les dates sont
   prévisionnelles** (`COPY[locale].provisionalDates`, une phrase qui se tient seule, y compris
-  dans l'état complet où aucune date n'est affichée). Les 24 Heures Moto 2027 sont dans ce
-  cas : l'article ne cite plus que « avril 2027 » et renvoie à l'édition 2026. L'article
-  MotoGP 2027, lui, reste volontairement **sans `event`** — deux dates rivales circulent
-  (7-9 mai chez les revendeurs, 14-16 mai ailleurs), proposer une fenêtre serait pire que se
-  taire. La phrase est formulée sans nommer l'organisateur pour servir tout futur cas.
+  dans l'état complet où aucune date n'est affichée). Aucun article n'est dans ce cas depuis
+  le 2026-10-01 : les 24 Heures Moto 2027 et le MotoGP 2027 ont leurs dates officielles, et
+  l'article MotoGP a reçu son `event` — il en était privé tant que deux dates rivales
+  circulaient. La phrase est formulée sans nommer l'organisateur pour servir tout futur cas.
 - Client component : les pages blog sont statiques, la dispo doit être lue à la visite et
   non au build. Il se masque seul si l'événement est passé, et tronque les nuits écoulées
   s'il est en cours.
@@ -1362,8 +1361,7 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 ### Veille des dates d'événements (push ntfy, hebdomadaire)
 
 `/api/cron/events-watch`, le lundi matin. Rappelle d'aller vérifier les dates de
-`lib/events.ts` qui ne sont pas encore officielles (`confirmed: false`, aujourd'hui MotoGP 2027 et 24 Heures Moto
-2027), et de recopier le calendrier de l'année suivante quand le circuit l'a publié.
+`lib/events.ts` qui ne sont pas encore officielles (`confirmed: false` — aucune au 2026-10-01), et de recopier le calendrier de l'année suivante quand le circuit l'a publié.
 
 - **Règles** : dans `@sejour/socle/lib/events-watch`. Ce site n'en tient que les seuils,
   `EVENTS_WATCH` à côté du catalogue : projection à moins de **120 jours** signalée ; le

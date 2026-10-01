@@ -12,9 +12,8 @@ export default function Article() {
 
       <h2>Quand a lieu le MotoGP France 2027 ?</h2>
       <p>
-        Le Grand Prix de France MotoGP 2027 se court <strong>en mai 2027</strong>. Le calendrier
-        officiel MotoGP n'étant pas encore publié, les dates exactes restent à confirmer — nous
-        mettons cette page à jour dès l'annonce de la FIM. Essais libres le vendredi, Sprint Race le samedi, Grand Prix le dimanche
+        Le Grand Prix de France MotoGP 2027 se court <strong>du vendredi 14 au dimanche 16 mai
+        2027</strong>, selon le calendrier officiel MotoGP publié en septembre 2026. Essais libres le vendredi, Sprint Race le samedi, Grand Prix le dimanche
         après-midi. Les trois catégories MotoGP, Moto2 et Moto3 se courent sur le même week-end.
       </p>
 
@@ -104,7 +103,7 @@ export default function Article() {
 
       <h2>Réserver pour le MotoGP 2027</h2>
       <p>
-        Il nous reste quelques disponibilités pour le week-end du MotoGP 2027. Consultez le{" "}
+        Le week-end du MotoGP se réserve longtemps à l'avance. Consultez le{" "}
         <Link href="/fr#disponibilite">calendrier en temps réel</Link> et sécurisez votre séjour
         avant qu'il ne soit trop tard.
       </p>

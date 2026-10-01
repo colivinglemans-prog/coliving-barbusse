@@ -12,9 +12,8 @@ export default function Article() {
 
       <h2>When is the French MotoGP 2027?</h2>
       <p>
-        The French MotoGP 2027 runs <strong>in May 2027</strong>. The official MotoGP calendar
-        has not been published yet, so the exact dates are still to be confirmed — we update
-        this page as soon as the FIM announces them. Free practice on Friday, Sprint Race on Saturday, Grand Prix on
+        The French MotoGP 2027 runs <strong>from Friday 14 to Sunday 16 May 2027</strong>,
+        according to the official MotoGP calendar published in September 2026. Free practice on Friday, Sprint Race on Saturday, Grand Prix on
         Sunday afternoon. MotoGP, Moto2 and Moto3 all race the same weekend.
       </p>
 
@@ -106,7 +105,7 @@ export default function Article() {
 
       <h2>Book for MotoGP 2027</h2>
       <p>
-        We still have some availability for the MotoGP 2027 weekend. Check the{" "}
+        The MotoGP weekend books up well in advance. Check the{" "}
         <Link href="/en#disponibilite">real-time calendar</Link> and secure your stay
         before it's too late.
       </p>

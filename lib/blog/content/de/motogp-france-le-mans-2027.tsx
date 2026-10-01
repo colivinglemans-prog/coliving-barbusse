@@ -12,9 +12,9 @@ export default function Article() {
 
       <h2>Wann findet der MotoGP Frankreich 2027 statt?</h2>
       <p>
-        Der Große Preis von Frankreich der MotoGP 2027 findet <strong>im Mai 2027</strong> statt.
-        Der offizielle MotoGP-Kalender ist noch nicht veröffentlicht, die genauen Termine stehen
-        also noch aus — wir aktualisieren diese Seite, sobald die FIM sie bekannt gibt. Freie Trainings am Freitag,
+        Der Große Preis von Frankreich der MotoGP 2027 findet <strong>von Freitag, 14., bis Sonntag,
+        16. Mai 2027</strong> statt, laut dem im September 2026 veröffentlichten offiziellen
+        MotoGP-Kalender. Freie Trainings am Freitag,
         Sprint Race am Samstag, Grand Prix am Sonntagnachmittag. Die drei Klassen
         MotoGP, Moto2 und Moto3 fahren am selben Wochenende.
       </p>
@@ -108,7 +108,7 @@ export default function Article() {
 
       <h2>Für den MotoGP 2027 buchen</h2>
       <p>
-        Für das MotoGP-Wochenende 2027 haben wir noch einige Verfügbarkeiten. Sehen Sie
+        Das MotoGP-Wochenende ist lange im Voraus ausgebucht. Sehen Sie
         sich den <Link href="/de#disponibilite">Kalender in Echtzeit</Link> an und
         sichern Sie sich Ihren Aufenthalt, bevor es zu spät ist.
       </p>

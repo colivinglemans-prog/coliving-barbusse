@@ -161,7 +161,8 @@ interface PopupData {
   channel: string;
   colour: string;
   nights: number;
-  rect: DOMRect;
+  /** Position de la carte sur desktop, relative au conteneur ; absente sur mobile (feuille modale). */
+  anchor?: { top: number; left: number };
 }
 
 /* ── Component ─────────────────────────────────────────────────────── */
@@ -562,13 +563,23 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
 
   function handleBarClick(seg: Segment<BookingSource>, e: React.MouseEvent) {
     e.stopPropagation();
+    // Mesuré ici, au clic, et non au rendu : React interdit de lire une ref pendant le rendu.
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const container = containerRef.current;
+    let anchor: PopupData["anchor"];
+    if (window.innerWidth >= 1024 && container) {
+      const cr = container.getBoundingClientRect();
+      anchor = {
+        top: Math.min(rect.bottom - cr.top + 8, container.clientHeight - 40),
+        left: Math.max(0, Math.min(rect.left - cr.left, container.clientWidth - 288)),
+      };
+    }
     setPopup({
       booking: seg.source.booking,
       channel: seg.source.channel,
       colour: seg.colour,
       nights: nightsBetween(seg.source.booking.arrival, seg.source.booking.departure),
-      rect,
+      anchor,
     });
   }
 
@@ -903,19 +914,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
           <div
             data-popup
             className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-5 shadow-xl lg:inset-auto lg:absolute lg:left-auto lg:top-auto lg:w-72 lg:translate-x-0 lg:translate-y-0 lg:overflow-visible lg:rounded-xl lg:p-4 lg:ring-1 lg:ring-gray-200"
-            style={
-              typeof window !== "undefined" && window.innerWidth >= 1024 && containerRef.current
-                ? (() => {
-                    const cr = containerRef.current!.getBoundingClientRect();
-                    const relTop = popup.rect.bottom - cr.top + 8;
-                    const relLeft = popup.rect.left - cr.left;
-                    return {
-                      top: Math.min(relTop, containerRef.current!.clientHeight - 40),
-                      left: Math.max(0, Math.min(relLeft, containerRef.current!.clientWidth - 288)),
-                    };
-                  })()
-                : undefined
-            }
+            style={popup.anchor}
           >
             <div className="mb-4 flex items-start justify-between gap-3">
               <div className="flex items-start gap-2">

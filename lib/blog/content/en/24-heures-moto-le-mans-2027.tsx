@@ -11,9 +11,8 @@ export default function Article() {
 
       <h2>When is the 24 Hours Motorcycle 2027?</h2>
       <p>
-        The 50th edition runs in <strong>April 2027</strong> at the Bugatti circuit. The ACO
-        has not yet published the exact dates: the 2026 edition was held on 18-19 April, and
-        we will update this page as soon as they are announced.
+        The 50th edition runs <strong>from Thursday 8 to Sunday 11 April 2027</strong> at
+        the Bugatti circuit, on the dates announced by the ACO.
         Practice starts Thursday, qualifying Friday, and the race is flagged off
         Saturday at 3 pm. The real challenge: staying awake all night to see the sun
         rise over the track on Sunday morning.
