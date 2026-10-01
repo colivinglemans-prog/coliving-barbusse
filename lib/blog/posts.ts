@@ -47,7 +47,7 @@ export interface BlogPostMeta {
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
     slug: "24-heures-moto-le-mans-2027",
-    date: "2026-09-01",
+    date: "2026-10-01",
     image: "/images/blog/24h-moto.jpg",
     event: "24h-moto-2027",
     locales: {
@@ -281,7 +281,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "motogp-france-le-mans-2027",
-    date: "2026-09-01",
+    date: "2026-10-01",
     image: "/images/blog/motogp.jpg",
     event: "motogp-2027",
     locales: {
