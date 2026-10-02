@@ -578,6 +578,11 @@ un merge transparent :
 > commission et surcollecte de taxe là-bas) et sur son ancrage (feuille modale mobile ici,
 > carte absolue là-bas). Un composant à slots capable des deux serait plus difficile à lire que
 > les deux composants qu'il remplacerait.
+>
+> **Le squelette des semaines est partagé depuis le socle `v3.7.0` (2026-10-02)** :
+> `WEEK_GRID.row` / `.columnRule` / `.barsBlock`. Chaque semaine a son cadre permanent, avec un
+> vide de 6 px entre deux cadres. Le cas qui l'a motivé : la semaine du 5 au 11 octobre 2026,
+> où deux événements du circuit repoussaient la réservation contre les numéros 12 à 18.
 
 - ⚠️ **Correction de rendu** : un séjour qui **part le 1er du mois suivant** s'affichait comme
   une pilule d'un seul jour posée sur sa date d'arrivée — la borne de fin se comparait à

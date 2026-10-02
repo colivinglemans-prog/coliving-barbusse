@@ -15,6 +15,7 @@ import {
   roundedEnds,
   type LaneBar,
   type Segment,
+  WEEK_GRID,
 } from "@sejour/socle/lib/calendar-lanes";
 import { addMonths, daysInMonth, firstDayOfMonth, formatDate } from "@sejour/socle/lib/dates";
 import { nightsBetween } from "@sejour/socle/lib/booking";
@@ -626,7 +627,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
         const eventRows = laneCount(weekEvents);
 
         return (
-          <div key={w} className="relative grid grid-cols-7 border-b border-gray-200">
+          <div key={w} className={WEEK_GRID.row}>
             {/*
              * Filets de colonnes, en position absolue et non sur les cases : une case ne
              * couvre que la ligne des numéros, et le trait s'arrêtait donc avant les barres
@@ -639,7 +640,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
              */}
             <div className="pointer-events-none absolute inset-0 grid grid-cols-7" aria-hidden>
               {Array.from({ length: 7 }, (_, col) => (
-                <div key={col} className={col < 6 ? "border-r border-gray-200" : ""} />
+                <div key={col} className={col < 6 ? WEEK_GRID.columnRule : ""} />
               ))}
             </div>
 
@@ -771,7 +772,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
 
             {/* Booking bar rows */}
             {barRows > 0 && (
-              <div className="col-span-7 px-0.5 pb-1.5">
+              <div className={WEEK_GRID.barsBlock}>
                 {Array.from({ length: barRows }, (_, lane) => {
                   const laneBars = weekBars.filter((b) => b.row === lane);
                   return (
