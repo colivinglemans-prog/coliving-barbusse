@@ -200,6 +200,14 @@ Abritel/VRBO 15%)** :
 - **Markup par canal** (connexion canal) : Airbnb +0% (référence), Direct −7%, Booking/Abritel/VRBO/
   HomeToGo **+15%** (premium). Le prix de base vient de **Beyond Pricing** (≈522 base / 260 plancher /
   ~1576 pic 24h).
+- **HomeToGo** (1re résa le 2026-10-17, n° 94822169) : multiplicateur réel **×1,2**. Le canal était en
+  « Per Day Pricing » avec `Guests Included = 18` → un groupe de 16 payait le prix 9 pers. ; corrigé en
+  **« Per Occupancy Pricing »**, Guests Included 9, Extra Person 0, remises natives à 0 (sinon double
+  remise). Le linge n'était pas transmis. C'est **l'hôte qui encaisse** (carte vers Stripe, comme
+  Abritel) et la taxe de séjour n'est pas collectée. Annulation **Custom 60/0** ; contrat de location
+  publié en `public/conditions-location-hometogo.pdf` (« Rental Agreement PDF URL » du canal),
+  source hors git dans `..\contrats\conditions-location-hometogo.md` (rendu `md2print.js` + Chrome
+  headless). ⚠️ Médiateur de la consommation à nommer (obligatoire en B2C).
 - **Mode « Occupancy Prices »** sur chaque canal (= interrupteur clé) : fait propager **à la fois** le
   tarif par occupation **et** les paliers durée vers Airbnb/Booking/VRBO. En « Per Day Prices », les
   canaux restent figés (1 prix/date).
