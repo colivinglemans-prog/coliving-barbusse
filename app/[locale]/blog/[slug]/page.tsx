@@ -5,6 +5,7 @@ import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { eventJsonLd, findEventByKey } from "@sejour/socle/lib/events";
 import EventBookingCTA from "@/components/public/EventBookingCTA";
+import FamilyDates from "@/components/public/FamilyDates";
 import { alternatesFor, articleJsonLd, blogPostPath, openGraphLocales } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { isLocale } from "@/lib/i18n";
@@ -414,6 +415,7 @@ export default async function BlogPost({
       </div>
 
       {linkedEvent && <EventBookingCTA locale={locale} event={linkedEvent} />}
+      {post.familyDates && <FamilyDates locale={locale} />}
     </article>
   );
 }

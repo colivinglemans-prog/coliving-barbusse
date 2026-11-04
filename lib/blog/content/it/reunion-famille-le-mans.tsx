@@ -120,7 +120,7 @@ export default function Article() {
         Ad agosto 2026, Inma è arrivata dalla Spagna con{" "}
         <strong>un gruppo familiare di 18 persone</strong>:
       </p>
-      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+      <blockquote className="my-6 border-l-4 border-primary pl-4 italic">
         «Eravamo un gruppo familiare di 18 persone e siamo stati molto comodi, con la
         possibilità di cucinare sul posto. L'ampiezza della cucina, le docce in camera che
         danno più intimità, i letti comodissimi… si stava benissimo.»
@@ -129,7 +129,7 @@ export default function Article() {
         A maggio 2026, Ferdinand ha riunito i suoi cari per una festa:{" "}
         <strong>16 adulti, ogni coppia nella propria camera con il proprio bagno</strong>.
       </p>
-      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+      <blockquote className="my-6 border-l-4 border-primary pl-4 italic">
         «Il fatto che ogni camera abbia il proprio bagno offre un vero comfort e privacy, cosa
         particolarmente apprezzata quando si soggiorna in gruppo. […] La casa è molto ben
         attrezzata, non manca nulla.»

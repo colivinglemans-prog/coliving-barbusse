@@ -41,6 +41,11 @@ export interface BlogPostMeta {
    * JSON-LD `Event` si — et seulement si — les dates sont officielles (`confirmed`).
    */
   event?: string;
+  /**
+   * Affiche en fin d'article la liste des prochaines dates de fêtes en famille, avec leur
+   * disponibilité réelle (`components/public/FamilyDates.tsx`).
+   */
+  familyDates?: boolean;
   locales: Record<Locale, LocalizedPost>;
 }
 
@@ -49,6 +54,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "reunion-famille-le-mans",
     date: "2026-11-04",
     image: "/images/blog/reunion-famille-le-mans.jpg",
+    familyDates: true,
     locales: {
       fr: {
         title: "Réunir toute la famille au Mans : une maison avec une table de 16 à 20 places",
