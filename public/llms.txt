@@ -1,53 +1,98 @@
 # Coliving Barbusse
 
-> Maison premium de 215 m² avec 9 suites privatives au Mans, proche du Circuit Bugatti et de la Gare TGV.
+> Maison entière de 215 m² au Mans avec 9 chambres, chacune avec sa salle de douche privative, pour 10 à 20 personnes. À 10 min à pied de la gare TGV (Paris en 55 min environ) et à 4,7 km du circuit des 24 Heures. Pour les réunions de famille, les équipes de course, les équipes professionnelles, les séminaires et les équipes sportives.
 
 ## Informations clés
 
-- **Type** : Maison entière en location courte durée (Airbnb, Booking, Abritel)
-- **Capacité** : 20 personnes (9 chambres doubles avec salle de bain privative, dont 2 avec clic-clac une place)
-- **Surface** : 215 m²
-- **Localisation** : Rue Henri Barbusse, 72000 Le Mans, France
-- **Proximité** : Circuit Bugatti (5 min), Gare TGV Le Mans (10 min), Centre-ville (10 min)
-- **Location** : maison entière uniquement (plus de location à la chambre)
+- **Type** : maison entière en location courte durée, uniquement entière (plus de location à la chambre)
+- **Capacité** : jusqu'à 20 personnes. 9 chambres, chacune avec lit double, salle de douche privative, bureau avec prise Ethernet, smart TV, dressing et clé individuelle ; 2 chambres ont en plus un clic-clac une place.
+  - 9 personnes sans partager leur chambre ni leur salle de douche
+  - 11 personnes sans partager de lit
+- **Surface** : 215 m² sur 3 niveaux
+- **Adresse** : 42 rue Henri Barbusse, 72100 Le Mans, France, quartier résidentiel calme
+- **Arrivée** : autonome par serrure connectée, de 17h à 23h. **Départ** : avant 11h.
 - **Séjour minimum** : 2 nuits, 3 nuits pendant les fêtes de fin d'année. Pas de réservation pour une seule nuit.
-- **Disponibilités et prix** : en temps réel sur https://www.coliving-barbusse.fr/fr#disponibilite (réservation directe, moins chère que sur les plateformes)
+- **Prix** : variables selon les dates. Disponibilités et prix en temps réel : https://www.coliving-barbusse.fr/fr#disponibilite (réservation directe, moins chère que sur Airbnb, Booking ou Abritel)
+- **Annulation** : gratuite jusqu'à 14 jours avant l'arrivée. Acompte de 10 % à la réservation, solde avant l'arrivée.
+
+## Accès
+
+- Gare TGV du Mans à 10 min à pied : Paris-Montparnasse en 55 min environ, liaisons directes vers Rennes, Nantes et Angers
+- Tramway T1 à proximité : centre-ville, gare et circuit (terminus Antarès / MMArena)
+- Circuit Bugatti et circuit des 24 Heures à 4,7 km
+- Zones d'activités du sud du Mans (Technopole Université, zone Sud) à moins de 10 min en voiture
+- Cité Plantagenêt (vieux Mans) à 15 min en tram ; parc du Gué de Maulny (10 ha) à 5 min à pied
+- **Stationnement** : gratuit dans la rue, sans disque ni horodateur, mais **aucune place réservée ni garantie**, et aucun emplacement pour camion ou remorque. Les rues se remplissent pendant les grands événements : privilégier le train, le tram ou le covoiturage.
 
 ## Équipements
 
+- Cuisine entièrement équipée : four, plaques, lave-vaisselle, micro-ondes, réfrigérateur-congélateur, cafetière à grain
+- Grande table de 16 places assises (tabourets de bar) dans la cuisine, 20 en y rapprochant les deux mini-tables hautes de la véranda, à l'intérieur et chauffée toute l'année
+- Salon avec canapé d'angle et grande smart TV (entrée HDMI)
+- Véranda avec coin café et coin apéro
+- Jardin clos de 90 m², plein sud, grandes tables pour manger dehors à 20 à la belle saison
+- Salle de sport privée, indépendante de la maison (elliptique, tapis de course, haltères, banc de musculation) et salle zen (yoga, étirements)
 - Wi-Fi haut débit
-- Stationnement gratuit dans la rue
-- Salle de sport (musculation, cardio)
-- Espace zen (yoga, méditation)
-- Cuisine équipée avec grande table de 16 places assises (20 avec les deux mini-tables de la véranda)
-- Véranda (coin café, coin apéro)
-- Terrasse et jardin
-- Machine à laver / sèche-linge
-- Serrure connectée (arrivée autonome à partir de 17h)
+- Lave-linge et sèche-linge
+- Draps, serviettes et ménage de fin de séjour compris
 
-## Idéal pour
+## Réunions de famille
 
-- Groupes d'amis ou familles (jusqu'à 20 personnes)
-- Réunions de famille : Noël, Nouvel An, anniversaires, mariages, baptêmes
-- Événements sportifs (24h du Mans, GP de France)
-- Séjours d'entreprise et séminaires
-- Tourisme en Sarthe
+- Une seule tablée pour tout le monde : 16 places, 20 avec la véranda
+- Occasions : Noël, Nouvel An, anniversaires, noces d'or, retrouvailles de famille, hébergement des proches autour d'un mariage, d'un baptême ou d'un PACS
+- Déjà accueilli : un groupe familial de 18 personnes (août 2026), 16 adultes réunis pour une fête de famille (mai 2026)
+- La maison héberge la famille et ses repas, mais ce n'est pas une salle de réception : pas de fête ni d'événement bruyant
+- Article : https://www.coliving-barbusse.fr/fr/blog/reunion-famille-le-mans (avec les prochaines dates de fêtes et leur disponibilité)
+
+## Équipes de course et exposants du circuit
+
+- Pour les écuries et équipes (karting, Porsche Sprint Challenge, 24 Heures Moto, 24 Heures Rollers, 24 Heures Vélo…) et pour les exposants ou partenaires qui logent leur équipe ensemble
+- Chacun sa chambre fermant à clé : les mécaniciens qui se lèvent tôt ne réveillent pas les pilotes
+- Cuisine pour les repas d'équipe, lave-linge et sèche-linge pour les tenues
+- Le matériel, les camions et les remorques restent au paddock
+- Les semaines de course se réservent des mois à l'avance. Dates 2027 officielles : 24 Heures Moto du 8 au 11 avril, MotoGP de France du 14 au 16 mai, 24 Heures du Mans du 9 au 13 juin, Le Mans Classic du 1er au 4 juillet.
+
+## Équipes professionnelles (en semaine, du lundi au vendredi)
+
+- Pour les équipes en mission au Mans (chantier, industrie, audit, formation) : une chambre, une salle de douche et un bureau par personne
+- Compatible arrivée le lundi soir (jusqu'à 23h) et départ le vendredi matin
+- Facture au nom de l'entreprise, paiement par virement possible. TVA non applicable (art. 293 B du CGI).
+- Devis par WhatsApp : +33 6 20 92 10 05, réponse généralement en moins d'une heure
+
+## Séminaires, offsites et équipes en télétravail
+
+- De 10 à 20 personnes. Espace de travail commun : grande table de 16 places (20 avec la véranda) ; présentations sur la smart TV du salon (HDMI)
+- Un bureau avec prise Ethernet dans chaque chambre pour s'isoler en visio
+- Pas de salle de réunion dédiée, pas de vidéoprojecteur, pas de paperboard
+- Seule la maison entière se loue : pas de location d'un bureau, d'un poste ou d'une chambre seule
+- Repas non inclus : cuisine équipée, traiteurs qui livrent, restaurants du centre-ville accessibles
+- Page dédiée : https://www.coliving-barbusse.fr/fr/seminaires
+
+## Équipes sportives (compétition, stage, tournoi)
+
+- Pour les clubs et équipes (volley, équitation, sports collectifs, course à pied…) avec leurs coachs
+- Linge de sport : lave-linge et sèche-linge. Repas d'équipe : cuisine équipée, table de 16 à 20 places.
+- Récupération : salle de sport privée, salle zen pour les étirements, jardin clos, parc du Gué de Maulny à 5 min à pied pour courir
+- Accès aux sites : Antarès et MMArena en tram T1 direct (terminus) ; hippodrome des Hunaudières à environ 20 min en voiture ; Pôle européen du cheval (Yvré-l'Évêque) à environ 15 min en voiture
+- Événements sportifs du Mans : Marathon du Mans, 24 Heures Rollers, 24 Heures Vélo, réunions hippiques des Hunaudières
 
 ## Règles
 
-- Animaux non autorisés
-- Logement non adapté aux enfants de moins de 10 ans (escaliers, pas d'équipement bébé), mais ils sont acceptés sous la surveillance des adultes
-- Stationnement libre dans la rue, sans place réservée
+- Animaux non autorisés, ni dans la maison ni dans le jardin
+- Non-fumeur à l'intérieur
+- Pas de fête ni d'événement bruyant
+- Logement non adapté aux enfants de moins de 10 ans (escaliers, pas d'équipement bébé), mais ils sont acceptés sous la surveillance des adultes. Adolescents bienvenus.
+- Stationnement dans la rue, sans place réservée
 
 ## Avis
 
-- Note moyenne : 4.9/5 sur Airbnb et Abritel (30 avis)
-- Points forts récurrents : propreté, espace, équipements, localisation
+- Note moyenne : 4,9/5 sur les 30 avis Airbnb, Booking.com et Abritel publiés sur le site
+- Points forts récurrents : une salle de douche par chambre, la propreté, l'espace, les équipements, la réactivité de l'hôte
 
 ## Liens
 
-- Site web : https://www.coliving-barbusse.fr
-- Réservation : https://www.coliving-barbusse.fr/reservation
-- Chambres : https://www.coliving-barbusse.fr/chambres
+- Site web : https://www.coliving-barbusse.fr/fr
+- Disponibilités et réservation directe : https://www.coliving-barbusse.fr/fr#disponibilite
+- Séminaires et équipes : https://www.coliving-barbusse.fr/fr/seminaires
 - Réunions de famille : https://www.coliving-barbusse.fr/fr/blog/reunion-famille-le-mans
-- Séminaires : https://www.coliving-barbusse.fr/fr/seminaires
+- Blog (événements du circuit, Le Mans) : https://www.coliving-barbusse.fr/fr/blog
