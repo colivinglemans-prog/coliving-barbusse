@@ -1,5 +1,65 @@
 [
   {
+    "name": "Caroline",
+    "location": "France",
+    "date": "2026-10",
+    "rating": 5,
+    "text": "Maison impeccable, propre et très pratique pour les groupes.\nLe fait qu’il y ait une salle de bain dans chaque chambre est vraiment très pratique, je recommande ce logement.",
+    "photo": "https://a0.muscache.com/im/pictures/user/c7a4e1bc-b239-4c3c-a762-b1e2a9197087.jpg?im_w=240",
+    "sourceLang": "fr",
+    "translations": {
+      "en": "A spotless, clean house, very practical for groups.\nHaving a bathroom in every bedroom is really very convenient. I recommend this place.",
+      "it": "Casa impeccabile, pulita e molto pratica per i gruppi.\nIl fatto che ci sia un bagno in ogni camera è davvero molto comodo, consiglio questo alloggio.",
+      "de": "Ein tadelloses, sauberes Haus, sehr praktisch für Gruppen.\nDass jedes Zimmer ein eigenes Bad hat, ist wirklich sehr praktisch. Ich empfehle diese Unterkunft.",
+      "es": "Casa impecable, limpia y muy práctica para grupos.\nQue haya un baño en cada habitación es realmente muy práctico, recomiendo este alojamiento."
+    }
+  },
+  {
+    "name": "Kop",
+    "location": "France",
+    "date": "2026-10",
+    "rating": 5,
+    "text": "Parfait dans l'ensemble et l'accès au logement sans clé, un vrai plus. Merci !",
+    "photo": "https://a0.muscache.com/im/pictures/user/8a69f713-1595-4a53-a143-e4b5fc6c1c32.jpg?im_w=240",
+    "sourceLang": "fr",
+    "translations": {
+      "en": "Perfect overall, and keyless access to the house is a real plus. Thank you!",
+      "it": "Perfetto nel complesso, e l'accesso all'alloggio senza chiavi è un vero vantaggio. Grazie!",
+      "de": "Insgesamt perfekt, und der schlüssellose Zugang zur Unterkunft ist ein echtes Plus. Danke!",
+      "es": "Perfecto en general, y el acceso al alojamiento sin llave es una gran ventaja. ¡Gracias!"
+    }
+  },
+  {
+    "name": "Eric",
+    "location": "France",
+    "date": "2026-10",
+    "rating": 5,
+    "text": "Juste parfait !!",
+    "photo": "https://a0.muscache.com/im/pictures/user/User/original/2d02ebf6-f368-4dda-a9ec-ea87c421db2e.jpeg?im_w=240",
+    "sourceLang": "fr",
+    "translations": {
+      "en": "Just perfect!!",
+      "it": "Semplicemente perfetto!!",
+      "de": "Einfach perfekt!!",
+      "es": "¡¡Simplemente perfecto!!"
+    }
+  },
+  {
+    "name": "Jeremy",
+    "location": "Senoia, États-Unis",
+    "date": "2026-10",
+    "rating": 5,
+    "text": "House was very clean and new. Everything we needed it had.",
+    "photo": "https://a0.muscache.com/im/pictures/user/b639a824-38fa-41d7-8927-e034079ffed8.jpg?im_w=240",
+    "sourceLang": "en",
+    "translations": {
+      "fr": "La maison était très propre et neuve. Elle avait tout ce dont nous avions besoin.",
+      "it": "La casa era pulitissima e nuova. Aveva tutto ciò di cui avevamo bisogno.",
+      "de": "Das Haus war sehr sauber und neu. Es hatte alles, was wir brauchten.",
+      "es": "La casa estaba muy limpia y nueva. Tenía todo lo que necesitábamos."
+    }
+  },
+  {
     "name": "Maxime",
     "location": "France",
     "date": "2026-09",
@@ -80,7 +140,7 @@
     "date": "2026-05",
     "rating": 5,
     "text": "Nous avons passé un excellent séjour dans le logement d'Alexandre. Le fait que chaque chambre dispose de sa propre salle de bain apporte un vrai confort et une belle intimité, particulièrement appréciables pour un séjour en groupe.\n\nNous avons également eu la chance de profiter des extérieurs, récemment accessibles, qui sont très agréables par beau temps.\n\nAutre point très appréciable pour les sportifs : l'accès à une salle de sport indépendante de la maison.\n\nLa maison est très bien équipée, rien ne manque, et Alexandre a été très réactif et disponible tout au long du séjour.\n\nJe recommande sans hésiter et reviendrai avec plaisir.",
-    "photo": "https://a0.muscache.com/im/pictures/user/7d1bad44-9eba-4d59-b7b6-659617bb533e.jpg?im_w=240",
+    "photo": "https://a0.muscache.com/im/pictures/user/User/original/676d0195-f3d2-40bf-93df-825186a78644.jpeg?im_w=240",
     "sourceLang": "fr",
     "translations": {
       "en": "We had an excellent stay in Alexandre's accommodation. The fact that each room has its own bathroom provides real comfort and privacy, which is particularly appreciated when staying with a group.\n\nWe were also lucky enough to be able to enjoy the newly-accessible outside area, which is very pleasant in fine weather.\n\nAnother great feature for sports enthusiasts is access to a separate gym.\n\nThe house is very well equipped, nothing is missing, and Alexandre was very responsive and available throughout our stay.\n\nI would recommend it without hesitation and would be delighted to come back.",

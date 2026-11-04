@@ -108,7 +108,7 @@ lib/
                       # dans @sejour/socle/lib/fiscal/* (les 8 fichiers de calcul).
   types.ts            # Types partagés (Beds24, Heatzy, Dashboard)
 data/
-  reviews.json        # 22 avis (21 Airbnb + 1 Abritel/Vrbo). Champs: text + hostReply optionnel + sourceLang + translations/hostReplyTranslations pré-générées par DeepL
+  reviews.json        # 30 avis (Airbnb, Booking.com et 1 Abritel/Vrbo). Champs: text + hostReply optionnel + sourceLang + translations/hostReplyTranslations pré-générées par DeepL
   heatzy-zones.json   # Config zones radiateurs + mapping Beds24
   fiscal/
     2026.json         # Config annuelle : biens (Barbusse + Dahlias vendu), amortissements, ARD, charges
