@@ -95,13 +95,15 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>La nostra casa: l'alloggio pensato per una squadra da 10 a 12</h2>
+      <h2>La nostra casa: l'alloggio pensato per una squadra da 10 a 20</h2>
 
       <h3>11 persone alloggiate senza che nessuno condivida il letto</h3>
       <p>
         La casa conta <strong>9 suite private</strong>, ognuna con il proprio
-        bagno, la scrivania e la chiave individuale. In configurazione
-        seminario diventano <strong>7 camere singole e 2 camere doppie</strong>{" "}
+        bagno, la scrivania e la chiave individuale: fino a{" "}
+        <strong>9 partecipanti, nessuno condivide la propria camera né il
+        proprio bagno privato</strong>. Oltre, in configurazione seminario,
+        diventano <strong>7 camere singole e 2 camere doppie</strong>{" "}
         — queste ultime hanno un letto matrimoniale e un divano letto singolo,
         quindi nessuno condivide il letto. Sono <strong>11 partecipanti
         alloggiati</strong>, e fino a 20 posti letto se il gruppo accetta di
@@ -119,12 +121,13 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>Cucina con isola centrale</strong>: la stanza più bella
-          della casa, e il vero spazio di lavoro. L'isola ospita{" "}
-          <strong>12 persone sedute</strong> — configurazione perfetta per un
-          workshop in cerchio, un design sprint, una colazione strategica o un
-          pranzo di lavoro. È l'unica stanza che offre 12 posti a sedere in
-          interno riscaldato, quindi la capacità di riferimento tutto l'anno.
+          <strong>Cucina e il suo grande tavolo</strong>: la stanza più bella
+          della casa, e il vero spazio di lavoro. Il tavolo ospita{" "}
+          <strong>16 persone sedute</strong>, e{" "}
+          <strong>20 avvicinando i due tavolini alti della veranda</strong>{" "}
+          — configurazione perfetta per una plenaria, un design sprint, una
+          colazione strategica o un pranzo di lavoro. Tutto il gruppo lavora
+          seduto in interno riscaldato, tutto l'anno.
         </li>
         <li>
           <strong>Soggiorno</strong>: riscaldato tutto l'anno, con una{" "}
@@ -136,17 +139,17 @@ export default function Article() {
           <strong>Sala zen</strong>: spazio tranquillo e luminoso per
           brainstorming e workshop in piccolo gruppo, <strong>da aprile a
           ottobre</strong> — la stanza non è riscaldata, non sostituisce
-          l'isola in inverno.
+          il grande tavolo in inverno.
         </li>
         <li>
           <strong>Giardino recintato di 90 m², esposto a sud</strong>: i grandi
-          tavoli accolgono <strong>20 persone</strong> nella bella stagione. È
-          ciò che permette di superare i 12 partecipanti, ma solo da aprile a
-          settembre.
+          tavoli accolgono <strong>20 persone</strong> nella bella stagione, per
+          pranzare o lavorare al sole da aprile a settembre.
         </li>
         <li>
-          <strong>Veranda</strong>: prolunga il soggiorno e la cucina per
-          più spazio di respiro e movimento tra le sessioni.
+          <strong>Veranda</strong>: prolunga il soggiorno e la cucina, con due
+          tavolini alti per gli scambi a due o a quattro, un angolo caffè e un
+          angolo aperitivo per respirare tra una sessione e l'altra.
         </li>
         <li>
           <strong>Camere private</strong>: ognuno può isolarsi per una
@@ -180,8 +183,8 @@ export default function Article() {
       <h3>Giorno 1 — Arrivo e coesione</h3>
       <ul>
         <li><strong>9:00</strong>: arrivo possibile alla stazione TGV Le Mans (early check-in alle 9:30 <em>previa disponibilità</em> — confermiamo al momento della prenotazione)</li>
-        <li><strong>9:30-11:00</strong>: sistemazione, caffè di benvenuto, briefing collettivo nel soggiorno o intorno all'isola centrale della cucina</li>
-        <li><strong>11:00-13:00</strong>: prima sessione di lavoro nella sala zen o intorno all'isola della cucina</li>
+        <li><strong>9:30-11:00</strong>: sistemazione, caffè di benvenuto, briefing collettivo nel soggiorno o intorno al grande tavolo della cucina</li>
+        <li><strong>11:00-13:00</strong>: prima sessione di lavoro nella sala zen o intorno al grande tavolo</li>
         <li><strong>13:00</strong>: pranzo in casa (vassoio pranzo o catering consegnato)</li>
         <li><strong>14:00-17:00</strong>: <strong>sessione di lavoro approfondita</strong> (brainstorming strategico, definizione degli obiettivi annuali…)</li>
         <li><strong>17:30-19:00</strong>: trasferimento al circuito → <strong>karting o simulatore F1</strong> (2 ore di attività team building)</li>

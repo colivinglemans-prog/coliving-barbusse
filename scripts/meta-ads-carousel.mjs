@@ -7,9 +7,9 @@ mkdirSync(OUT, { recursive: true });
 
 const CARDS = [
   { src: "public/images/garden/20260528_183440.jpg", out: "1-jardin.jpg" },
-  { src: "public/images/house/4-salonAI.jpg", out: "2-salon.jpg" },
+  { src: "public/images/house/salon.jpg", out: "2-salon.jpg" },
   { src: "public/images/rooms/chambre-1/Chambre 1 AI (1).jpg", out: "3-suite.jpg" },
-  { src: "public/images/house/2-cuisineAI.jpg", out: "4-cuisine.jpg" },
+  { src: "public/images/house/cuisine-table-16-places.jpg", out: "4-cuisine.jpg" },
   { src: "public/images/house/circuit-bugatti.jpg", out: "5-circuit.jpg" },
 ];
 

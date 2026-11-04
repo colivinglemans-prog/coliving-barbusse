@@ -100,13 +100,15 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>Nuestra casa: el alojamiento pensado para un equipo de 10 a 12</h2>
+      <h2>Nuestra casa: el alojamiento pensado para un equipo de 10 a 20</h2>
 
       <h3>11 personas alojadas sin que nadie comparta cama</h3>
       <p>
         La casa cuenta con <strong>9 suites privadas</strong>, cada una con su
-        baño, su escritorio y su llave individual. En configuración seminario
-        eso da <strong>7 habitaciones individuales y 2 habitaciones
+        baño, su escritorio y su llave individual: hasta{" "}
+        <strong>9 participantes, nadie comparte su habitación ni su baño
+        privado</strong>. Más allá, en configuración seminario, eso da{" "}
+        <strong>7 habitaciones individuales y 2 habitaciones
         dobles</strong> — estas últimas tienen una cama doble y un sofá cama
         individual, así que nadie comparte cama. Son <strong>11 participantes
         alojados</strong>, y hasta 20 plazas si el grupo acepta compartir las
@@ -124,12 +126,13 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>Cocina con isla central</strong>: la habitación más bonita
-          de la casa, y el verdadero espacio de trabajo. La isla acoge a{" "}
-          <strong>12 personas sentadas</strong> — configuración perfecta para un
-          taller en círculo, un design sprint, un desayuno estratégico o una
-          comida de trabajo. Es la única sala con 12 plazas sentadas en interior
-          con calefacción, y por tanto la capacidad de referencia todo el año.
+          <strong>Cocina y su gran mesa</strong>: la habitación más bonita
+          de la casa, y el verdadero espacio de trabajo. La mesa acoge a{" "}
+          <strong>16 personas sentadas</strong>, y a{" "}
+          <strong>20 acercando las dos mesitas altas de la galería</strong>{" "}
+          — configuración perfecta para una plenaria, un design sprint, un
+          desayuno estratégico o una comida de trabajo. Todo el grupo trabaja
+          sentado en interior con calefacción, todo el año.
         </li>
         <li>
           <strong>Salón</strong>: climatizado todo el año, con una{" "}
@@ -141,17 +144,17 @@ export default function Article() {
           <strong>Sala zen</strong>: espacio tranquilo y luminoso para
           brainstormings y talleres en grupo reducido, <strong>de abril a
           octubre</strong> — no tiene calefacción, así que no sustituye a la
-          isla en invierno.
+          gran mesa en invierno.
         </li>
         <li>
           <strong>Jardín cerrado de 90 m², orientado al sur</strong>: las grandes
-          mesas acogen a <strong>20 personas</strong> en la buena estación. Es lo
-          que permite superar los 12 participantes, pero solo de abril a
-          septiembre.
+          mesas acogen a <strong>20 personas</strong> en la buena estación, para
+          comer o trabajar al sol de abril a septiembre.
         </li>
         <li>
           <strong>Galería acristalada</strong>: prolonga el salón y la
-          cocina para más espacio de respiración y movimiento entre
+          cocina, con dos mesitas altas para conversaciones a dos o a cuatro,
+          un rincón de café y un rincón de aperitivo para respirar entre
           sesiones.
         </li>
         <li>
@@ -185,8 +188,8 @@ export default function Article() {
       <h3>Día 1 — Llegada y cohesión</h3>
       <ul>
         <li><strong>9 h</strong>: llegada posible en la estación TGV de Le Mans (early check-in a las 9:30 <em>sujeto a disponibilidad</em> — lo confirmamos al hacer la reserva)</li>
-        <li><strong>9:30-11 h</strong>: instalación, café de bienvenida, briefing colectivo en el salón o alrededor de la isla central de la cocina</li>
-        <li><strong>11-13 h</strong>: primera sesión de trabajo en la sala zen o alrededor de la isla de la cocina</li>
+        <li><strong>9:30-11 h</strong>: instalación, café de bienvenida, briefing colectivo en el salón o alrededor de la gran mesa de la cocina</li>
+        <li><strong>11-13 h</strong>: primera sesión de trabajo en la sala zen o alrededor de la gran mesa</li>
         <li><strong>13 h</strong>: almuerzo en la casa (bandeja de comida o catering entregado)</li>
         <li><strong>14-17 h</strong>: <strong>sesión de trabajo en profundidad</strong> (brainstorming estratégico, definición de objetivos anuales…)</li>
         <li><strong>17:30-19 h</strong>: traslado al circuito → <strong>karting o simulador de F1</strong> (2 h de actividad team-building)</li>

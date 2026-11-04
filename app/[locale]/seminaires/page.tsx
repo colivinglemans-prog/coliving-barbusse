@@ -11,16 +11,15 @@ const EMAIL = "contact@coliving-barbusse.fr";
 type Lang = Locale;
 
 /**
- * La page séminaires, écrite autour de **10 à 12 personnes**.
+ * La page séminaires, écrite autour de **10 à 20 personnes**.
  *
- * Ce chiffre n'est pas un argument marketing, c'est la capacité réelle : onze personnes
- * dorment sans que personne partage un lit (sept chambres individuelles et deux chambres à
- * deux), et douze s'assoient autour de l'îlot de cuisine pour travailler. La version
- * précédente de cette page parlait de « 9 personnes » d'un bout à l'autre — un nombre que
- * personne ne tape dans un moteur de recherche — tout en annonçant « jusqu'à 20 » sur le
- * reste du site, c'est-à-dire le seul format où la maison ne peut pas tenir la promesse
- * d'un séminaire : au-delà de douze, les sessions de travail assises passent au jardin,
- * donc à la belle saison.
+ * Ces chiffres ne sont pas un argument marketing, c'est la capacité réelle, par paliers :
+ * neuf personnes ont chacune leur chambre et leur salle de douche, onze dorment sans que
+ * personne partage un lit (sept chambres individuelles et deux chambres à deux), vingt au
+ * total. Depuis novembre 2026, la table de la cuisine compte 16 places, 20 en y rapprochant
+ * les deux mini-tables hautes de la véranda : tout le groupe travaille assis en intérieur
+ * chauffé, toute l'année. Avant, l'îlot n'en tenait que douze et la page s'arrêtait à 12,
+ * car au-delà les sessions assises passaient au jardin, donc à la belle saison.
  *
  * Les listes structurées (`capRows`, `faqItems`) encodent leurs lignes avec `·` et leurs
  * colonnes avec `|`. C'est la convention déjà retenue par `whatItems` : le dictionnaire est
@@ -29,18 +28,18 @@ type Lang = Locale;
  */
 const T: Record<Lang, Record<string, string>> = {
   fr: {
-    titleTag: "Séminaire d'entreprise au Mans — 10 à 12 personnes | Coliving Barbusse",
-    desc: "Séminaire de 10 à 12 personnes au Mans dans une maison entière : 11 couchages sans partager de lit, 9 salles de bain privatives, îlot de 12 places assises, écran HDMI. À 10 min à pied de la gare TGV, Paris en 55 min.",
+    titleTag: "Séminaire d'entreprise au Mans — 10 à 20 personnes | Coliving Barbusse",
+    desc: "Séminaire de 10 à 20 personnes au Mans dans une maison entière : 9 personnes sans partager leur chambre ni leur salle de douche privative, 11 couchages sans partager de lit, grande table de 16 places (20 avec la véranda), écran HDMI. À 10 min à pied de la gare TGV, Paris en 55 min.",
     heroKicker: "Séjours d'entreprise",
-    heroTitle: "Votre séminaire au Mans, de 10 à 12 personnes",
-    heroSub: "Une maison entière plutôt que dix chambres d'hôtel : 11 couchages sans partager de lit, 9 salles de bain privatives, 12 places assises pour travailler. Gare TGV à 10 min à pied, Paris en 55 min.",
+    heroTitle: "Votre séminaire au Mans, de 10 à 20 personnes",
+    heroSub: "Une maison entière plutôt que dix chambres d'hôtel : 9 personnes sans partager leur chambre ni leur salle de douche privative, 11 couchages sans partager de lit, 16 places assises autour d'une grande table — 20 avec la véranda. Gare TGV à 10 min à pied, Paris en 55 min.",
     heroCta: "Demander un devis",
     heroCta2: "Voir le guide complet",
     reasonsTitle: "Pourquoi une maison entière plutôt qu'un hôtel",
     reason1T: "Personne ne partage un lit",
     reason1D: "7 chambres individuelles et 2 chambres à deux, soit 11 personnes logées, chacune avec sa salle de bain privative et sa clé. Une intimité que le twin d'hôtel ne donne pas.",
-    reason2T: "12 places pour travailler",
-    reason2D: "Îlot de cuisine de 12 places assises, salon chauffé avec grand écran smart TV et entrée HDMI — chacun branche son portable. Salle zen et jardin en renfort à la belle saison.",
+    reason2T: "16 à 20 places pour travailler",
+    reason2D: "Grande table de 16 places dans la cuisine, 20 en y rapprochant les deux mini-tables hautes de la véranda. Salon chauffé avec grand écran smart TV et entrée HDMI — chacun branche son portable. Salle zen et jardin en renfort à la belle saison.",
     reason3T: "Team-building à 15 min",
     reason3D: "Circuit Bugatti (karting, pilotage, simulateurs), EVA Le Mans (VR), Arche de la Nature, escape games.",
     reason4T: "Installation dès 9h30",
@@ -49,29 +48,30 @@ const T: Record<Lang, Record<string, string>> = {
     capIntro: "Tous les chiffres, y compris ce qui dépend de la saison. De quoi décider sans avoir à nous appeler.",
     capCols: "Configuration|Capacité|Saison",
     capRows:
+      "Sans partager sa chambre ni sa salle de douche|9 personnes — une par chambre, salle de douche privative|Toute l'année·" +
       "Couchage sans partager un lit|11 personnes — 7 chambres individuelles et 2 chambres à deux|Toute l'année·" +
       "Couchage total|20 personnes — 9 lits doubles et 2 clic-clac|Toute l'année·" +
-      "Réunion assise, intérieur chauffé|12 places — îlot de cuisine|Toute l'année·" +
+      "Réunion assise, intérieur chauffé|16 places — grande table de la cuisine ; 20 avec les deux mini-tables de la véranda|Toute l'année·" +
       "Debriefs et présentations|Salon chauffé, grand écran smart TV avec entrée HDMI|Toute l'année·" +
       "Salle zen|Espace de travail supplémentaire, non chauffé|Belle saison·" +
       "Jardin clos de 90 m², plein sud|20 places à table|Belle saison",
-    capNote: "Le format le plus fréquent est de 10 à 12 participants. Au-delà de 12, la maison reste confortable pour un séjour de groupe, mais les sessions de travail assises se tiennent au jardin — donc d'avril à septembre.",
+    capNote: "Jusqu'à 9 participants, chacun a sa chambre et sa salle de douche privative ; jusqu'à 11, personne ne partage un lit ; la maison couche jusqu'à 20 personnes. Pour travailler, tout le monde s'assoit en intérieur chauffé, toute l'année : 16 autour de la grande table, 20 en y rapprochant les mini-tables de la véranda.",
     whatTitle: "Ce qui est inclus",
-    whatItems: "7 chambres individuelles et 2 chambres à deux, 9 salles de bain privatives·Îlot de cuisine, 12 places assises·Grand écran smart TV avec entrée HDMI au salon·Wi-Fi haut débit, bureau dans chaque chambre·Stationnement libre et gratuit dans la rue, sans disque ni horodateur·Cuisine entièrement équipée·Salle de sport et espace zen·Jardin clos de 90 m², exposé plein sud·Serrure connectée (self check-in)·Facture professionnelle, paiement par virement·Support WhatsApp 7j/7",
+    whatItems: "7 chambres individuelles et 2 chambres à deux, 9 salles de bain privatives·Grande table de 16 places, 20 avec les mini-tables de la véranda·Grand écran smart TV avec entrée HDMI au salon·Wi-Fi haut débit, bureau dans chaque chambre·Stationnement libre et gratuit dans la rue, sans disque ni horodateur·Cuisine entièrement équipée·Salle de sport et espace zen·Jardin clos de 90 m², exposé plein sud·Serrure connectée (self check-in)·Facture professionnelle, paiement par virement·Support WhatsApp 7j/7",
     extrasTitle: "Acteurs locaux pour compléter votre séjour",
     extrasIntro: "Nous n'organisons pas ces prestations, mais des professionnels locaux peuvent les prendre en charge directement :",
     extrasItems: "Traiteurs locaux (petit-déjeuner, déjeuner, dîner)·Taxis pour les transferts gare/circuit/maison·Prestataires d'activités team-building (karting, simulateurs, EVA…)",
     programTitle: "Programme type — 2 jours",
     day1T: "Jour 1 — Arrivée & cohésion",
-    day1Body: "9h arrivée gare · 9h30 installation & café · 11h-13h session de travail autour de l'îlot · 13h déjeuner maison · 14h-17h brainstorm stratégique · 17h30-19h activité team-building (karting / simulateur F1 / EVA) · 20h dîner ensemble",
+    day1Body: "9h arrivée gare · 9h30 installation & café · 11h-13h session de travail autour de la grande table · 13h déjeuner maison · 14h-17h brainstorm stratégique · 17h30-19h activité team-building (karting / simulateur F1 / EVA) · 20h dîner ensemble",
     day2T: "Jour 2 — Ateliers & clôture",
     day2Body: "8h-9h petit-déjeuner · 9h-12h ateliers (design thinking, OKR) · 12h30 déjeuner en ville · 14h-16h baptême de piste ou Musée des 24h · 16h-17h debrief final au salon · 17h départ TGV",
     pricingTitle: "Tarif indicatif",
     pricingBody: "~150-250 €/nuit/personne pour une équipe de 10 à 12, selon la saison, hors activités et restauration. À comparer à 10 chambres d'hôtel 3-4★, auxquelles il faut encore ajouter la location d'une salle de réunion.",
     faqTitle: "Questions fréquentes",
     faqItems:
-      "Combien de personnes pour un séminaire ?|De 10 à 12 participants, c'est le format idéal : 11 personnes dorment sans partager de lit et 12 s'assoient autour de l'îlot de cuisine pour travailler. La maison peut coucher jusqu'à 20 personnes, mais au-delà de 12 les sessions de travail assises se tiennent au jardin, donc à la belle saison.·" +
-      "Y a-t-il une salle de réunion ?|Il n'y a pas de salle de réunion dédiée. Les sessions de travail se tiennent autour de l'îlot de cuisine, 12 places assises, et le salon chauffé sert aux debriefs et aux présentations avec son grand écran smart TV et son entrée HDMI. La salle zen et le jardin offrent des espaces supplémentaires à la belle saison ; la salle zen n'est pas chauffée.·" +
+      "Combien de personnes pour un séminaire ?|De 10 à 20 participants. Jusqu'à 9, chacun a sa chambre et sa salle de douche privative ; jusqu'à 11, personne ne partage un lit ; la maison couche jusqu'à 20 personnes. Pour travailler, 16 personnes s'assoient autour de la grande table de la cuisine et 20 en y rapprochant les deux mini-tables hautes de la véranda, en intérieur chauffé, toute l'année.·" +
+      "Y a-t-il une salle de réunion ?|Il n'y a pas de salle de réunion dédiée. Les sessions de travail se tiennent autour de la grande table de la cuisine, 16 places assises (20 avec les mini-tables de la véranda), et le salon chauffé sert aux debriefs et aux présentations avec son grand écran smart TV et son entrée HDMI. La salle zen et le jardin offrent des espaces supplémentaires à la belle saison ; la salle zen n'est pas chauffée.·" +
       "Est-ce que chacun a sa chambre ?|7 participants ont une chambre individuelle et 2 chambres accueillent 2 personnes chacune, avec un lit double et un clic-clac une place — personne ne partage un lit. Les 9 chambres ont leur salle de bain privative, leur bureau et leur clé individuelle.·" +
       "Où se garer ?|Stationnement libre et gratuit rue Henri Barbusse et dans les rues adjacentes, sans disque ni horodateur. Plusieurs voitures peuvent stationner sans contrainte, ce qui est rare aussi près d'un centre-ville.·" +
       "Comment venir depuis Paris ?|Gare TGV du Mans à 55 min de Paris-Montparnasse, puis 10 minutes à pied jusqu'à la maison. Aucun transfert à organiser, aucun taxi à réserver.·" +
@@ -88,18 +88,18 @@ const T: Record<Lang, Record<string, string>> = {
     guideLink: "Lire le guide détaillé",
   },
   en: {
-    titleTag: "Corporate seminar in Le Mans — 10 to 12 people | Coliving Barbusse",
-    desc: "Seminar for 10 to 12 people in Le Mans in a whole house: 11 guests without sharing a bed, 9 en-suite bathrooms, a 12-seat kitchen island, HDMI screen. 10 min on foot from the TGV station, Paris in 55 min.",
+    titleTag: "Corporate seminar in Le Mans — 10 to 20 people | Coliving Barbusse",
+    desc: "Seminar for 10 to 20 people in Le Mans in a whole house: 9 people without sharing their bedroom or en-suite shower room, 11 guests without sharing a bed, a 16-seat table (20 with the veranda), HDMI screen. 10 min on foot from the TGV station, Paris in 55 min.",
     heroKicker: "Corporate retreats",
-    heroTitle: "Your seminar in Le Mans, for 10 to 12 people",
-    heroSub: "A whole house rather than ten hotel rooms: 11 guests without sharing a bed, 9 en-suite bathrooms, 12 seats to work around. TGV station 10 min on foot, Paris in 55 min.",
+    heroTitle: "Your seminar in Le Mans, for 10 to 20 people",
+    heroSub: "A whole house rather than ten hotel rooms: 9 people without sharing their bedroom or en-suite shower room, 11 guests without sharing a bed, 16 seats around one big table — 20 with the veranda. TGV station 10 min on foot, Paris in 55 min.",
     heroCta: "Request a quote",
     heroCta2: "Read the full guide",
     reasonsTitle: "Why a whole house beats a hotel",
     reason1T: "Nobody shares a bed",
     reason1D: "7 single-occupancy bedrooms and 2 twin bedrooms — 11 people, each with an en-suite bathroom and their own key. A level of privacy a hotel twin never gives.",
-    reason2T: "12 seats to work around",
-    reason2D: "A 12-seat kitchen island, a heated living room with a large smart TV and HDMI input — everyone plugs in their laptop. Zen room and garden as overflow in the warm season.",
+    reason2T: "16 to 20 seats to work around",
+    reason2D: "A 16-seat table in the kitchen, 20 once the two high bistro tables from the veranda are pulled up to it. A heated living room with a large smart TV and HDMI input — everyone plugs in their laptop. Zen room and garden as overflow in the warm season.",
     reason3T: "Team building 15 min away",
     reason3D: "Bugatti Circuit (karting, driving, simulators), EVA Le Mans (VR), Arche de la Nature, escape games.",
     reason4T: "Move in from 9.30 am",
@@ -108,29 +108,30 @@ const T: Record<Lang, Record<string, string>> = {
     capIntro: "Every figure, including what depends on the season. Enough to decide without calling us.",
     capCols: "Configuration|Capacity|Season",
     capRows:
+      "Own bedroom and own shower room|9 people — one per bedroom, en-suite shower room|All year·" +
       "Sleeping without sharing a bed|11 people — 7 single-occupancy bedrooms and 2 twin bedrooms|All year·" +
       "Total sleeping capacity|20 people — 9 double beds and 2 sofa beds|All year·" +
-      "Seated meeting, heated indoors|12 seats — kitchen island|All year·" +
+      "Seated meeting, heated indoors|16 seats — big kitchen table; 20 with the two veranda bistro tables|All year·" +
       "Debriefs and presentations|Heated living room, large smart TV with HDMI input|All year·" +
       "Zen room|Additional workspace, unheated|Warm season·" +
       "Enclosed 90 m² south-facing garden|Seats 20 at table|Warm season",
-    capNote: "The most common format is 10 to 12 participants. Beyond 12 the house remains comfortable for a group stay, but seated work sessions move to the garden — so April to September.",
+    capNote: "Up to 9 participants, everyone has their own bedroom and en-suite shower room; up to 11, nobody shares a bed; the house sleeps up to 20. For work, everyone sits indoors in the warm, all year round: 16 around the big table, 20 once the veranda bistro tables are pulled up to it.",
     whatTitle: "What's included",
-    whatItems: "7 single-occupancy bedrooms and 2 twin bedrooms, 9 en-suite bathrooms·Kitchen island, 12 seats·Large smart TV with HDMI input in the living room·High-speed Wi-Fi, desk in every bedroom·Free street parking, no permit and no meter·Fully equipped kitchen·Gym and zen space·Enclosed 90 m² south-facing garden·Smart lock (self check-in)·Professional invoice, payment by bank transfer·WhatsApp support 7 days a week",
+    whatItems: "7 single-occupancy bedrooms and 2 twin bedrooms, 9 en-suite bathrooms·16-seat table, 20 with the veranda bistro tables·Large smart TV with HDMI input in the living room·High-speed Wi-Fi, desk in every bedroom·Free street parking, no permit and no meter·Fully equipped kitchen·Gym and zen space·Enclosed 90 m² south-facing garden·Smart lock (self check-in)·Professional invoice, payment by bank transfer·WhatsApp support 7 days a week",
     extrasTitle: "Local providers to complete your stay",
     extrasIntro: "We do not organise these services ourselves, but local professionals can handle them directly:",
     extrasItems: "Local caterers (breakfast, lunch, dinner)·Taxis for station/circuit/house transfers·Team-building activity providers (karting, simulators, EVA…)",
     programTitle: "Sample 2-day programme",
     day1T: "Day 1 — Arrival & bonding",
-    day1Body: "9 am station arrival · 9.30 am move-in & coffee · 11 am-1 pm work session around the island · 1 pm house lunch · 2-5 pm strategic brainstorm · 5.30-7 pm team-building activity (karting / F1 sim / EVA) · 8 pm dinner together",
+    day1Body: "9 am station arrival · 9.30 am move-in & coffee · 11 am-1 pm work session around the big table · 1 pm house lunch · 2-5 pm strategic brainstorm · 5.30-7 pm team-building activity (karting / F1 sim / EVA) · 8 pm dinner together",
     day2T: "Day 2 — Workshops & close",
     day2Body: "8-9 am breakfast · 9 am-12 workshops (design thinking, OKRs) · 12.30 pm lunch in town · 2-4 pm track baptism or 24 Hours Museum · 4-5 pm final debrief in the living room · 5 pm TGV departure",
     pricingTitle: "Indicative rate",
     pricingBody: "~€150-250/night/person for a team of 10 to 12, depending on season, excluding activities and catering. Compare that with 10 3-4★ hotel rooms, on top of which you still have to rent a meeting room.",
     faqTitle: "Frequently asked questions",
     faqItems:
-      "How many people for a seminar?|10 to 12 participants is the ideal format: 11 people sleep without sharing a bed and 12 sit around the kitchen island to work. The house sleeps up to 20, but beyond 12 seated work sessions take place in the garden, so in the warm season.·" +
-      "Is there a meeting room?|There is no dedicated meeting room. Work sessions take place around the kitchen island, which seats 12, and the heated living room hosts debriefs and presentations with its large smart TV and HDMI input. The zen room and garden provide extra space in the warm season; the zen room is unheated.·" +
+      "How many people for a seminar?|10 to 20 participants. Up to 9, everyone has their own bedroom and en-suite shower room; up to 11, nobody shares a bed; the house sleeps up to 20. For work, 16 people sit around the big kitchen table and 20 once the two high bistro tables from the veranda are pulled up to it, indoors and heated, all year round.·" +
+      "Is there a meeting room?|There is no dedicated meeting room. Work sessions take place around the big kitchen table, which seats 16 (20 with the veranda bistro tables), and the heated living room hosts debriefs and presentations with its large smart TV and HDMI input. The zen room and garden provide extra space in the warm season; the zen room is unheated.·" +
       "Does everyone get their own bedroom?|7 participants get a bedroom to themselves and 2 bedrooms take 2 people each, with a double bed and a single sofa bed — nobody shares a bed. All 9 bedrooms have an en-suite bathroom, a desk and an individual key.·" +
       "Where can we park?|Free street parking on Rue Henri Barbusse and adjacent streets, with no permit and no parking meter. Several cars can park without restriction, which is rare this close to a city centre.·" +
       "How do we get there from Paris?|Le Mans TGV station is 55 min from Paris-Montparnasse, then 10 minutes on foot to the house. No transfer to arrange, no taxi to book.·" +
@@ -147,18 +148,18 @@ const T: Record<Lang, Record<string, string>> = {
     guideLink: "Read the detailed guide",
   },
   it: {
-    titleTag: "Seminario aziendale a Le Mans — 10-12 persone | Coliving Barbusse",
-    desc: "Seminario per 10-12 persone a Le Mans in una casa intera: 11 posti letto senza condividere il letto, 9 bagni privati, isola da 12 posti a sedere, schermo HDMI. A 10 min a piedi dalla stazione TGV, Parigi in 55 min.",
+    titleTag: "Seminario aziendale a Le Mans — 10-20 persone | Coliving Barbusse",
+    desc: "Seminario per 10-20 persone a Le Mans in una casa intera: 9 persone senza condividere camera né doccia privata, 11 posti letto senza condividere il letto, grande tavolo da 16 posti (20 con la veranda), schermo HDMI. A 10 min a piedi dalla stazione TGV, Parigi in 55 min.",
     heroKicker: "Soggiorni aziendali",
-    heroTitle: "Il tuo seminario a Le Mans, da 10 a 12 persone",
-    heroSub: "Una casa intera invece di dieci camere d'albergo: 11 persone senza condividere il letto, 9 bagni privati, 12 posti a sedere per lavorare. Stazione TGV a 10 min a piedi, Parigi in 55 min.",
+    heroTitle: "Il tuo seminario a Le Mans, da 10 a 20 persone",
+    heroSub: "Una casa intera invece di dieci camere d'albergo: 9 persone senza condividere camera né doccia privata, 11 senza condividere il letto, 16 posti a sedere attorno a un grande tavolo — 20 con la veranda. Stazione TGV a 10 min a piedi, Parigi in 55 min.",
     heroCta: "Richiedi un preventivo",
     heroCta2: "Leggi la guida completa",
     reasonsTitle: "Perché una casa intera batte l'albergo",
     reason1T: "Nessuno condivide il letto",
     reason1D: "7 camere singole e 2 camere doppie, cioè 11 persone, ognuna con bagno privato e chiave personale. Una privacy che la doppia d'albergo non offre.",
-    reason2T: "12 posti per lavorare",
-    reason2D: "Isola della cucina da 12 posti a sedere, soggiorno riscaldato con grande smart TV e ingresso HDMI — ognuno collega il proprio portatile. Sala zen e giardino come spazi extra nella bella stagione.",
+    reason2T: "Da 16 a 20 posti per lavorare",
+    reason2D: "Grande tavolo da 16 posti in cucina, 20 avvicinando i due tavolini alti della veranda. Soggiorno riscaldato con grande smart TV e ingresso HDMI — ognuno collega il proprio portatile. Sala zen e giardino come spazi extra nella bella stagione.",
     reason3T: "Team building a 15 min",
     reason3D: "Circuito Bugatti (karting, guida, simulatori), EVA Le Mans (VR), Arche de la Nature, escape game.",
     reason4T: "Sistemazione dalle 9:30",
@@ -167,29 +168,30 @@ const T: Record<Lang, Record<string, string>> = {
     capIntro: "Tutti i numeri, compreso ciò che dipende dalla stagione. Abbastanza per decidere senza doverci chiamare.",
     capCols: "Configurazione|Capacità|Stagione",
     capRows:
+      "Senza condividere camera né doccia|9 persone — una per camera, doccia privata|Tutto l'anno·" +
       "Posti letto senza condividere il letto|11 persone — 7 camere singole e 2 camere doppie|Tutto l'anno·" +
       "Posti letto totali|20 persone — 9 letti matrimoniali e 2 divani letto|Tutto l'anno·" +
-      "Riunione seduti, interno riscaldato|12 posti — isola della cucina|Tutto l'anno·" +
+      "Riunione seduti, interno riscaldato|16 posti — grande tavolo della cucina; 20 con i due tavolini della veranda|Tutto l'anno·" +
       "Debrief e presentazioni|Soggiorno riscaldato, grande smart TV con ingresso HDMI|Tutto l'anno·" +
       "Sala zen|Spazio di lavoro aggiuntivo, non riscaldato|Bella stagione·" +
       "Giardino recintato di 90 m², esposto a sud|20 posti a tavola|Bella stagione",
-    capNote: "Il formato più frequente è da 10 a 12 partecipanti. Oltre i 12 la casa resta comoda per un soggiorno di gruppo, ma le sessioni di lavoro sedute si spostano in giardino — quindi da aprile a settembre.",
+    capNote: "Fino a 9 partecipanti, ognuno ha la sua camera e la sua doccia privata; fino a 11, nessuno condivide il letto; la casa ospita fino a 20 persone. Per lavorare, tutti siedono al chiuso e al caldo, tutto l'anno: 16 attorno al grande tavolo, 20 avvicinando i tavolini della veranda.",
     whatTitle: "Cosa è incluso",
-    whatItems: "7 camere singole e 2 camere doppie, 9 bagni privati·Isola della cucina, 12 posti a sedere·Grande smart TV con ingresso HDMI in soggiorno·Wi-Fi ad alta velocità, scrivania in ogni camera·Parcheggio libero e gratuito in strada, senza disco né parchimetro·Cucina completamente attrezzata·Palestra e spazio zen·Giardino recintato di 90 m², esposto a sud·Serratura connessa (self check-in)·Fattura professionale, pagamento con bonifico·Supporto WhatsApp 7 giorni su 7",
+    whatItems: "7 camere singole e 2 camere doppie, 9 bagni privati·Grande tavolo da 16 posti, 20 con i tavolini della veranda·Grande smart TV con ingresso HDMI in soggiorno·Wi-Fi ad alta velocità, scrivania in ogni camera·Parcheggio libero e gratuito in strada, senza disco né parchimetro·Cucina completamente attrezzata·Palestra e spazio zen·Giardino recintato di 90 m², esposto a sud·Serratura connessa (self check-in)·Fattura professionale, pagamento con bonifico·Supporto WhatsApp 7 giorni su 7",
     extrasTitle: "Operatori locali per completare il soggiorno",
     extrasIntro: "Non organizziamo noi questi servizi, ma professionisti locali possono occuparsene direttamente:",
     extrasItems: "Catering locali (colazione, pranzo, cena)·Taxi per i trasferimenti stazione/circuito/casa·Fornitori di attività team-building (karting, simulatori, EVA…)",
     programTitle: "Programma tipo — 2 giorni",
     day1T: "Giorno 1 — Arrivo e coesione",
-    day1Body: "ore 9 arrivo in stazione · 9:30 sistemazione e caffè · 11-13 sessione di lavoro attorno all'isola · 13 pranzo in casa · 14-17 brainstorming strategico · 17:30-19 attività team-building (karting / simulatore F1 / EVA) · 20 cena insieme",
+    day1Body: "ore 9 arrivo in stazione · 9:30 sistemazione e caffè · 11-13 sessione di lavoro attorno al grande tavolo · 13 pranzo in casa · 14-17 brainstorming strategico · 17:30-19 attività team-building (karting / simulatore F1 / EVA) · 20 cena insieme",
     day2T: "Giorno 2 — Workshop e chiusura",
     day2Body: "8-9 colazione · 9-12 workshop (design thinking, OKR) · 12:30 pranzo in città · 14-16 battesimo della pista o Museo 24 Ore · 16-17 debrief finale in soggiorno · 17 partenza TGV",
     pricingTitle: "Tariffa indicativa",
     pricingBody: "~150-250 €/notte/persona per un team da 10 a 12, a seconda della stagione, escluse attività e ristorazione. Da confrontare con 10 camere d'hotel 3-4★, a cui va ancora aggiunto l'affitto di una sala riunioni.",
     faqTitle: "Domande frequenti",
     faqItems:
-      "Quante persone per un seminario?|Da 10 a 12 partecipanti è il formato ideale: 11 persone dormono senza condividere il letto e 12 si siedono attorno all'isola della cucina per lavorare. La casa può ospitare fino a 20 persone, ma oltre le 12 le sessioni di lavoro sedute si tengono in giardino, quindi nella bella stagione.·" +
-      "C'è una sala riunioni?|Non c'è una sala riunioni dedicata. Le sessioni di lavoro si tengono attorno all'isola della cucina, 12 posti a sedere, e il soggiorno riscaldato ospita debrief e presentazioni con la sua grande smart TV e l'ingresso HDMI. Sala zen e giardino offrono spazi aggiuntivi nella bella stagione; la sala zen non è riscaldata.·" +
+      "Quante persone per un seminario?|Da 10 a 20 partecipanti. Fino a 9, ognuno ha la sua camera e la sua doccia privata; fino a 11, nessuno condivide il letto; la casa ospita fino a 20 persone. Per lavorare, 16 persone siedono attorno al grande tavolo della cucina e 20 avvicinando i due tavolini alti della veranda, al chiuso e al caldo, tutto l'anno.·" +
+      "C'è una sala riunioni?|Non c'è una sala riunioni dedicata. Le sessioni di lavoro si tengono attorno al grande tavolo della cucina, 16 posti a sedere (20 con i tavolini della veranda), e il soggiorno riscaldato ospita debrief e presentazioni con la sua grande smart TV e l'ingresso HDMI. Sala zen e giardino offrono spazi aggiuntivi nella bella stagione; la sala zen non è riscaldata.·" +
       "Ognuno ha la sua camera?|7 partecipanti hanno una camera singola e 2 camere accolgono 2 persone ciascuna, con letto matrimoniale e divano letto singolo — nessuno condivide il letto. Tutte le 9 camere hanno bagno privato, scrivania e chiave individuale.·" +
       "Dove si parcheggia?|Parcheggio libero e gratuito in rue Henri Barbusse e nelle vie adiacenti, senza disco né parchimetro. Più auto possono sostare senza vincoli, cosa rara così vicino a un centro città.·" +
       "Come si arriva da Parigi?|La stazione TGV di Le Mans è a 55 min da Paris-Montparnasse, poi 10 minuti a piedi fino alla casa. Nessun trasferimento da organizzare, nessun taxi da prenotare.·" +
@@ -206,18 +208,18 @@ const T: Record<Lang, Record<string, string>> = {
     guideLink: "Leggi la guida dettagliata",
   },
   de: {
-    titleTag: "Firmenseminar in Le Mans — 10 bis 12 Personen | Coliving Barbusse",
-    desc: "Seminar für 10 bis 12 Personen in Le Mans in einem ganzen Haus: 11 Schlafplätze ohne geteiltes Bett, 9 eigene Bäder, Kücheninsel mit 12 Sitzplätzen, HDMI-Bildschirm. 10 Min. zu Fuß vom TGV-Bahnhof, Paris in 55 Min.",
+    titleTag: "Firmenseminar in Le Mans — 10 bis 20 Personen | Coliving Barbusse",
+    desc: "Seminar für 10 bis 20 Personen in Le Mans in einem ganzen Haus: 9 Personen ohne geteiltes Zimmer und mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, großer Tisch mit 16 Plätzen (20 mit der Veranda), HDMI-Bildschirm. 10 Min. zu Fuß vom TGV-Bahnhof, Paris in 55 Min.",
     heroKicker: "Firmenaufenthalte",
-    heroTitle: "Ihr Seminar in Le Mans, für 10 bis 12 Personen",
-    heroSub: "Ein ganzes Haus statt zehn Hotelzimmer: 11 Schlafplätze ohne geteiltes Bett, 9 eigene Bäder, 12 Sitzplätze zum Arbeiten. TGV-Bahnhof 10 Min. zu Fuß, Paris in 55 Min.",
+    heroTitle: "Ihr Seminar in Le Mans, für 10 bis 20 Personen",
+    heroSub: "Ein ganzes Haus statt zehn Hotelzimmer: 9 Personen ohne geteiltes Zimmer und mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, 16 Sitzplätze an einem großen Tisch — 20 mit der Veranda. TGV-Bahnhof 10 Min. zu Fuß, Paris in 55 Min.",
     heroCta: "Angebot anfragen",
     heroCta2: "Den ausführlichen Guide lesen",
     reasonsTitle: "Warum ein ganzes Haus besser ist als ein Hotel",
     reason1T: "Niemand teilt sich ein Bett",
     reason1D: "7 Einzelzimmer und 2 Zweibettzimmer, also 11 Personen, jede mit eigenem Bad und eigenem Schlüssel. Eine Privatsphäre, die das Hotel-Twin nicht bietet.",
-    reason2T: "12 Sitzplätze zum Arbeiten",
-    reason2D: "Kücheninsel mit 12 Sitzplätzen, beheiztes Wohnzimmer mit großem Smart-TV und HDMI-Eingang — jeder schließt seinen Laptop an. Zen-Raum und Garten als Zusatzflächen in der warmen Jahreszeit.",
+    reason2T: "16 bis 20 Sitzplätze zum Arbeiten",
+    reason2D: "Großer Tisch mit 16 Plätzen in der Küche, 20, wenn man die zwei Stehtische der Veranda heranrückt. Beheiztes Wohnzimmer mit großem Smart-TV und HDMI-Eingang — jeder schließt seinen Laptop an. Zen-Raum und Garten als Zusatzflächen in der warmen Jahreszeit.",
     reason3T: "Teambuilding 15 Min. entfernt",
     reason3D: "Rennstrecke Bugatti (Karting, Fahrtraining, Simulatoren), EVA Le Mans (VR), Arche de la Nature, Escape Games.",
     reason4T: "Bezug ab 9:30 Uhr",
@@ -226,29 +228,30 @@ const T: Record<Lang, Record<string, string>> = {
     capIntro: "Alle Zahlen, auch das, was von der Jahreszeit abhängt. Genug, um ohne Anruf zu entscheiden.",
     capCols: "Konfiguration|Kapazität|Jahreszeit",
     capRows:
+      "Eigenes Zimmer und eigenes Duschbad|9 Personen — eine pro Zimmer, eigenes Duschbad|Ganzjährig·" +
       "Schlafen ohne geteiltes Bett|11 Personen — 7 Einzelzimmer und 2 Zweibettzimmer|Ganzjährig·" +
       "Schlafplätze insgesamt|20 Personen — 9 Doppelbetten und 2 Schlafsofas|Ganzjährig·" +
-      "Sitzung im beheizten Innenraum|12 Plätze — Kücheninsel|Ganzjährig·" +
+      "Sitzung im beheizten Innenraum|16 Plätze — großer Küchentisch; 20 mit den zwei Stehtischen der Veranda|Ganzjährig·" +
       "Debriefings und Präsentationen|Beheiztes Wohnzimmer, großer Smart-TV mit HDMI-Eingang|Ganzjährig·" +
       "Zen-Raum|Zusätzliche Arbeitsfläche, unbeheizt|Warme Jahreszeit·" +
       "Eingezäunter Südgarten, 90 m²|20 Plätze am Tisch|Warme Jahreszeit",
-    capNote: "Das häufigste Format sind 10 bis 12 Teilnehmende. Über 12 hinaus bleibt das Haus für einen Gruppenaufenthalt bequem, die Arbeitssitzungen im Sitzen finden dann aber im Garten statt — also von April bis September.",
+    capNote: "Bis 9 Teilnehmende hat jede Person ihr eigenes Zimmer und ihr eigenes Duschbad; bis 11 teilt sich niemand ein Bett; das Haus bietet bis zu 20 Schlafplätze. Zum Arbeiten sitzen alle drinnen im Warmen, das ganze Jahr: 16 am großen Tisch, 20 mit den herangerückten Stehtischen der Veranda.",
     whatTitle: "Was inbegriffen ist",
-    whatItems: "7 Einzelzimmer und 2 Zweibettzimmer, 9 eigene Bäder·Kücheninsel mit 12 Sitzplätzen·Großer Smart-TV mit HDMI-Eingang im Wohnzimmer·Highspeed-WLAN, Schreibtisch in jedem Zimmer·Kostenloses Parken auf der Straße, ohne Parkscheibe und ohne Parkuhr·Voll ausgestattete Küche·Fitnessraum und Zen-Bereich·Eingezäunter Südgarten, 90 m²·Smart Lock (Self-Check-in)·Professionelle Rechnung, Zahlung per Überweisung·WhatsApp-Support 7 Tage die Woche",
+    whatItems: "7 Einzelzimmer und 2 Zweibettzimmer, 9 eigene Bäder·Großer Tisch mit 16 Plätzen, 20 mit den Stehtischen der Veranda·Großer Smart-TV mit HDMI-Eingang im Wohnzimmer·Highspeed-WLAN, Schreibtisch in jedem Zimmer·Kostenloses Parken auf der Straße, ohne Parkscheibe und ohne Parkuhr·Voll ausgestattete Küche·Fitnessraum und Zen-Bereich·Eingezäunter Südgarten, 90 m²·Smart Lock (Self-Check-in)·Professionelle Rechnung, Zahlung per Überweisung·WhatsApp-Support 7 Tage die Woche",
     extrasTitle: "Lokale Anbieter für Ihren Aufenthalt",
     extrasIntro: "Wir organisieren diese Leistungen nicht selbst, lokale Anbieter können sie aber direkt übernehmen:",
     extrasItems: "Lokale Caterer (Frühstück, Mittag-, Abendessen)·Taxis für Transfers Bahnhof/Rennstrecke/Haus·Teambuilding-Anbieter (Karting, Simulatoren, EVA…)",
     programTitle: "Beispielprogramm — 2 Tage",
     day1T: "Tag 1 — Ankunft & Teambuilding",
-    day1Body: "9 Uhr Ankunft Bahnhof · 9:30 Uhr Bezug & Kaffee · 11-13 Uhr Arbeitssession an der Kücheninsel · 13 Uhr Mittagessen im Haus · 14-17 Uhr strategisches Brainstorming · 17:30-19 Uhr Teambuilding (Karting / F1-Simulator / EVA) · 20 Uhr gemeinsames Abendessen",
+    day1Body: "9 Uhr Ankunft Bahnhof · 9:30 Uhr Bezug & Kaffee · 11-13 Uhr Arbeitssession am großen Tisch · 13 Uhr Mittagessen im Haus · 14-17 Uhr strategisches Brainstorming · 17:30-19 Uhr Teambuilding (Karting / F1-Simulator / EVA) · 20 Uhr gemeinsames Abendessen",
     day2T: "Tag 2 — Workshops & Abschluss",
     day2Body: "8-9 Uhr Frühstück · 9-12 Uhr Workshops (Design Thinking, OKRs) · 12:30 Uhr Mittagessen in der Stadt · 14-16 Uhr Streckenfahrt oder 24-Stunden-Museum · 16-17 Uhr Abschluss-Debriefing im Wohnzimmer · 17 Uhr TGV-Abreise",
     pricingTitle: "Richtpreis",
     pricingBody: "~150-250 €/Nacht/Person für ein Team von 10 bis 12, je nach Saison, ohne Aktivitäten und Verpflegung. Zum Vergleich: 10 Hotelzimmer der Kategorie 3-4★, zu denen noch die Miete eines Konferenzraums kommt.",
     faqTitle: "Häufige Fragen",
     faqItems:
-      "Für wie viele Personen eignet sich ein Seminar?|10 bis 12 Teilnehmende sind das ideale Format: 11 Personen schlafen, ohne ein Bett zu teilen, und 12 sitzen zum Arbeiten an der Kücheninsel. Das Haus bietet bis zu 20 Schlafplätze, über 12 hinaus finden Arbeitssitzungen im Sitzen jedoch im Garten statt, also in der warmen Jahreszeit.·" +
-      "Gibt es einen Konferenzraum?|Einen eigenen Konferenzraum gibt es nicht. Die Arbeitssitzungen finden an der Kücheninsel mit 12 Sitzplätzen statt, das beheizte Wohnzimmer dient mit großem Smart-TV und HDMI-Eingang für Debriefings und Präsentationen. Zen-Raum und Garten bieten in der warmen Jahreszeit zusätzliche Fläche; der Zen-Raum ist unbeheizt.·" +
+      "Für wie viele Personen eignet sich ein Seminar?|Für 10 bis 20 Teilnehmende. Bis 9 hat jede Person ihr eigenes Zimmer und ihr eigenes Duschbad; bis 11 teilt sich niemand ein Bett; das Haus bietet bis zu 20 Schlafplätze. Zum Arbeiten sitzen 16 Personen am großen Küchentisch und 20, wenn man die zwei Stehtische der Veranda heranrückt — drinnen und beheizt, das ganze Jahr.·" +
+      "Gibt es einen Konferenzraum?|Einen eigenen Konferenzraum gibt es nicht. Die Arbeitssitzungen finden am großen Küchentisch mit 16 Sitzplätzen statt (20 mit den Stehtischen der Veranda), das beheizte Wohnzimmer dient mit großem Smart-TV und HDMI-Eingang für Debriefings und Präsentationen. Zen-Raum und Garten bieten in der warmen Jahreszeit zusätzliche Fläche; der Zen-Raum ist unbeheizt.·" +
       "Bekommt jede Person ein eigenes Zimmer?|7 Teilnehmende haben ein Zimmer für sich, 2 Zimmer nehmen je 2 Personen auf, mit Doppelbett und Einzel-Schlafsofa — niemand teilt sich ein Bett. Alle 9 Zimmer haben ein eigenes Bad, einen Schreibtisch und einen eigenen Schlüssel.·" +
       "Wo kann man parken?|Kostenloses Parken in der Rue Henri Barbusse und den Nebenstraßen, ohne Parkscheibe und ohne Parkuhr. Mehrere Autos können ohne Einschränkung parken, was so nah an einer Innenstadt selten ist.·" +
       "Wie kommt man von Paris aus hin?|Der TGV-Bahnhof Le Mans liegt 55 Min. von Paris-Montparnasse entfernt, dann sind es 10 Minuten zu Fuß bis zum Haus. Kein Transfer, kein Taxi nötig.·" +
@@ -265,18 +268,18 @@ const T: Record<Lang, Record<string, string>> = {
     guideLink: "Den detaillierten Guide lesen",
   },
   es: {
-    titleTag: "Seminario de empresa en Le Mans — 10 a 12 personas | Coliving Barbusse",
-    desc: "Seminario para 10 a 12 personas en Le Mans en una casa entera: 11 plazas sin compartir cama, 9 baños privados, isla de 12 plazas sentadas, pantalla HDMI. A 10 min a pie de la estación TGV, París en 55 min.",
+    titleTag: "Seminario de empresa en Le Mans — 10 a 20 personas | Coliving Barbusse",
+    desc: "Seminario para 10 a 20 personas en Le Mans en una casa entera: 9 personas sin compartir habitación ni ducha privada, 11 plazas sin compartir cama, gran mesa de 16 plazas (20 con la veranda), pantalla HDMI. A 10 min a pie de la estación TGV, París en 55 min.",
     heroKicker: "Estancias de empresa",
-    heroTitle: "Tu seminario en Le Mans, de 10 a 12 personas",
-    heroSub: "Una casa entera en lugar de diez habitaciones de hotel: 11 personas sin compartir cama, 9 baños privados, 12 plazas sentadas para trabajar. Estación TGV a 10 min a pie, París en 55 min.",
+    heroTitle: "Tu seminario en Le Mans, de 10 a 20 personas",
+    heroSub: "Una casa entera en lugar de diez habitaciones de hotel: 9 personas sin compartir habitación ni ducha privada, 11 sin compartir cama, 16 plazas sentadas en torno a una gran mesa — 20 con la veranda. Estación TGV a 10 min a pie, París en 55 min.",
     heroCta: "Solicitar presupuesto",
     heroCta2: "Leer la guía completa",
     reasonsTitle: "Por qué una casa entera gana al hotel",
     reason1T: "Nadie comparte cama",
     reason1D: "7 habitaciones individuales y 2 habitaciones dobles, es decir 11 personas, cada una con su baño privado y su llave. Una intimidad que la habitación twin de hotel no ofrece.",
-    reason2T: "12 plazas para trabajar",
-    reason2D: "Isla de cocina de 12 plazas sentadas, salón con calefacción, gran smart TV y entrada HDMI — cada uno conecta su portátil. Sala zen y jardín como espacios extra en la buena estación.",
+    reason2T: "De 16 a 20 plazas para trabajar",
+    reason2D: "Gran mesa de 16 plazas en la cocina, 20 acercando las dos mesitas altas de la veranda. Salón con calefacción, gran smart TV y entrada HDMI — cada uno conecta su portátil. Sala zen y jardín como espacios extra en la buena estación.",
     reason3T: "Team building a 15 min",
     reason3D: "Circuito Bugatti (karting, conducción, simuladores), EVA Le Mans (VR), Arche de la Nature, escape rooms.",
     reason4T: "Instalación desde las 9:30",
@@ -285,29 +288,30 @@ const T: Record<Lang, Record<string, string>> = {
     capIntro: "Todas las cifras, incluido lo que depende de la temporada. Suficiente para decidir sin llamarnos.",
     capCols: "Configuración|Capacidad|Temporada",
     capRows:
+      "Sin compartir habitación ni ducha|9 personas — una por habitación, ducha privada|Todo el año·" +
       "Dormir sin compartir cama|11 personas — 7 habitaciones individuales y 2 habitaciones dobles|Todo el año·" +
       "Plazas totales para dormir|20 personas — 9 camas dobles y 2 sofás cama|Todo el año·" +
-      "Reunión sentados, interior con calefacción|12 plazas — isla de cocina|Todo el año·" +
+      "Reunión sentados, interior con calefacción|16 plazas — gran mesa de la cocina; 20 con las dos mesitas de la veranda|Todo el año·" +
       "Debriefs y presentaciones|Salón con calefacción, gran smart TV con entrada HDMI|Todo el año·" +
       "Sala zen|Espacio de trabajo adicional, sin calefacción|Buena estación·" +
       "Jardín cerrado de 90 m², orientado al sur|20 plazas en mesa|Buena estación",
-    capNote: "El formato más frecuente es de 10 a 12 participantes. A partir de 12 la casa sigue siendo cómoda para una estancia de grupo, pero las sesiones de trabajo sentados se trasladan al jardín — es decir, de abril a septiembre.",
+    capNote: "Hasta 9 participantes, cada uno tiene su habitación y su ducha privada; hasta 11, nadie comparte cama; la casa aloja hasta 20 personas. Para trabajar, todos se sientan bajo techo y con calefacción, todo el año: 16 en torno a la gran mesa, 20 acercando las mesitas de la veranda.",
     whatTitle: "Lo que está incluido",
-    whatItems: "7 habitaciones individuales y 2 habitaciones dobles, 9 baños privados·Isla de cocina, 12 plazas sentadas·Gran smart TV con entrada HDMI en el salón·Wi-Fi de alta velocidad, escritorio en cada habitación·Aparcamiento libre y gratuito en la calle, sin disco ni parquímetro·Cocina totalmente equipada·Gimnasio y espacio zen·Jardín cerrado de 90 m², orientado al sur·Cerradura conectada (self check-in)·Factura profesional, pago por transferencia·Soporte WhatsApp 7 días a la semana",
+    whatItems: "7 habitaciones individuales y 2 habitaciones dobles, 9 baños privados·Gran mesa de 16 plazas, 20 con las mesitas de la veranda·Gran smart TV con entrada HDMI en el salón·Wi-Fi de alta velocidad, escritorio en cada habitación·Aparcamiento libre y gratuito en la calle, sin disco ni parquímetro·Cocina totalmente equipada·Gimnasio y espacio zen·Jardín cerrado de 90 m², orientado al sur·Cerradura conectada (self check-in)·Factura profesional, pago por transferencia·Soporte WhatsApp 7 días a la semana",
     extrasTitle: "Proveedores locales para completar tu estancia",
     extrasIntro: "No organizamos estos servicios nosotros, pero profesionales locales pueden encargarse directamente:",
     extrasItems: "Catering local (desayuno, almuerzo, cena)·Taxis para traslados estación/circuito/casa·Proveedores de actividades team-building (karting, simuladores, EVA…)",
     programTitle: "Programa tipo — 2 días",
     day1T: "Día 1 — Llegada y cohesión",
-    day1Body: "9:00 llegada a la estación · 9:30 instalación y café · 11:00-13:00 sesión de trabajo en torno a la isla · 13:00 almuerzo en casa · 14:00-17:00 brainstorming estratégico · 17:30-19:00 actividad team-building (karting / simulador F1 / EVA) · 20:00 cena juntos",
+    day1Body: "9:00 llegada a la estación · 9:30 instalación y café · 11:00-13:00 sesión de trabajo en torno a la gran mesa · 13:00 almuerzo en casa · 14:00-17:00 brainstorming estratégico · 17:30-19:00 actividad team-building (karting / simulador F1 / EVA) · 20:00 cena juntos",
     day2T: "Día 2 — Talleres y cierre",
     day2Body: "8:00-9:00 desayuno · 9:00-12:00 talleres (design thinking, OKR) · 12:30 almuerzo en la ciudad · 14:00-16:00 bautismo de pista o Museo 24 Horas · 16:00-17:00 debrief final en el salón · 17:00 salida TGV",
     pricingTitle: "Tarifa orientativa",
     pricingBody: "~150-250 €/noche/persona para un equipo de 10 a 12, según temporada, sin actividades ni restauración. Compáralo con 10 habitaciones de hotel 3-4★, a las que hay que sumar el alquiler de una sala de reuniones.",
     faqTitle: "Preguntas frecuentes",
     faqItems:
-      "¿Cuántas personas para un seminario?|De 10 a 12 participantes es el formato ideal: 11 personas duermen sin compartir cama y 12 se sientan en torno a la isla de cocina para trabajar. La casa puede alojar hasta 20 personas, pero a partir de 12 las sesiones de trabajo sentados se celebran en el jardín, es decir en la buena estación.·" +
-      "¿Hay sala de reuniones?|No hay una sala de reuniones dedicada. Las sesiones de trabajo se celebran en torno a la isla de cocina, de 12 plazas sentadas, y el salón con calefacción acoge los debriefs y las presentaciones con su gran smart TV y su entrada HDMI. La sala zen y el jardín ofrecen espacios adicionales en la buena estación; la sala zen no tiene calefacción.·" +
+      "¿Cuántas personas para un seminario?|De 10 a 20 participantes. Hasta 9, cada uno tiene su habitación y su ducha privada; hasta 11, nadie comparte cama; la casa aloja hasta 20 personas. Para trabajar, 16 personas se sientan en torno a la gran mesa de la cocina y 20 acercando las dos mesitas altas de la veranda, bajo techo y con calefacción, todo el año.·" +
+      "¿Hay sala de reuniones?|No hay una sala de reuniones dedicada. Las sesiones de trabajo se celebran en torno a la gran mesa de la cocina, de 16 plazas sentadas (20 con las mesitas de la veranda), y el salón con calefacción acoge los debriefs y las presentaciones con su gran smart TV y su entrada HDMI. La sala zen y el jardín ofrecen espacios adicionales en la buena estación; la sala zen no tiene calefacción.·" +
       "¿Cada uno tiene su habitación?|7 participantes tienen habitación individual y 2 habitaciones acogen a 2 personas cada una, con cama doble y sofá cama individual — nadie comparte cama. Las 9 habitaciones tienen baño privado, escritorio y llave individual.·" +
       "¿Dónde aparcar?|Aparcamiento libre y gratuito en la rue Henri Barbusse y calles adyacentes, sin disco ni parquímetro. Varios coches pueden aparcar sin restricciones, algo poco habitual tan cerca de un centro urbano.·" +
       "¿Cómo llegar desde París?|La estación TGV de Le Mans está a 55 min de Paris-Montparnasse, y luego 10 minutos a pie hasta la casa. Ningún traslado que organizar, ningún taxi que reservar.·" +
@@ -372,8 +376,9 @@ export default async function Seminaires({
    *
    * Le `LodgingBusiness` de la page d'accueil décrit la maison ; celui-ci décrit **ce
    * qu'elle permet en séminaire**, ce qui n'est pas la même chose. `maximumAttendeeCapacity`
-   * vaut 12 — la capacité de travail assis en intérieur chauffé — et non les 20 couchages :
-   * c'est le chiffre qu'un organisateur cherche, et c'est celui qu'on peut tenir en février.
+   * vaut 20 — la capacité de travail assis en intérieur chauffé (la grande table de 16 places
+   * plus les deux mini-tables de la véranda) : c'est le chiffre qu'un organisateur cherche,
+   * et depuis novembre 2026 c'est aussi celui qu'on peut tenir en février.
    *
    * La `FAQPage` reprend les questions telles qu'elles se posent, avec des réponses
    * autosuffisantes : une réponse extraite de son contexte doit rester vraie toute seule.
@@ -396,7 +401,7 @@ export default async function Seminaires({
       },
       geo: { "@type": "GeoCoordinates", latitude: 47.9842, longitude: 0.1976 },
       numberOfRooms: 9,
-      maximumAttendeeCapacity: 12,
+      maximumAttendeeCapacity: 20,
       amenityFeature: [
         { "@type": "LocationFeatureSpecification", name: "Meeting space", value: true },
         { "@type": "LocationFeatureSpecification", name: "Presentation screen (smart TV, HDMI)", value: true },

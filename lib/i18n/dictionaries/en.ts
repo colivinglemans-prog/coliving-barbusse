@@ -46,9 +46,9 @@ export const en: Dictionary = {
 
 Quality bedding, storage and real privacy in every room. Each suite features a double bed with storage, a desk with Ethernet connection, a private bathroom, a smart TV, a dressing area and an individual key.
 
-The house is spread over 3 levels with a large living room, a fully equipped dining kitchen, a 90 m² enclosed garden and a fully equipped gym with zen area.
+The house is spread over 3 levels with a large living room, a fully equipped dining kitchen with a 16-seat table (20 once the veranda bistro tables are pulled up to it), a 90 m² enclosed garden and a fully equipped gym with zen area.
 
-Ideal for mixed groups, colleagues, friends or blended families. This concept allows everyone to live at their own pace while enjoying the pleasure of being together.
+Ideal for mixed groups, colleagues, friends or blended families — and for gathering the whole family around one table, for Christmas and New Year, a birthday, a wedding or a christening. This concept allows everyone to live at their own pace while enjoying the pleasure of being together.
 
 Perfect for events, race teams, corporate stays and group travel during the 24 Hours of Le Mans and major circuit events. Easy access to the Bugatti Circuit via Tramway T1 from the TGV station.
 

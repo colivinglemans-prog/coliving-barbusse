@@ -92,12 +92,14 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>Our house: accommodation built for a team of 10 to 12</h2>
+      <h2>Our house: accommodation built for a team of 10 to 20</h2>
 
       <h3>11 people housed without anyone sharing a bed</h3>
       <p>
         The house has <strong>9 private suites</strong>, each with its own bathroom,
-        desk and individual key. In seminar configuration that means{" "}
+        desk and individual key: up to{" "}
+        <strong>9 participants, nobody shares their bedroom or their en-suite shower
+        room</strong>. Beyond that, in seminar configuration, that means{" "}
         <strong>7 single-occupancy bedrooms and 2 twin bedrooms</strong> — the latter
         have a double bed and a single sofa bed, so nobody shares a bed. That is{" "}
         <strong>11 participants housed</strong>, and up to 20 sleeping places if the
@@ -114,11 +116,12 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>Kitchen with central island</strong>: the most beautiful room in the
-          house, and the real workspace. The island seats{" "}
-          <strong>12 people</strong> — perfect for a circle workshop, a design sprint, a
-          strategic breakfast or a working lunch. It is the only room that seats 12
-          indoors with heating, which makes it the reference capacity all year round.
+          <strong>Kitchen and its big table</strong>: the most beautiful room in the
+          house, and the real workspace. The table seats{" "}
+          <strong>16 people</strong>, and{" "}
+          <strong>20 by pulling up the two high bistro tables from the sunroom</strong>{" "}
+          — perfect for a plenary, a design sprint, a strategic breakfast or a working
+          lunch. The whole group works seated indoors, heated, all year round.
         </li>
         <li>
           <strong>Living room</strong>: heated year-round, with a{" "}
@@ -129,16 +132,17 @@ export default function Article() {
         <li>
           <strong>Zen space</strong>: calm, bright room for brainstorms and small-group
           workshops, <strong>April to October</strong> — it is unheated, so it does not
-          replace the island in winter.
+          replace the big table in winter.
         </li>
         <li>
           <strong>Enclosed 90 m² south-facing garden</strong>: the large tables seat{" "}
-          <strong>20 people</strong> in the warm season. This is what lets a group go
-          beyond 12 participants, but only from April to September.
+          <strong>20 people</strong> in the warm season, for lunch or working in the
+          sun from April to September.
         </li>
         <li>
-          <strong>Sunroom</strong>: extends the living room and kitchen for more
-          breathing space between sessions.
+          <strong>Sunroom</strong>: extends the living room and kitchen, with two high
+          bistro tables for side conversations in twos or fours, a coffee corner and an
+          aperitif corner to catch your breath between sessions.
         </li>
         <li>
           <strong>Private bedrooms</strong>: everyone can retreat for a client call,
@@ -169,8 +173,8 @@ export default function Article() {
       <h3>Day 1 — Arrival &amp; team bonding</h3>
       <ul>
         <li><strong>9 am</strong>: arrival possible at Le Mans TGV station (early check-in from 9.30 am <em>subject to availability</em> — we confirm at booking)</li>
-        <li><strong>9.30-11 am</strong>: move-in, welcome coffee, kickoff briefing in the living room or around the kitchen central island</li>
-        <li><strong>11 am-1 pm</strong>: first work session in the zen room or around the kitchen island</li>
+        <li><strong>9.30-11 am</strong>: move-in, welcome coffee, kickoff briefing in the living room or around the big kitchen table</li>
+        <li><strong>11 am-1 pm</strong>: first work session in the zen room or around the big table</li>
         <li><strong>1 pm</strong>: lunch at the house (meal tray or caterer)</li>
         <li><strong>2-5 pm</strong>: <strong>deep work session</strong> (strategic brainstorm, annual objectives…)</li>
         <li><strong>5.30-7 pm</strong>: transfer to the circuit → <strong>karting or F1 simulator</strong> (2 h team-building activity)</li>

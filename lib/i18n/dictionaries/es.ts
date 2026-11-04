@@ -46,9 +46,9 @@ export const es: Dictionary = {
 
 Ropa de cama de calidad, almacenamiento y verdadera intimidad en cada habitación. Cada suite dispone de cama doble con almacenamiento, escritorio con toma Ethernet, baño privado, smart TV, vestidor y llave individual.
 
-La casa se distribuye en 3 plantas con un gran salón, una cocina-comedor totalmente equipada, un jardín cerrado de 90 m² y un gimnasio completo con espacio zen.
+La casa se distribuye en 3 plantas con un gran salón, una cocina-comedor totalmente equipada con una gran mesa de 16 plazas (20 acercando las mesitas de la galería), un jardín cerrado de 90 m² y un gimnasio completo con espacio zen.
 
-Ideal para grupos mixtos, compañeros de trabajo, amigos o familias reconstituidas. Este concepto permite que cada uno viva a su ritmo, disfrutando al mismo tiempo del placer de estar juntos.
+Ideal para grupos mixtos, compañeros de trabajo, amigos o familias reconstituidas — y para reunir a toda la familia en torno a la misma mesa, en las fiestas de fin de año, un cumpleaños, una boda o un bautizo. Este concepto permite que cada uno viva a su ritmo, disfrutando al mismo tiempo del placer de estar juntos.
 
 Perfecto para eventos, escuderías, estancias de empresa y viajes de grupo durante las 24 Horas de Le Mans y los grandes eventos del circuito. Fácil acceso al Circuito Bugatti mediante el Tranvía T1 desde la estación TGV.
 

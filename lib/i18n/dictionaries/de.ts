@@ -46,9 +46,9 @@ export const de: Dictionary = {
 
 Hochwertige Bettwäsche, Stauraum und echte Privatsphäre in jedem Zimmer. Jede Suite verfügt über ein Doppelbett mit Stauraum, einen Schreibtisch mit Ethernet-Anschluss, ein eigenes Bad, einen Smart-TV, einen Kleiderbereich und einen individuellen Schlüssel.
 
-Das Haus erstreckt sich über 3 Etagen mit einem großen Wohnzimmer, einer voll ausgestatteten Wohnküche, einem 90 m² großen, eingezäunten Garten und einem voll ausgestatteten Fitnessraum mit Zen-Bereich.
+Das Haus erstreckt sich über 3 Etagen mit einem großen Wohnzimmer, einer voll ausgestatteten Wohnküche mit einem großen Tisch für 16 Personen (20, wenn man die Stehtische der Veranda heranrückt), einem 90 m² großen, eingezäunten Garten und einem voll ausgestatteten Fitnessraum mit Zen-Bereich.
 
-Ideal für gemischte Gruppen, Kollegen, Freunde oder Patchwork-Familien. Dieses Konzept ermöglicht es jedem, in seinem eigenen Rhythmus zu leben und gleichzeitig das Vergnügen des Zusammenseins zu genießen.
+Ideal für gemischte Gruppen, Kollegen, Freunde oder Patchwork-Familien — und um die ganze Familie an einem Tisch zu versammeln, zu Weihnachten und Silvester, zum Geburtstag, zur Hochzeit oder zur Taufe. Dieses Konzept ermöglicht es jedem, in seinem eigenen Rhythmus zu leben und gleichzeitig das Vergnügen des Zusammenseins zu genießen.
 
 Perfekt für Events, Rennteams, Firmenaufenthalte und Gruppenreisen während der 24 Stunden von Le Mans und der großen Veranstaltungen der Rennstrecke. Einfacher Zugang zur Rennstrecke Bugatti über die Straßenbahn T1 vom TGV-Bahnhof.
 

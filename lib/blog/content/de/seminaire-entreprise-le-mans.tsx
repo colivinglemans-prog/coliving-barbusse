@@ -94,12 +94,14 @@ export default function Article() {
         </li>
       </ul>
 
-      <h2>Unser Haus: die Unterkunft für ein Team von 10 bis 12</h2>
+      <h2>Unser Haus: die Unterkunft für ein Team von 10 bis 20</h2>
 
       <h3>11 Personen untergebracht, ohne dass jemand ein Bett teilt</h3>
       <p>
         Das Haus hat <strong>9 private Suiten</strong>, jede mit eigenem Bad,
-        Schreibtisch und eigenem Schlüssel. In Seminarkonfiguration ergibt das{" "}
+        Schreibtisch und eigenem Schlüssel: bis zu{" "}
+        <strong>9 Teilnehmenden teilt niemand sein Zimmer oder sein eigenes
+        Duschbad</strong>. Darüber hinaus ergibt das in Seminarkonfiguration{" "}
         <strong>7 Einzelzimmer und 2 Zweibettzimmer</strong> — letztere haben ein
         Doppelbett und ein Einzel-Schlafsofa, niemand teilt also ein Bett. Das
         sind <strong>11 untergebrachte Teilnehmende</strong>, und bis zu 20
@@ -117,13 +119,14 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>Küche mit zentraler Insel</strong>: das schönste Zimmer des
-          Hauses — und der eigentliche Arbeitsbereich. Die Insel bietet Platz für{" "}
-          <strong>12 Personen im Sitzen</strong> — die perfekte Konfiguration für
-          einen Workshop im Kreis, einen Design Sprint, ein strategisches
-          Frühstück oder ein Arbeitsessen. Es ist der einzige Raum mit 12
-          Sitzplätzen im beheizten Innenbereich und damit die
-          Referenzkapazität für das ganze Jahr.
+          <strong>Küche mit großem Tisch</strong>: das schönste Zimmer des
+          Hauses — und der eigentliche Arbeitsbereich. Der Tisch bietet Platz für{" "}
+          <strong>16 Personen im Sitzen</strong>, und{" "}
+          <strong>20, wenn man die beiden Bistro-Stehtische aus dem Wintergarten
+          heranrückt</strong>{" "}
+          — die perfekte Konfiguration für ein Plenum, einen Design Sprint, ein
+          strategisches Frühstück oder ein Arbeitsessen. Die ganze Gruppe
+          arbeitet im Sitzen, beheizt im Innenbereich, das ganze Jahr über.
         </li>
         <li>
           <strong>Wohnzimmer</strong>: ganzjährig beheizt, mit{" "}
@@ -134,17 +137,17 @@ export default function Article() {
         <li>
           <strong>Zen-Raum</strong>: ruhiger, heller Raum für Brainstormings und
           Workshops in kleiner Runde, <strong>von April bis Oktober</strong> — er
-          ist unbeheizt und ersetzt die Kücheninsel im Winter nicht.
+          ist unbeheizt und ersetzt den großen Tisch im Winter nicht.
         </li>
         <li>
           <strong>Eingezäunter Südgarten, 90 m²</strong>: die großen Tische
-          bieten in der warmen Jahreszeit <strong>20 Personen</strong> Platz. Nur
-          so lassen sich mehr als 12 Teilnehmende unterbringen — und das nur von
-          April bis September.
+          bieten in der warmen Jahreszeit <strong>20 Personen</strong> Platz, zum
+          Mittagessen oder Arbeiten in der Sonne von April bis September.
         </li>
         <li>
-          <strong>Wintergarten</strong>: verlängert Wohnzimmer und Küche für
-          mehr Atemraum und Bewegung zwischen den Sessions.
+          <strong>Wintergarten</strong>: verlängert Wohnzimmer und Küche, mit zwei
+          Bistro-Stehtischen für Gespräche zu zweit oder zu viert, einer Kaffeeecke
+          und einer Aperitif-Ecke, um zwischen den Sessions durchzuatmen.
         </li>
         <li>
           <strong>Private Zimmer</strong>: jeder kann sich für einen
@@ -176,8 +179,8 @@ export default function Article() {
       <h3>Tag 1 — Ankunft & Zusammenhalt</h3>
       <ul>
         <li><strong>9 Uhr</strong>: mögliche Ankunft am TGV-Bahnhof Le Mans (Early Check-in um 9:30 Uhr <em>vorbehaltlich Verfügbarkeit</em> — wir bestätigen bei der Buchung)</li>
-        <li><strong>9:30-11 Uhr</strong>: Einrichtung, Begrüßungskaffee, gemeinsames Briefing im Wohnzimmer oder rund um die zentrale Küchen-Insel</li>
-        <li><strong>11-13 Uhr</strong>: erste Arbeitssession im Zen-Raum oder um die Küchen-Insel</li>
+        <li><strong>9:30-11 Uhr</strong>: Einrichtung, Begrüßungskaffee, gemeinsames Briefing im Wohnzimmer oder rund um den großen Küchentisch</li>
+        <li><strong>11-13 Uhr</strong>: erste Arbeitssession im Zen-Raum oder um den großen Tisch</li>
         <li><strong>13 Uhr</strong>: Mittagessen im Haus (Lunchpaket oder gelieferter Catering-Service)</li>
         <li><strong>14-17 Uhr</strong>: <strong>vertiefende Arbeitssession</strong> (strategisches Brainstorming, Definition der Jahresziele…)</li>
         <li><strong>17:30-19 Uhr</strong>: Transfer zur Rennstrecke → <strong>Karting oder F1-Simulator</strong> (2 Std. Teambuilding-Aktivität)</li>

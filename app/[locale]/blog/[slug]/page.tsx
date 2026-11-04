@@ -24,6 +24,13 @@ import type { Locale } from "@/lib/i18n";
 type ContentLoader = () => Promise<{ default: React.ComponentType }>;
 
 const CONTENT: Record<string, Record<Locale, ContentLoader>> = {
+  "reunion-famille-le-mans": {
+    fr: () => import("@/lib/blog/content/fr/reunion-famille-le-mans"),
+    en: () => import("@/lib/blog/content/en/reunion-famille-le-mans"),
+    it: () => import("@/lib/blog/content/it/reunion-famille-le-mans"),
+    de: () => import("@/lib/blog/content/de/reunion-famille-le-mans"),
+    es: () => import("@/lib/blog/content/es/reunion-famille-le-mans"),
+  },
   "24-heures-moto-le-mans-2027": {
     fr: () => import("@/lib/blog/content/fr/24-heures-moto-le-mans-2027"),
     en: () => import("@/lib/blog/content/en/24-heures-moto-le-mans-2027"),

@@ -46,6 +46,83 @@ export interface BlogPostMeta {
 
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
+    slug: "reunion-famille-le-mans",
+    date: "2026-11-04",
+    image: "/images/blog/reunion-famille-le-mans.jpg",
+    locales: {
+      fr: {
+        title: "Réunir toute la famille au Mans : une maison avec une table de 16 à 20 places",
+        description:
+          "Noël, anniversaire, mariage, baptême : une maison entière au Mans pour réunir jusqu'à 20 proches, avec une grande table de 16 places (20 avec la véranda) et 9 chambres avec salle de douche privative.",
+        excerpt:
+          "Nous avons rallongé la table : 16 places assises, 20 avec les mini-tables de la véranda. De quoi réunir toute la famille autour du même repas, et loger tout le monde sur place.",
+        keywords: [
+          "location maison réunion de famille Le Mans",
+          "maison 20 personnes Le Mans",
+          "gîte grand groupe Sarthe",
+          "location maison Noël en famille Le Mans",
+          "hébergement mariage anniversaire Le Mans",
+        ],
+      },
+      en: {
+        title: "Bringing the whole family together in Le Mans: a house with a table for 16 to 20",
+        description:
+          "Christmas, birthday, wedding, christening: a whole house in Le Mans to gather up to 20 relatives, with a 16-seat table (20 with the veranda) and 9 bedrooms with en-suite shower rooms.",
+        excerpt:
+          "We have extended the table: 16 seats, 20 with the veranda bistro tables. Enough to gather the whole family around one meal, and sleep everyone under the same roof.",
+        keywords: [
+          "family reunion house rental Le Mans",
+          "house for 20 people Le Mans",
+          "large group holiday home Sarthe",
+          "family Christmas house rental France",
+          "wedding guest accommodation Le Mans",
+        ],
+      },
+      it: {
+        title: "Riunire tutta la famiglia a Le Mans: una casa con un tavolo da 16 a 20 posti",
+        description:
+          "Natale, compleanno, matrimonio, battesimo: una casa intera a Le Mans per riunire fino a 20 persone, con un grande tavolo da 16 posti (20 con la veranda) e 9 camere con doccia privata.",
+        excerpt:
+          "Abbiamo allungato il tavolo: 16 posti a sedere, 20 con i tavolini della veranda. Per riunire tutta la famiglia attorno allo stesso pasto, e dormire tutti sotto lo stesso tetto.",
+        keywords: [
+          "casa per riunione di famiglia Le Mans",
+          "casa 20 persone Le Mans",
+          "casa vacanze grandi gruppi Sarthe",
+          "affitto casa Natale in famiglia Francia",
+          "alloggio invitati matrimonio Le Mans",
+        ],
+      },
+      de: {
+        title: "Die ganze Familie in Le Mans vereinen: ein Haus mit einem Tisch für 16 bis 20",
+        description:
+          "Weihnachten, Geburtstag, Hochzeit, Taufe: ein ganzes Haus in Le Mans für bis zu 20 Angehörige, mit einem großen Tisch für 16 (20 mit dem Wintergarten) und 9 Zimmern mit eigenem Duschbad.",
+        excerpt:
+          "Wir haben den Tisch verlängert: 16 Sitzplätze, 20 mit den Stehtischen des Wintergartens. Genug, um die ganze Familie an einem Tisch zu versammeln und alle unter einem Dach unterzubringen.",
+        keywords: [
+          "Ferienhaus Familientreffen Le Mans",
+          "Haus für 20 Personen Le Mans",
+          "Gruppenhaus Sarthe",
+          "Ferienhaus Weihnachten mit Familie Frankreich",
+          "Unterkunft Hochzeitsgäste Le Mans",
+        ],
+      },
+      es: {
+        title: "Reunir a toda la familia en Le Mans: una casa con una mesa de 16 a 20 plazas",
+        description:
+          "Navidad, cumpleaños, boda, bautizo: una casa entera en Le Mans para reunir hasta 20 personas, con una gran mesa de 16 plazas (20 con la galería) y 9 habitaciones con ducha privada.",
+        excerpt:
+          "Hemos alargado la mesa: 16 plazas sentadas, 20 con las mesitas de la galería. Para reunir a toda la familia en torno a la misma comida, y alojar a todos bajo el mismo techo.",
+        keywords: [
+          "casa para reunión familiar Le Mans",
+          "casa 20 personas Le Mans",
+          "casa rural grupos grandes Sarthe",
+          "alquiler casa Navidad en familia Francia",
+          "alojamiento invitados boda Le Mans",
+        ],
+      },
+    },
+  },
+  {
     slug: "24-heures-moto-le-mans-2027",
     date: "2026-10-01",
     image: "/images/blog/24h-moto.jpg",
@@ -861,15 +938,15 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/seminaire.jpg",
     locales: {
       fr: {
-        title: "Séminaire d'entreprise au Mans : maison entière pour 10 à 12 personnes",
+        title: "Séminaire d'entreprise au Mans : maison entière pour 10 à 20 personnes",
         description:
-          "Organiser un séminaire de 10 à 12 personnes au Mans : 11 couchages sans partager de lit, îlot de 12 places assises, écran HDMI, team-building au Circuit Bugatti. Programme type 2 jours et budget.",
+          "Organiser un séminaire de 10 à 20 personnes au Mans : 9 chambres avec salle de douche privative, 11 couchages sans partager de lit, grande table de 16 à 20 places, écran HDMI, team-building au Circuit Bugatti. Programme type 2 jours et budget.",
         excerpt:
-          "10 à 12 personnes, une maison entière, le circuit mythique à moins de 5 km : 11 participants logés sans partager de lit et 12 places assises pour travailler.",
+          "10 à 20 personnes, une maison entière, le circuit mythique à moins de 5 km : 11 participants logés sans partager de lit et jusqu'à 20 places assises pour travailler.",
         keywords: [
           "séminaire entreprise Le Mans",
           "séminaire 10 personnes Le Mans",
-          "séminaire 12 personnes Le Mans",
+          "séminaire 20 personnes Le Mans",
           "location maison séminaire Le Mans",
           "team building Le Mans",
           "séminaire Circuit Bugatti",
@@ -877,15 +954,15 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       en: {
-        title: "Corporate seminar in Le Mans: a whole house for 10 to 12 people",
+        title: "Corporate seminar in Le Mans: a whole house for 10 to 20 people",
         description:
-          "Organising a seminar for 10 to 12 people in Le Mans: 11 guests without sharing a bed, a 12-seat kitchen island, HDMI screen, team-building at Bugatti Circuit. 2-day programme and budget.",
+          "Organising a seminar for 10 to 20 people in Le Mans: 9 bedrooms with en-suite shower rooms, 11 guests without sharing a bed, a 16-to-20-seat table, HDMI screen, team-building at Bugatti Circuit. 2-day programme and budget.",
         excerpt:
-          "10 to 12 people, a whole house, the legendary circuit less than 5 km away: 11 guests housed without sharing a bed and 12 seats to work around.",
+          "10 to 20 people, a whole house, the legendary circuit less than 5 km away: 11 guests housed without sharing a bed and up to 20 seats to work around.",
         keywords: [
           "Le Mans corporate seminar",
           "seminar for 10 people Le Mans",
-          "seminar for 12 people Le Mans",
+          "seminar for 20 people Le Mans",
           "Le Mans seminar house rental",
           "Le Mans team building",
           "Bugatti Circuit seminar",
@@ -893,15 +970,15 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Seminario aziendale a Le Mans: una casa intera per 10-12 persone",
+        title: "Seminario aziendale a Le Mans: una casa intera per 10-20 persone",
         description:
-          "Organizzare un seminario per 10-12 persone a Le Mans: 11 posti letto senza condividere il letto, isola da 12 posti a sedere, schermo HDMI, team-building al Circuit Bugatti. Programma di 2 giorni e budget.",
+          "Organizzare un seminario per 10-20 persone a Le Mans: 9 camere con doccia privata, 11 posti letto senza condividere il letto, grande tavolo da 16 a 20 posti, schermo HDMI, team-building al Circuit Bugatti. Programma di 2 giorni e budget.",
         excerpt:
-          "10-12 persone, una casa intera, il circuito mitico a meno di 5 km: 11 partecipanti alloggiati senza condividere il letto e 12 posti a sedere per lavorare.",
+          "10-20 persone, una casa intera, il circuito mitico a meno di 5 km: 11 partecipanti alloggiati senza condividere il letto e fino a 20 posti a sedere per lavorare.",
         keywords: [
           "seminario aziendale Le Mans",
           "seminario 10 persone Le Mans",
-          "seminario 12 persone Le Mans",
+          "seminario 20 persone Le Mans",
           "affitto casa seminario Le Mans",
           "team building Le Mans",
           "seminario Circuit Bugatti",
@@ -909,15 +986,15 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Firmenseminar in Le Mans: ein ganzes Haus für 10 bis 12 Personen",
+        title: "Firmenseminar in Le Mans: ein ganzes Haus für 10 bis 20 Personen",
         description:
-          "Seminar für 10 bis 12 Personen in Le Mans organisieren: 11 Schlafplätze ohne geteiltes Bett, Kücheninsel mit 12 Sitzplätzen, HDMI-Bildschirm, Team-Building am Circuit Bugatti. 2-Tages-Programm und Budget.",
+          "Seminar für 10 bis 20 Personen in Le Mans organisieren: 9 Zimmer mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, großer Tisch mit 16 bis 20 Plätzen, HDMI-Bildschirm, Team-Building am Circuit Bugatti. 2-Tages-Programm und Budget.",
         excerpt:
-          "10 bis 12 Personen, ein ganzes Haus, der legendäre Circuit weniger als 5 km entfernt: 11 Teilnehmende ohne geteiltes Bett und 12 Sitzplätze zum Arbeiten.",
+          "10 bis 20 Personen, ein ganzes Haus, der legendäre Circuit weniger als 5 km entfernt: 11 Teilnehmende ohne geteiltes Bett und bis zu 20 Sitzplätze zum Arbeiten.",
         keywords: [
           "Firmenseminar Le Mans",
           "Seminar 10 Personen Le Mans",
-          "Seminar 12 Personen Le Mans",
+          "Seminar 20 Personen Le Mans",
           "Seminarhaus Le Mans mieten",
           "Team Building Le Mans",
           "Seminar Circuit Bugatti",
@@ -925,15 +1002,15 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Seminario de empresa en Le Mans: una casa entera para 10 a 12 personas",
+        title: "Seminario de empresa en Le Mans: una casa entera para 10 a 20 personas",
         description:
-          "Organizar un seminario para 10 a 12 personas en Le Mans: 11 plazas sin compartir cama, isla de 12 plazas sentadas, pantalla HDMI, team-building en el Circuito Bugatti. Programa de 2 días y presupuesto.",
+          "Organizar un seminario para 10 a 20 personas en Le Mans: 9 habitaciones con ducha privada, 11 plazas sin compartir cama, gran mesa de 16 a 20 plazas, pantalla HDMI, team-building en el Circuito Bugatti. Programa de 2 días y presupuesto.",
         excerpt:
-          "10 a 12 personas, una casa entera, el mítico circuito a menos de 5 km: 11 participantes alojados sin compartir cama y 12 plazas sentadas para trabajar.",
+          "10 a 20 personas, una casa entera, el mítico circuito a menos de 5 km: 11 participantes alojados sin compartir cama y hasta 20 plazas sentadas para trabajar.",
         keywords: [
           "seminario empresa Le Mans",
           "seminario 10 personas Le Mans",
-          "seminario 12 personas Le Mans",
+          "seminario 20 personas Le Mans",
           "alquiler casa seminario Le Mans",
           "team building Le Mans",
           "seminario Circuito Bugatti",

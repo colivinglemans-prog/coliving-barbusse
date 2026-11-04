@@ -5,14 +5,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/lib/i18n";
 
 const PHOTOS = [
-  { src: "/images/house/2-cuisineAI 2.jpg", alt: "Cuisine — vue 2" },
-  { src: "/images/house/2-cuisineAI.jpg", alt: "Cuisine équipée" },
+  { src: "/images/house/cuisine-table-16-places.jpg", alt: "Cuisine et grande table de 16 places" },
+  { src: "/images/house/cuisine-table-16-places-2.jpg", alt: "Grande table de la cuisine — autre vue" },
+  { src: "/images/house/veranda-coin-apero.jpg", alt: "Véranda — mini-table haute, coin apéro au fond" },
+  { src: "/images/house/veranda-coin-cafe.jpg", alt: "Véranda — seconde mini-table haute, coin café au fond" },
+  { src: "/images/house/salon-veranda.jpg", alt: "Salon ouvert sur la véranda" },
+  { src: "/images/house/salon.jpg", alt: "Salon" },
+  { src: "/images/house/salon-coin-apero.jpg", alt: "Salon et coin apéro" },
+  { src: "/images/house/entree-buanderie.jpg", alt: "Entrée et buanderie" },
   { src: "/images/house/3-maison-AI.jpg", alt: "Vue extérieure de la maison" },
-  { src: "/images/house/3-salon donnant sur la terrasse.JPG", alt: "Salon" },
-  { src: "/images/house/4-salonAI.jpg", alt: "Salon" },
-  { src: "/images/house/Salon.jpg", alt: "Salon — vue 2" },
-  { src: "/images/house/entrée + buanderie.JPG", alt: "Entrée et buanderie" },
-  { src: "/images/house/veranda.JPG", alt: "Véranda" },
 ];
 
 export default function PhotoGallery() {

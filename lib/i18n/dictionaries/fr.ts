@@ -46,9 +46,9 @@ export const fr: Dictionary = {
 
 Literie de qualité, rangements et vraie intimité dans chaque chambre. Chaque suite dispose d'un lit double avec rangements, d'un bureau avec prise Ethernet, d'une salle de bain privative, d'une smart TV, d'un dressing et d'une clé individuelle.
 
-La maison est répartie sur 3 niveaux avec un grand salon, une cuisine-salle à manger entièrement équipée, un jardin clos de 90 m² et une salle de sport complète avec espace zen.
+La maison est répartie sur 3 niveaux avec un grand salon, une cuisine-salle à manger entièrement équipée avec une grande table de 16 places (20 en y rapprochant les mini-tables de la véranda), un jardin clos de 90 m² et une salle de sport complète avec espace zen.
 
-Idéal pour groupes mixtes, collaborateurs, amis ou familles recomposées. Ce concept permet à chacun de vivre à son rythme, tout en profitant du plaisir d'être ensemble.
+Idéal pour groupes mixtes, collaborateurs, amis ou familles recomposées — et pour réunir toute la famille autour de la même table, pour les fêtes de fin d'année, un anniversaire, un mariage ou un baptême. Ce concept permet à chacun de vivre à son rythme, tout en profitant du plaisir d'être ensemble.
 
 Parfait pour les événements, les équipes de course, les séjours d'entreprise et les voyages de groupe pendant les 24 Heures du Mans et les grands événements du circuit. Accès facile au Circuit Bugatti via le Tramway T1 depuis la gare TGV.
 
