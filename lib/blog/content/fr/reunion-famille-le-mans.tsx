@@ -109,6 +109,30 @@ export default function Article() {
         </li>
       </ul>
 
+      <h2>Ils l'ont déjà fait</h2>
+      <p>
+        Avant même que la table soit rallongée, des familles et des groupes de proches ont
+        choisi la maison pour se retrouver.
+      </p>
+      <p>
+        En août 2026, Inma est venue d'Espagne avec{" "}
+        <strong>un groupe familial de 18 personnes</strong> :
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        « Nous étions un groupe familial de 18 personnes et nous avons été très à l'aise, avec
+        la possibilité de cuisiner sur place. La grande cuisine, les douches dans les chambres
+        qui offrent plus d'intimité, les lits super confortables… c'était génial. »
+      </blockquote>
+      <p>
+        En mai 2026, Ferdinand a réuni ses proches pour une fête :{" "}
+        <strong>16 adultes, chaque couple dans sa chambre avec sa salle de douche</strong>.
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        « Le fait que chaque chambre dispose de sa propre salle de bain apporte un vrai confort
+        et une belle intimité, particulièrement appréciables pour un séjour en groupe. […] La
+        maison est très bien équipée, rien ne manque. »
+      </blockquote>
+
       <h2>Réservez votre réunion de famille</h2>
       <p>
         Les week-ends de fêtes partent vite. Consultez nos{" "}

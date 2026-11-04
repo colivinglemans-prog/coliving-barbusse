@@ -107,6 +107,30 @@ export default function Article() {
         </li>
       </ul>
 
+      <h2>They have already done it</h2>
+      <p>
+        Even before the table was extended, families and groups of friends chose the house
+        to get together.
+      </p>
+      <p>
+        In August 2026, Inma came from Spain with{" "}
+        <strong>a family group of 18</strong>:
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        “We were a family group of 18 and we were very comfortable, with the option of cooking
+        there. The spacious kitchen, the showers in the bedrooms which give you more privacy,
+        the super comfortable beds… it was great.”
+      </blockquote>
+      <p>
+        In May 2026, Ferdinand brought his loved ones together for a celebration:{" "}
+        <strong>16 adults, each couple in their own bedroom with its own shower room</strong>.
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        “The fact that each room has its own bathroom provides real comfort and privacy, which
+        is particularly appreciated when staying with a group. […] The house is very well
+        equipped, nothing is missing.”
+      </blockquote>
+
       <h2>Book your family gathering</h2>
       <p>
         Holiday weekends go fast. Check our{" "}

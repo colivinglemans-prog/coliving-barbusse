@@ -111,6 +111,30 @@ export default function Article() {
         </li>
       </ul>
 
+      <h2>Ellos ya lo han hecho</h2>
+      <p>
+        Incluso antes de alargar la mesa, familias y grupos de amigos eligieron la casa para
+        reunirse.
+      </p>
+      <p>
+        En agosto de 2026, Inma vino desde España con{" "}
+        <strong>un grupo familiar de 18 personas</strong>:
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        «Éramos un grupo familiar de 18 personas, hemos estado muy cómodos, el poder cocinar
+        allí. La amplitud de la cocina, las duchas en la habitación, te da más intimidad, las
+        camas supercómodas… se estaba genial.»
+      </blockquote>
+      <p>
+        En mayo de 2026, Ferdinand reunió a sus seres queridos para una celebración:{" "}
+        <strong>16 adultos, cada pareja en su habitación con su propio baño</strong>.
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        «El hecho de que cada habitación tenga su propio cuarto de baño proporciona verdadera
+        comodidad e intimidad, lo que se agradece especialmente cuando se aloja un grupo. […]
+        La casa está muy bien equipada, no falta de nada.»
+      </blockquote>
+
       <h2>Reserve su reunión familiar</h2>
       <p>
         Los fines de semana festivos vuelan. Consulte nuestra{" "}

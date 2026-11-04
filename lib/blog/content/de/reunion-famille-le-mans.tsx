@@ -110,6 +110,30 @@ export default function Article() {
         </li>
       </ul>
 
+      <h2>Sie haben es schon ausprobiert</h2>
+      <p>
+        Schon bevor der Tisch verlängert wurde, haben Familien und Freundesgruppen das Haus für
+        ihr Wiedersehen gewählt.
+      </p>
+      <p>
+        Im August 2026 kam Inma aus Spanien mit{" "}
+        <strong>einer Familiengruppe von 18 Personen</strong>:
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        „Wir waren eine Familiengruppe von 18 Personen und haben uns sehr wohl gefühlt, auch
+        weil wir dort kochen konnten. Die große Küche, die Duschen in den Zimmern, die mehr
+        Privatsphäre bieten, die superbequemen Betten … es war einfach toll.“
+      </blockquote>
+      <p>
+        Im Mai 2026 hat Ferdinand seine Liebsten zu einem Fest versammelt:{" "}
+        <strong>16 Erwachsene, jedes Paar in seinem eigenen Zimmer mit eigenem Duschbad</strong>.
+      </p>
+      <blockquote className="my-6 border-l-4 border-[#ff385c] pl-4 italic">
+        „Die Tatsache, dass jedes Zimmer über ein eigenes Bad verfügt, bringt echten Komfort und
+        eine schöne Privatsphäre, die besonders bei einem Aufenthalt in einer Gruppe geschätzt
+        wird. […] Das Haus ist sehr gut ausgestattet, es fehlt an nichts.“
+      </blockquote>
+
       <h2>Buchen Sie Ihr Familientreffen</h2>
       <p>
         Die Feiertagswochenenden sind schnell vergeben. Sehen Sie sich unsere{" "}
