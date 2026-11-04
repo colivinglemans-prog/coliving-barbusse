@@ -173,7 +173,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
       {
         title: "Regolamento interno",
         items: [
-          "Arrivo: 17:00 — 23:00",
+          "Arrivo: dalle 17:00 (autonomo, a qualsiasi ora)",
           "Partenza: entro le 11:00",
           "Massimo 20 ospiti",
           "Vietato fumare (all'interno)",

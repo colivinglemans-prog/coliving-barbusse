@@ -160,8 +160,8 @@ export default function Article() {
           voiture.
         </li>
         <li>
-          <strong>Stationnement gratuit</strong> dans la rue résidentielle calme —
-          idéal pour garer la camionnette matériel.
+          <strong>Stationnement gratuit</strong> dans la rue résidentielle calme, mais
+          sans place réservée ni garantie : le matériel reste au paddock.
         </li>
         <li>
           <strong>Serrure connectée</strong>, arrivée autonome dès 17h — pratique

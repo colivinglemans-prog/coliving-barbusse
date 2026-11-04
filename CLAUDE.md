@@ -148,7 +148,7 @@ factures, taxe de séjour et fiscalité n'ont pas été normalisés : ils relèv
 - **Capacité** : **20 personnes** (9 chambres doubles ; chambres 8 et 9 avec clic-clac 1 place en plus). Source : `PROPERTY_INFO.maxGuests` + clé i18n `sleeping.doubleBedSofa` (rendue pour les chambres d'index ≥ 7 dans `SleepingArrangement`).
 - **Zoom photo** : composant partagé [components/public/Lightbox.tsx](components/public/Lightbox.tsx) (plein écran, clavier ←/→/Échap, swipe tactile, scroll lock). Utilisé par SleepingArrangement (par chambre), CommonSpaces, Garden. La galerie d'accueil PhotoGallery garde sa propre implémentation historique.
 - **Commits** : penser à commit/push régulièrement
-- **Deploy** : `npx vercel --prod` (auto-deploy GitHub cassé)
+- **Deploy** : un `git push` sur `main` déploie la prod via l'intégration GitHub de Vercel (constaté le 2026-11-04, en moins d'une minute). `npx vercel --prod` reste possible en secours.
 
 ## i18n (5 langues : fr / en / it / de / es)
 

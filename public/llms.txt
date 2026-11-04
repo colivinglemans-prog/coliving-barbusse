@@ -8,9 +8,9 @@
 - **Capacité** : jusqu'à 20 personnes. 9 chambres, chacune avec lit double, salle de douche privative, bureau avec prise Ethernet, smart TV, dressing et clé individuelle ; 2 chambres ont en plus un clic-clac une place.
   - 9 personnes sans partager leur chambre ni leur salle de douche
   - 11 personnes sans partager de lit
-- **Surface** : 215 m² sur 3 niveaux
+- **Surface** : 215 m² sur 3 niveaux ; une chambre au rez-de-chaussée, les 8 autres à l'étage
 - **Adresse** : 42 rue Henri Barbusse, 72100 Le Mans, France, quartier résidentiel calme
-- **Arrivée** : autonome par serrure connectée, de 17h à 23h. **Départ** : avant 11h.
+- **Arrivée** : autonome par serrure connectée, à partir de 17h, à toute heure (même tard dans la nuit). **Départ** : avant 11h.
 - **Séjour minimum** : 2 nuits, 3 nuits pendant les fêtes de fin d'année. Pas de réservation pour une seule nuit.
 - **Prix** : variables selon les dates. Disponibilités et prix en temps réel : https://www.coliving-barbusse.fr/fr#disponibilite (réservation directe, moins chère que sur Airbnb, Booking ou Abritel)
 - **Annulation** : gratuite jusqu'à 14 jours avant l'arrivée. Acompte de 10 % à la réservation, solde avant l'arrivée.
@@ -26,19 +26,20 @@
 
 ## Équipements
 
-- Cuisine entièrement équipée : four, plaques, lave-vaisselle, micro-ondes, réfrigérateur-congélateur, cafetière à grain
+- Cuisine entièrement équipée : four, plaques, lave-vaisselle, micro-ondes, réfrigérateur-congélateur, cafetière à grain ; vaisselle pour 20, grands plats et grandes casseroles
 - Grande table de 16 places assises (tabourets de bar) dans la cuisine, 20 en y rapprochant les deux mini-tables hautes de la véranda, à l'intérieur et chauffée toute l'année
 - Salon avec canapé d'angle et grande smart TV (entrée HDMI)
 - Véranda avec coin café et coin apéro
 - Jardin clos de 90 m², plein sud, grandes tables pour manger dehors à 20 à la belle saison
 - Salle de sport privée, indépendante de la maison (elliptique, tapis de course, haltères, banc de musculation) et salle zen (yoga, étirements)
-- Wi-Fi haut débit
+- Internet par la fibre, Wi-Fi 7 ultra haut débit
 - Lave-linge et sèche-linge
-- Draps, serviettes et ménage de fin de séjour compris
+- Draps, serviettes et ménage de fin de séjour compris ; ménage en cours de séjour et changement des draps sur demande, en supplément
 
 ## Réunions de famille
 
-- Une seule tablée pour tout le monde : 16 places, 20 avec la véranda
+- Une seule tablée pour tout le monde : 16 places, 20 avec la véranda (tabourets de bar, pas de chaises basses)
+- Une chambre au rez-de-chaussée, pratique pour des grands-parents ; les autres chambres sont à l'étage
 - Occasions : Noël, Nouvel An, anniversaires, noces d'or, retrouvailles de famille, hébergement des proches autour d'un mariage, d'un baptême ou d'un PACS
 - Déjà accueilli : un groupe familial de 18 personnes (août 2026), 16 adultes réunis pour une fête de famille (mai 2026)
 - La maison héberge la famille et ses repas, mais ce n'est pas une salle de réception : pas de fête ni d'événement bruyant
@@ -55,14 +56,15 @@
 ## Équipes professionnelles (en semaine, du lundi au vendredi)
 
 - Pour les équipes en mission au Mans (chantier, industrie, audit, formation) : une chambre, une salle de douche et un bureau par personne
-- Compatible arrivée le lundi soir (jusqu'à 23h) et départ le vendredi matin
+- Compatible arrivée le lundi soir, même tard après le travail, et départ le vendredi matin
+- Ménage en cours de séjour et changement des draps sur demande, en supplément ; lave-linge et sèche-linge
 - Facture au nom de l'entreprise, paiement par virement possible. TVA non applicable (art. 293 B du CGI).
 - Devis par WhatsApp : +33 6 20 92 10 05, réponse généralement en moins d'une heure
 
 ## Séminaires, offsites et équipes en télétravail
 
 - De 10 à 20 personnes. Espace de travail commun : grande table de 16 places (20 avec la véranda) ; présentations sur la smart TV du salon (HDMI)
-- Un bureau avec prise Ethernet dans chaque chambre pour s'isoler en visio
+- Un bureau avec prise Ethernet dans chaque chambre pour s'isoler en visio ; fibre et Wi-Fi 7 ultra haut débit
 - Pas de salle de réunion dédiée, pas de vidéoprojecteur, pas de paperboard
 - Seule la maison entière se loue : pas de location d'un bureau, d'un poste ou d'une chambre seule
 - Repas non inclus : cuisine équipée, traiteurs qui livrent, restaurants du centre-ville accessibles
@@ -71,6 +73,8 @@
 ## Équipes sportives (compétition, stage, tournoi)
 
 - Pour les clubs et équipes (volley, équitation, sports collectifs, course à pied…) avec leurs coachs
+- Jeunes de 10 à 17 ans acceptés sans leurs parents, sous la responsabilité de leurs encadrants majeurs
+- Arrivée possible à toute heure après la route, à partir de 17h
 - Linge de sport : lave-linge et sèche-linge. Repas d'équipe : cuisine équipée, table de 16 à 20 places.
 - Récupération : salle de sport privée, salle zen pour les étirements, jardin clos, parc du Gué de Maulny à 5 min à pied pour courir
 - Accès aux sites : Antarès et MMArena en tram T1 direct (terminus) ; hippodrome des Hunaudières à environ 20 min en voiture ; Pôle européen du cheval (Yvré-l'Évêque) à environ 15 min en voiture
@@ -81,7 +85,7 @@
 - Animaux non autorisés, ni dans la maison ni dans le jardin
 - Non-fumeur à l'intérieur
 - Pas de fête ni d'événement bruyant
-- Logement non adapté aux enfants de moins de 10 ans (escaliers, pas d'équipement bébé), mais ils sont acceptés sous la surveillance des adultes. Adolescents bienvenus.
+- Logement non adapté aux enfants de moins de 10 ans (escaliers, pas d'équipement bébé), mais ils sont acceptés sous la surveillance des adultes. Adolescents bienvenus, y compris en club avec leurs encadrants majeurs.
 - Stationnement dans la rue, sans place réservée
 
 ## Avis

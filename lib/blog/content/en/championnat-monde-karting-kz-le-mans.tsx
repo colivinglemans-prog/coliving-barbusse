@@ -151,8 +151,8 @@ export default function Article() {
           International teams can move drivers and engineers without a car.
         </li>
         <li>
-          <strong>Free street parking</strong> on a quiet residential street —
-          ideal for parking the equipment van.
+          <strong>Free street parking</strong> on a quiet residential street, but with
+          no reserved or guaranteed space: equipment stays in the paddock.
         </li>
         <li>
           <strong>Smart lock</strong>, self check-in from 5 pm — convenient when

@@ -7,11 +7,11 @@ export const PROPERTY_INFO = {
     full: "42 Rue Henri Barbusse, 72100 Le Mans, France",
   },
   checkIn: {
-    fr: "17h00 — 23h00",
-    en: "5:00 PM — 11:00 PM",
-    it: "17:00 — 23:00",
-    de: "17:00 — 23:00 Uhr",
-    es: "17:00 — 23:00",
+    fr: "à partir de 17h00",
+    en: "from 5:00 PM",
+    it: "dalle 17:00",
+    de: "ab 17:00 Uhr",
+    es: "a partir de las 17:00",
   },
   checkOut: {
     fr: "avant 11h00",

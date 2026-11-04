@@ -173,7 +173,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
       {
         title: "House rules",
         items: [
-          "Check-in: 5:00 PM — 11:00 PM",
+          "Check-in: from 5:00 PM (self check-in, any time)",
           "Checkout: before 11:00 AM",
           "20 guests maximum",
           "No smoking (indoors)",

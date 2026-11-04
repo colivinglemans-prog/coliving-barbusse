@@ -173,7 +173,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
       {
         title: "Règlement intérieur",
         items: [
-          "Arrivée : 17h00 — 23h00",
+          "Arrivée : à partir de 17h00 (autonome, à toute heure)",
           "Départ : avant 11h00",
           "20 voyageurs maximum",
           "Non-fumeur (intérieur)",

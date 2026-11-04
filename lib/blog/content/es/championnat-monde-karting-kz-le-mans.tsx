@@ -166,7 +166,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Aparcamiento gratuito</strong> en la calle residencial
-          tranquila — ideal para aparcar la furgoneta del material.
+          tranquila, pero sin plaza reservada ni garantizada: el material se queda en el paddock.
         </li>
         <li>
           <strong>Cerradura conectada</strong>, llegada autónoma desde las

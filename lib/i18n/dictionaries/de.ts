@@ -173,7 +173,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
       {
         title: "Hausordnung",
         items: [
-          "Anreise: 17:00 — 23:00 Uhr",
+          "Anreise: ab 17:00 Uhr (selbstständig, zu jeder Uhrzeit)",
           "Abreise: vor 11:00 Uhr",
           "Maximal 20 Gäste",
           "Nichtraucher (im Innenbereich)",

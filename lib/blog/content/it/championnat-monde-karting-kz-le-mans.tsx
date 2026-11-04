@@ -164,7 +164,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Parcheggio gratuito</strong> nella via residenziale
-          tranquilla — ideale per parcheggiare il furgone del materiale.
+          tranquilla, ma senza posto riservato né garantito: il materiale resta nel paddock.
         </li>
         <li>
           <strong>Serratura connessa</strong>, arrivo autonomo dalle 17 —

@@ -164,8 +164,8 @@ export default function Article() {
           lassen.
         </li>
         <li>
-          <strong>Kostenfreies Parken</strong> in der ruhigen Wohnstraße — ideal,
-          um den Materialtransporter abzustellen.
+          <strong>Kostenfreies Parken</strong> in der ruhigen Wohnstraße, aber ohne
+          reservierten oder garantierten Platz: das Material bleibt im Fahrerlager.
         </li>
         <li>
           <strong>Smartes Schloss</strong>, selbständige Anreise ab 17 Uhr —

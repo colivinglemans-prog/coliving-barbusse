@@ -173,7 +173,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
       {
         title: "Normas internas",
         items: [
-          "Llegada: 17:00 — 23:00",
+          "Llegada: a partir de las 17:00 (autónoma, a cualquier hora)",
           "Salida: antes de las 11:00",
           "20 huéspedes máximo",
           "No fumadores (en el interior)",
