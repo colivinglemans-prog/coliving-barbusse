@@ -160,6 +160,36 @@ factures, taxe de séjour et fiscalité n'ont pas été normalisés : ils relèv
 - **Tests** : vitest, dans `tests/` (hors de `lib/`). Tests de caractérisation du rapport hebdomadaire du pricing et de `diffSnapshots`. Données **inventées** (dépôt public). Le socle est transformé par vitest (`server.deps.inline`) car il est publié en TypeScript source.
 - **Non-régression d'une montée de version** : protocole du socle contre `next start` local, avant/après, avec `--compare` (voir le `CLAUDE.md` du socle). Le mot de passe admin local diffère de la prod : l'injecter par `BARBUSSE_ADMIN_PASSWORD` dans l'environnement, `loadEnvFile` n'écrase pas une variable déjà posée.
 
+## TODO — dette technique restante (au 2026-11-07)
+
+Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0, CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 (Albiez et Barbusse). Reste :
+
+**À surveiller**
+- [ ] Premier passage automatique du cron `beds24-backup` : dimanche 2026-11-08, 03:00 UTC (notification ntfy priorité 1 attendue).
+- [ ] Tester une **restauration** depuis une sauvegarde Blob (télécharger, dégzipper, relire) et l'écrire ici ; `scripts/beds24-backup.mjs` (sauvegarde manuelle locale) peut alors être retiré ou gardé en secours.
+
+**Socle** (via `le-douanier`, déploiement Albiez d'abord)
+- [ ] `lib/stats.ts:886` et `components/stats/format.ts:47` : `bookedAt.slice(0, 10)` = jour UTC → une réservation faite entre 0 h et 1 h/2 h (Paris) compte la veille (délai moyen de réservation, date courte des réservations récentes). Correctif « jour de Paris », comme les factures en v3.8.1.
+- [ ] `projectedTotal` (`lib/fiscal/revenus.ts`) divise un réalisé qui inclut la nuit du jour par N−1 jours (≈ +0,5 %, simulation non opposable). À aligner sur `daysObserved`.
+- [ ] Provenance de la taxe de séjour : indicatifs d'outre-mer (+262, +590, +594, +596) classés « Étranger » (`it.todo` dans les tests du socle) — à trancher avec `le-percepteur`.
+- [ ] Protocole du socle à remettre à jour : le keepalive attend 3 voies Beds24 (il y en a 4 avec la messagerie) ; `/dashboard` admin attend 200 (il redirige, 307). Et les 17 « année absente de comparison[] » en local viennent de l'historique absent (`HISTORIQUE_BARBUSSE`) : documenter comment le fournir au protocole.
+- [ ] CI GitHub Actions dans le socle (`npm test` + `npm run verifier`) et dans Albiez (lint, types, build), sur le modèle de `.github/workflows/ci.yml`.
+- [ ] Aligner vitest : 5.0.5 ici, 4.1 dans le socle (qui garde `@types/node` 20).
+- Non corrigé, décidé : quotient conjugal en dur dans `lib/fiscal/ir.ts` (sans effet pour un couple à 3 parts).
+
+**Dépendances**
+- [ ] `@react-pdf/renderer` 4.5 → 4.9 et `recharts` 3.7 → 3.10 : écartés faute de contrôle visuel (factures PDF, graphiques du dashboard). À monter avec une relecture à l'écran.
+- [ ] Majeures non montées : `stripe` 23, `eslint` 10, `typescript` 7.
+- [ ] `npm audit` (dev) : 8 alertes modérées (`minimatch` dans la chaîne ESLint), correctif cassant.
+
+**Code et doc**
+- [ ] 2 avertissements lint `no-location-assign-relative-destination` dans `dashboard/invoices/page.tsx` (passer par `router.push` ; celui du login est voulu).
+- [ ] Ce fichier (1 400+ lignes) mêle documentation et journal : séparer le journal (`docs/journal.md`) de la doc de référence.
+
+**Décisions reportées** (« on ne fait rien pour le moment »)
+- Plan Vercel Hobby : usage commercial interdit par les CGU → Pro (20 $/mois) ou migration.
+- Dépôts GitHub en privé (le socle exigerait alors un jeton pour Vercel).
+
 ## i18n (5 langues : fr / en / it / de / es)
 
 - `Locale`, `LOCALES`, `DEFAULT_LOCALE`, `LOCALE_META`, `isLocale`, `localeFromAcceptLanguage` viennent de **`@sejour/socle/lib/locales`** et sont ré-exportés par `lib/i18n`. Ne plus redéclarer la liste des langues nulle part — c'est ce qui avait laissé `/chambres` annoncer quatre `hreflang` sur cinq.
