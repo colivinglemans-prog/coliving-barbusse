@@ -33,6 +33,18 @@ npm test         # Tests unitaires (vitest, tests/)
 git push         # Sur main : déploie la production (intégration GitHub de Vercel)
 ```
 
+## Documentation par sujet
+
+Cinq sujets ont leur référence détaillée hors de ce fichier, dans des liens simples (non chargés d'office). **Avant de modifier ou d'expliquer le code listé, lire le fichier correspondant.** Les règles critiques restent résumées plus bas.
+
+| Sujet | Fichier | Le lire avant de toucher ou d'expliquer |
+|---|---|---|
+| Factures PDF (LMNP) | [docs/factures.md](docs/factures.md) | `lib/invoice-config.ts`, `lib/invoice-number.ts`, `lib/stripe.ts`, `lib/taxe-sejour.ts`, `components/dashboard/InvoiceForm.tsx`, `app/(dashboard)/dashboard/invoices/**`, `app/api/dashboard/invoices/**`, `app/api/dashboard/taxe-sejour/**`, `@sejour/socle/lib/invoice-*` |
+| Fiscalité LMNP / LMP | [docs/fiscal.md](docs/fiscal.md) | `lib/fiscal.ts`, `data/fiscal/*.json`, `app/(dashboard)/dashboard/fiscal/**`, `app/api/dashboard/fiscal/**`, `@sejour/socle/lib/fiscal/*`, variables `FISCAL_*` |
+| Chauffage Heatzy | [docs/heatzy.md](docs/heatzy.md) | `lib/heatzy.ts`, `data/heatzy-zones.json`, `app/api/dashboard/heating/**`, `app/api/cron/heating-*`, `app/(dashboard)/dashboard/heating/**`, `components/dashboard/Heating*` |
+| Eau chaude Cozytouch | [docs/cozytouch.md](docs/cozytouch.md) | `lib/cozytouch.ts`, `app/api/dashboard/water-heater/**`, `app/api/cron/water-heater-*`, `app/(dashboard)/dashboard/water-heater/**`, `components/dashboard/WaterHeaterCard.tsx` |
+| Pricing (Beds24, Beyond, moteur) | [docs/pricing.md](docs/pricing.md) | `lib/pricing/**`, `app/api/dashboard/pricing/**`, `app/api/cron/pricing-*`, `app/(dashboard)/dashboard/pricing/**`, `components/dashboard/pricing/**`, `tests/pricing/**`, toute question de prix, markup, frais ou séjour minimum dans Beds24 |
+
 ## Structure
 
 ```
@@ -151,6 +163,7 @@ scripts/              # beds24-backup, beds24-setup, compress-images, translate-
 tests/                # vitest (données inventées : le dépôt est public)
 docs/
   journal.md          # Historique : récits datés, enquêtes, débogages résolus
+  factures.md, fiscal.md, heatzy.md, cozytouch.md, pricing.md  # Référence par sujet (voir « Documentation par sujet »)
   refonte-pricing.md  # Plan et configuration Beds24 du pricing
   print/              # Fiches A4 (Wi-Fi, code serrure) — GITIGNORÉ, le dépôt est public
 ```
@@ -274,114 +287,12 @@ Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déploy�
 - Variable env locale **`DEEPL_API_KEY`** (compte Free DeepL, suffixe `:fx`). N'est pas déployée sur Vercel (script local uniquement).
 - Pour ajouter une réponse d'hôte : éditer manuellement le champ `hostReply` dans l'avis concerné, puis relancer le script.
 
-## Pricing multi-canal (Beds24)
+## Pricing (Beds24, Beyond, moteur en simulation)
 
-Politique tarifaire (juin 2026). Configurée **dans l'interface Beds24** (markup canal, mode de synchro,
-Offers, fees) — pas dans le code. Le site n'affiche aucun prix en dur, il renvoie vers la booking page
-Beds24.
-
-**Principe (toutes commissions « incluses », payées par l'hôte — Airbnb 15,5% · Booking 17% ·
-Abritel/VRBO 15%)** :
-- **Le direct doit TOUJOURS être moins cher qu'Airbnb** (les voyageurs comparent depuis Airbnb).
-  Garanti par : direct = grille canal × **0,93** (remise directe −7%) à toute durée/occupation. Net hôte
-  direct 0,916 > Airbnb 0,845 → le direct est aussi plus rentable.
-- **Markup par canal** (connexion canal) : Airbnb +0% (référence), Direct −7%, Booking/Abritel/VRBO/
-  HomeToGo **+15%** (premium). Le prix de base vient de **Beyond Pricing** (≈522 base / 260 plancher /
-  ~1576 pic 24h).
-- **HomeToGo** (1re résa le 2026-10-17, n° 94822169) : multiplicateur réel **×1,2**. Le canal était en
-  « Per Day Pricing » avec `Guests Included = 18` → un groupe de 16 payait le prix 9 pers. ; corrigé en
-  **« Per Occupancy Pricing »**, Guests Included 9, Extra Person 0, remises natives à 0 (sinon double
-  remise). Le linge n'était pas transmis. C'est **l'hôte qui encaisse** (carte vers Stripe, comme
-  Abritel) et la taxe de séjour n'est pas collectée. Annulation **Custom 60/0** ; contrat de location
-  publié en `public/conditions-location-hometogo.pdf` (« Rental Agreement PDF URL » du canal),
-  source hors git dans `..\contrats\conditions-location-hometogo.md` (rendu `md2print.js` + Chrome
-  headless). ⚠️ Médiateur de la consommation à nommer (obligatoire en B2C).
-- **Mode « Occupancy Prices »** sur chaque canal (= interrupteur clé) : fait propager **à la fois** le
-  tarif par occupation **et** les paliers durée vers Airbnb/Booking/VRBO. En « Per Day Prices », les
-  canaux restent figés (1 prix/date).
-- **Occupation** : `Price For = up to 9` + Extra Person **+10€/pers/nuit** (linéaire jusqu'à 20).
-  Plafonds : Airbnb **16**, Booking 30, VRBO/Abritel 99, Direct 20.
-- **Paliers durée** : via **Offers/rates avec min-stay** (PAS l'onglet « Discounts » qui est
-  direct-only) → poussés à tous les canaux. Grille 4-6n −8% / 7j −10% / 28j −30% (Airbnb accepte les
-  paliers perso). La remise directe −7% = discount **« referrer » direct-only** (non poussé) qui se
-  cumule par-dessus.
-- **Frais harmonisés** (identiques tous canaux, centralisés Beds24) : ménage **280 €**, linge
-  **15 €/voyageur**. La remise directe ne doit **pas** s'appliquer à la ligne taxe (utiliser le type
-  Upsell « obligatory % », pas « obligatory % tax »).
-- **Taxe de séjour** : barème Le Mans = 2,75% (2,5%×1,10) **plafonné 4,40 €/pers/nuit**. ⚠️ Beds24 **ne
-  sait pas appliquer le plafond** → ne PAS mettre 2,75% sur le direct (sur-collecterait au-dessus du
-  plafond aux prix élevés + rendrait le direct plus cher qu'Airbnb qui plafonne). Garder un **forfait bas
-  (~2,00-2,20 €/adulte/nuit)** : au prix fort on collecte moins que le dû et on absorbe la différence
-  (assumé, garde le direct < Airbnb). Airbnb/Booking gèrent leur taxe plafonnée nativement. Le dashboard
-  `/taxe-sejour` calcule le montant LÉGAL exact pour la déclaration (≠ montant collecté).
-
-**Migration Airbnb → Beds24 (frais & remises actuellement configurés nativement sur Airbnb)** : ménage,
-linge, frais voyageur supplémentaire ET réductions durée étaient réglés dans l'extranet Airbnb. Tout doit
-migrer vers Beds24 (source unique). Propagation vers Airbnb :
-- **Ménage** : poussé auto (champ cleaning fee). **Linge** : Airbnb le **fusionne dans le ménage** (pas de
-  champ linge séparé). **Frais voyageur supp.** + **réductions durée** : poussés via mode Occupancy Prices.
-- ⚠️ **Piège double-comptage** : ne jamais laisser un frais/remise actif **à la fois** sur Airbnb et dans
-  Beds24. Ordre sûr : régler dans Beds24 → vérifier l'affichage Airbnb (devis test) → retirer le natif Airbnb.
-- ⚠️ Prérequis : connexion Airbnb en **sync type « Prices & Availability »** (sinon les frais ne se poussent pas).
-- Airbnb ne garde nativement que : collecte taxe de séjour (auto) + contenus (photos/description).
-
-**Côté site** : badge « −7% en réservation directe » dans le calendrier public (clé i18n
-`calendar.directDiscount`, 5 langues). **Détail complet (plan + config Beds24 + résultats vérifiés)** : [docs/refonte-pricing.md](docs/refonte-pricing.md).
-
-## Historique des prix et évaluation de Beyond (depuis le 2026-11-07)
-
-Beds24 écrase chaque prix que Beyond lui pousse sans en garder trace. `lib/pricing/snapshot.ts`
-relève chaque jour le calendrier (prix `price1`, séjour minimum, `numAvail`) sur **365 jours** —
-la limite d'un appel Beds24, et aussi la fenêtre de réservation : au-delà, `numAvail` vaut 0
-partout. Stockage Upstash, clé `pricing:snapshot:barbusse:{YYYY-MM-DD}`, sans TTL (~8 Ko/jour).
-Première photo : **2026-11-07**. Une nuit qui passe de vendable à non vendable entre deux photos
-est une vente (ou un blocage) ; son prix la veille est le prix affiché au moment de la vente.
-
-`lib/pricing/weekly-report.ts` (pur, sans I/O) construit le rapport du lundi : prix modifiés par
-distance à la nuit, nuits vendues et leur prix affiché, remplissage 30/90/180 j contre la semaine
-précédente et l'an dernier à la même date (`bookedAt`), tarification des événements de
-`LE_MANS_EVENTS` (× médiane du mois hors événement), réservations reçues. Les prix sont des
-**nuits de base ≤ 9 pers., avant markup canal et frais** : ils se comparent entre eux, pas au
-montant payé.
-
-**Moteur de prix maison, en simulation** (depuis le 2026-11-07, décision Beyond le 2027-01-15) :
-`lib/pricing/engine.ts` (pur, aucune écriture possible vers Beds24) applique la grille de
-`lib/pricing/engine-config.ts` — fêtes et grands événements à prix fixe avec plancher, base ×
-mois × jour, +5 % sur les événements mineurs, paliers d'anticipation, remise sur les trous plus
-courts que le séjour minimum, plancher/plafond. Le cron `pricing-snapshot` calcule ses prix le même
-jour que la photo et les stocke (`pricing:shadow:barbusse:{date}`) : on compare à ce qu'il **aurait
-affiché ce jour-là**, même si la grille change ensuite. `lib/pricing/engine-comparison.ts` ajoute au
-rapport du lundi la part des nuits ordinaires à ±10 % de Beyond (seuil de bascule : 80 %), l'écart
-médian, les grands événements côte à côte et le prix moteur des nuits vendues dans la semaine.
-
-**Page `/dashboard/pricing`** (admin, **interne** : bandeau « Simulation », aucun chiffre du moteur
-dans `/dashboard/stats`). Verdict et tendance des lundis, courbe des nuits à venir (Beyond plein,
-moteur tirets, bande ±10 %, vendues/bloquées, événements en bandeau, tap → détail de la nuit avec
-raisons du moteur et prix vu par canal), cartes, grands événements avec leur **J-60**, évolution d'un
-prix photo après photo, réservations de la semaine. Données : `GET /api/dashboard/pricing`
-(`lib/pricing/dashboard-payload.ts`, pur) et `GET /api/dashboard/pricing/history?from&to`
-(14 nuits max, réduit côté serveur). Les majorations par canal de `lib/pricing/channel-prices.ts` sont
-une **copie datée** de Beds24, pas une source. La notification ntfy du lundi ouvre la page (`click`).
-- ⚠️ **Ne jamais ajouter ces chemins à `allowedPaths`** de `proxy.ts` : la liste blanche les ferme au
-  `viewer`, et `denyNonAdmin` garde les deux routes. Réservations projetées en liste blanche
-  (`PricingBookingItem`), réponse `Cache-Control: private, no-store`.
-- La page de connexion respecte désormais `?retour=` posé par le proxy (chemins `/dashboard/…`
-  seulement) : avant, toute connexion menait au calendrier.
-- **v1.1** :
-  - navigation par fenêtres de 90 j (ou 365 j) ;
-  - **réalisé de l'an dernier** en losanges violets, majorable de 0 à +20 % (affichage seulement,
-    le moteur ne s'en sert pas). La nuit est comparée à J − 364 (même jour de semaine) ; un
-    événement est comparé à son **édition précédente** par préfixe de clé
-    (`lib/pricing/realized.ts`), car les dates bougent d'une année à l'autre ;
-  - l'estimation du réalisé (brut − 280 − 15 €/pers., ÷ majoration **actuelle** du canal, − 10 €/pers.
-    au-delà de 9) est un **ordre de grandeur**. HomeToGo et l'agence y comptent comme du direct,
-    faute de canal brut dans `Booking` ;
-  - les événements sont en ambre et portent leur nom, la bande ±10 % est un voile ardoise ;
-  - le rapport sépare les **micro-ajustements** de Beyond (moins de 3 % **et** moins de 15 €, sa
-    « visibilité ») des modifications réelles, et les médianes ne portent que sur ces dernières.
-- **Semaine des essais 2027** (`test-24h-2027`, 31/05 → 06/06, `confirmed: false`) : le moteur la
-  tarifie à 1 560 € de plancher, soit la parité avec l'option agence (1 430 € nets ÷ 0,916 en direct),
-  choix de l'exploitant. `extendBefore: -1` fait commencer l'événement la nuit du premier jour.
+Politique tarifaire configurée **dans Beds24**, pas dans le code : le site n'affiche aucun prix en dur. **Le direct doit toujours être moins cher qu'Airbnb** (remise directe −7 %). Le cron `pricing-snapshot` relève chaque jour prix, séjour minimum et dispo sur 365 j (Upstash, sans TTL) ; le moteur maison (`lib/pricing/engine.ts`) tourne **en simulation seulement**, sans aucune écriture possible vers Beds24 (décision Beyond le 2027-01-15).
+- ⚠️ **Ne jamais ajouter `/dashboard/pricing` ni `/api/dashboard/pricing` à `allowedPaths`** de `proxy.ts` : page admin, interne (aucun chiffre du moteur dans `/dashboard/stats`).
+- ⚠️ Beds24 ne sait pas plafonner la taxe de séjour : jamais 2,75 % sur le direct, un forfait bas. Jamais un frais ou une remise actifs **à la fois** sur Airbnb et dans Beds24 (double comptage).
+- Détail complet (markups, occupation, paliers, frais, HomeToGo, relevés, moteur, page v1.1, essais 2027) : [docs/pricing.md](docs/pricing.md).
 
 ## Calendrier public de réservation
 
@@ -585,58 +496,12 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
   réponse dans une erreur de `addNukiPin`.
 - Python (`urllib`) refuse le certificat de `api.beds24.com` : scripts en Node.
 
-## Heatzy Pilote Pro
+## Chauffage Heatzy (ne monte jamais au socle)
 
-- **API** : Gizwits (`https://euapi.gizwits.com`), App ID `c70a66ff039d41b4a220e198b0fcc8b3`
-- **Auth** : Email/password → token 7 jours (lazy refresh dans `lib/heatzy.ts`)
-- **13 radiateurs** sur 4 zones : RDC (5), Chambre RDC (1), 1er étage (5), Dernier étage (2)
-- **Modes** : `cft` (confort), `eco`, `fro` (hors-gel), `stop`, `presence` (via `derog_mode: 3`)
-- **Températures par défaut** : confort 19°C (20°C dernier étage), éco 15°C (printemps)
-- **Température API** : valeurs en dixièmes (179 = 17.9°C), diviser par 10
-- **Config** : `data/heatzy-zones.json` (device IDs, zones, nightMode, mapping Beds24)
-
-### Logique scheduling (centralisée dans `lib/heatzy.ts`)
-
-**Chambres occupées** :
-- 7h-20h : mode présence
-- 20h-0h : confort
-- 0h-5h : confort
-- 5h-7h : confort
-
-**RDC occupé (nightMode: "presence")** :
-- 7h-20h : mode présence
-- 20h-0h : confort
-- 0h-5h : **présence** (éco si personne dans les espaces communs la nuit)
-- 5h-7h : confort
-
-**Entre deux réservations (même jour)** :
-- 9h-17h : éco
-- Sinon : hors-gel
-
-**Pas de réservation** : hors-gel
-
-**Pré-chauffage** (jour du check-in) : éco à 12h, confort à 15h (montée progressive pour éviter de faire sauter les plombs)
-
-### Fonctions utilitaires (`lib/heatzy.ts`)
-
-- `getOccupiedMode(zone, hour)` : mode selon zone + heure
-- `getBetweenReservationsMode(hour)` : éco 9h-17h, sinon hors-gel
-- `getHeatingRules(occupied, hour, sameDayTurnaround, nextCheckIn)` : règles affichées
-- `getLockedDevices()` : lit `LOCKED_DEVICES` env var
-
-### Alertes (basées sur température + comportement)
-
-**Sans réservation** :
-- `Heating_state=1` + temp > 10°C → "Chauffe sans réservation"
-- temp > cft_temp + 3°C → "Température anormale"
-
-**Avec réservation** :
-- Pas en mode présence (journée) → warning
-- `Heating_state=1` + temp < consigne - 5°C → "N'atteint pas la consigne"
-- `Heating_state=0` + temp < consigne - 3°C → "Ne chauffe pas"
-- temp > cft_temp + 3°C → "Température anormale"
-
-**Toujours** : offline, consigne modifiée par voyageur
+`lib/heatzy.ts` pilote 13 radiateurs sur 4 zones (API Gizwits, `data/heatzy-zones.json` avec le mapping Beds24) : crons `heating-automation`, `heating-reset`, `heating-health`, page `/dashboard/heating` (contrôle ouvert au `viewer`).
+- **Occupation** (`isCurrentlyOccupied`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). Heure toujours via `@sejour/socle/lib/time`.
+- Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. `LOCKED_DEVICES` : devices tenus en hors-gel, ignorés par les crons.
+- Détail (modes, scheduling, alertes, présence, dashboard, transitions, vérification du reset) : [docs/heatzy.md](docs/heatzy.md).
 
 ## Dashboard stats (`/dashboard/stats`)
 
@@ -922,35 +787,6 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
   l'article doit rester indexable pour capter les recherches « <événement> <année> ».
 - Exception : un événement qui n'a jamais eu d'article garde un slug **sans année** (`porsche-sprint-challenge-le-mans`) et reste evergreen tant que les dates de l'édition suivante ne sont pas publiées ; on le renouvellera en `-AAAA` seulement le jour où une archive vaut la peine d'être conservée.
 
-### Dashboard chauffage (`/dashboard/heating`)
-
-- **Cartes résumé** : en ligne, hors ligne, total, actions requises
-- **Règles actives** : bandeau bleu avec règle actuelle + prochaine
-- **Contrôle global** : 5 boutons mode (admin only)
-- **Zones** : carte par zone avec boutons mode + grille devices
-- **Carte device** : mode, temp actuelle → consigne, tendance ↑↓, badge "Chauffe", indicateur présence (vert/gris + durée), alertes erreur/warning, bouton lock
-- **Toggle admin/viewer** : prévisualiser la vue viewer
-- **Polling** : refresh 30s, tendance basée sur historique 5 min côté client
-- **Lock** : verrouiller un device en hors-gel (ignoré par crons), via env var `LOCKED_DEVICES`
-
-### Présence
-
-- **Détection** : `derog_mode=3` + `mode` commence par `cft` = présence détectée
-- **Limitation** : capteur ne remonte son état que en mode présence (`derog_mode=3`)
-- **Diminution** : affiche l'écart cft_temp - eco_temp quand personne n'est détecté
-- **Comportement normal** : `cur_signal=fro` quand personne ≠ problème fil pilote
-
-### Mode été (chauffage suspendu)
-
-- **Toggle** : bouton "Activer le mode été" dans `/dashboard/heating` (admin only). Bandeau ambre persistant tant qu'actif avec bouton "Désactiver".
-- **Effet** : tous les radiateurs passent en `stop` (fallback `fro` si firmware ne supporte pas stop ou device offline). Les crons `heating-automation` et `heating-reset` deviennent no-op (`{ skipped: "summer-mode" }`). Les alertes "chauffe sans réservation" / "ne chauffe pas" sont masquées.
-- **Cron `heating-health` reste actif** : surveillance connectivité conservée (utile pour repérer un device tombé avant l'automne).
-- **Flag** : stocké en Redis (`heatzy:summer-mode`), cache 60s.
-- **API** :
-  - `GET /api/dashboard/heating/summer-mode` → `{ enabled }`
-  - `POST /api/dashboard/heating/summer-mode { enabled: true|false }` → si `true`, tente `stop` puis fallback `fro` device par device, tolérant aux pannes individuelles (continue si un radiateur est offline). Retourne `{ success, enabled, stopped, fallbackFro, failed: [{name, reason}] }`.
-- **Helpers `lib/heatzy.ts`** : `getSummerMode()`, `saveSummerMode(enabled)`.
-
 ## Timezone
 
 - Vercel tourne en **UTC** → toute la logique horaire utilise `@sejour/socle/lib/time` (Europe/Paris)
@@ -965,315 +801,24 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
   a révélé les 459,16 € qui basculaient de mars à avril, et ce qui prouve aujourd'hui que
   `/api/dashboard/stats` ne dépend plus du fuseau.
 
-## Logique check-in/check-out (transitions)
+## Eau chaude Cozytouch (ne monte jamais au socle)
 
-**Jour du check-in** :
-- 0h-12h : hors-gel (pas encore de pré-chauffage)
-- 12h-15h : éco (pré-chauffage progressif)
-- 15h-17h : confort (pré-chauffage final)
-- **17h+** : réservation active (mode présence, occupé)
-
-**Jour du check-out** :
-- **0h-10h** : encore considéré occupé (voyageur sur place, prépare ses affaires)
-- **10h+** : transition vers le mode suivant :
-  - Check-in même jour → "entre deux réservations" (éco 9h-17h, sinon hors-gel)
-  - Sinon → "pas de réservation" (hors-gel)
-
-La condition `isCurrentlyOccupied` :
-```
-(arrival < today && departure > today)
-|| (arrival === today && departure > today && hour >= 17)
-|| (departure === today && hour < 10)
-```
-
-Appliquée dans : `heating-automation`, `heating-reset`, et `dashboard/heating` (alertes + règles affichées).
-
-## Cozytouch (Ballon thermodynamique Atlantic)
-
-- **API** : Overkiz (`https://ha110-1.overkiz.com/enduser-mobile-web/enduserAPI`)
-- **Auth** : 3 étapes (Atlantic token → JWT → Overkiz session JSESSIONID)
-- **Client ID** : constant dans `lib/cozytouch.ts`
-- **Session** : cachée en Redis (TTL 8h) + in-memory (60s), retry sur 401
-- **Device** : `modbuslink:AtlanticDomesticHotWaterProductionMBLComponent`
-- **Device URL** : `modbuslink://1908-1459-2296/1#1`, sensor `#2`
-
-### Configuration physique
-
-- Ballon thermo Atlantic (250L) **en série** avec un ballon classique Chauffeo 300L (ref 022122)
-- Le thermo **préchauffe** l'eau en amont, le classique sert de tampon/backup
-- Consigne thermo : **58°C** (pour que le classique à ~55°C ne se déclenche quasi jamais)
-- Thermostat classique : position 2 (~55°C), réglage manuel
-
-### Modes Cozytouch
-
-| App Cozytouch | API (`modbuslink:DHWModeState`) | Dashboard |
-|---|---|---|
-| Éco+ | `autoMode` | Auto |
-| Éco | `manualEcoActive` | Éco |
-| Manuel | `manualEcoInactive` | Performance |
-
-### Commandes (préfixe `modbuslink:` / `core:`)
-
-- `setDHWMode` : autoMode / manualEcoActive / manualEcoInactive
-- `setBoostMode` : "on" / "off"
-- `setTargetDHWTemperature` : [temp] (50-65)
-- `setAbsenceMode` : "on" / "off"
-- Refresh : `refreshBottomTankWaterTemperature`, `refreshMiddleWaterTemperature`, etc.
-
-### States clés
-
-- `core:BottomTankWaterTemperatureState` — temp bas du ballon
-- `modbuslink:MiddleWaterTemperatureState` — temp milieu
-- `core:TargetDHWTemperatureState` — consigne
-- `modbuslink:DHWModeState` — mode actuel
-- `modbuslink:DHWBoostModeState` — "on"/"off"
-- `core:HeatingStatusState` — "Heating" quand chauffe
-- `core:RemainingHotWaterState` — litres restants
-- `core:NumberOfShowerRemainingState` — douches estimées
-- `modbuslink:DHWCapacityState` — capacité (250L)
-- `modbuslink:HeatPumpOperatingTimeState` — heures PAC
-- `modbuslink:ElectricBoosterOperatingTimeState` — heures résistance
-
-### Automation eau chaude (cron `water-heater-automation`)
-
-Profil calculé à partir du nombre de personnes présentes (somme `numAdult + numChild` sur les bookings actifs + check-in du jour après 12h) :
-
-| Profil | Personnes | Mode | Consigne | Boost (fenêtre COP max) |
-|---|---|---|---|---|
-| `vacant` | 0 | Éco | 50°C | off |
-| `low` | 1–4 | Auto | 55°C | off |
-| `normal` | 5–8 | Auto | 58°C | off |
-| `high` | 9–12 | Performance | 60°C | on 12h–15h |
-| `xl` | 13+ | Performance | 60°C | on 11h–16h |
-
-**Logique** :
-- Ballon dans un garage non chauffé → COP meilleur en journée (air ambiant chaud), mauvais la nuit. Le Boost est volontairement programmé en milieu de journée uniquement.
-- Plafond 60°C → reste en PAC pure (au-delà, la résistance électrique prend le relais : coût ×3).
-- Pré-chauffe check-in : à partir de 12h si `guests ≥ 5`, le profil cible est appliqué pour que le ballon soit chargé à l'arrivée (17h).
-- Statuts `cancelled` et `black` exclus du comptage (helper partagé `lib/bookings.ts`).
-
-**Cron de santé** `water-heater-health` (toutes les 2h) : alerte ntfy si dérive mode/consigne/boost, ballon hors ligne, ou sous-chauffe (`bottomTemp < consigne - 8°C` avec occupation).
+`lib/cozytouch.ts` pilote le ballon thermodynamique Atlantic 250 L, en série avec un ballon classique (API Overkiz, session cachée en Redis 8 h, device URL `modbuslink://…` en dur). Le cron `water-heater-automation` choisit un profil selon le nombre de personnes présentes ; `water-heater-health` alerte par ntfy.
+- ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Boost en milieu de journée seulement (ballon dans un garage non chauffé). Statuts `cancelled` / `black` exclus du comptage.
+- Détail (configuration physique, modes, commandes, states, profils) : [docs/cozytouch.md](docs/cozytouch.md).
 
 ## Factures PDF (LMNP)
 
-### Le réglementaire vient du socle (Lot 4)
-
-Factures, taxe de séjour et module fiscal sont montés dans `@sejour/socle` le 2026-09-11.
-Les **mécanismes** y vivent, les **valeurs** restent ici :
-
-| Ici | Là-bas |
-|---|---|
-| `lib/invoice-config.ts` — `INVOICE_TEMPLATE` (nom, accroche, couleur, logo, objet, mention de TVA, pied de page) et `INVOICE_COUNTER_PREFIX` | `@sejour/socle/lib/invoice-config` — lecture des `INVOICE_*`, types |
-| `lib/invoice-number.ts` — le client Upstash | `@sejour/socle/lib/invoice-number` — `createInvoiceNumbering`, `PREVIEW_NUMBER` |
-| — | `@sejour/socle/lib/invoice-payload` — payload, traducteurs, validation |
-| — | `@sejour/socle/lib/invoice-pdf` — gabarit React-PDF |
-| `lib/taxe-sejour.ts` — `TAXE_SEJOUR_CONFIG`, le barème du Mans | `@sejour/socle/lib/taxe-sejour` — le moteur |
-| `lib/fiscal.ts` — répertoire des données, accès Beds24, collectivité | `@sejour/socle/lib/fiscal/*` — les 8 fichiers de calcul |
-
-`lib/invoice-payload.ts`, `lib/invoice-pdf.tsx` et `lib/fiscal/` **n'existent plus ici**.
-`components/dashboard/InvoiceForm.tsx` reste : c'est de la composition d'écran, propre à ce
-site.
-
-**⚠️ Clé du compteur : `invoice:counter:barbusse:{année}`** (préfixée par entité). Le socle
-reprend l'ancienne clé `invoice:counter:{année}` au premier numéro attribué (`legacyKey`), pour
-ne jamais réémettre un numéro ; le paramètre `legacyKey` de `lib/invoice-number.ts` pourra être
-retiré une fois 2026 close (historique : docs/journal.md § Factures PDF (LMNP)).
-
-**⚠️ La mention 293B est dans `INVOICE_TEMPLATE`, pas dans le gabarit.** Elle est
-obligatoire côté socle, sans valeur par défaut : une autre entité, une autre mention, et une
-facture qui porte la mention d'un régime qui n'est pas le sien est irrégulière.
-
-**Le prestataire de paiement se nomme dans `lib/stripe.ts`** (`StripePaymentDetail.method`,
-« Carte bancaire via Stripe », exigé par le socle sans le deviner). Traducteurs :
-`beds24PaymentToPayload` et `paymentToPayload`. Clés du barème dans la réponse de
-`/api/dashboard/taxe-sejour` : `collectivite`, `tauxPourcent`, `plafondParPersonneNuit`,
-`tauxDepartemental` (anciens noms : docs/journal.md § Factures PDF (LMNP)).
-
-**Le module fiscal n'a qu'un seul consommateur, et c'est une exception assumée** à la
-règle 6 du socle — la SCI d'Albiez est à l'IS et sa comptabilité est chez Indy.fr. La note
-est dans `@sejour/socle/lib/fiscal/README.md`.
-
-Émet une facture PDF pour un paiement (virement attendu **ou** paiement Stripe déjà reçu). Deux sources de pré-remplissage : **Beds24** (réservations/inquiries) et **Stripe** (paiements réussis).
-
-### Flux (admin only)
-
-1. Dashboard → **Factures**. Deux onglets :
-   - **Beds24** : liste des réservations/inquiries avec filtres (Tous / Inquiries / Direct / Airbnb / Booking / Abritel).
-   - **Stripe** : derniers paiements Stripe réussis (90 jours).
-2. Clic « Créer une facture » ou saisie d'un ID → page formulaire pré-rempli.
-3. Champs éditables : client (company, nom, adresse, email, tél), séjour, montant, date limite (virement) ou **case « Déjà payé »** avec date + méthode + référence (Stripe).
-4. Clic « Générer le PDF » → le numéro de facture est alloué (`AAAA-NNN` via Upstash `INCR invoice:counter:barbusse:{year}`) et le PDF est téléchargé.
-
-### Caractéristiques du PDF
-
-- Bannière avec logo SVG (maison rose), « COLIVING BARBUSSE », site web, email.
-- Bloc client (raison sociale si entreprise, adresse complète).
-- Si le champ `title` Beds24 n'est pas une civilité (M., Mme, etc.), il est utilisé comme raison sociale.
-- Mention **« TVA non applicable, art. 293B du CGI »** (LMNP).
-- **Bloc paiement conditionnel** :
-  - `payload.paid === false` → bloc rose « Paiement par virement » avec IBAN/BIC et n° facture comme libellé de virement. Bandeau rouge « Paiement attendu avant… ».
-  - `payload.paid === true` → bloc vert « ✓ Paiement reçu » avec montant, méthode, date, référence Stripe. Bandeau vert « Merci de votre paiement ». La facture vaut reçu.
-- `<View wrap={false}>` sur le bloc paiement pour éviter qu'il soit coupé entre deux pages.
-
-### Réservation payée sur une plateforme (socle v3.5.1+)
-
-Airbnb et Booking.com (seulement en « Payments by Booking.com », repéré par l'info
-`BOOKINGCOMBANKTRANS`) encaissent pour le compte de l'hôte : le formulaire arrive
-**« Déjà payé » coché**, sans IBAN, méthode « Via Airbnb » / « Via Booking.com », référence =
-numéro de la plateforme (`apiReference`).
-
-- **Abritel n'en est pas** : le voyageur Abritel **nous** paie par Stripe (échéancier Beds24,
-  ou facture Stripe si la carte est refusée) et Abritel prélève sa commission ensuite. La
-  réservation reste « à payer » ; la facture acquittée se fait depuis l'onglet **Stripe**, qui
-  a la vraie date (82631846 : réservée le 20/02, payée le 22/02).
-- **La date proposée est le jour de la réservation** (Paris). Beds24 ne transmet la date du
-  débit sur aucun des deux canaux (vérifié sur l'API le 2026-09-25). Un avertissement ambre
-  sous le champ dit pourquoi la vérifier, **renforcé pour un séjour à venir** (paiement en
-  plusieurs fois peut-être incomplet). Il disparaît dès que la date est modifiée.
-- **Arbitrage de l'exploitant (2026-09-25) : toujours pré-remplir**, y compris avant
-  l'arrivée. `le-percepteur` recommandait de laisser la date vide dans ce cas ; le contrôle
-  repose sur l'avertissement.
-- L'avertissement vient de `platformPayment` dans la réponse de `invoices/prefill`
-  (`platformPaymentOf(booking, todayParis())`).
-
-**Emails générés** : l'URL de signature est `SITE_URL` (`www.coliving-barbusse.fr`), plus
-l'adresse Vercel. Pour une réservation de plateforme, l'email complet invite à réserver en
-direct la prochaine fois — **jamais le message court** (collé dans la messagerie de la
-plateforme, qui l'interdit), et **jamais vers une adresse relais** (`@guest.booking.com`,
-`*.airbnb.*`), qui aboutit dans cette même messagerie. Airbnb ne transmet aucune adresse.
-
-### Taxe de séjour sur la facture (socle v3.6.0)
-
-- **Booking.com et direct** : `price` contient la taxe (« City tax », « Taxe de séjour
-  €2,20… »). Le champ **« Dont taxe de séjour »** est pré-rempli depuis les lignes Beds24
-  (`touristTaxFromInvoiceItems`), et le PDF l'imprime sur sa propre ligne : **Total HT =
-  montant − taxe**, puis TVA 0 %, puis « Taxe de séjour », puis Total TTC (inchangé).
-- **Airbnb** : `price` = séjour + commission, **sans taxe** (0 ligne de taxe sur 48
-  réservations, vérifié le 2026-09-25) — Airbnb collecte et reverse lui-même. Le champ
-  **« Mention taxe de séjour »** est pré-rempli : « Taxe de séjour collectée et reversée
-  directement par Airbnb : elle n'est pas incluse dans cette facture. »
-- **Acompte / solde** : pas de ventilation (forfait), le champ est masqué.
-- **Onglet Stripe** : la taxe n'est ventilée que si le paiement couvre tout le séjour.
-  `findBookingByStripeIds` demande désormais `includeInvoiceItems` pour la lire.
-- `getStripePayment` accepte enfin un `ch_…` (il remonte au Payment Intent) : la route
-  l'annonçait, mais seul un `pi_…` fonctionnait.
-
-À savoir : pour Booking.com, le champ « Demandes du client » arrive avec les métadonnées de
-l'OTA (« THIS RESERVATION HAS BEEN PRE-PAID », « Payment charge is EUR … ») — à vider avant
-d'émettre, sinon elles s'impriment.
-
-### Acompte et solde (séjours facturés en deux temps)
-
-Un séjour d'entreprise se règle en général par un acompte à la réservation puis un solde
-avant l'arrivée. Le champ `kind` de `InvoicePayload` vaut `standard` (défaut), `acompte` ou
-`solde` ; le sélecteur est en tête de la section « Montant & paiement » du formulaire.
-
-- **`stayTotal`** (total TTC du séjour) est obligatoire dès que `kind !== "standard"`. Sans lui,
-  le client ne peut pas rattacher la facture au séjour.
-- **`priorInvoiceNumber` / `priorInvoiceDate` / `priorInvoiceAmount`** : l'acompte rappelé et
-  déduit sur la facture de solde. La validation **refuse** un solde dont `acompte + solde`
-  ne retombe pas sur `stayTotal` (tolérance 1 centime).
-- Le PDF change de titre (`FACTURE D'ACOMPTE` / `FACTURE DE SOLDE`) et facture **en forfait**
-  (quantité 1) au lieu du calcul par nuit : sinon un acompte de 30 % sur 6 nuits s'imprimait
-  « 6 × 337,65 € », que la comptabilité du client lit comme un séjour à 2 025,90 €.
-- Un récapitulatif (total séjour / acompte / reste à régler) s'insère au-dessus du bloc
-  Total HT–TVA–Total TTC, l'ensemble en `wrap={false}` pour ne pas se couper au saut de page.
-- Les modèles d'email et le message court générés après coup s'adaptent au type de facture.
-- Le PDF est rendu en Helvetica : **pas de glyphe pour le signe moins U+2212**, qui
-  disparaîtrait sans erreur. Utiliser le tiret ASCII pour les montants négatifs.
-
-### Restrictions
-
-- `/dashboard/invoices/**` et `/api/dashboard/invoices/**` : `proxy.ts` bloque viewer (redirect / 403) — et `invoices/prefill` **revérifie elle-même** : elle renvoie la réservation Beds24 brute, PIN de serrure compris, et ne doit pas dépendre d'un seul point de contrôle.
-- Numérotation séquentielle **continue** (obligation légale FR) : le compteur n'est incrémenté qu'à la génération réelle, pas à l'ouverture du formulaire. Le bouton **Aperçu** (`POST …/generate?preview=1`) rend le PDF avec le numéro fictif `PREVIEW_NUMBER` sans toucher au compteur — relire un brouillon ne creuse plus de trou dans la série. La sentinelle est en ASCII pur car elle transite par l'en-tête `X-Invoice-Number`.
-- **Dates au jour de Paris (socle v3.8.1, 2026-11-07)** : l'année du numéro (`invoice:counter:barbusse:{année}`), le « Émise le » du PDF, les dates par défaut du formulaire et l'échéance J+3 sont lus au calendrier de Paris. Avant, une facture faite entre 0 h et 1 h (2 h l'été) était datée de la veille, et celle du 1er janvier dans cette heure-là prenait un numéro de l'année précédente. Hors de cette fenêtre nocturne, rien ne change.
+Facture PDF d'un paiement (virement attendu ou paiement reçu, pré-rempli depuis Beds24 ou Stripe) depuis `/dashboard/invoices`, **admin seulement**. Mécanismes au socle (`@sejour/socle/lib/invoice-*`, `taxe-sejour`), valeurs ici (`lib/invoice-config.ts`, `lib/invoice-number.ts`, `lib/stripe.ts`, `lib/taxe-sejour.ts`).
+- ⚠️ **Numérotation continue (obligation légale)** : compteur Upstash `invoice:counter:barbusse:{année}`, incrémenté **seulement** à la génération réelle. Pour tester ou relire, toujours l'**Aperçu** (`POST …/generate?preview=1`, numéro fictif `PREVIEW_NUMBER`) : jamais de génération réelle en test.
+- ⚠️ La mention 293B est dans `INVOICE_TEMPLATE` (obligatoire au socle, sans défaut) ; variables `INVOICE_*` requises. `invoices/prefill` revérifie le rôle elle-même (elle renvoie le PIN). Dates au jour de Paris. Pas de signe moins U+2212 dans le PDF (Helvetica).
+- Détail (socle, flux, PDF, plateformes, taxe de séjour, acompte/solde, restrictions) : [docs/factures.md](docs/factures.md).
 
 ## Dashboard Fiscalité LMNP / LMP (`/dashboard/fiscal`)
 
-Estimation indicative de l'imposition (IR + PS/SSI) et du test de bascule LMP,
-à partir des résas Beds24 + charges saisies + données foyer. **Ne remplace pas
-la déclaration officielle** (faite via LMNP.ai pour ce dossier).
-
-> **La page lit le `Booking`, plus les lignes de facture** (socle `v2.0.0`) : `lib/fiscal.ts`
-> fournit `fetchStays: getStays(...).then(soldBookings)`, le module du socle lit `gross` et
-> `commission` — même CA que la page de statistiques. **Le défaut est contractuel** (réalisé +
-> confirmé) ; la simulation d'année pleine ne s'obtient que par `?projected=true`, et l'écran
-> ne l'expose pas. Le conseil « micro-social si recettes < 77 700 € » se compare au
-> contractuel, et basculera à mesure que le carnet se remplit. Le bien manuel « Dahlias »
-> n'entre dans aucun invariant. Dette : la réponse fiscale ne porte pas le mode projeté.
-
-> **Le taux d'occupation est réalisé** (socle `v3.8.1`) : `occupancyRatio` = nuits réalisées
-> ÷ jours observés (1er janvier → aujourd'hui, bornes incluses) ; le carnet à venir n'y entre
-> pas. Sur un exercice futur (`?year=2027`), rien n'est « réalisé ». `ecartDeCollecte` est
-> ré-exporté par `lib/taxe-sejour.ts` mais **utilisé nulle part** ici.
-> Historique et mesures : docs/journal.md § Dashboard Fiscalité LMNP / LMP.
-
-### Contexte utilisateur (fiscalité 2026)
-
-- **Régime** : LMNP au **réel simplifié** (pas de TVA — art. 293B CGI).
-- **Tenue comptable / déclaration** : **LMNP.ai** (plateforme en autonomie, liasse 2031 en EDI) — SIREN 535 071 757. Plus d'expert-comptable en cabinet (ex-SAS CONTALIM, dossier clos) → la conformité (échéances, formalités, facturation électronique) est à la charge de l'exploitant.
-- **Adresse activité** : à transférer du 23 Allée des Dahlias, 92320 Châtillon (bien vendu) vers 42 rue Henri Barbusse, 72100 Le Mans (bien actif). Via formalites.entreprises.gouv.fr.
-- **RP** : Châtillon 92320 (≠ adresse de l'activité).
-- **Foyer** : couple marié + 2 enfants = **3 parts fiscales**. TMI 2026 estimée **30 %** (bascule depuis 11 % en 2024).
-- **Biens 2026** :
-  - `barbusse` (Beds24, mis en service 26/11/2025, première année pleine 2026) : propertyIds [303771, 310268]
-  - `dahlias` (manuel, vendu début 2026, CA janvier 1 344,35 €)
-- **Premier dépassement du seuil 23 k€** en 2026 → affiliation SSI obligatoire (art. L611-1 CSS).
-
-### Règles fiscales codées
-
-| Règle | Valeur | Source |
-|---|---|---|
-| Seuil affiliation SSI (meublé tourisme) | 23 000 € recettes annuelles | Art. L611-1 CSS |
-| Test LMP | recettes > 23 k€ **ET** recettes > autres revenus d'activité foyer | Art. 155-IV CGI |
-| Amortissement LMNP non pro | plafonné au bénéfice avant amort. ; excédent = ARD imputables sans limite de durée sur bénéfices futurs | Art. 39 C CGI |
-| Prélèvements sociaux LMNP | 17,2 % sur résultat BIC positif | CGI |
-| Cotisations SSI LMP | ~40 % effectif (remplace PS) | Barème SSI 2026 |
-| Barème IR 2025 (imposé 2026) | 0/11/30/41/45 % seuils 11 497 / 29 315 / 83 823 / 180 294 | Art. 197 CGI |
-| Quotient familial | Plafonné 1 791 €/demi-part | Art. 197-I-2 CGI |
-| CFE meublé tourisme classé | Exonération art. 1459-3° CGI, **sauf délibération contraire** | Non vérifié pour Le Mans Métropole — contacter le SIE |
-
-### Extraction du CA brut
-
-Le CA à déclarer en LMNP est le **brut** (avant commissions). Il vient de `Booking.gross`
-(`toBooking`), et non d'une reconstitution depuis les `invoiceItems`, qui rendait un net pour
-Airbnb (historique : docs/journal.md § Dashboard Fiscalité LMNP / LMP).
-
-**Commissions projetées** : `taux = commissionsRealized / caRealized` (YTD) × projectedCA. Naturellement pondéré par le mix direct / OTA.
-
-### Configuration par année (`data/fiscal/YYYY.json`)
-
-Champs : `annee` ; `biens[]` — `id`, `nom`, `source` (`beds24` | `manuel`), `propertyIds`
-(`[303771, 310268]` pour Barbusse), `classeMeubleTourisme`, `amortissementAnnuel`,
-`amortissementsReportes` (stock d'ARD en début d'exercice), `chargesDeductibles` (intérêts,
-taxe foncière, assurance, CFE, frais comptables, entretien, copro, `autres` — **jamais les
-commissions**, calculées automatiquement depuis Beds24), et pour un bien manuel `caHT` /
-`vendu` ; `constantes` — `seuilSSIMeubleTourisme`, `tauxPrelevementsSociaux`, `tauxSSIEstime`.
-Exemple commenté : docs/journal.md § Dashboard Fiscalité LMNP / LMP.
-
-### UI (`app/(dashboard)/dashboard/fiscal/page.tsx`)
-
-1. **SummaryCards** — 5 KPI : Recettes, Résultat BIC, IR supp, PS/SSI, Impôt total
-2. **AmortissementsReportesCard** — chaîne visuelle : Stock entrée → Amort année → ARD imputés → Stock sortie
-3. **StatusLMNPvsLMP** — 2 jauges (seuil 23k€ + recettes vs autres revenus)
-4. **OrientationsAlerts** — alertes triées par criticité (critical/warning/info) avec actions + liens externes
-5. **SimulateurWhatIf** — sliders CA / charges / amortissement avec recalcul temps réel (inclut ARD)
-6. **DetailParBien** — tableau : CA, charges manuelles, commissions (% CA), amort déduit, ARD imputés, résultat BIC
-7. **TimelineEcheances** — CFE 15/12, 2031-SD mai, DSI URSSAF juin (LMP), acomptes PS (LMNP)
-
-### Données clés du dossier fiscal 2025 (référence)
-
-- Résultat fiscal 2025 : +3 511 € (bénéfice BIC après amortissements plafonnés)
-- Amortissement 2025 : 12 168 € (écarté car plafonné au bénéfice avant amort)
-- **Stock ARD fin 2025 : 38 007 €** (cumul amortissements non déduits 2023-2025)
-- Emprunt CE : 403 872 € au 31/12/2025, intérêts 4 383 €
-- Base amortissable Le Mans pleine année (2026) : ~25 800 € (construction 5 % + travaux 10 % + mobilier 20 %)
-
-### Restrictions
-
-- `/dashboard/fiscal/**` et `/api/dashboard/fiscal/**` : `proxy.ts` bloque viewer.
-- Le moteur lit l'année demandée (`?year=`, défaut : année en cours), à condition que `data/fiscal/{année}.json` existe — seul `2026.json` existe aujourd'hui.
-- Le barème IR coded est celui 2025 (revenus 2025 imposés 2026). À mettre à jour au moment du PLF 2026 définitif.
+Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/fiscal/{année}.json` et les variables `FISCAL_*` ; **ne remplace pas la déclaration** (LMNP.ai). Moteur au socle (`@sejour/socle/lib/fiscal/*`), données et accès ici (`lib/fiscal.ts`). Admin seulement.
+- Le CA est le **brut** (`Booking.gross`), le même que `/dashboard/stats` (invariant `INV-FISCAL-1`). Défaut contractuel (réalisé + confirmé) ; `?projected=true` = simulation non opposable. Jamais les commissions dans `chargesDeductibles` (calculées depuis Beds24). Barème IR 2025 en dur, à mettre à jour.
+- Détail (contexte 2026, règles codées, configuration, UI, données 2025, restrictions) : [docs/fiscal.md](docs/fiscal.md).
 
 ## Cron Jobs (via cron-job.org)
 
@@ -1290,8 +835,6 @@ Exemple commenté : docs/journal.md § Dashboard Fiscalité LMNP / LMP.
 | Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
-
-Le reset vérifie après application que les devices ont bien pris les changements (températures). Si échec → alerte ntfy.
 
 Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `beds24-backup` dimanche 3 h (UTC).
 
