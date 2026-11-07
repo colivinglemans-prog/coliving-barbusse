@@ -332,6 +332,7 @@ qu'un réglage Beds24/Beyond a changé la grille — corriger `expectedTotal`, p
 - Arrivée le jour même : le devis porte une consigne d'appeler l'hôte (`lastMinute`).
 - La page de devis revérifie dispo et prix à chaque affichage ; non indexée.
 - Le calendrier se pré-remplit par `?arrivee=&depart=&adultes=&enfants=` (socle).
+- **Connecteur MCP** : `app/api/mcp/route.ts` (`createMcpRoute`, socle v3.12.0), mêmes outils que `/api/agent/*` via `runTool`, sans état. Route publique ; à couvrir par la règle Vercel Firewall comme `/api/agent/*`.
 - Tests voyageur à rejouer à chaque lot : voir le plan du chantier (mémoire « tests voyageur IA »).
 
 ## Cloisonnement du dashboard

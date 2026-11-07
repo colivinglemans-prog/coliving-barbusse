@@ -29,6 +29,10 @@ Une API publique en lecture (GET, JSON, sans clé) donne les disponibilités et 
 - Si la réponse contient `notices` (arrivée le jour même), les relayer au voyageur **avant** de lui donner le lien de réservation.
 - La page de paiement Beds24 (`bookUrl`) charge ses prix en JavaScript : lue sans JavaScript, elle affiche un texte masqué « Pas de disponibilité ». Ce n'est pas l'état réel : l'API ci-dessus fait foi.
 
+### Connecteur MCP
+
+Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find_stays`) sont servis par un serveur MCP en HTTP streamable, sans authentification. URL du connecteur, en https : `www.coliving-barbusse.fr/api/mcp`. À ajouter comme connecteur personnalisé dans Claude, ChatGPT (mode développeur), Le Chat ou tout client MCP.
+
 ## Accès
 
 - Gare TGV du Mans à 10 min à pied : Paris-Montparnasse en 55 min environ, liaisons directes vers Rennes, Nantes et Angers
