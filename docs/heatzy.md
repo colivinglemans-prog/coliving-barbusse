@@ -6,13 +6,24 @@
 
 - **API** : Gizwits (`https://euapi.gizwits.com`), App ID `c70a66ff039d41b4a220e198b0fcc8b3`
 - **Auth** : Email/password → token 7 jours (lazy refresh dans `lib/heatzy.ts`)
-- **13 radiateurs** sur 4 zones : RDC (5), Chambre RDC (1), 1er étage (5), Dernier étage (2)
+- **15 radiateurs** sur 4 zones : RDC (5), Chambre RDC (1), 1er étage (6), Dernier étage (3) ; tous appairés (Chambres 3 et 7 ré-appairées, vérifié le 2026-11-07)
 - **Modes** : `cft` (confort), `eco`, `fro` (hors-gel), `stop`, `presence` (via `derog_mode: 3`)
 - **Températures par défaut** : confort 19°C (20°C dernier étage), éco 15°C (printemps)
 - **Température API** : valeurs en dixièmes (179 = 17.9°C), diviser par 10
 - **Config** : `data/heatzy-zones.json` (device IDs, zones, nightMode, mapping Beds24)
 
-### Logique scheduling (centralisée dans `lib/heatzy.ts`)
+### Logique scheduling (une seule source : `lib/heating-schedule.ts`)
+
+**`expectedHeatingMode(bookings, today, hour, zone)`** rend `{ situation, mode }` — `occupied`,
+`arrival-morning`, `preheat-eco`, `preheat-cft`, `turnaround`, `checkout`, `vacant` (`mode: null` :
+rien d'imposé). C'est **la** règle, pure, utilisée par `heating-automation`, `heating-reset`
+(`resetTarget`), `/api/dashboard/heating` (`expectedMode`, `getHeatingRules(situation, …)`) et la
+sonde `heating` de la préparation d'arrivée. Elle remplace trois copies qui avaient divergé
+(2026-11-07) : le dashboard annonçait hors-gel puis confort un jour de rotation, là où
+l'automatisation pose l'éco de 10 h à 17 h. **La référence est l'automatisation.** Le test
+`tests/heating/expected-mode.test.ts` garde les anciennes copies en oracle sur une semaine
+simulée ; toute modification de la règle doit l'y faire apparaître. `lib/heatzy.ts` réexporte
+ces fonctions pour les anciens imports.
 
 **Chambres occupées** :
 - 7h-20h : mode présence
@@ -34,12 +45,30 @@
 
 **Pré-chauffage** (jour du check-in) : éco à 12h, confort à 15h (montée progressive pour éviter de faire sauter les plombs)
 
-### Fonctions utilitaires (`lib/heatzy.ts`)
+**Reset (`heating-reset`, toutes les 4 h)** : un **jour d'arrivée compte comme occupé dès 12 h**
+(`resetTarget`) — mode du préchauffage (ou éco en rotation), consignes remises seulement si
+elles ont été montées. Avant le 2026-11-07, les passages de 12 h et 16 h remettaient le
+hors-gel par défaut et coupaient le préchauffage jusqu'au quart d'heure suivant.
 
-- `getOccupiedMode(zone, hour)` : mode selon zone + heure
-- `getBetweenReservationsMode(hour)` : éco 9h-17h, sinon hors-gel
-- `getHeatingRules(occupied, hour, sameDayTurnaround, nextCheckIn)` : règles affichées
-- `getLockedDevices()` : lit `LOCKED_DEVICES` env var
+### Fonctions utilitaires
+
+- `lib/heating-schedule.ts` : `expectedHeatingMode`, `heatingSituation`, `isOccupiedAt`,
+  `getOccupiedMode(zone, hour)`, `getBetweenReservationsMode(hour)`, `resetTarget`,
+  `getHeatingRules(situation, hour, nextCheckIn)`
+- `lib/heatzy.ts` : client Gizwits, `getLockedDevices()` (Redis `heatzy:locked-devices`, repli
+  `LOCKED_DEVICES`), mode été
+- `data/heatzy-zones.json` : `unpaired: true` marque un radiateur dont le module n'est plus
+  appairé — ignoré par la préparation d'arrivée, toujours piloté par l'automatisation. Aucun
+  aujourd'hui.
+
+### Alertes des crons chauffage (ntfy, anti-répétition)
+
+`heating-health` (connectivité) et `heating-automation` (radiateurs qui refusent leur mode,
+`failures[]`) passent par `nextAlertState` du socle, état dans Redis
+`barbusse:alert:heating-health` / `barbusse:alert:heating-automation` (`lib/alert-memory.ts`) :
+une notification à l'ouverture, une quand un nouveau radiateur tombe, une en priorité 2 au
+rétablissement — **jamais deux fois à gravité égale** (`heating-health` renvoyait la même alerte
+toutes les 30 min). `sendHeatingAlert(subject, body, priority = 4)` (`lib/alerts.ts`).
 
 ### Alertes (basées sur température + comportement)
 
@@ -105,8 +134,11 @@ La condition `isCurrentlyOccupied` :
 || (departure === today && hour < 10)
 ```
 
-Appliquée dans : `heating-automation`, `heating-reset`, et `dashboard/heating` (alertes + règles affichées).
+Elle n'existe plus qu'une fois : `isOccupiedAt` dans `lib/heating-schedule.ts`, derrière
+`expectedHeatingMode`. Exception voulue : `heating-reset` traite le jour d'arrivée comme occupé
+dès 12 h.
 
 ## Cron Jobs (via cron-job.org)
 
-Le reset vérifie après application que les devices ont bien pris les changements (températures). Si échec → alerte ntfy.
+Le reset ne relit pas les radiateurs après application : un échec de commande n'apparaît que
+dans `failures` de sa réponse. Les échecs de `heating-automation`, eux, partent par ntfy.

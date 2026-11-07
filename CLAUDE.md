@@ -29,7 +29,8 @@ npm run dev      # Serveur de développement
 npm run build    # Build production
 npm run lint     # ESLint
 npm run typecheck # Vérification TypeScript (tsc --noEmit)
-npm test         # Tests unitaires (vitest, tests/)
+npm test         # Tests unitaires (vitest, tests/ hors tests/deploy)
+npm run test:deploy # Contrôles post-déploiement contre la prod (DEPLOY_LEVEL=vital|full)
 git push         # Sur main : déploie la production (intégration GitHub de Vercel)
 ```
 
@@ -41,8 +42,9 @@ Cinq sujets ont leur référence détaillée hors de ce fichier, dans des liens 
 |---|---|---|
 | Factures PDF (LMNP) | [docs/factures.md](docs/factures.md) | `lib/invoice-config.ts`, `lib/invoice-number.ts`, `lib/stripe.ts`, `lib/taxe-sejour.ts`, `components/dashboard/InvoiceForm.tsx`, `app/(dashboard)/dashboard/invoices/**`, `app/api/dashboard/invoices/**`, `app/api/dashboard/taxe-sejour/**`, `@sejour/socle/lib/invoice-*` |
 | Fiscalité LMNP / LMP | [docs/fiscal.md](docs/fiscal.md) | `lib/fiscal.ts`, `data/fiscal/*.json`, `app/(dashboard)/dashboard/fiscal/**`, `app/api/dashboard/fiscal/**`, `@sejour/socle/lib/fiscal/*`, variables `FISCAL_*` |
-| Chauffage Heatzy | [docs/heatzy.md](docs/heatzy.md) | `lib/heatzy.ts`, `data/heatzy-zones.json`, `app/api/dashboard/heating/**`, `app/api/cron/heating-*`, `app/(dashboard)/dashboard/heating/**`, `components/dashboard/Heating*` |
+| Chauffage Heatzy | [docs/heatzy.md](docs/heatzy.md) | `lib/heatzy.ts`, `lib/heating-schedule.ts`, `data/heatzy-zones.json`, `app/api/dashboard/heating/**`, `app/api/cron/heating-*`, `app/(dashboard)/dashboard/heating/**`, `components/dashboard/Heating*` |
 | Eau chaude Cozytouch | [docs/cozytouch.md](docs/cozytouch.md) | `lib/cozytouch.ts`, `app/api/dashboard/water-heater/**`, `app/api/cron/water-heater-*`, `app/(dashboard)/dashboard/water-heater/**`, `components/dashboard/WaterHeaterCard.tsx` |
+| Surveillance, préparation d'arrivée, battement de cœur | [docs/surveillance.md](docs/surveillance.md) | `tests/deploy/**`, `.github/workflows/{surveillance,post-deploy}.yml`, `lib/readiness/**`, `app/api/cron/arrival-readiness`, `app/api/health/heartbeat`, `lib/heartbeat.ts`, `lib/alert-memory.ts`, toute route ouverte au viewer (`proxy.ts`) |
 | Pricing (Beds24, Beyond, moteur) | [docs/pricing.md](docs/pricing.md) | `lib/pricing/**`, `app/api/dashboard/pricing/**`, `app/api/cron/pricing-*`, `app/(dashboard)/dashboard/pricing/**`, `components/dashboard/pricing/**`, `tests/pricing/**`, toute question de prix, markup, frais ou séjour minimum dans Beds24 |
 
 ## Structure
@@ -219,6 +221,7 @@ docs/journal.md § Conventions).
 
 - **CI** : `.github/workflows/ci.yml` — `npm ci`, lint, `typecheck`, `test`, `build`, sur chaque push et PR. Le build ne doit exiger **aucune** variable d'environnement (vérifié sans `.env.local`) : une variable lue au build est un défaut à corriger dans le code, pas un secret à ajouter à la CI. Le socle, en `git+ssh` dans le lock, est forcé en HTTPS sur le runner.
 - **Tests** : vitest, dans `tests/` (hors de `lib/`). Tests de caractérisation du rapport hebdomadaire du pricing et de `diffSnapshots`. Données **inventées** (dépôt public). Le socle est transformé par vitest (`server.deps.inline`) car il est publié en TypeScript source.
+- **Contrôles post-déploiement et surveillance** (moteur du socle, attendus dans `tests/deploy/site.ts`) : `vital` toutes les heures, `full` chaque matin et après chaque déploiement, alerte ntfy et issue publique `surveillance-ko` **sans détail** à chaque changement d'état. Un résultat ne contient jamais un corps de réponse (logs publics). Détail, secrets attendus et KO connus : [docs/surveillance.md](docs/surveillance.md).
 - **Non-régression d'une montée de version** : protocole du socle contre `next start` local, avant/après, avec `--compare` (voir le `CLAUDE.md` du socle). Le mot de passe admin local diffère de la prod : l'injecter par `BARBUSSE_ADMIN_PASSWORD` dans l'environnement, `loadEnvFile` n'écrase pas une variable déjà posée.
 
 ## TODO — dette technique restante (au 2026-11-07)
@@ -234,7 +237,7 @@ Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déploy�
 - [ ] `projectedTotal` (`lib/fiscal/revenus.ts`) divise un réalisé qui inclut la nuit du jour par N−1 jours (≈ +0,5 %, simulation non opposable). À aligner sur `daysObserved`.
 - [ ] Provenance de la taxe de séjour : indicatifs d'outre-mer (+262, +590, +594, +596) classés « Étranger » (`it.todo` dans les tests du socle) — à trancher avec `le-percepteur`.
 - [ ] Protocole du socle à remettre à jour : le keepalive attend 3 voies Beds24 (il y en a 4 avec la messagerie) ; `/dashboard` admin attend 200 (il redirige, 307). Et les 17 « année absente de comparison[] » en local viennent de l'historique absent (`HISTORIQUE_BARBUSSE`) : documenter comment le fournir au protocole.
-- [ ] CI GitHub Actions dans le socle (`npm test` + `npm run verifier`) et dans Albiez (lint, types, build), sur le modèle de `.github/workflows/ci.yml`.
+- [ ] CI GitHub Actions dans le socle (`npm test` + `npm run verifier`). Albiez : fait le 2026-11-07 (lint, types, tests, build).
 - [ ] Aligner vitest : 5.0.5 ici, 4.1 dans le socle (qui garde `@types/node` 20).
 - Non corrigé, décidé : quotient conjugal en dur dans `lib/fiscal/ir.ts` (sans effet pour un couple à 3 parts).
 
@@ -498,10 +501,12 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
 
 ## Chauffage Heatzy (ne monte jamais au socle)
 
-`lib/heatzy.ts` pilote 13 radiateurs sur 4 zones (API Gizwits, `data/heatzy-zones.json` avec le mapping Beds24) : crons `heating-automation`, `heating-reset`, `heating-health`, page `/dashboard/heating` (contrôle ouvert au `viewer`).
-- **Occupation** (`isCurrentlyOccupied`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). Heure toujours via `@sejour/socle/lib/time`.
+`lib/heatzy.ts` pilote 15 radiateurs sur 4 zones (API Gizwits, `data/heatzy-zones.json` avec le mapping Beds24) : crons `heating-automation`, `heating-reset`, `heating-health`, page `/dashboard/heating` (contrôle ouvert au `viewer`).
+- **Une seule règle** : `expectedHeatingMode` (`lib/heating-schedule.ts`), utilisée par l'automatisation, le reset, le dashboard et la préparation d'arrivée ; **la référence est l'automatisation**. `heating-reset` compte le jour d'arrivée comme occupé dès 12 h (il coupait le préchauffage avant le 2026-11-07).
+- **Occupation** (`isOccupiedAt`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). Heure toujours via `@sejour/socle/lib/time`.
 - Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. `LOCKED_DEVICES` : devices tenus en hors-gel, ignorés par les crons.
-- Détail (modes, scheduling, alertes, présence, dashboard, transitions, vérification du reset) : [docs/heatzy.md](docs/heatzy.md).
+- **Préparation d'arrivée** (`/api/cron/arrival-readiness`, lecture seule) : serrure, radiateurs et ballon contrôlés la veille 19 h et le jour J (12h30, 15h30, 16h30), non-arrivée signalée le lendemain 9 h, pile de la serrure chaque matin ; silence 22 h–8 h. Détail : [docs/surveillance.md](docs/surveillance.md).
+- Détail (modes, scheduling, alertes, présence, dashboard, transitions, reset) : [docs/heatzy.md](docs/heatzy.md).
 
 ## Dashboard stats (`/dashboard/stats`)
 
@@ -832,6 +837,7 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
 | Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
+| Préparation d'arrivée | `/api/cron/arrival-readiness` | `35 * * * *` (jour et nuit) |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
 | Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
 
@@ -876,6 +882,7 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 
 - **Détection** : première ouverture réussie au clavier par le code `<n° de réservation>: …`, lue dans le **journal de la serrure** (`keypadArrivals` du socle, `GET /smartlock/{id}/log`). L'ancien signal — un `infoItems[]` `CHECKIN` que déposait le connecteur Beds24 → Nuki, horodaté dans `createTime` — reste lu en secours pendant la transition ; il disparaît avec le connecteur.
 - **Cron** : `/api/cron/checkin-notifications` toutes les 10 min, fenêtre arrivées J-3 → J+1.
+- **Contenu** : le **prénom seul** (`firstNameOnly` du socle), jamais le nom de famille — le sujet ntfy n'a pour secret que son nom.
 - **Anti-doublon** : Redis `checkin:notified:{bookingId}` (TTL 60 jours) — une seule notif par résa, même si le code est retapé.
 - **Service push** : ntfy.sh (gratuit, topic privé non-devinable). Variable `NTFY_TOPIC` = URL complète (ex `https://ntfy.sh/coliving-barbusse-xxxxx`). Subscribe au topic depuis l'app ntfy mobile.
 - **Helper** : `sendNtfy(message, { title, priority, tags, click })` de `@sejour/socle/lib/ntfy`. Encode automatiquement le titre en RFC 2047 pour les emojis/accents (les headers ntfy doivent être ASCII).
@@ -900,6 +907,10 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
   les lire à une autre date.
 - **Envoi** : même `NTFY_TOPIC` que le check-in, priorité 2 (basse), titre « Veille
   événements — Coliving Barbusse ». `NTFY_TOPIC` absent → **500**, jamais un envoi ignoré.
+
+## Redis (client unique, `lib/redis.ts`)
+
+`getRedis()` est le seul client Upstash du site (les six copies ont été retirées le 2026-11-07). Les **nouvelles** clés passent par `redisKey(...)` → préfixe `barbusse:` ; les anciennes (`heatzy:*`, `cozytouch:*`, `nuki:*`, `checkin:notified:*`, `pricing:*`, `invoice:counter:*`) ne sont **pas** renommées : verrous, compteurs de factures et anti-doublons repartiraient de zéro.
 
 ## Variables d'environnement
 

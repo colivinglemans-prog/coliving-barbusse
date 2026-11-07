@@ -154,7 +154,7 @@ const site = {
       { path: "/api/dashboard/properties", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/pricing", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/bookings/1/nuki-code", anonymous: [401], viewer: [403] },
-      // Les trois portes ouvertes au viewer : projection sans montant, lecture seule.
+      // Les portes ouvertes au viewer : projection sans montant, lecture seule.
       { path: `/api/dashboard/bookings?arrivalFrom=${thisYear() - 1}-01-01&arrivalTo=${thisYear() + 1}-06-30`, anonymous: [401], viewer: [200] },
       {
         path: `/api/dashboard/calendar?propertyId=${PROPERTY_ID}&from=${thisYear()}-01-01&to=${thisYear()}-01-08`,
@@ -162,6 +162,10 @@ const site = {
         viewer: [200],
       },
       { path: "/api/dashboard/heating", anonymous: [401], viewer: [200] },
+      { path: "/api/dashboard/water-heater", anonymous: [401], viewer: [200] },
+      // Ouverte au viewer en lecture (GET) le 2026-11-07 (`proxy.ts`). Règle : toute route dont
+      // la garde accepte le viewer doit aussi être dans `allowedPaths` — cette porte le vérifie.
+      { path: "/api/dashboard/event-links", anonymous: [401], viewer: [200] },
     ],
     cronRoutes: CRON_ROUTES,
     webhooks: [{ path: "/api/webhooks/beds24", secretHeader: "x-webhook-secret" }],
