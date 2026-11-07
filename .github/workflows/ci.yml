@@ -1,0 +1,51 @@
+# Vérifications à chaque push et à chaque PR : lint, types, build.
+#
+# Aucun secret : le build passe sans aucune variable d'environnement (vérifié le
+# 2026-11-07 sans .env.local). Si un jour il en exige une, c'est un défaut à corriger
+# dans le code (lecture à la requête, pas au build), pas une variable à ajouter ici.
+#
+# La CI ne déploie rien : c'est l'intégration GitHub de Vercel qui déploie `main`.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    name: lint + types + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Le lock référence le socle (dépôt public) en git+ssh ; sans clé SSH sur le
+      # runner, on force HTTPS au cas où npm ne passerait pas par l'archive codeload.
+      - name: Socle en HTTPS
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
