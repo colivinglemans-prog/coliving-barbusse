@@ -55,6 +55,9 @@ export const proxy = createDashboardProxy({
     "/dashboard/water-heater",
     "/api/dashboard/bookings",
     "/api/dashboard/calendar",
+    // Lecture seule (GET) : les déliements réservation/événement. L'écriture est sous
+    // `/api/dashboard/bookings/[id]/event-link`, et c'est cette route qui la refuse au viewer.
+    "/api/dashboard/event-links",
     "/api/dashboard/heating",
     "/api/dashboard/water-heater",
     "/api/dashboard/properties",
