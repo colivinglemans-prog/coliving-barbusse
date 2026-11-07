@@ -718,9 +718,10 @@ de l'événement** : elle écrit un démenti, et le démenti gagne toujours sur 
   offrir « Rétablir ».
 - **Portes** : `GET /api/dashboard/event-links` est **voulue** ouverte à `viewer` (la route
   accepte `admin` et `viewer` : l'étiquette s'affiche sans condition de rôle, la servir au seul
-  admin la ferait réapparaître chez lui). ⚠️ Mais `/api/dashboard/event-links` **manque à
-  `allowedPaths`** de `proxy.ts` : le proxy rend 403 au viewer, dont le calendrier retombe sur
-  l'étiquetage automatique. À ajouter à la liste blanche.
+  admin la ferait réapparaître chez lui). Elle figure dans `allowedPaths` de `proxy.ts` depuis
+  le 2026-11-07 (elle y manquait : 403 silencieux chez le viewer). ⚠️ Toute route qui accepte
+  `"viewer"` dans son `guard.deny` doit **aussi** figurer dans `allowedPaths`, sinon le proxy la
+  ferme avant elle, sans erreur visible côté interface.
   `POST` / `DELETE /api/dashboard/bookings/[id]/event-link` sont **admin only** — délier change
   des nombres que le `viewer` ne voit pas. Les deux verbes sont idempotents (`sadd` / `srem`).
 - `eventLinkRef(bookingId, eventKey)` vit dans [lib/events.ts](lib/events.ts) et non dans
