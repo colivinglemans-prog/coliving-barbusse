@@ -84,11 +84,25 @@ export async function loadSnapshots(
   until: string,
   count: number,
 ): Promise<{ date: string; snapshot: PriceSnapshot | null }[]> {
-  const dates = Array.from({ length: count }, (_, i) => addDays(until, i - count + 1));
+  return loadSnapshotsOn(Array.from({ length: count }, (_, i) => addDays(until, i - count + 1)));
+}
+
+/** Les photos de dates précises (format `YYYY-MM-DD` exigé : la clé ne se forge pas). */
+export async function loadSnapshotsOn(
+  dates: string[],
+): Promise<{ date: string; snapshot: PriceSnapshot | null }[]> {
+  assertDates(dates);
+  if (dates.length === 0) return [];
   const values = await getRedis().mget<(PriceSnapshot | null)[]>(
     ...dates.map((d) => KEY_PREFIX + d),
   );
   return dates.map((date, i) => ({ date, snapshot: values[i] ?? null }));
+}
+
+function assertDates(dates: string[]): void {
+  for (const d of dates) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error(`Date de photo invalide : ${d}`);
+  }
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -115,7 +129,14 @@ export async function loadShadows(
   until: string,
   count: number,
 ): Promise<{ date: string; shadow: ShadowPrices | null }[]> {
-  const dates = Array.from({ length: count }, (_, i) => addDays(until, i - count + 1));
+  return loadShadowsOn(Array.from({ length: count }, (_, i) => addDays(until, i - count + 1)));
+}
+
+export async function loadShadowsOn(
+  dates: string[],
+): Promise<{ date: string; shadow: ShadowPrices | null }[]> {
+  assertDates(dates);
+  if (dates.length === 0) return [];
   const values = await getRedis().mget<(ShadowPrices | null)[]>(
     ...dates.map((d) => SHADOW_PREFIX + d),
   );

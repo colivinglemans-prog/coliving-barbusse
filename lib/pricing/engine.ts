@@ -41,7 +41,7 @@ function inMonthDayRange(date: string, from: string, to: string): boolean {
 }
 
 /** Nuits couvertes par un événement : la veille du premier jour jusqu'au dernier jour inclus. */
-function eventNights(e: LocalEvent, extendBefore = 0): string[] {
+export function eventNights(e: LocalEvent, extendBefore = 0): string[] {
   const nights: string[] = [];
   for (let d = addDays(e.start, -1 - extendBefore); d <= e.end; d = addDays(d, 1)) nights.push(d);
   return nights;
