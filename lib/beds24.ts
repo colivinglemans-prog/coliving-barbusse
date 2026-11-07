@@ -70,7 +70,11 @@ const client = createBeds24Client({
     },
     /** Dashboard, factures, fiscal, taxe de séjour. Aucun repli : sans lui, il n'y a rien. */
     lecture: { env: "BEDS24_READ_REFRESH_TOKEN" },
-    /** Consignes de ménage, et rien d'autre. */
+    /**
+     * Consignes de ménage, et le PIN de serrure (`NUKI_PIN`) depuis que la synchronisation
+     * Nuki est faite ici (2026-11-07). `write:bookings` suffit pour les `infoItems` —
+     * vérifié par un ajout puis une suppression sur une réservation réelle.
+     */
     ecriture: { env: "BEDS24_REFRESH_TOKEN" },
     /**
      * Fil de messagerie du voyageur — lecture de l'état des boutons et envoi.
@@ -149,14 +153,23 @@ export async function getBookings(params?: BookingQuery): Promise<Beds24Booking[
   if (params?.arrivalTo) queryParams.arrivalTo = params.arrivalTo;
   if (params?.departureFrom) queryParams.departureFrom = params.departureFrom;
   if (params?.departureTo) queryParams.departureTo = params.departureTo;
-  if (params?.statuses && params.statuses.length > 0) {
-    queryParams.status = params.statuses.join(",");
-  }
   if (params?.includeInvoiceItems) queryParams.includeInvoiceItems = "true";
   if (params?.includeInfoItems) queryParams.includeInfoItems = "true";
 
-  const data = await client.get<{ data: Beds24Booking[] }>("/bookings", { params: queryParams });
-  return data.data ?? [];
+  // Beds24 refuse une liste à virgules (`400 … is not a valid option for the status
+  // parameter`, mesuré le 2026-11-07) et le client du socle ne répète pas une clé : une
+  // requête par statut, fusionnées. Sans `statuses`, l'API **omet les annulées**.
+  const statuses = params?.statuses?.length ? params.statuses : [null];
+  const pages = await Promise.all(
+    statuses.map((status) =>
+      client.get<{ data: Beds24Booking[] }>("/bookings", {
+        params: status ? { ...queryParams, status } : queryParams,
+      }),
+    ),
+  );
+  const byId = new Map<number, Beds24Booking>();
+  for (const page of pages) for (const b of page.data ?? []) byId.set(b.id, b);
+  return [...byId.values()];
 }
 
 /**
@@ -245,6 +258,33 @@ const NUKI_INFO_CODE = "NUKI_PIN";
 export function nukiCodeOf(booking: Beds24Booking): string | null {
   const item = booking.infoItems?.find((i) => (i.code ?? "").toUpperCase() === NUKI_INFO_CODE);
   return item?.text?.trim() || null;
+}
+
+/**
+ * Dépose le PIN de serrure dans la réservation, là où le gabarit du message d'arrivée le
+ * lit (`[BOOKINGINFOCODETEXT:NUKI_PIN]`). Ajout seulement : l'appelant ne l'utilise que
+ * pour une réservation qui n'en a pas — `nukiCodeOf` lit le premier trouvé, un second
+ * serait ignoré.
+ *
+ * ⚠️ **Jamais le corps de la réponse dans une erreur** : Beds24 y renvoie la note créée,
+ * donc le PIN, et les erreurs finissent dans les journaux et dans ntfy.
+ */
+export async function addNukiPin(bookingId: number, pin: string): Promise<void> {
+  const t = await client.token("ecriture");
+  const res = await fetch(`${BEDS24_BASE_URL}/bookings`, {
+    method: "POST",
+    headers: { token: t, "Content-Type": "application/json" },
+    body: JSON.stringify([{ id: bookingId, infoItems: [{ code: NUKI_INFO_CODE, text: pin }] }]),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    if (res.status === 401) client.invalidate("ecriture");
+    throw new Error(`Beds24 a refusé l'écriture du PIN (HTTP ${res.status})`);
+  }
+  const parsed = (await res.json().catch(() => null)) as { success?: boolean }[] | null;
+  if (!Array.isArray(parsed) || parsed[0]?.success !== true) {
+    throw new Error("Beds24 n'a pas confirmé l'écriture du PIN");
+  }
 }
 
 export async function getBookingById(id: number): Promise<Beds24Booking | null> {
