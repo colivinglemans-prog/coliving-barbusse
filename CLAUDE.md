@@ -496,6 +496,48 @@ un merge transparent :
   concernent pas l'archive (historique en lecture seule).
 - **Ré-exécuter le backup** si de nouvelles résas 310268 apparaissent avant la suppression définitive.
 
+## Serrure Nuki — synchronisation des codes
+
+Depuis le 2026-11-07, les codes du clavier sont posés par ce site, plus par le connecteur
+payant Beds24 → Nuki, qui ne poussait plus rien depuis mai 2026 : la serrure de
+remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki Web activé.
+⚠️ La serrure morte, toujours dans le compte, s'appelle **aussi** « Barbusse » : toujours viser l'id.
+
+| Pièce | Rôle |
+|---|---|
+| `@sejour/socle/lib/access-codes` (v3.8.0) | Planificateur pur : quoi créer, recaler, reprendre, supprimer. |
+| `@sejour/socle/lib/nuki` | Client Nuki Web, erreurs expurgées des PIN. |
+| [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, dédoublonné Redis `nuki:alert:*`). Verrou Redis `nuki:sync:lock`. |
+| `/api/cron/nuki-sync` | Passage horaire (cron-job.org). `?dry=1` = plan sans écriture. |
+| `/api/webhooks/beds24` | Webhook « Booking » de Beds24, en-tête `x-webhook-secret`. Déclenche un passage : PIN posé en quelques secondes pour une réservation de dernière minute. Le corps n'est pas lu. |
+
+**Règles de l'exploitant** : code valable de **14 h le jour d'arrivée à 14 h le jour du
+départ** ; nom `<n° de réservation>: <Prénom>` ; statuts `confirmed` et `new` seulement
+(`request`, `inquiry`, `black` : rien) ; annulation → code supprimé ; modification → plage
+recalée ; séjour terminé → supprimé. Une réservation `new` est **passée en `confirmed`**
+(`confirmBooking`, jeton `ecriture`) une fois son PIN dans Beds24 et son code sur la serrure. **Codes `# …` (manuels) jamais touchés** — préfixer de
+`# ` tout code saisi à la main qui doit survivre.
+
+**Le PIN** est tiré des 6 derniers chiffres du téléphone du voyageur quand ils respectent les
+règles du clavier (1 à 9, pas « 12 » en tête) et sont libres, sinon au hasard. Il est écrit
+dans Beds24 (`addNukiPin`, jeton `ecriture`) **avant** d'être posé sur la serrure ; si
+l'écriture échoue, le code n'est pas posé. Le gabarit Beds24 le lit par
+`[BOOKINGINFOCODETEXT:NUKI_PIN]`, et l'auto-action « Before arrival - Send Nuki PIN » est
+conditionnée à la présence de ce code (« All Booking Info Codes »).
+
+**Variables** : `NUKI_API_TOKEN`, `NUKI_SMARTLOCK_ID`, `NUKI_SYNC_MODE` (`live` pour écrire ;
+toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
+
+**Pièges payés le 2026-11-07** :
+- Une mise à jour Nuki (`POST …/auth/{id}`) **efface les champs non renvoyés** — un renommage
+  seul a rendu un code daté permanent. Le socle renvoie toujours l'objet complet.
+- Un PIN est unique par serrure (`409`), et **le message du 409 contient le PIN en clair**.
+- `getBookings` envoyait `status=a,b` : Beds24 répond `400`. Une requête par statut
+  désormais ; et **sans statut, l'API omet les annulées**.
+- La réponse Beds24 à l'ajout d'un `infoItem` renvoie son texte : jamais de corps de
+  réponse dans une erreur de `addNukiPin`.
+- Python (`urllib`) refuse le certificat de `api.beds24.com` : scripts en Node.
+
 ## Heatzy Pilote Pro
 
 - **API** : Gizwits (`https://euapi.gizwits.com`), App ID `c70a66ff039d41b4a220e198b0fcc8b3`
@@ -728,7 +770,7 @@ simplifie, l'infobulle dit toute la vérité, zone sortante comprise.
 Bloc dans la popup de réservation du calendrier — [components/dashboard/GuestShareBlock.tsx](components/dashboard/GuestShareBlock.tsx). Copie en un clic du lien du guide et d'un message prêt à envoyer dans les 5 langues, plus le code de la serrure.
 
 - **Rendu uniquement si `isAdmin`** (prop passée par la page calendrier depuis `effectiveRole`, donc masqué aussi en « Vue viewer »).
-- **Code Nuki** : Beds24 dépose le PIN 6 chiffres dans `infoItems[]` sous `code = "NUKI_PIN"` (champ `text`), environ **6 jours avant l'arrivée** seulement → prévoir l'état « Pas encore généré ». Lu via `GET /api/dashboard/bookings/[id]/nuki-code` (admin only via JWT, re-vérifié dans la route car le middleware ne bloque pas viewer sur `/api/dashboard/bookings`). Route dédiée volontairement : le calendrier charge ~19 mois de résas, hors de question d'y faire transiter les PIN. **Ne jamais logger le PIN — le dépôt est public.**
+- **Code Nuki** : le PIN 6 chiffres vit dans `infoItems[]` sous `code = "NUKI_PIN"` (champ `text`). Il y est désormais écrit **par notre synchronisation** dès la réservation (voir « Serrure Nuki »), et non plus par le connecteur Beds24 à J-6 → l'état « Pas encore généré » ne dure que jusqu'au passage suivant. Le bouton « Arrivée + code » refuse (`409`) tant que le code n'est pas **sur la serrure** avec ce PIN. Lu via `GET /api/dashboard/bookings/[id]/nuki-code` (admin only via JWT, re-vérifié dans la route car le middleware ne bloque pas viewer sur `/api/dashboard/bookings`). Route dédiée volontairement : le calendrier charge ~19 mois de résas, hors de question d'y faire transiter les PIN. **Ne jamais logger le PIN — le dépôt est public.**
 - **URL et langues** : `guideUrl()` / `guestLocaleFromCountry()` dans [lib/site.ts](lib/site.ts) ; modèles de message dans [lib/guest-messages.ts](lib/guest-messages.ts) (vouvoiement FR/DE, tutoiement IT/ES, comme le guide).
 - **Presse-papier** : le dashboard est utilisé en mode « app » sur mobile, où `navigator.clipboard` peut être refusé → repli sur un champ sélectionnable, jamais d'échec silencieux.
 
@@ -1367,6 +1409,7 @@ Exemple résa Direct (85615323) : Σ(daily rates) + Ménage 250 + Draps 140 **�
 | Automation ECS | `/api/cron/water-heater-automation` | `0 * * * *` |
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
+| Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
 | Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
 
@@ -1420,7 +1463,7 @@ L'invite code est à usage unique et valable 24 h.
 
 Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et envoie une notification push.
 
-- **Détection** : Beds24 ajoute un `infoItems[]` avec `code = "CHECKIN"` quand le voyageur tape son code Nuki. L'horodatage est dans `createTime` (ISO UTC) — **le champ `text` est vide**. La date affichée dans l'UI Beds24 vient de `createTime` formatté en local.
+- **Détection** : première ouverture réussie au clavier par le code `<n° de réservation>: …`, lue dans le **journal de la serrure** (`keypadArrivals` du socle, `GET /smartlock/{id}/log`). L'ancien signal — un `infoItems[]` `CHECKIN` que déposait le connecteur Beds24 → Nuki, horodaté dans `createTime` — reste lu en secours pendant la transition ; il disparaît avec le connecteur.
 - **Cron** : `/api/cron/checkin-notifications` toutes les 10 min, fenêtre arrivées J-3 → J+1.
 - **Anti-doublon** : Redis `checkin:notified:{bookingId}` (TTL 60 jours) — une seule notif par résa, même si le code est retapé.
 - **Service push** : ntfy.sh (gratuit, topic privé non-devinable). Variable `NTFY_TOPIC` = URL complète (ex `https://ntfy.sh/coliving-barbusse-xxxxx`). Subscribe au topic depuis l'app ntfy mobile.

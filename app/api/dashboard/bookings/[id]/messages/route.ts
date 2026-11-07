@@ -7,6 +7,7 @@ import {
   sendBookingMessage,
 } from "@/lib/beds24";
 import { guard } from "@/lib/auth";
+import { isPinOnLock } from "@/lib/access-sync";
 import { GUIDE_LOCALES, guestLocaleFromCountry, guideUrl, type GuideLocale } from "@/lib/site";
 import {
   buildDepartureMessage,
@@ -155,7 +156,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
        */
       if (!code) {
         return NextResponse.json(
-          { error: "Le PIN Nuki n'est pas encore généré par Beds24 (~6 jours avant l'arrivée)." },
+          { error: "Le PIN n'est pas encore généré : la synchronisation de la serrure le pose dès la réservation." },
+          { status: 409 },
+        );
+      }
+      // On n'envoie pas un code qui n'ouvre pas : il doit être sur la serrure, avec ce PIN.
+      if (!(await isPinOnLock(booking.id, code))) {
+        return NextResponse.json(
+          { error: "Le code n'est pas encore sur la serrure. Réessayer après le prochain passage de la synchronisation." },
           { status: 409 },
         );
       }

@@ -5,6 +5,7 @@ import { getBookingsWithArchive } from "@/lib/bookings";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import type { Beds24Booking } from "@/lib/types";
+import { readKeypadArrivals } from "@/lib/access-sync";
 
 const CHECKIN_INFO_CODE = "CHECKIN";
 const REDIS_KEY_TTL_SECONDS = 60 * 24 * 3600; // 60 jours
@@ -65,6 +66,17 @@ export async function GET(request: NextRequest) {
       includeInfoItems: true,
     });
 
+    // Source de l'arrivée : la première ouverture au clavier par le code de la réservation,
+    // lue dans le journal de la serrure. L'`infoItem` `CHECKIN` que déposait le connecteur
+    // Beds24 → Nuki reste lu en secours, le temps que ses derniers séjours passent.
+    let keypad = new Map<number, string>();
+    let keypadError: string | null = null;
+    try {
+      keypad = await readKeypadArrivals();
+    } catch (e) {
+      keypadError = e instanceof Error ? e.message : String(e);
+    }
+
     const redis = getRedis();
     const notified: Array<{ id: number; guest: string; arrivalTime: string }> = [];
     const errors: Array<{ id: number; error: string }> = [];
@@ -74,17 +86,17 @@ export async function GET(request: NextRequest) {
       if (b.status === "cancelled" || b.status === "black") continue;
 
       const item = findCheckInItem(b);
-      if (!item) continue;
+      const enteredAt = keypad.get(b.id) ?? item?.createTime ?? null;
+      if (!enteredAt) continue;
 
       const key = `checkin:notified:${b.id}`;
       const already = await redis.get(key);
       if (already) continue;
 
       const guest = formatGuest(b);
-      // Beds24 stocke l'horodatage du check-in Nuki dans `createTime` (ISO UTC).
-      // Le champ `text` est vide pour ce code. La date affichée dans l'UI Beds24 vient de createTime.
-      const arrivalTime = item.createTime
-        ? new Date(item.createTime).toLocaleString("fr-FR", {
+      // Instant ISO UTC : journal de la serrure, ou `createTime` de l'ancien `CHECKIN`.
+      const arrivalTime = enteredAt
+        ? new Date(enteredAt).toLocaleString("fr-FR", {
             timeZone: "Europe/Paris",
             day: "2-digit",
             month: "2-digit",
@@ -109,7 +121,7 @@ export async function GET(request: NextRequest) {
           tags: ["key"],
         });
         // SET seulement après succès de l'envoi pour pouvoir retry au prochain tick si ntfy down
-        await redis.set(key, { at: new Date().toISOString(), createTime: item.createTime ?? null }, {
+        await redis.set(key, { at: new Date().toISOString(), enteredAt }, {
           ex: REDIS_KEY_TTL_SECONDS,
         });
         notified.push({ id: b.id, guest, arrivalTime });
@@ -127,6 +139,7 @@ export async function GET(request: NextRequest) {
       scanned: bookings.length,
       notified,
       errors,
+      keypadError,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
