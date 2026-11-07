@@ -72,6 +72,8 @@ app/
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
       heating-health/      # Check connectivité + email alertes
       events-watch/        # Hebdo : rappel des dates d'événements à confirmer / calendrier à remplir (ntfy)
+      pricing-snapshot/    # Quotidien (Vercel 05:00 UTC) : photo prix/séjour min/dispo 365 j → Upstash
+      pricing-report/      # Lundi (Vercel 06:00 UTC) : rapport d'évaluation du pricing (ntfy), ?dry=1
 components/
   public/             # Composants du site vitrine
   dashboard/          # Composants du dashboard
@@ -239,6 +241,22 @@ migrer vers Beds24 (source unique). Propagation vers Airbnb :
 
 **Côté site** : badge « −7% en réservation directe » dans le calendrier public (clé i18n
 `calendar.directDiscount`, 5 langues). **Détail complet (plan + config Beds24 + résultats vérifiés)** : [docs/refonte-pricing.md](docs/refonte-pricing.md).
+
+## Historique des prix et évaluation de Beyond (depuis le 2026-11-07)
+
+Beds24 écrase chaque prix que Beyond lui pousse sans en garder trace. `lib/pricing/snapshot.ts`
+relève chaque jour le calendrier (prix `price1`, séjour minimum, `numAvail`) sur **365 jours** —
+la limite d'un appel Beds24, et aussi la fenêtre de réservation : au-delà, `numAvail` vaut 0
+partout. Stockage Upstash, clé `pricing:snapshot:barbusse:{YYYY-MM-DD}`, sans TTL (~8 Ko/jour).
+Première photo : **2026-11-07**. Une nuit qui passe de vendable à non vendable entre deux photos
+est une vente (ou un blocage) ; son prix la veille est le prix affiché au moment de la vente.
+
+`lib/pricing/weekly-report.ts` (pur, sans I/O) construit le rapport du lundi : prix modifiés par
+distance à la nuit, nuits vendues et leur prix affiché, remplissage 30/90/180 j contre la semaine
+précédente et l'an dernier à la même date (`bookedAt`), tarification des événements de
+`LE_MANS_EVENTS` (× médiane du mois hors événement), réservations reçues. Les prix sont des
+**nuits de base ≤ 9 pers., avant markup canal et frais** : ils se comparent entre eux, pas au
+montant payé.
 
 ## Calendrier public de réservation
 

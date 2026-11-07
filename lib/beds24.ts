@@ -383,6 +383,65 @@ export async function getDailyPrices(
   return sumByDate;
 }
 
+/** Une journée du calendrier telle que le pricing la voit : prix, séjour minimum, dispo. */
+export interface CalendarDay {
+  price: number;
+  minStay: number;
+  /** `true` si la maison est encore vendable ce jour-là (`numAvail > 0`). */
+  available: boolean;
+}
+
+/**
+ * Prix, séjour minimum et disponibilité en **un seul appel**, pour la photo quotidienne du
+ * pricing (`lib/pricing/snapshot.ts`). C'est la valeur que Beyond pousse dans Beds24 : la
+ * relever chaque jour est le seul moyen d'en garder l'historique, Beds24 n'en conserve aucun.
+ *
+ * Une seule room (`633259`) depuis la fin de la location à la chambre ; s'il y en avait
+ * plusieurs, les prix seraient sommés comme dans `getDailyPrices`, le séjour minimum pris au
+ * plus haut, et la maison vendable seulement si toutes les rooms le sont.
+ */
+export async function getCalendarDays(
+  propertyId: number,
+  from: string,
+  to: string,
+): Promise<Record<string, CalendarDay>> {
+  const data = await client.get<{ data: Beds24CalendarRoom[] }>("/inventory/rooms/calendar", {
+    params: {
+      propertyId: String(propertyId),
+      startDate: from,
+      endDate: to,
+      includePrices: "true",
+      includeMinStay: "true",
+      includeNumAvail: "true",
+    },
+    route: "public",
+  });
+
+  const price: Record<string, number> = {};
+  const minStay: Record<string, number> = {};
+  const numAvail: Record<string, number> = {};
+  for (const room of data.data ?? []) {
+    expandSpans(room.calendar, (e) => e.price1, (a, b) => (a ?? 0) + b, price);
+    expandSpans(room.calendar, (e) => e.minStay, (a, b) => Math.max(a ?? 0, b), minStay);
+    expandSpans(
+      room.calendar,
+      (e) => (e as { numAvail?: number }).numAvail,
+      (a, b) => Math.min(a ?? Infinity, b),
+      numAvail,
+    );
+  }
+
+  const days: Record<string, CalendarDay> = {};
+  for (const date of Object.keys(price).sort()) {
+    days[date] = {
+      price: price[date],
+      minStay: minStay[date] ?? 1,
+      available: (numAvail[date] ?? 0) > 0,
+    };
+  }
+  return days;
+}
+
 export async function getMinStay(
   propertyId: number,
   from: string,
