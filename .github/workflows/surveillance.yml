@@ -1,0 +1,87 @@
+# Surveillance de la production : contrôles `vital` toutes les heures, `full` une fois par jour.
+#
+# Le moteur et le job d'alerte sont dans le socle (`deploy-checks.yml`), appelé **par SHA** :
+# un commit poussé dans le socle ne s'exécute pas avec nos secrets tant qu'on n'a pas relu et
+# changé ce SHA (socle v3.10.0). Les attendus du site sont dans `tests/deploy/site.ts`.
+#
+# Deux déclencheurs : `vital` toutes les heures à :15, `full` une fois par jour à 04:40 UTC
+# (5h40 à Paris l'hiver, 6h40 l'été). Un `full` à part plutôt qu'un « passage de 6h » choisi à
+# l'heure de Paris : GitHub retarde souvent ses `cron`, et un passage de 6h15 parti après 7h aurait
+# perdu le `full` du jour. Les deux ne tournent jamais ensemble (`concurrency` ci-dessous), et un
+# `vital` ne « rétablit » pas un échec `full` qu'il n'a pas re-contrôlé (`alertInputs`, socle).
+#
+# Barbusse appelle Beds24 à :15, Albiez à :45 : les deux jetons de supervision ne se croisent pas.
+#
+# Anti-extinction : GitHub suspend les `schedule` d'un dépôt sans activité depuis 60 jours.
+# cron-job.org déclenche `workflow_dispatch` chaque jour (jeton GitHub à grain fin, à date
+# d'expiration : voir CLAUDE.md).
+
+name: surveillance
+
+on:
+  schedule:
+    - cron: "15 * * * *"
+    - cron: "40 4 * * *"
+  workflow_dispatch:
+    inputs:
+      level:
+        description: Niveau de contrôle
+        type: choice
+        options: [vital, full]
+        default: vital
+      base_url:
+        description: URL testée (vide = production)
+        type: string
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: surveillance
+  cancel-in-progress: false
+
+jobs:
+  niveau:
+    name: niveau
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    outputs:
+      level: ${{ steps.level.outputs.level }}
+    steps:
+      - id: level
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          REQUESTED: ${{ inputs.level }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            level="$REQUESTED"
+          elif [ "$SCHEDULE" = "40 4 * * *" ]; then
+            level=full
+          else
+            level=vital
+          fi
+          case "$level" in vital|full) ;; *) level=vital ;; esac
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+
+  controles:
+    needs: niveau
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+    uses: colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml@f1cfe57cd27dc809c911988c47f11623e3b5b4d1 # v3.10.2
+    with:
+      site_name: Coliving Barbusse
+      level: ${{ needs.niveau.outputs.level }}
+      base_url: ${{ inputs.base_url || '' }}
+      alert: true
+      # « La surveillance a sauté » : plus aucun run vert depuis 26 h. Vérifié au passage quotidien.
+      max_green_age_hours: ${{ needs.niveau.outputs.level == 'full' && 26 || 0 }}
+      run_label: ${{ needs.niveau.outputs.level }}
+    secrets:
+      BEDS24_MONITOR_TOKEN: ${{ secrets.BEDS24_MONITOR_TOKEN }}
+      DEPLOY_VIEWER_PASSWORD: ${{ secrets.DEPLOY_VIEWER_PASSWORD }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}

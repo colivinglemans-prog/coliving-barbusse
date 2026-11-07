@@ -7,6 +7,7 @@ import {
   type AvailabilityResponse,
 } from "@sejour/socle/lib/availability";
 import { bookingUrl } from "@sejour/socle/lib/booking-url";
+import { PROPERTY_ID } from "@/lib/beds24-property";
 import type { Locale } from "@/lib/i18n";
 
 /**
@@ -23,7 +24,6 @@ import type { Locale } from "@/lib/i18n";
  * lignes passées disparaissent d'elles-mêmes.
  */
 
-const PROPERTY_ID = 303771;
 /** Séjour minimum retenu quand Beds24 n'en impose aucun sur la période. */
 const DEFAULT_MIN_STAY = 2;
 

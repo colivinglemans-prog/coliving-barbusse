@@ -47,6 +47,12 @@ export interface HeatzyDeviceConfig {
   did: string;
   name: string;
   defaultMode: HeatzyMode;
+  /**
+   * Radiateur dont le module Heatzy n'est pas appairé (Chambres 3 et 7 au 2026-11-07) : la
+   * préparation d'arrivée l'ignore, il ne déclenche jamais d'alerte d'arrivée. L'automatisation
+   * continue de lui envoyer son mode.
+   */
+  unpaired?: boolean;
 }
 
 export interface HeatzyZone {

@@ -6,9 +6,9 @@ import {
   setDeviceMode,
   setDeviceTemperatures,
   getDeviceStatus,
-  getOccupiedMode,
   getSummerMode,
 } from "@/lib/heatzy";
+import { resetTarget } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
@@ -42,21 +42,10 @@ export async function GET(request: NextRequest) {
       getLockedDevices(),
     ]);
 
-    // Build set of occupied device IDs
-    const occupiedDeviceIds = new Set<string>();
-    for (const mapping of Object.values(config.roomMapping)) {
-      const isOccupied = activeBookings.some(
-        (b) =>
-          (b.arrival < today && b.departure > today) ||
-          (b.arrival === today && b.departure > today && currentHour >= 17) ||
-          (b.departure === today && currentHour < 10),
-      );
-      if (isOccupied) {
-        for (const did of mapping.deviceIds) {
-          occupiedDeviceIds.add(did);
-        }
-      }
-    }
+    // Le mode et le statut « occupé » de chaque radiateur viennent de `resetTarget` : un jour
+    // d'arrivée compte comme occupé dès 12 h, pour ne plus couper le préchauffage aux passages
+    // de 12 h et 16 h. (L'ancienne boucle sur `roomMapping` testait la même condition pour
+    // toutes les entrées : l'occupation était déjà globale à la maison.)
     const actions: string[] = [];
 
     const failures: string[] = [];
@@ -70,10 +59,13 @@ export async function GET(request: NextRequest) {
         }
 
         try {
-          const isOccupied = occupiedDeviceIds.has(device.did);
-          const targetMode = isOccupied
-            ? getOccupiedMode(zone, currentHour)
-            : device.defaultMode;
+          const { mode: targetMode, occupied: isOccupied } = resetTarget(
+            activeBookings,
+            today,
+            currentHour,
+            zone,
+            device,
+          );
 
           // Set mode
           await setDeviceMode(device.did, targetMode);
@@ -81,7 +73,8 @@ export async function GET(request: NextRequest) {
           // Reset temperatures
           if (zone.cftTemp && zone.ecoTemp) {
             if (isOccupied) {
-              // Only reset if guest INCREASED the temperature
+              // Occupé, ou jour d'arrivée après 12 h : on ne remet les consignes que si
+              // elles ont été montées.
               try {
                 const status = await getDeviceStatus(device.did);
                 const actualCft = status.cft_temp as number | undefined;

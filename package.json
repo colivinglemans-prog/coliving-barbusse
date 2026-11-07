@@ -9,11 +9,12 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:deploy": "vitest run -c vitest.deploy.config.ts",
     "translate-reviews": "node scripts/translate-reviews.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
-    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#v3.8.1",
+    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#v3.10.2",
     "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.8.2",

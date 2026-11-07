@@ -1,4 +1,4 @@
-import { Redis } from "@upstash/redis";
+import { getRedis } from "./redis";
 import {
   createInvoiceNumbering,
   type InvoiceCounterStore,
@@ -20,17 +20,6 @@ import { INVOICE_COUNTER_PREFIX } from "./invoice-config";
  * numéro attribué après la bascule, la nouvelle clé est semée avec l'ancienne valeur et la
  * série reprend à `2026-014`. À retirer une fois 2026 close.
  */
-let redisClient: Redis | null = null;
-function getRedis(): Redis {
-  if (!redisClient) {
-    redisClient = new Redis({
-      url: process.env.KV_REST_API_URL!,
-      token: process.env.KV_REST_API_TOKEN!,
-    });
-  }
-  return redisClient;
-}
-
 const store: InvoiceCounterStore = {
   incr: (key) => getRedis().incr(key),
   get: (key) => getRedis().get<number | string | null>(key),

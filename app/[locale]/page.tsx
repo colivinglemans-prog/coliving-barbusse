@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { alternatesFor, homePath, openGraphLocales } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
+import { PROPERTY_INFO } from "@/lib/property-info";
+import { aggregateRatingJsonLd } from "@/lib/reviews";
 import { isLocale } from "@/lib/i18n";
 import PhotoGallery from "@/components/public/PhotoGallery";
 import PropertyHeader from "@/components/public/PropertyHeader";
@@ -87,19 +89,14 @@ export default async function Home({
       latitude: 47.9842,
       longitude: 0.1976,
     },
-    numberOfRooms: 9,
+    numberOfRooms: PROPERTY_INFO.bedrooms,
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Wi-Fi", value: true },
       { "@type": "LocationFeatureSpecification", name: amenity.parking, value: true },
       { "@type": "LocationFeatureSpecification", name: amenity.gym, value: true },
       { "@type": "LocationFeatureSpecification", name: amenity.zen, value: true },
     ],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "24",
-      bestRating: "5",
-    },
+    aggregateRating: aggregateRatingJsonLd(),
     inLanguage: locale,
   };
 

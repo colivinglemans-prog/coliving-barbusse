@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getOccupiedMode, getHeatingRules, getSummerMode } from "@/lib/heatzy";
+import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getSummerMode } from "@/lib/heatzy";
+import { expectedHeatingMode, getHeatingRules, heatingSituation } from "@/lib/heating-schedule";
 import { getBookingsWithArchive } from "@/lib/bookings";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
+import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
 import { guard } from "@/lib/auth";
-
-function hasActiveReservation(
-  bookings: { arrival: string; departure: string }[],
-): boolean {
-  const today = todayParis();
-  const hour = currentHourParis();
-  return bookings.some(
-    (b) =>
-      (b.arrival < today && b.departure > today) ||
-      (b.arrival === today && b.departure > today && hour >= 17) ||
-      (b.departure === today && hour < 10),
-  );
-}
 
 /** Returns the target temperature (°C) for the current mode */
 function getTargetTemp(
@@ -42,33 +31,27 @@ export async function GET(request: NextRequest) {
     );
 
     // Fetch device list and active bookings in parallel
-    const [rawDevices, activeBookings] = await Promise.all([
+    const [rawDevices, fetchedBookings] = await Promise.all([
       getDevices(),
       getBookingsWithArchive({
         arrivalTo: todayParis(),
         departureFrom: todayParis(),
       }).catch(() => []),
     ]);
+    // Mêmes réservations que l'automatisation : sans les statuts exclus (bloquées, annulées).
+    const activeBookings = fetchedBookings.filter((b) => !isExcludedStatus(b.status));
 
-    const occupied = hasActiveReservation(activeBookings);
     const rawDeviceMap = new Map(rawDevices.map((d) => [d.did, d]));
     const currentHour = currentHourParis();
-
-    // Check for same-day turnaround and next check-in
     const today = todayParis();
-    const hasCheckOutToday = activeBookings.some((b) => b.departure === today);
-    const hasCheckInToday = activeBookings.some((b) => b.arrival === today);
-    const hasSameDayTurnaround = hasCheckOutToday && hasCheckInToday;
-    const futureBookings = activeBookings
-      .filter((b) => b.arrival > today)
-      .sort((a, b) => a.arrival.localeCompare(b.arrival));
-    // On check-in day (not yet occupied), treat today as the next check-in for pre-heating display
-    const nextCheckIn = (hasCheckInToday && !occupied)
-      ? today
-      : futureBookings[0]?.arrival;
 
-    // Compute heating rules
-    const rules = getHeatingRules(occupied, currentHour, hasSameDayTurnaround, nextCheckIn);
+    // Le mode attendu et la règle affichée viennent de la même fonction que l'automatisation.
+    const situation = heatingSituation(activeBookings, today, currentHour);
+    const occupied = situation === "occupied";
+    const nextCheckIn = activeBookings
+      .filter((b) => b.arrival > today)
+      .sort((a, b) => a.arrival.localeCompare(b.arrival))[0]?.arrival;
+    const rules = getHeatingRules(situation, currentHour, nextCheckIn);
     const [lockedDevices, summerMode] = await Promise.all([
       getLockedDevices(),
       getSummerMode(),
@@ -145,10 +128,10 @@ export async function GET(request: NextRequest) {
           temperature: curTemp,
           cftTemp: deviceCftTemp,
           ecoTemp: deviceEcoTemp,
-          expectedMode: isLocked ? "fro" : occupied ? getOccupiedMode(deviceConfig.zone, currentHour)
-            : (hasCheckInToday && currentHour >= 15) ? "cft"
-            : (hasCheckInToday && currentHour >= 12) ? "eco"
-            : "fro",
+          expectedMode: isLocked
+            ? "fro"
+            : (expectedHeatingMode(activeBookings, today, currentHour, deviceConfig.zone).mode ??
+              deviceConfig.defaultMode),
           targetTemp,
           alerts,
         } as HeatzyDevice;

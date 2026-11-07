@@ -1,0 +1,52 @@
+# Contrôles `full` après chaque déploiement Vercel réussi (preview comme production).
+#
+# Déclenché par l'événement `deployment_status` que l'intégration GitHub de Vercel publie. On
+# teste l'URL **du déploiement** (`environment_url`), pas la production : une preview cassée se
+# voit avant d'être promue. Les contrôles réservés à la production y sont sautés par le moteur.
+#
+# Alerte (issue `surveillance-ko` + ntfy) **pour la production seulement** : une preview en
+# échec est un retour au développeur, pas une panne du site.
+#
+# Workflow du socle appelé par SHA (v3.10.0), secrets passés un par un, jamais `inherit`.
+
+name: post-deploy
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: URL du déploiement à contrôler
+        type: string
+        required: true
+
+permissions: {}
+
+# En production, même groupe que la surveillance : les deux écrivent dans la même issue d'alerte
+# et ne doivent jamais tourner ensemble. Une preview a son propre groupe (et pas d'alerte).
+concurrency:
+  group: ${{ github.event.deployment.environment == 'Production' && 'surveillance' || format('post-deploy-{0}', github.event.deployment.id || github.run_id) }}
+  cancel-in-progress: false
+
+jobs:
+  controles:
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+    uses: colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml@f1cfe57cd27dc809c911988c47f11623e3b5b4d1 # v3.10.2
+    with:
+      site_name: Coliving Barbusse
+      level: full
+      # En production, on teste le vrai domaine : l'URL du déploiement (`…vercel.app`) sauterait
+      # les contrôles réservés au domaine (apex → www, robots d'IA). Écrit en toutes lettres :
+      # `cond && '' || x` rendrait toujours `x`, la chaîne vide étant fausse.
+      base_url: ${{ github.event.deployment.environment == 'Production' && 'https://www.coliving-barbusse.fr' || github.event.deployment_status.environment_url || inputs.base_url }}
+      alert: ${{ github.event.deployment.environment == 'Production' }}
+      run_label: deploy-${{ github.event.deployment.id || github.run_id }}
+    secrets:
+      BEDS24_MONITOR_TOKEN: ${{ secrets.BEDS24_MONITOR_TOKEN }}
+      DEPLOY_VIEWER_PASSWORD: ${{ secrets.DEPLOY_VIEWER_PASSWORD }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}

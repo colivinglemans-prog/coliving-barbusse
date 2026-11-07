@@ -2,6 +2,7 @@
 
 import ReservationCalendar from "@sejour/socle/components/ReservationCalendar";
 import { useTranslation } from "@/lib/i18n";
+import { PROPERTY_ID, availabilityPath } from "@/lib/beds24-property";
 
 /**
  * Calendrier de réservation directe — l'enveloppe locale du composant du socle.
@@ -30,10 +31,10 @@ export default function ReservationCalendarLocal() {
 
   return (
     <ReservationCalendar
-      propertyId={303771}
+      propertyId={PROPERTY_ID}
       lang={locale}
       // `mode=map` borne des jours inclus, des deux côtés.
-      availabilityUrl={(from, to) => `/api/availability?mode=map&from=${from}&to=${to}`}
+      availabilityUrl={availabilityPath}
       labels={t.calendar}
       a11y={{
         previousMonth: t.calendar.previousMonth,

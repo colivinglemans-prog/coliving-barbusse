@@ -1,21 +1,7 @@
-import type { HeatzyMode, HeatzyZone, HeatzyZoneConfig } from "./types";
-import { todayParis } from "@sejour/socle/lib/time";
+import type { HeatzyMode, HeatzyZoneConfig } from "./types";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { Redis } from "@upstash/redis";
-
-// ─── Upstash Redis client ───────────────────────────────────
-
-let redisClient: Redis | null = null;
-function getRedis(): Redis {
-  if (!redisClient) {
-    redisClient = new Redis({
-      url: process.env.KV_REST_API_URL!,
-      token: process.env.KV_REST_API_TOKEN!,
-    });
-  }
-  return redisClient;
-}
+import { getRedis } from "./redis";
 
 const LOCKS_KEY = "heatzy:locked-devices";
 const EXTRAS_KEY = "heatzy:extra-devices";
@@ -36,110 +22,19 @@ function setCached(key: string, value: unknown) {
 }
 
 // ─── Scheduling logic ───────────────────────────────────────
-
-/**
- * Returns the mode a zone should be in given current hour and occupancy.
- * Chambres: 7h-20h presence, 20h-7h confort
- * RDC (nightMode set): 0h-5h nightMode, rest same as chambres
- */
-export function getOccupiedMode(zone: HeatzyZone, hour: number): HeatzyMode {
-  // Night mode override (0h-5h) for zones with nightMode (e.g. RDC)
-  if (zone.nightMode && hour >= 0 && hour < 5) {
-    return zone.nightMode;
-  }
-  // Daytime: presence (7h-20h)
-  if (hour >= 7 && hour < 20) {
-    return "presence";
-  }
-  // Evening/night: confort
-  return "cft";
-}
-
-/**
- * Returns the mode for a between-reservations gap (same-day checkout+checkin).
- * Éco from 9h to 17h, otherwise hors-gel.
- */
-export function getBetweenReservationsMode(hour: number): HeatzyMode {
-  if (hour >= 9 && hour < 17) return "eco";
-  return "fro";
-}
-
-/**
- * Returns human-readable description of current and next heating rule.
- */
-export function getHeatingRules(
-  occupied: boolean,
-  hour: number,
-  hasSameDayTurnaround: boolean,
-  nextCheckIn?: string,
-): { currentRule: string; nextRule: string } {
-  if (!occupied && !hasSameDayTurnaround) {
-    const today = todayParis();
-    const isCheckInToday = nextCheckIn === today;
-
-    if (isCheckInToday) {
-      if (hour < 12) {
-        return {
-          currentRule: "Arrivée aujourd'hui — Hors-gel",
-          nextRule: "À 12h → Pré-chauffage éco, à 15h → confort",
-        };
-      } else if (hour < 15) {
-        return {
-          currentRule: "Arrivée aujourd'hui — Pré-chauffage éco",
-          nextRule: "À 15h → Confort (arrivée à 17h)",
-        };
-      } else {
-        return {
-          currentRule: "Arrivée aujourd'hui — Pré-chauffage confort",
-          nextRule: "Arrivée prévue à 17h",
-        };
-      }
-    }
-
-    let nextRule = "Aucune réservation prochaine";
-    if (nextCheckIn) {
-      nextRule = `Prochain check-in : ${nextCheckIn}`;
-    }
-    return {
-      currentRule: "Pas de réservation — Hors-gel",
-      nextRule,
-    };
-  }
-
-  if (hasSameDayTurnaround && !occupied) {
-    const mode = hour >= 9 && hour < 17 ? "Éco (entre deux réservations)" : "Hors-gel";
-    return {
-      currentRule: `Entre deux réservations — ${mode}`,
-      nextRule: hour < 17 ? "À 17h → Pré-chauffage confort" : "Check-in imminent",
-    };
-  }
-
-  // Occupied
-  if (hour >= 7 && hour < 20) {
-    return {
-      currentRule: "Réservation active — Présence (7h-20h)",
-      nextRule: "À 20h → Confort (nuit)",
-    };
-  }
-  if (hour >= 20) {
-    return {
-      currentRule: "Réservation active — Confort (nuit)",
-      nextRule: "À 0h → Présence RDC / Confort chambres",
-    };
-  }
-  // 0h-5h
-  if (hour < 5) {
-    return {
-      currentRule: "Réservation active — Nuit (RDC présence, chambres confort)",
-      nextRule: "À 5h → Confort partout",
-    };
-  }
-  // 5h-7h
-  return {
-    currentRule: "Réservation active — Confort (5h-7h)",
-    nextRule: "À 7h → Mode présence",
-  };
-}
+//
+// Le mode attendu vit dans `lib/heating-schedule.ts` (pur, testé) : une seule source pour
+// l'automatisation, le reset, le dashboard et la préparation d'arrivée. Réexporté ici pour
+// les appelants historiques.
+export {
+  getOccupiedMode,
+  getBetweenReservationsMode,
+  getHeatingRules,
+  expectedHeatingMode,
+  heatingSituation,
+  isOccupiedAt,
+  resetTarget,
+} from "./heating-schedule";
 
 const GIZWITS_APP_ID = "c70a66ff039d41b4a220e198b0fcc8b3";
 const BASE_URL = "https://euapi.gizwits.com";

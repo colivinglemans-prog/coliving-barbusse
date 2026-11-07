@@ -8,6 +8,9 @@ export default defineConfig({
   },
   test: {
     include: ["tests/**/*.test.ts"],
+    // Les contrôles post-déploiement interrogent la production : jamais dans `npm test`, qui
+    // tourne sans réseau en CI. Ils ont leur propre config (`vitest.deploy.config.ts`).
+    exclude: ["tests/deploy/**", "node_modules/**"],
     environment: "node",
     // Le socle est publié en TypeScript source (exports `./lib/*.ts`) : Node ne sait pas le
     // charger tel quel, vitest doit le transformer comme du code du projet.
