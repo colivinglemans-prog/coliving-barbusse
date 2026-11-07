@@ -22,11 +22,12 @@ Une API publique en lecture (GET, JSON, sans clé) donne les disponibilités et 
 
 - Fiche, règles, annulation et paiement : https://www.coliving-barbusse.fr/api/agent/info
 - Contrat OpenAPI : https://www.coliving-barbusse.fr/api/agent/openapi
-- Prix d'un séjour : `GET /api/agent/quote?checkin=2026-12-18&checkout=2026-12-20&adults=14&children=4` (`children` = mineurs ; `lang=en` pour l'anglais ; `src=` avec le nom de l'assistant)
+- Prix d'un séjour : `GET /api/agent/quote?checkin=2026-12-18&checkout=2026-12-20&adults=14&children=4` (`children` = mineurs de 0 à 17 ans, exonérés de taxe de séjour ; les moins de 10 ans sont acceptés sous la surveillance des adultes ; `lang=en` pour l'anglais ; `src=` avec le nom de l'assistant)
 - Dates floues (« un week-end en mars pour 14 ») : `GET /api/agent/find?from=2027-03-01&to=2027-03-31&nights=2&adults=14&weekdays=fri` — renvoie jusqu'à 5 séjours libres, chacun avec son prix et ses liens
 - Nuits libres d'une période : `GET /api/agent/availability?from=2026-12-01&to=2026-12-31`
 - Une demande refusée (dates prises, durée minimale) renvoie la raison et les séjours libres les plus proches, déjà chiffrés.
 - Si la réponse contient `notices` (arrivée le jour même), les relayer au voyageur **avant** de lui donner le lien de réservation.
+- La page de paiement Beds24 (`bookUrl`) charge ses prix en JavaScript : lue sans JavaScript, elle affiche un texte masqué « Pas de disponibilité ». Ce n'est pas l'état réel : l'API ci-dessus fait foi.
 
 ## Accès
 

@@ -111,6 +111,8 @@ export const STAY_AGENT: StayAgentConfig = {
   quotePagePath: (lang, token) => `/${lang}/devis/${token}`,
   calendarPath: (lang) => `/${lang}#disponibilite`,
   instantBooking: true,
+  childrenDescription:
+    "mineurs de 0 à 17 ans (exonérés de taxe de séjour). Moins de 10 ans : logement non adapté (escaliers, pas d'équipement bébé), mais accepté sous la surveillance des adultes.",
 };
 
 /** Les branchements réels, recalculés à chaque requête (`today` change à minuit). */

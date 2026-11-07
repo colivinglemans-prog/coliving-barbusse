@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslation } from "@/lib/i18n";
 
 export default function Footer() {
   const { t, locale } = useTranslation();
   const base = `/${locale}`;
+  /*
+   * Sur la page d'un devis IA (`/<langue>/devis/<jeton>`), la colonne « Paiement par virement…
+   * contactez-nous » contredisait le bouton « Réserver ces dates » (réservation instantanée,
+   * 100 % par carte) — relevé par le test voyageur IA-1. Elle reste sur toutes les autres pages.
+   */
+  const onQuote = /^\/[a-z]{2}\/devis\//.test(usePathname() ?? "");
 
   return (
     <footer className="border-t border-border bg-light-bg">
@@ -49,20 +56,22 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          <div>
-            <h3 className="mb-3 text-sm font-semibold text-foreground">
-              {t.footer.paymentTitle}
-            </h3>
-            <p className="text-sm text-secondary">{t.footer.paymentText}</p>
-            <a
-              href="https://wa.me/33620921005"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-block text-sm font-medium text-rose-500 hover:text-rose-600"
-            >
-              {t.footer.whatsapp} →
-            </a>
-          </div>
+          {!onQuote && (
+            <div>
+              <h3 className="mb-3 text-sm font-semibold text-foreground">
+                {t.footer.paymentTitle}
+              </h3>
+              <p className="text-sm text-secondary">{t.footer.paymentText}</p>
+              <a
+                href="https://wa.me/33620921005"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-sm font-medium text-rose-500 hover:text-rose-600"
+              >
+                {t.footer.whatsapp} →
+              </a>
+            </div>
+          )}
         </div>
         <div className="mt-8 flex items-center justify-center border-t border-border pt-6 text-xs text-secondary">
           <span>&copy; {new Date().getFullYear()} {t.footer.copyright}</span>

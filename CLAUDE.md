@@ -275,6 +275,7 @@ Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déploy�
 - `openGraph` : la fusion de Next est **en surface**. Une page qui déclare un bloc `openGraph` remplace celui du layout et perd `og:image` / `og:site_name` — c'est le cas de l'accueil, des séminaires et des articles. Le layout porte `openGraphLocales(locale)` pour les autres.
 - **JSON-LD de `/seminaires`** : deux nœuds, `LodgingBusiness#lodging` et `FAQPage#faq`. Celui de l'accueil décrit la maison, celui-ci décrit **ce qu'elle permet en séminaire** — d'où `maximumAttendeeCapacity: 20`, la capacité de travail assis en intérieur chauffé (grande table de 16 places + les 2 mini-tables de la véranda, depuis novembre 2026 ; avant, 12 à l'îlot). Les questions de la `FAQPage` sont celles rendues dans la page, avec des réponses autosuffisantes : Google en extrait une seule, elle doit rester vraie hors contexte.
 - `app/robots.ts` ne bloque que `/dashboard/` et `/api/dashboard/`. **Ne pas y remettre `/api/`** : Googlebot exécute le JS du calendrier et le photographierait vide.
+- **`coliving-barbusse.vercel.app` → 301 vers www** (`next.config.ts`, `redirects()` avec `has: host`) : c'était le seul domaine indexé par les moteurs des assistants IA (test voyageur du 2026-11-07). Hôte exact (les previews ne sont pas touchées), **`/api/*` exclu** (les crons Vercel ne suivent pas les redirections).
 
 ## Données externes
 
