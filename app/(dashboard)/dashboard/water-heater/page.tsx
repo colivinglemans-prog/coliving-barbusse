@@ -40,6 +40,7 @@ export default function WaterHeaterPage() {
       .catch(() => {});
 
     // Initial fetch + polling
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement réseau : le drapeau « chargement » posé avant le premier await est ce que le rendu doit montrer (même convention qu’Albiez).
     fetchData();
     intervalRef.current = setInterval(fetchData, 30_000);
     return () => {

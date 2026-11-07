@@ -121,6 +121,7 @@ export default function HeatingPage() {
       .catch(() => {});
 
     // Initial fetch
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement réseau : le drapeau « chargement » posé avant le premier await est ce que le rendu doit montrer (même convention qu’Albiez).
     fetchData();
 
     // Poll every 30 seconds

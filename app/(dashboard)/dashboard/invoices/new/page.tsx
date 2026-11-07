@@ -17,16 +17,17 @@ function NewInvoiceContent() {
       ? "stripe"
       : "empty";
 
-  const [payload, setPayload] = useState<InvoicePayload | null>(null);
+  // Facture vierge : l'état initial se déduit des paramètres, sans passer par un effet
+  // (qui coûtait un second rendu — `react-hooks/set-state-in-effect`).
+  const [payload, setPayload] = useState<InvoicePayload | null>(() =>
+    source === "empty" ? emptyPayload() : null,
+  );
   const [loading, setLoading] = useState(source !== "empty");
   const [prefillError, setPrefillError] = useState<string | null>(null);
   const [paidAtCaveat, setPaidAtCaveat] = useState<string | null>(null);
 
   useEffect(() => {
-    if (source === "empty") {
-      setPayload(emptyPayload());
-      return;
-    }
+    if (source === "empty") return;
 
     async function fetchPrefill() {
       try {

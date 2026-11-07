@@ -58,6 +58,7 @@ export default function GuestShareBlock({ bookingId, firstName, country }: Guest
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- remise à zéro avant un appel réseau quand la réservation change : sans elle, l’ancien résultat resterait affiché pendant le chargement.
     setCodeState("loading");
     setCode(null);
 
@@ -84,6 +85,7 @@ export default function GuestShareBlock({ bookingId, firstName, country }: Guest
   // par auto-action ou depuis un autre appareil.
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- remise à zéro avant un appel réseau quand la réservation change : sans elle, l’ancien résultat resterait affiché pendant le chargement.
     setMsgsState("loading");
     setMsgs(null);
     setSendError(null);

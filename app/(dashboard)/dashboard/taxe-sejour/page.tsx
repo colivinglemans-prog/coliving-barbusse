@@ -98,6 +98,7 @@ export default function TaxeSejourPage() {
   }, [year]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement réseau : le drapeau « chargement » posé avant le premier await est ce que le rendu doit montrer (même convention qu’Albiez).
     fetchData();
   }, [fetchData]);
 
