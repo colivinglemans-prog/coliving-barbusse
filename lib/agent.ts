@@ -5,6 +5,7 @@
  * Les valeurs viennent de `lib/property-info.ts` (adresse, contact, capacité, politiques) et de
  * `lib/beds24-property.ts` (identifiants) — seuls les textes destinés aux IA sont écrits ici.
  */
+import { monthlyAvailability } from "@sejour/socle/lib/availability";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { DEFAULT_LOCALE, LOCALES } from "@sejour/socle/lib/locales";
 import { quoteKeysFromEnv } from "@sejour/socle/lib/quote-token";
@@ -17,7 +18,8 @@ import { PROPERTY_ID, ROOM_ID } from "@/lib/beds24-property";
 import { CANCELLATION_POLICY, PAYMENT_POLICY, PROPERTY_INFO } from "@/lib/property-info";
 import { SITE_URL } from "@/lib/site";
 
-const PHONE = "+33 6 20 92 10 05";
+/** `+33620921005` → `+33 6 20 92 10 05`, dérivé du contact plutôt que recopié. */
+const PHONE = PROPERTY_INFO.contact.phone.replace(/^\+33(\d)(\d{2})(\d{2})(\d{2})(\d{2})$/, "+33 $1 $2 $3 $4 $5");
 
 export const STAY_QUOTE: StayQuoteConfig = {
   roomId: ROOM_ID,
@@ -108,16 +110,19 @@ export const STAY_AGENT: StayAgentConfig = {
   facts: (lang) => ({ ...(lang === "fr" ? FACTS_FR : FACTS_EN), pages: pages(lang) }),
   quotePagePath: (lang, token) => `/${lang}/devis/${token}`,
   calendarPath: (lang) => `/${lang}#disponibilite`,
+  instantBooking: true,
 };
 
 /** Les branchements réels, recalculés à chaque requête (`today` change à minuit). */
 export function stayAgentDeps(): StayAgentDeps {
   return {
     today: todayParis(),
-    availability: async (from, to) => {
+    // Par mois entiers : une route publique ne doit pas multiplier les URL Beds24 (quota partagé
+    // avec le calendrier du site, le dashboard et la synchro de la serrure).
+    availability: monthlyAvailability(async (from, to) => {
       const [dates, minStay] = await Promise.all([getAvailability(PROPERTY_ID, from, to), getMinStay(PROPERTY_ID, from, to)]);
       return { dates, minStay };
-    },
+    }),
     price: (req) => fetchRoomPrice(req),
     onAnomaly: (message) => sendNtfy(message, { title: "Devis IA Barbusse", priority: 4, tags: ["warning"] }),
     keys: () => quoteKeysFromEnv(),

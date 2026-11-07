@@ -68,6 +68,7 @@ export function wifiQrPayload(): string {
  */
 export const CANCELLATION_POLICY: CancellationPolicy = {
   name: "ferme",
+  sameOnAllChannels: true,
   tiers: [
     { minDaysBefore: 30, refundPct: 100 },
     { minDaysBefore: 7, refundPct: 50 },
@@ -82,5 +83,5 @@ export const CANCELLATION_POLICY: CancellationPolicy = {
  */
 export const PAYMENT_POLICY: PaymentPolicy = {
   direct: { upfrontPct: 100, via: "Beds24", touristTaxIncluded: true },
-  business: { depositPct: 30, via: "facture" },
+  business: { depositPct: 30, via: "facture", balanceDue: "before arrival" },
 };
