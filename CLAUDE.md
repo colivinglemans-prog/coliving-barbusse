@@ -289,6 +289,21 @@ une **copie datée** de Beds24, pas une source. La notification ntfy du lundi ou
   (`PricingBookingItem`), réponse `Cache-Control: private, no-store`.
 - La page de connexion respecte désormais `?retour=` posé par le proxy (chemins `/dashboard/…`
   seulement) : avant, toute connexion menait au calendrier.
+- **v1.1** :
+  - navigation par fenêtres de 90 j (ou 365 j) ;
+  - **réalisé de l'an dernier** en losanges violets, majorable de 0 à +20 % (affichage seulement,
+    le moteur ne s'en sert pas). La nuit est comparée à J − 364 (même jour de semaine) ; un
+    événement est comparé à son **édition précédente** par préfixe de clé
+    (`lib/pricing/realized.ts`), car les dates bougent d'une année à l'autre ;
+  - l'estimation du réalisé (brut − 280 − 15 €/pers., ÷ majoration **actuelle** du canal, − 10 €/pers.
+    au-delà de 9) est un **ordre de grandeur**. HomeToGo et l'agence y comptent comme du direct,
+    faute de canal brut dans `Booking` ;
+  - les événements sont en ambre et portent leur nom, la bande ±10 % est un voile ardoise ;
+  - le rapport sépare les **micro-ajustements** de Beyond (moins de 3 % **et** moins de 15 €, sa
+    « visibilité ») des modifications réelles, et les médianes ne portent que sur ces dernières.
+- **Semaine des essais 2027** (`test-24h-2027`, 31/05 → 06/06, `confirmed: false`) : le moteur la
+  tarifie à 1 560 € de plancher, soit la parité avec l'option agence (1 430 € nets ÷ 0,916 en direct),
+  choix de l'exploitant. `extendBefore: -1` fait commencer l'événement la nuit du premier jour.
 
 ## Calendrier public de réservation
 

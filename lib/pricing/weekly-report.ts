@@ -108,10 +108,16 @@ export interface WeeklyReport {
   snapshotsAvailable: number;
   snapshotsExpected: number;
   activity: {
+    /**
+     * Modifications **réelles** : au moins 3 % ou 15 €. En dessous, ce sont les
+     * « micro-price adjustments for visibility » de Beyond, qui font bouger le prix de quelques
+     * euros chaque jour — comptées à part dans `microChanges` pour ne pas noyer les décisions.
+     */
     priceChanges: number;
+    microChanges: number;
     priceUps: number;
     priceDowns: number;
-    /** Variation médiane en %, signée, sur toutes les modifications de prix. */
+    /** Variation médiane en %, signée, sur les modifications réelles. */
     medianChangePct: number | null;
     /** Modifications par tranche de distance à la nuit. */
     byLead: { label: string; changes: number; medianPct: number | null }[];
@@ -123,6 +129,10 @@ export interface WeeklyReport {
   events: EventPricing[];
   bookings: BookingOfWeek[];
 }
+
+/** Seuils sous lesquels une modification est un micro-ajustement (les deux à la fois). */
+const MICRO_PCT = 3;
+const MICRO_EUROS = 15;
 
 const LEAD_BUCKETS: { label: string; max: number }[] = [
   { label: "0-14 j", max: 14 },
@@ -168,7 +178,10 @@ export function buildWeeklyReport(input: WeeklyReportInput): WeeklyReport {
   for (let i = 1; i < present.length; i++) {
     diffs.push(diffSnapshots(present[i - 1].snapshot!, present[i].snapshot!));
   }
-  const changes = diffs.flatMap((d) => d.priceChanges);
+  const allChanges = diffs.flatMap((d) => d.priceChanges);
+  const isMicro = (c: { before: number; after: number }) =>
+    Math.abs(c.after - c.before) < MICRO_EUROS && Math.abs(pct(c.before, c.after)) < MICRO_PCT;
+  const changes = allChanges.filter((c) => !isMicro(c));
   const sold = diffs.flatMap((d) => d.sold);
   const byLead = LEAD_BUCKETS.map((bucket, i) => {
     const min = i === 0 ? -Infinity : LEAD_BUCKETS[i - 1].max;
@@ -298,6 +311,7 @@ export function buildWeeklyReport(input: WeeklyReportInput): WeeklyReport {
     snapshotsExpected: snapshots.length,
     activity: {
       priceChanges: changes.length,
+      microChanges: allChanges.length - changes.length,
       priceUps: changes.filter((c) => c.after > c.before).length,
       priceDowns: changes.filter((c) => c.after < c.before).length,
       medianChangePct: median(changes.map((c) => pct(c.before, c.after))),
@@ -340,7 +354,8 @@ export function formatWeeklyReport(r: WeeklyReport): string {
 
   const a = r.activity;
   lines.push(
-    `PRIX MODIFIÉS : ${a.priceChanges} (↑${a.priceUps} ↓${a.priceDowns}, médiane ${signed(a.medianChangePct)})`,
+    `PRIX MODIFIÉS : ${a.priceChanges} (↑${a.priceUps} ↓${a.priceDowns}, médiane ${signed(a.medianChangePct)})` +
+      (a.microChanges ? ` · + ${a.microChanges} micro-ajustements (< 3 % et < 15 €)` : ""),
   );
   const leads = a.byLead.filter((b) => b.changes > 0);
   if (leads.length) {

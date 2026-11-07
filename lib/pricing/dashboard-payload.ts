@@ -7,6 +7,7 @@ import type { EngineConfig } from "./engine-config";
 import type { EngineComparison } from "./engine-comparison";
 import type { PriceSnapshot, ShadowPrices } from "./snapshot";
 import type { BookingOfWeek, WeeklyReport } from "./weekly-report";
+import { realizedByNight, realizedForEvent } from "./realized";
 
 /**
  * Charge utile de la page `/dashboard/pricing` — fonction **pure**, la route va chercher les
@@ -24,7 +25,11 @@ export const FIRST_MONDAY = "2026-11-09";
 /** 0 vendable · 1 vendue · 2 bloquée (non vendable sans réservation qui la couvre). */
 export type NightState = 0 | 1 | 2;
 
-/** `[date, prix Beyond, prix moteur, séjour min. Beyond, séjour min. moteur, état, catégorie]` */
+/**
+ * `[date, prix Beyond, prix moteur, séjour min. Beyond, séjour min. moteur, état, catégorie,
+ * réalisé estimé de la nuit J − 364]` — même jour de semaine l'an dernier, `null` si elle n'a pas
+ * été vendue (voir `./realized`, c'est une estimation).
+ */
 export type NightRow = [
   date: string,
   beyond: number,
@@ -33,6 +38,7 @@ export type NightRow = [
   minStayEngine: number | null,
   state: NightState,
   category: string | null,
+  lastYear: number | null,
 ];
 
 export interface PricingEventRow {
@@ -51,6 +57,8 @@ export interface PricingEventRow {
   monthRatio: number | null;
   soldNights: number;
   totalNights: number;
+  /** Réalisé estimé de l'édition précédente (prix de base moyen par nuit vendue). */
+  lastEdition: { name: string; avg: number; nights: number } | null;
   /** J-60 : date à laquelle trancher si l'événement n'est pas vendu. */
   decideBy: string;
   status: "vendu" | "partiel" | "invendu";
@@ -115,11 +123,23 @@ export function buildPricingPayload(input: {
 
   const dates = Object.keys(snapshot.days).sort();
   const categories = nightCategories(dates, events, config);
+  const lastYear = dates.length
+    ? realizedByNight(stays, addDays(dates[0], -364), addDays(dates.at(-1)!, -364))
+    : {};
   const nights: NightRow[] = dates.map((d) => {
     const [price, minStay, available] = snapshot.days[d];
     const e = shadow?.days[d];
     const state: NightState = available === 1 ? 0 : isSold(d) ? 1 : 2;
-    return [d, price, e ? e[0] : null, minStay, e ? e[1] : null, state, categories.get(d) ?? null];
+    return [
+      d,
+      price,
+      e ? e[0] : null,
+      minStay,
+      e ? e[1] : null,
+      state,
+      categories.get(d) ?? null,
+      lastYear[addDays(d, -364)] ?? null,
+    ];
   });
 
   /* Grands événements encore à venir dans l'horizon de la photo. */
@@ -147,6 +167,7 @@ export function buildPricingPayload(input: {
       monthRatio: report.events.find((r) => r.name === e.name)?.ratio ?? null,
       soldNights,
       totalNights: covered.length,
+      lastEdition: realizedForEvent(stays, e, events, rule),
       decideBy,
       status,
       overdue: today >= decideBy && status !== "vendu",

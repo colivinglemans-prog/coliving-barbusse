@@ -37,4 +37,7 @@ export function weekday(iso: string): string {
 /** Couleurs : Beyond et moteur se distinguent aussi par le trait (plein / tirets). */
 export const BEYOND_COLOUR = "#334155";
 export const ENGINE_COLOUR = "#0d9488";
-export const EVENT_FILL = "#e0e7ff";
+/** Événements en ambre : la bande ±10 % (ardoise) et eux ne doivent pas se confondre. */
+export const EVENT_FILL = "#fde68a";
+/** Réalisé de l'an dernier : violet, en losanges, pour ne ressembler à aucune autre série. */
+export const LAST_YEAR_COLOUR = "#7c3aed";

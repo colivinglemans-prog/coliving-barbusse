@@ -21,7 +21,10 @@ export interface EventRule {
   /** Plancher que les remises de dernière minute ne franchissent pas. */
   floor: number;
   minStay: number;
-  /** Nuits ajoutées avant la veille du premier jour (semaine des 24 Heures). */
+  /**
+   * Nuits ajoutées avant la veille du premier jour (semaine des 24 Heures). Une valeur
+   * négative retire la veille : `-1` fait commencer l'événement la nuit de son premier jour.
+   */
   extendBefore?: number;
 }
 
@@ -69,7 +72,9 @@ export const ENGINE_CONFIG: EngineConfig = {
     { keyPrefix: "classic", price: 1_300, floor: 1_050, minStay: 4 },
     { keyPrefix: "motogp", price: 850, floor: 650, minStay: 3 },
     { keyPrefix: "24h-moto", price: 750, floor: 600, minStay: 3 },
-    { keyPrefix: "test-24h", price: 650, floor: 520, minStay: 2 },
+    // Semaine des essais : parité avec l'option agence (1 430 €/nuit nets ÷ 0,916 en direct),
+    // choix de l'exploitant du 2026-11-07, sachant qu'elle s'est vendue ~580 € en 2026.
+    { keyPrefix: "test-24h", price: 1_560, floor: 1_560, minStay: 2, extendBefore: -1 },
   ],
   fixedPeriods: [
     { label: "Noël", from: "12-20", to: "12-27", price: 850, minStay: 3 },

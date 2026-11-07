@@ -116,6 +116,9 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
     key: "motogp-2027", name: "MotoGP France 2027", start: "2027-05-14", end: "2027-05-16", confirmed: true,
     performer: { name: "FIM MotoGP World Championship", url: "https://www.motogp.com/" },
   },
+  // Semaine des essais 2027 transposée de 2026 (du lundi au dimanche avant la course) : dates non
+  // officielles, d'où le rappel de `events-watch` tant que `confirmed` vaut false.
+  { key: "test-24h-2027", name: "Journée Test 24 Heures du Mans 2027", start: "2027-05-31", end: "2027-06-06", confirmed: false },
   {
     key: "24h-mans-2027", name: "24 Heures du Mans 2027", start: "2027-06-09", end: "2027-06-13", confirmed: true,
     url: "https://www.24h-lemans.com/",
