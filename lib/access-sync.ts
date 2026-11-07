@@ -141,6 +141,34 @@ async function acquireLock(): Promise<boolean> {
   return false;
 }
 
+/** Lit Beds24 et la serrure, et calcule le plan. Commun à la synchronisation et à l'état. */
+async function loadState(cfg: NukiConfig) {
+  const today = todayParis();
+  const [health, auths, bookings] = await Promise.all([
+    getLockHealth(cfg),
+    listAuths(cfg),
+    getBookings({ departureFrom: addDays(today, -1), statuses: ALL_STATUSES, includeInfoItems: true, fresh: true }),
+  ]);
+  const house = bookings.filter((b) => b.propertyId === HOUSE_PROPERTY_ID);
+
+  // Un code géré dont la réservation n'est pas dans la fenêtre lue (départ ancien, ou
+  // réservation déplacée) : on va la chercher, plutôt que de la déclarer orpheline.
+  const known = new Set(house.map((b) => b.id));
+  const missing = auths
+    .map((a) => /^(\d{6,}):/.exec(a.name)?.[1])
+    .filter((id): id is string => Boolean(id))
+    .map(Number)
+    .filter((id) => !known.has(id));
+  for (const id of new Set(missing)) {
+    const b = await getBookingById(id, { fresh: true });
+    if (b && b.propertyId === HOUSE_PROPERTY_ID) house.push(b);
+  }
+
+  const stays = house.map(toStay);
+  const plan = planAccessCodes({ stays, auths, today, now: new Date(), policy: ACCESS_POLICY, random: randomInt });
+  return { today, health, auths, house, stays, plan };
+}
+
 export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<SyncReport> {
   const mode = dryRun || !syncIsLive() ? "dry" : "live";
   const cfg = nukiConfig();
@@ -149,29 +177,7 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
     return { mode, health: { online: false, keypadPaired: false, batteryCritical: false, keypadBatteryCritical: false }, stays: 0, actions: [], alerts: [], notified: 0, skipped: "un autre passage est en cours" };
   }
   try {
-    const today = todayParis();
-    const [health, auths, bookings] = await Promise.all([
-      getLockHealth(cfg),
-      listAuths(cfg),
-      getBookings({ departureFrom: addDays(today, -1), statuses: ALL_STATUSES, includeInfoItems: true, fresh: true }),
-    ]);
-    const house = bookings.filter((b) => b.propertyId === HOUSE_PROPERTY_ID);
-
-    // Un code géré dont la réservation n'est pas dans la fenêtre lue (départ ancien, ou
-    // réservation déplacée) : on va la chercher, plutôt que de la déclarer orpheline.
-    const known = new Set(house.map((b) => b.id));
-    const missing = auths
-      .map((a) => /^(\d{6,}):/.exec(a.name)?.[1])
-      .filter((id): id is string => Boolean(id))
-      .map(Number)
-      .filter((id) => !known.has(id));
-    for (const id of new Set(missing)) {
-      const b = await getBookingById(id, { fresh: true });
-      if (b && b.propertyId === HOUSE_PROPERTY_ID) house.push(b);
-    }
-
-    const stays = house.map(toStay);
-    const plan = planAccessCodes({ stays, auths, today, now: new Date(), policy: ACCESS_POLICY, random: randomInt });
+    const { health, house, stays, plan } = await loadState(cfg);
     const alerts: SyncAlert[] = [...plan.alerts];
 
     if (!health.online || !health.keypadPaired) {
@@ -315,3 +321,54 @@ export async function isPinOnLock(bookingId: number, pin: string): Promise<boole
   const auths = await listAuths(nukiConfig());
   return auths.some((a) => a.type === 13 && a.name.startsWith(`${bookingId}:`) && String(a.code) === pin);
 }
+
+/** État du code d'une réservation sur la serrure, pour la pastille du calendrier (admin). */
+export type LockCodeState = "ok" | "pending" | "error";
+
+export interface LockStatus {
+  health: NukiLockHealth;
+  /** Par réservation confirmée à venir ou en cours. Jamais de PIN. */
+  bookings: Record<number, { state: LockCodeState; detail: string }>;
+}
+
+/**
+ * Ce que la synchronisation ferait maintenant, traduit en état par réservation — sans rien
+ * écrire. `ok` : le code est sur la serrure et rien n'est à reprendre ; `pending` : le
+ * prochain passage a quelque chose à faire (PIN à écrire, code à poser ou à recaler) ;
+ * `error` : une alerte bloque (conflit de PIN, PIN refusé, code désactivé, PIN manquant).
+ */
+export async function lockStatus(): Promise<LockStatus> {
+  const { health, stays, plan } = await loadState(nukiConfig());
+  const bookings: LockStatus["bookings"] = {};
+  for (const stay of stays) {
+    if (stay.status !== "confirmed") continue;
+    const alert = plan.alerts.find((a) => a.bookingId === stay.bookingId);
+    const todo = plan.actions.filter((a) => a.bookingId === stay.bookingId && a.kind !== "delete");
+    if (alert) {
+      bookings[stay.bookingId] = { state: "error", detail: alert.message };
+    } else if (todo.length > 0) {
+      bookings[stay.bookingId] = {
+        state: "pending",
+        detail: `En attente du prochain passage : ${todo.map((a) => ACTION_LABEL[a.kind]).join(", ")}.`,
+      };
+    } else {
+      bookings[stay.bookingId] = { state: "ok", detail: "Code posé sur la serrure, 14 h → 14 h." };
+    }
+  }
+  if (!health.online || !health.keypadPaired) {
+    for (const id of Object.keys(bookings)) {
+      bookings[Number(id)] = {
+        state: "error",
+        detail: !health.online ? "Serrure hors ligne pour Nuki." : "Aucun clavier appairé.",
+      };
+    }
+  }
+  return { health, bookings };
+}
+
+const ACTION_LABEL: Record<AccessAction["kind"], string> = {
+  "assign-pin": "PIN à écrire dans Beds24",
+  create: "code à poser",
+  update: "code à recaler",
+  delete: "code à retirer",
+};

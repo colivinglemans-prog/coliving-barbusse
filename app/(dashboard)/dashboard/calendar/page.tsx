@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { BookingListEntry } from "@sejour/socle/lib/booking-dto";
 import type { DashboardRole } from "@/lib/auth";
+import type { LockStatus } from "@/lib/access-sync";
 import { eventLinkRef } from "@/lib/events";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
@@ -12,6 +13,8 @@ export default function CalendarPage() {
   // Les rattachements d'événement déliés à la main, en couples `<id>:<clé>`. Chargés à part
   // des réservations : ils ne viennent pas de Beds24 et ne passent pas par sa projection.
   const [unlinkedEvents, setUnlinkedEvents] = useState<string[]>([]);
+  // État du code de chaque réservation sur la serrure (admin). Absent = pas de pastille.
+  const [lockStatus, setLockStatus] = useState<LockStatus["bookings"] | undefined>();
   const [actualRole, setActualRole] = useState<DashboardRole>("admin");
   const [viewAsViewer, setViewAsViewer] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,13 @@ export default function CalendarPage() {
         const to = new Date(now.getFullYear(), now.getMonth() + 13, 0);
         const arrivalFrom = from.toISOString().split("T")[0];
         const arrivalTo = to.toISOString().split("T")[0];
+
+        // Pastilles de serrure : chargées à part et sans bloquer — l'appel interroge Nuki et
+        // Beds24 en direct, et un `viewer` reçoit un refus qu'on ignore.
+        fetch("/api/dashboard/nuki-status")
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data: LockStatus | null) => data && setLockStatus(data.bookings))
+          .catch(() => {});
 
         const [meRes, bookingsRes, linksRes] = await Promise.all([
           fetch("/api/auth/me"),
@@ -97,6 +107,7 @@ export default function CalendarPage() {
               showPrices={effectiveRole === "admin"}
               showChannels={effectiveRole === "admin"}
               isAdmin={effectiveRole === "admin"}
+              lockStatus={effectiveRole === "admin" ? lockStatus : undefined}
               onNotesUpdated={(id, notes) => {
                 setBookings((prev) =>
                   prev.map((b) => (b.id === id ? { ...b, notes } : b)),

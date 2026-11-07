@@ -554,6 +554,7 @@ remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki We
 | `@sejour/socle/lib/nuki` | Client Nuki Web, erreurs expurgées des PIN. |
 | [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, dédoublonné Redis `nuki:alert:*`). Verrou Redis `nuki:sync:lock`. |
 | `/api/cron/nuki-sync` | Passage horaire (cron-job.org). `?dry=1` = plan sans écriture. |
+| `/api/dashboard/nuki-status` | **Admin seulement.** État du code par réservation (`ok` / `pending` / `error`), calculé à blanc par le planificateur, sans PIN. Alimente la pastille des barres du calendrier (vert / ambre / rouge) et une ligne dans la fiche. |
 | `/api/webhooks/beds24` | Webhook « Booking » de Beds24, en-tête `x-webhook-secret`. Déclenche un passage : PIN posé en quelques secondes pour une réservation de dernière minute. Le corps n'est pas lu. |
 
 **Règles de l'exploitant** : code valable de **14 h le jour d'arrivée à 14 h le jour du

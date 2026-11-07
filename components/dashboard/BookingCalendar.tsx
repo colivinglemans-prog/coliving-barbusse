@@ -181,6 +181,34 @@ interface BookingCalendarProps {
    */
   unlinkedEvents?: readonly string[];
   onEventLinkChanged?: (bookingId: number, eventKey: string, unlinked: boolean) => void;
+  /**
+   * État du code de chaque réservation sur la serrure (`/api/dashboard/nuki-status`). Admin
+   * seulement : la page ne le passe pas en vue viewer. Absent = aucune pastille.
+   */
+  lockStatus?: Record<number, LockCodeStatus>;
+}
+
+interface LockCodeStatus {
+  state: "ok" | "pending" | "error";
+  detail: string;
+}
+
+/** Pastille de serrure : vert = code posé, ambre = prochain passage, rouge = à regarder. */
+const LOCK_DOT: Record<LockCodeStatus["state"], { colour: string; label: string }> = {
+  ok: { colour: "#22c55e", label: "Serrure : code posé" },
+  pending: { colour: "#f59e0b", label: "Serrure : en attente" },
+  error: { colour: "#ef4444", label: "Serrure : problème" },
+};
+
+function LockDot({ status }: { status: LockCodeStatus }) {
+  const dot = LOCK_DOT[status.state];
+  return (
+    <span
+      className="mr-1 inline-block h-2 w-2 rounded-full align-middle ring-1 ring-white"
+      style={{ backgroundColor: dot.colour }}
+      aria-label={dot.label}
+    />
+  );
 }
 
 /* ── Notes editor (admin editable, viewer read-only) ────────────── */
@@ -405,7 +433,7 @@ function EventLink({
   );
 }
 
-export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated, unlinkedEvents = [], onEventLinkChanged }: BookingCalendarProps) {
+export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated, unlinkedEvents = [], onEventLinkChanged, lockStatus }: BookingCalendarProps) {
   // Un couple {année, mois} plutôt qu'une `Date` : le calendrier public du site le fait déjà,
   // et `addMonths` du socle travaille sur ce couple — plus aucun objet `Date` à promener.
   const [month, setMonth] = useState(() => {
@@ -779,6 +807,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                     <div key={lane} className="relative mt-0.5 h-6">
                       {laneBars.map((seg) => {
                         const bp = seg.source;
+                        const lock = isAdmin ? lockStatus?.[bp.booking.id] : undefined;
                         const cellW = 100 / 7; // width of one cell in %
                         const halfCell = cellW / 2;
                         // Half-cell inset on arrival day, half-cell trim on departure day
@@ -812,11 +841,13 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                                   ? `À confirmer (${bp.booking.status})`
                                   : null,
                               seg.label,
+                              lock ? `${LOCK_DOT[lock.state].label} — ${lock.detail}` : null,
                               bp.booking.notes ? `📝 ${bp.booking.notes}` : null,
                             ]
                               .filter(Boolean)
                               .join(" · ")}
                           >
+                            {lock && <LockDot status={lock} />}
                             {bp.provisional && (
                               <span
                                 className="inline font-bold"
@@ -1044,6 +1075,19 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   <p className="mt-0.5 whitespace-pre-wrap rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900">
                     {popup.booking.comments}
                   </p>
+                </div>
+              )}
+
+              {isAdmin && lockStatus?.[popup.booking.id] && (
+                <div className="col-span-2 flex items-start gap-2 text-xs text-gray-600">
+                  <span className="mt-0.5">
+                    <LockDot status={lockStatus[popup.booking.id]} />
+                  </span>
+                  <span>
+                    <span className="font-medium">{LOCK_DOT[lockStatus[popup.booking.id].state].label}</span>
+                    {" — "}
+                    {lockStatus[popup.booking.id].detail}
+                  </span>
                 </div>
               )}
 
