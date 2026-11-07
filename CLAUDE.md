@@ -674,8 +674,9 @@ hors-gel par défaut et coupaient le préchauffage jusqu'au quart d'heure suivan
   `getHeatingRules(situation, hour, nextCheckIn)`
 - `lib/heatzy.ts` : client Gizwits, `getLockedDevices()` (Redis `heatzy:locked-devices`, repli
   `LOCKED_DEVICES`), mode été
-- `data/heatzy-zones.json` : `unpaired: true` sur les **Chambres 3 et 7** (module non appairé) —
-  ignorées par la préparation d'arrivée, toujours pilotées par l'automatisation
+- `data/heatzy-zones.json` : `unpaired: true` marque un radiateur dont le module n'est plus appairé —
+  ignoré par la préparation d'arrivée, toujours piloté par l'automatisation. Aucun aujourd'hui : les
+  Chambres 3 et 7, ré-appairées, sont vérifiées en ligne dans le compte le 2026-11-07.
 
 ### Alertes des crons chauffage (ntfy, anti-répétition)
 
@@ -1192,7 +1193,7 @@ prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-rép
 | `noShow` | J+1 9h | entrée avec le code depuis 14 h (journal Nuki), **une seule alerte** |
 | `daily` | 9h | pile : < 25 % → priorité 3, < 10 % → 4 |
 
-- **Ignorés** : Chambres 3 et 7 (`unpaired`), radiateurs verrouillés ou exclus, mode été, et
+- **Ignorés** : radiateurs `unpaired` (aucun aujourd'hui), verrouillés ou exclus, mode été, et
   **toute température de pièce à partir de 17 h**. L'eau est mesurée au passage `late` : c'est
   sa raison d'être.
 - **Silence de 22 h à 8 h**, sauf `eve` et `late`. Hors ligne seulement après 2 lectures ratées.
