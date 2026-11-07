@@ -506,7 +506,8 @@ remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki We
 **Règles de l'exploitant** : code valable de **14 h le jour d'arrivée à 14 h le jour du
 départ** ; nom `<n° de réservation>: <Prénom>` ; statuts `confirmed` et `new` seulement
 (`request`, `inquiry`, `black` : rien) ; annulation → code supprimé ; modification → plage
-recalée ; séjour terminé → supprimé. **Codes `# …` (manuels) jamais touchés** — préfixer de
+recalée ; séjour terminé → supprimé. Une réservation `new` est **passée en `confirmed`**
+(`confirmBooking`, jeton `ecriture`) une fois son PIN dans Beds24 et son code sur la serrure. **Codes `# …` (manuels) jamais touchés** — préfixer de
 `# ` tout code saisi à la main qui doit survivre.
 
 **Le PIN** est tiré des 6 derniers chiffres du téléphone du voyageur quand ils respectent les
