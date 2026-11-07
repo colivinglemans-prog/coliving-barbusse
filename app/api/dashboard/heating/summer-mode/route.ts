@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
           try {
             await setDeviceMode(device.did, "stop");
             stopped.push(device.name);
-          } catch (e) {
+          } catch {
             // Fallback to fro (hors-gel) — same effect in summer, supported by all firmwares
             try {
               await setDeviceMode(device.did, "fro");

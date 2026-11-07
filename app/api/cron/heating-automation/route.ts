@@ -11,7 +11,7 @@ import {
 } from "@/lib/heatzy";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
-import { todayParis, tomorrowParis, currentHourParis } from "@sejour/socle/lib/time";
+import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
 
     const config = await getFullZoneConfig();
     const today = todayParis();
-    const tomorrow = tomorrowParis();
     const currentHour = currentHourParis();
 
     const allBookings = await getActiveBookings();
@@ -45,7 +44,6 @@ export async function GET(request: NextRequest) {
 
     const hasCheckInToday = allBookings.some((b) => b.arrival === today);
     const hasCheckOutToday = allBookings.some((b) => b.departure === today);
-    const hasCheckInTomorrow = allBookings.some((b) => b.arrival === tomorrow);
     const isCurrentlyOccupied = allBookings.some(
       (b) =>
         (b.arrival < today && b.departure > today) ||

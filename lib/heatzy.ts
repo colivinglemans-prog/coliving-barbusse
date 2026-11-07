@@ -35,10 +35,6 @@ function setCached(key: string, value: unknown) {
   cache.set(key, { value, expires: Date.now() + CACHE_TTL });
 }
 
-function invalidateCache(key: string) {
-  cache.delete(key);
-}
-
 // ─── Scheduling logic ───────────────────────────────────────
 
 /**
