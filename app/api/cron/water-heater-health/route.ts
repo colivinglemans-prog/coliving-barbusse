@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import {
-  getWaterHeaterStatus,
-  getWaterHeaterProfile,
-  getProfileSettings,
-} from "@/lib/cozytouch";
+import { getWaterHeaterStatus, getWaterHeaterProfile } from "@/lib/cozytouch";
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
+import { getJson, redisKey, setJson } from "@/lib/redis";
+import { confirmedIssues, waterHeaterIssues } from "@/lib/water-heater-health";
 import { todayParis, currentHourParis, nowParis } from "@sejour/socle/lib/time";
+
+/**
+ * Contrôle du ballon. Les constats viennent de `waterHeaterIssues` ; seuls ceux déjà présents
+ * au passage précédent partent en alerte (`confirmedIssues`), pour ne pas signaler une bascule
+ * que l'automation, lancée à la même minute, est en train d'appliquer.
+ *
+ * Redis injoignable : le passage précédent est lu comme vide, rien ne part ce tour-ci, et le
+ * suivant alerte normalement si Redis est revenu.
+ */
+const PENDING_KEY = redisKey("water-heater", "health-pending");
+// Deux passages de contrôle d'écart au plus (cron toutes les 2 h), plus une marge.
+const PENDING_TTL_SECONDS = 5 * 3600;
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -25,53 +35,26 @@ export async function GET(request: NextRequest) {
 
     const guests = countGuests(bookings, today, currentHour);
     const profile = getWaterHeaterProfile(guests);
-    const expected = getProfileSettings(profile, currentHour);
+    const issues = waterHeaterIssues(guests, currentHour, status);
 
-    const issues: string[] = [];
-
-    if (!status.isAvailable) {
-      issues.push("Ballon thermodynamique hors ligne (aucun état remonté).");
+    let previousIds: string[] = [];
+    try {
+      previousIds = (await getJson<string[]>(PENDING_KEY)) ?? [];
+      await setJson(PENDING_KEY, issues.map((i) => i.id), PENDING_TTL_SECONDS);
+    } catch (e) {
+      console.error("[water-heater-health] Redis:", e instanceof Error ? e.message : e);
     }
+    const confirmed = confirmedIssues(issues, previousIds);
 
-    if (status.mode !== expected.mode) {
-      issues.push(
-        `Mode divergent : attendu ${expected.mode}, constaté ${status.mode}.`,
-      );
-    }
-
-    if (status.targetTemperature !== expected.targetTemperature) {
-      issues.push(
-        `Consigne divergente : attendue ${expected.targetTemperature}°C, constatée ${status.targetTemperature}°C.`,
-      );
-    }
-
-    if (status.boostActive !== expected.boost) {
-      issues.push(
-        `Boost divergent : attendu ${expected.boost ? "on" : "off"}, constaté ${status.boostActive ? "on" : "off"}.`,
-      );
-    }
-
-    // Under-heating check: only meaningful when occupied
-    if (
-      guests > 0 &&
-      status.isAvailable &&
-      status.bottomTemperature > 0 &&
-      status.bottomTemperature < status.targetTemperature - 8
-    ) {
-      issues.push(
-        `Ballon en sous-chauffe : ${status.bottomTemperature}°C (consigne ${status.targetTemperature}°C) avec ${guests} personne(s) présente(s).`,
-      );
-    }
-
-    if (issues.length > 0) {
+    if (confirmed.length > 0) {
       const lines = [
-        ...issues,
+        ...confirmed.map((i) => i.message),
         "",
         `Profil attendu : ${profile} (${guests} personne(s))`,
-        `Vérification : ${today} à ${nowParis().toLocaleTimeString("fr-FR")}`,
+        `Constaté à deux contrôles de suite, le dernier le ${today} à ${nowParis().toLocaleTimeString("fr-FR")}`,
       ];
       await sendWaterHeaterAlert(
-        `${issues.length} alerte(s) ballon thermodynamique`,
+        `${confirmed.length} alerte(s) ballon thermodynamique`,
         lines.join("\n"),
       );
     }
@@ -80,15 +63,16 @@ export async function GET(request: NextRequest) {
       success: true,
       profile,
       guests,
-      expected,
       status: {
+        middleTemperature: status.middleTemperature,
         mode: status.mode,
         targetTemperature: status.targetTemperature,
         boostActive: status.boostActive,
         bottomTemperature: status.bottomTemperature,
         isAvailable: status.isAvailable,
       },
-      issues,
+      issues: issues.map((i) => i.id),
+      alerted: confirmed.map((i) => i.id),
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

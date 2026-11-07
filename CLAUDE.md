@@ -825,8 +825,14 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 
 ## Eau chaude Cozytouch (ne monte jamais au socle)
 
-`lib/cozytouch.ts` pilote le ballon thermodynamique Atlantic 250 L, en série avec un ballon classique (API Overkiz, session cachée en Redis 8 h, device URL `modbuslink://…` en dur). Le cron `water-heater-automation` choisit un profil selon le nombre de personnes présentes ; `water-heater-health` alerte par ntfy.
-- ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Boost en milieu de journée seulement (ballon dans un garage non chauffé). Statuts `cancelled` / `black` exclus du comptage.
+`lib/cozytouch.ts` pilote le ballon thermodynamique **Atlantic ÉGÉO 250 L** (PAC sur air ambiant, 8–35 °C d’air, appoint 1 800 W ; fiche dans `docs/cozytouch.md`), en série avec un ballon classique (API Overkiz, session cachée en Redis 8 h, device URL `modbuslink://…` en dur). Le cron `water-heater-automation` choisit un profil selon le nombre de personnes présentes ; `water-heater-health` alerte par ntfy.
+- ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Fenêtres de boost des profils `high`/`xl` en milieu de journée (garage non chauffé). Statuts `cancelled` / `black` exclus du comptage.
+- ⚠️ Le thermo **alimente un ballon classique** (résistance seule) : de l'eau tiède en sortie du thermo, c'est le classique qui paie l'écart au prix fort. À 14 personnes, le classique seul ne suffit pas au pic du soir.
+- ⚠️ **Le boost n'ajoute que de la résistance** : la PAC chauffe dans tous les modes tant que l'eau est sous la consigne. Un boost hors des tirages remplace de la PAC par de la résistance.
+- **Boost de rattrapage** (`needsCatchUpBoost`, `getExpectedSettings`) : 9 personnes ou plus, **heures de douche** (6 h–9 h, 17 h–22 h, `isCatchUpHour`), **sonde du milieu** sous 40 °C (plausible entre 5 et 85 °C) → boost, maintenu jusqu'à 50 °C dans la plage, coupé à sa fin. ntfy priorité 3 à l'enclenchement, une fois par 6 h au plus (Redis `barbusse:water-heater:catchup-notified`). Jamais sur la sonde du bas, qui chute à chaque série de douches.
+- **Contrôle** (`lib/water-heater-health.ts`) : boost jugé contre un état **autorisé** / **exigé**, pas une valeur exacte ; un constat n'alerte que s'il était déjà là au contrôle précédent (Redis `barbusse:water-heater:health-pending`) — l'automation tourne à la même minute et Overkiz met du temps à refléter une commande.
+- **Voyageurs comptés** (`countGuests`) : bascule à **11 h** (check-out) — arrivants dès 11 h, partants jusqu'à 11 h, jamais d'éco entre deux réservations enchaînées.
+- Session Overkiz : après un 401, le second essai ouvre une session **neuve** (`getSession(true)`) — relire Redis rendait la session expirée, d'où un 401 une heure sur deux.
 - Détail (configuration physique, modes, commandes, states, profils) : [docs/cozytouch.md](docs/cozytouch.md).
 
 ## Factures PDF (LMNP)

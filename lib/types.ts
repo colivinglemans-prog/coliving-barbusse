@@ -95,6 +95,9 @@ export interface CozytouchWaterHeaterStatus {
   capacity?: number;
   powerHeatPump?: number;
   powerElectric?: number;
+  /** Compteurs cumulés d'heures de fonctionnement (PAC, appoint électrique), tels que remontés. */
+  heatPumpHours?: number;
+  electricHours?: number;
   isAvailable: boolean;
   energyConsumption?: number;
 }

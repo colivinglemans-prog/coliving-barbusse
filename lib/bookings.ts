@@ -82,17 +82,32 @@ export async function getActiveBookings(): Promise<Beds24Booking[]> {
     .filter((b) => !isExcludedStatus(b.status));
 }
 
+/**
+ * Bascule du ballon d'eau chaude : 11 h, l'heure du check-out (« avant 11h », conditions du
+ * site). Avant, les voyageurs qui partent ; à partir de, ceux qui arrivent.
+ *
+ * - **Jour d'arrivée** : comptés dès 11 h — six heures de chauffe avant l'arrivée de 17 h, et
+ *   toute la fenêtre de boost du profil xl (11 h–16 h).
+ * - **Jour de départ** : comptés jusqu'à 11 h — les douches du matin. Les décompter dès minuit
+ *   repassait le ballon en éco pendant la nuit, et le ballon classique rattrapait à la
+ *   résistance.
+ * - **Réservations enchaînées le même jour** : les partants jusqu'à 10 h, les arrivants dès
+ *   11 h — le compte ne tombe jamais à zéro, le ballon ne repasse jamais en éco.
+ */
+export const WATER_HEATER_SWITCH_HOUR = 11;
+
 export function countGuests(
   bookings: Beds24Booking[],
   today: string,
   hour: number,
 ): number {
+  const afterSwitch = hour >= WATER_HEATER_SWITCH_HOUR;
   return bookings
     .filter((b) => {
       const currentlyOccupied = b.arrival < today && b.departure > today;
-      const arrivingToday =
-        b.arrival === today && b.departure > today && hour >= 12;
-      return currentlyOccupied || arrivingToday;
+      const arrivingToday = b.arrival === today && b.departure > today && afterSwitch;
+      const departingToday = b.arrival < today && b.departure === today && !afterSwitch;
+      return currentlyOccupied || arrivingToday || departingToday;
     })
     .reduce((sum, b) => sum + (b.numAdult ?? 0) + (b.numChild ?? 0), 0);
 }

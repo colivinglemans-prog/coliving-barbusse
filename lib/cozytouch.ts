@@ -93,20 +93,27 @@ async function cozytouchLogin(): Promise<string> {
   return `JSESSIONID=${match[1]}`;
 }
 
-async function getSession(): Promise<string> {
-  // Check in-memory cache
-  const cached = getCached<string>(SESSION_KEY);
-  if (cached) return cached;
+/**
+ * `fresh` : ignore les deux caches et ouvre une session neuve. Le second essai après un 401
+ * doit passer par là — relire Redis lui rendrait la session expirée qu'il vient de recevoir
+ * (cause des erreurs « 401 Not authenticated » une heure sur deux, 2026-11-07).
+ */
+async function getSession(fresh = false): Promise<string> {
+  if (!fresh) {
+    // Check in-memory cache
+    const cached = getCached<string>(SESSION_KEY);
+    if (cached) return cached;
 
-  // Check Redis
-  try {
-    const stored = await getRedis().get<string>(SESSION_KEY);
-    if (stored) {
-      setCached(SESSION_KEY, stored);
-      return stored;
+    // Check Redis
+    try {
+      const stored = await getRedis().get<string>(SESSION_KEY);
+      if (stored) {
+        setCached(SESSION_KEY, stored);
+        return stored;
+      }
+    } catch (e) {
+      console.error("Cozytouch Redis get session error:", e);
     }
-  } catch (e) {
-    console.error("Cozytouch Redis get session error:", e);
   }
 
   // Login
@@ -120,11 +127,6 @@ async function getSession(): Promise<string> {
   return session;
 }
 
-function invalidateSession() {
-  invalidateCache(SESSION_KEY);
-  getRedis().del(SESSION_KEY).catch(() => {});
-}
-
 // ─── Generic fetch wrapper ──────────────────────────────────
 
 async function cozytouchFetch<T>(
@@ -133,7 +135,8 @@ async function cozytouchFetch<T>(
   body?: unknown,
   retry = true,
 ): Promise<T> {
-  const session = await getSession();
+  // Le second essai (retry = false) suit un 401 : session neuve obligatoire.
+  const session = await getSession(!retry);
 
   const res = await fetch(`${OVERKIZ_BASE}${path}`, {
     method,
@@ -146,7 +149,7 @@ async function cozytouchFetch<T>(
   });
 
   if (res.status === 401 && retry) {
-    invalidateSession();
+    invalidateCache(SESSION_KEY);
     return cozytouchFetch<T>(method, path, body, false);
   }
 
@@ -233,6 +236,12 @@ function findState<T>(states: OverkizState[], name: string): T | undefined {
   return s?.value as T | undefined;
 }
 
+function toNumber(v: unknown): number | undefined {
+  if (v == null || v === "") return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export async function getRawStates(deviceURL: string): Promise<OverkizState[]> {
   const encodedURL = encodeURIComponent(deviceURL);
   return cozytouchFetch<OverkizState[]>("GET", `/setup/devices/${encodedURL}/states`);
@@ -253,6 +262,9 @@ export async function getWaterHeaterStatus(): Promise<CozytouchWaterHeaterStatus
   const capacity = findState<number>(states, "modbuslink:DHWCapacityState");
   const powerHeatPump = findState<number>(states, "modbuslink:PowerHeatPumpState");
   const powerElectric = findState<number>(states, "modbuslink:PowerHeatElectricalState");
+  // Type exact non documenté (nombre ou chaîne selon les firmwares) : converti, ou ignoré.
+  const heatPumpHours = toNumber(findState<unknown>(states, "modbuslink:HeatPumpOperatingTimeState"));
+  const electricHours = toNumber(findState<unknown>(states, "modbuslink:ElectricBoosterOperatingTimeState"));
 
   // Energy consumption from sensor
   let energyConsumption: number | undefined;
@@ -277,6 +289,8 @@ export async function getWaterHeaterStatus(): Promise<CozytouchWaterHeaterStatus
     capacity: capacity != null ? Math.round(capacity) : undefined,
     powerHeatPump: powerHeatPump != null ? powerHeatPump : undefined,
     powerElectric: powerElectric != null ? powerElectric : undefined,
+    heatPumpHours,
+    electricHours,
     isAvailable: states.length > 0,
     energyConsumption: energyConsumption != null ? Math.round(energyConsumption) : undefined,
   };
@@ -367,4 +381,71 @@ export function getProfileSettings(
         boost: hour >= 11 && hour < 16,
       };
   }
+}
+
+/**
+ * Boost de rattrapage : thermo vidé alors qu'un grand groupe tire de l'eau.
+ *
+ * Le boost n'ajoute **que de la résistance** : la PAC chauffe dans tous les modes tant que
+ * l'eau est sous la consigne. Chaque kWh de résistance dans le thermo prend la place d'un kWh
+ * que la PAC aurait produit plus tard, trois fois moins cher. Le thermo alimente un ballon
+ * classique (résistance seule) : le boost n'est neutre que **pendant les tirages**, quand la
+ * chaleur ajoutée passe directement dans le classique, qui l'aurait payée au même prix. En
+ * dehors, il est perdant. D'où :
+ *
+ * - **Heures de douche seulement** (`hours`, 6 h–9 h et 17 h–22 h), coupé à la fin de la
+ *   plage. Entre les deux, la PAC seule a 8 h devant elle.
+ * - **Grand groupe seulement** (`minGuests`) : en dessous, le classique couvre seul le pic.
+ * - **Sonde du milieu** : celle du bas s'effondre à chaque série de douches (l'eau froide entre
+ *   par le bas) alors que le haut du ballon est encore chaud. Sans sonde du milieu plausible,
+ *   pas de rattrapage.
+ * - **Hystérésis** dans la plage : déclenché sous `start`, maintenu jusqu'à `stop`.
+ */
+export const CATCH_UP_BOOST = {
+  start: 40,
+  stop: 50,
+  minGuests: 9,
+  hours: [
+    { from: 6, to: 9 },
+    { from: 17, to: 22 },
+  ],
+  // Une sonde décrochée remonte 0 : sans ce filtre, boost à chaque plage, tous les jours.
+  plausible: { min: 5, max: 85 },
+} as const;
+
+/** Heure de douche, où le rattrapage est permis. Partagé par l'automation et le contrôle. */
+export function isCatchUpHour(hour: number): boolean {
+  return CATCH_UP_BOOST.hours.some((h) => hour >= h.from && hour < h.to);
+}
+
+/** La sonde du milieu, ou `undefined` si absente ou hors plage (liaison modbus décrochée). */
+export function plausibleMiddle(
+  status: Pick<CozytouchWaterHeaterStatus, "middleTemperature">,
+): number | undefined {
+  const t = status.middleTemperature;
+  const { min, max } = CATCH_UP_BOOST.plausible;
+  return t != null && t >= min && t <= max ? t : undefined;
+}
+
+export function needsCatchUpBoost(
+  guests: number,
+  hour: number,
+  status: Pick<CozytouchWaterHeaterStatus, "middleTemperature" | "boostActive">,
+): boolean {
+  const middle = plausibleMiddle(status);
+  if (guests < CATCH_UP_BOOST.minGuests || middle == null || !isCatchUpHour(hour)) return false;
+  const threshold = status.boostActive ? CATCH_UP_BOOST.stop : CATCH_UP_BOOST.start;
+  return middle < threshold;
+}
+
+/** Réglages attendus, boost de rattrapage compris : la même fonction pour l'automation et le contrôle. */
+export function getExpectedSettings(
+  guests: number,
+  hour: number,
+  status: Pick<CozytouchWaterHeaterStatus, "middleTemperature" | "boostActive">,
+): WaterHeaterProfileSettings & { profile: WaterHeaterProfile; catchUp: boolean } {
+  const profile = getWaterHeaterProfile(guests);
+  const base = getProfileSettings(profile, hour);
+  const catchUp = !base.boost && needsCatchUpBoost(guests, hour, status);
+  return { ...base, boost: base.boost || catchUp, profile, catchUp };
 }
