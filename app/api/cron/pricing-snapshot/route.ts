@@ -2,22 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { addDays } from "@sejour/socle/lib/dates";
 import { todayParis } from "@sejour/socle/lib/time";
+import { LE_MANS_EVENTS } from "@/lib/events";
+import { computeEnginePrices } from "@/lib/pricing/engine";
+import { ENGINE_CONFIG } from "@/lib/pricing/engine-config";
 import {
   diffSnapshots,
   loadSnapshot,
+  saveShadow,
   saveSnapshot,
   takeSnapshot,
+  type ShadowPrices,
 } from "@/lib/pricing/snapshot";
 
 /**
- * Photo quotidienne du calendrier tarifaire Beds24 (prix, séjour minimum, dispo sur 540 j).
- * Voir `lib/pricing/snapshot.ts` pour le pourquoi : Beds24 ne garde aucun historique des prix
- * que Beyond y pousse.
+ * Photo quotidienne du calendrier tarifaire Beds24 (prix, séjour minimum, dispo sur 365 j),
+ * et prix que le moteur maison aurait affichés le même jour (simulation, rien n'est envoyé).
+ * Voir `lib/pricing/snapshot.ts` et `lib/pricing/engine.ts`.
  *
  * À appeler une fois par jour, de préférence tôt le matin (Beyond pousse la nuit). Deux
  * appels le même jour écrasent la photo du jour : c'est voulu, la dernière fait foi.
  *
- * `?dry=1` relève et compare sans rien écrire.
+ * `?dry=1` relève, calcule et compare sans rien écrire.
  */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -29,7 +34,19 @@ export async function GET(request: NextRequest) {
   try {
     const snapshot = await takeSnapshot(today);
     const yesterday = await loadSnapshot(addDays(today, -1));
-    if (!dry) await saveSnapshot(snapshot);
+
+    const engine = computeEnginePrices({
+      today,
+      nights: Object.fromEntries(Object.entries(snapshot.days).map(([d, v]) => [d, v[2] === 1])),
+      events: LE_MANS_EVENTS,
+      config: ENGINE_CONFIG,
+    });
+    const shadow: ShadowPrices = {
+      date: today,
+      days: Object.fromEntries(Object.entries(engine).map(([d, n]) => [d, [n.price, n.minStay]])),
+    };
+
+    if (!dry) await Promise.all([saveSnapshot(snapshot), saveShadow(shadow)]);
 
     const diff = yesterday ? diffSnapshots(yesterday, snapshot) : null;
     return NextResponse.json({
@@ -43,6 +60,7 @@ export async function GET(request: NextRequest) {
         sold: diff.sold,
         released: diff.released,
       },
+      ...(dry && { engine }),
     });
   } catch (err) {
     console.error("[pricing-snapshot]", err);

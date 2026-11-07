@@ -92,6 +92,37 @@ export async function loadSnapshots(
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
+ * Prix du moteur maison, calculés le même jour que la photo (simulation)
+ *
+ * Stockés plutôt que recalculés au moment du rapport : la grille va évoluer, et la comparaison
+ * honnête est avec ce que le moteur **aurait affiché ce jour-là**, pas avec ce qu'il dirait
+ * aujourd'hui.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/** `[prix, séjour minimum]` par nuit. */
+export interface ShadowPrices {
+  date: string;
+  days: Record<string, [price: number, minStay: number]>;
+}
+
+const SHADOW_PREFIX = "pricing:shadow:barbusse:";
+
+export async function saveShadow(shadow: ShadowPrices): Promise<void> {
+  await getRedis().set(SHADOW_PREFIX + shadow.date, shadow);
+}
+
+export async function loadShadows(
+  until: string,
+  count: number,
+): Promise<{ date: string; shadow: ShadowPrices | null }[]> {
+  const dates = Array.from({ length: count }, (_, i) => addDays(until, i - count + 1));
+  const values = await getRedis().mget<(ShadowPrices | null)[]>(
+    ...dates.map((d) => SHADOW_PREFIX + d),
+  );
+  return dates.map((date, i) => ({ date, shadow: values[i] ?? null }));
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
  * Différence entre deux photos
  * ────────────────────────────────────────────────────────────────────────── */
 

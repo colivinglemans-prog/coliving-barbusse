@@ -5,7 +5,9 @@ import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import { getStays } from "@/lib/bookings";
 import { LE_MANS_EVENTS } from "@/lib/events";
-import { loadSnapshots } from "@/lib/pricing/snapshot";
+import { compareEngine, formatEngineComparison } from "@/lib/pricing/engine-comparison";
+import { ENGINE_CONFIG } from "@/lib/pricing/engine-config";
+import { loadShadows, loadSnapshots } from "@/lib/pricing/snapshot";
 import { buildWeeklyReport, formatWeeklyReport } from "@/lib/pricing/weekly-report";
 
 /**
@@ -29,8 +31,9 @@ export async function GET(request: NextRequest) {
     dry && requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : todayParis();
 
   try {
-    const [snapshots, stays] = await Promise.all([
+    const [snapshots, shadows, stays] = await Promise.all([
       loadSnapshots(today, 8),
+      loadShadows(today, 8),
       // Depuis le 1er janvier de l'an dernier (CA à date comparé, rythme de remplissage),
       // jusqu'au bout de l'horizon des photos.
       getStays({
@@ -39,9 +42,16 @@ export async function GET(request: NextRequest) {
       }),
     ]);
     const report = buildWeeklyReport({ today, snapshots, stays, events: LE_MANS_EVENTS });
-    const message = formatWeeklyReport(report);
+    const comparison = compareEngine({
+      today,
+      snapshots,
+      shadows,
+      events: LE_MANS_EVENTS,
+      config: ENGINE_CONFIG,
+    });
+    const message = [formatWeeklyReport(report), formatEngineComparison(comparison)].join("\n");
 
-    if (dry) return NextResponse.json({ success: true, sent: false, message, report });
+    if (dry) return NextResponse.json({ success: true, sent: false, message, report, comparison });
 
     if (!process.env.NTFY_TOPIC) {
       return NextResponse.json({ error: "NTFY_TOPIC is not set", message }, { status: 500 });

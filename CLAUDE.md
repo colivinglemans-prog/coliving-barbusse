@@ -258,6 +258,16 @@ précédente et l'an dernier à la même date (`bookedAt`), tarification des év
 **nuits de base ≤ 9 pers., avant markup canal et frais** : ils se comparent entre eux, pas au
 montant payé.
 
+**Moteur de prix maison, en simulation** (depuis le 2026-11-07, décision Beyond le 2027-01-15) :
+`lib/pricing/engine.ts` (pur, aucune écriture possible vers Beds24) applique la grille de
+`lib/pricing/engine-config.ts` — fêtes et grands événements à prix fixe avec plancher, base ×
+mois × jour, +5 % sur les événements mineurs, paliers d'anticipation, remise sur les trous plus
+courts que le séjour minimum, plancher/plafond. Le cron `pricing-snapshot` calcule ses prix le même
+jour que la photo et les stocke (`pricing:shadow:barbusse:{date}`) : on compare à ce qu'il **aurait
+affiché ce jour-là**, même si la grille change ensuite. `lib/pricing/engine-comparison.ts` ajoute au
+rapport du lundi la part des nuits ordinaires à ±10 % de Beyond (seuil de bascule : 80 %), l'écart
+médian, les grands événements côte à côte et le prix moteur des nuits vendues dans la semaine.
+
 ## Calendrier public de réservation
 
 `components/public/ReservationCalendar.tsx` n'est plus qu'une enveloppe : le calendrier vit
