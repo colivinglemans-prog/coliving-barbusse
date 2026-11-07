@@ -14,6 +14,9 @@ import type {
   Beds24CalendarRoom,
   Beds24Property,
 } from "@sejour/socle/lib/beds24-types";
+import { PROPERTY_ID } from "@/lib/beds24-property";
+
+export { PROPERTY_ID, ROOM_ID } from "@/lib/beds24-property";
 
 /**
  * Client Beds24 v2 pour Coliving Barbusse.
@@ -239,7 +242,7 @@ export async function getAllBookingsRaw(): Promise<Beds24Booking[]> {
  * neuvième de maison par nuit. L'occupation ne change pas ; le prix par nuit et le RevPAR sont
  * ceux d'une maison.
  */
-const WHOLE_HOUSE_PROPERTY_ID = 303771;
+const WHOLE_HOUSE_PROPERTY_ID = PROPERTY_ID;
 const ROOMS_IN_HOUSE = 9;
 
 export function toBooking(b: Beds24Booking, source: BookingSource = "live"): Booking {

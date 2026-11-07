@@ -1,4 +1,4 @@
-import { Redis } from "@upstash/redis";
+import { getRedis } from "./redis";
 import type { CozytouchDHWMode, CozytouchWaterHeaterStatus } from "./types";
 
 // ─── Constants ──────────────────────────────────────────────
@@ -13,19 +13,6 @@ const SESSION_KEY = "cozytouch:session";
 const DEVICE_URL_KEY = "cozytouch:device-url";
 const SENSOR_URL_KEY = "cozytouch:sensor-url";
 const SESSION_TTL = 8 * 60 * 60; // 8 hours in seconds
-
-// ─── Redis client (reuse from heatzy) ──────────────────────
-
-let redisClient: Redis | null = null;
-function getRedis(): Redis {
-  if (!redisClient) {
-    redisClient = new Redis({
-      url: process.env.KV_REST_API_URL!,
-      token: process.env.KV_REST_API_TOKEN!,
-    });
-  }
-  return redisClient;
-}
 
 // ─── In-memory cache ────────────────────────────────────────
 

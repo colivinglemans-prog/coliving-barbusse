@@ -10,6 +10,7 @@ import {
 } from "@/lib/cozytouch";
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
+import { beat } from "@/lib/heartbeat";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
 
 export async function GET(request: NextRequest) {
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
       applied.push(`boost ${status.boostActive ? "on" : "off"} → ${settings.boost ? "on" : "off"}`);
     }
 
+    await beat("water-heater-automation", "ok");
     return NextResponse.json({
       success: true,
       profile,
@@ -57,6 +59,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("water-heater-automation", "error");
     await sendWaterHeaterAlert(
       "Erreur automation eau chaude",
       `L'automation du ballon thermodynamique a rencontré une erreur :\n\n${message}`,

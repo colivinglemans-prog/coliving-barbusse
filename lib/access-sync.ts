@@ -25,7 +25,7 @@
  */
 
 import { randomInt } from "node:crypto";
-import { Redis } from "@upstash/redis";
+import { getRedis } from "./redis";
 import {
   keypadArrivals,
   planAccessCodes,
@@ -68,13 +68,7 @@ const HOUSE_PROPERTY_ID = 303771;
 /** Tous les statuts : sans liste, Beds24 omet les annulées, dont on doit retirer le code. */
 const ALL_STATUSES = ["confirmed", "new", "request", "inquiry", "black", "cancelled"];
 
-let redisClient: Redis | null = null;
-function redis(): Redis {
-  if (!redisClient) {
-    redisClient = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! });
-  }
-  return redisClient;
-}
+const redis = getRedis;
 
 export function nukiConfig(): NukiConfig {
   const token = process.env.NUKI_API_TOKEN?.trim();
@@ -146,7 +140,7 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
   const cfg = nukiConfig();
 
   if (mode === "live" && !(await acquireLock())) {
-    return { mode, health: { online: false, keypadPaired: false, batteryCritical: false, keypadBatteryCritical: false }, stays: 0, actions: [], alerts: [], notified: 0, skipped: "un autre passage est en cours" };
+    return { mode, health: { online: false, keypadPaired: false, batteryCritical: false, keypadBatteryCritical: false, batteryChargePercent: null, lockState: null, motorBlocked: false }, stays: 0, actions: [], alerts: [], notified: 0, skipped: "un autre passage est en cours" };
   }
   try {
     const today = todayParis();

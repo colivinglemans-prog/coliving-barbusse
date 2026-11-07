@@ -1,5 +1,6 @@
-import { Redis } from "@upstash/redis";
+import { getRedis as sharedRedis, hasRedis } from "@/lib/redis";
 import { addDays, daysBetween } from "@sejour/socle/lib/dates";
+import { PROPERTY_ID } from "@/lib/beds24-property";
 import { todayParis } from "@sejour/socle/lib/time";
 import { getCalendarDays, type CalendarDay } from "@/lib/beds24";
 
@@ -20,7 +21,7 @@ import { getCalendarDays, type CalendarDay } from "@/lib/beds24";
  * veille est le prix auquel Beyond l'affichait au moment de la vente.
  */
 
-export const PROPERTY_ID = 303771;
+export { PROPERTY_ID };
 /**
  * Horizon relevé. Beds24 ne rend que 365 jours par appel, et c'est aussi la fenêtre de
  * réservation : au-delà, Beyond pousse des prix mais `numAvail` vaut 0 partout (constaté le
@@ -41,15 +42,9 @@ export interface PriceSnapshot {
 
 const KEY_PREFIX = "pricing:snapshot:barbusse:";
 
-let redisClient: Redis | null = null;
-function getRedis(): Redis {
-  if (!redisClient) {
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
-    if (!url || !token) throw new Error("KV_REST_API_URL / KV_REST_API_TOKEN manquants");
-    redisClient = new Redis({ url, token });
-  }
-  return redisClient;
+function getRedis() {
+  if (!hasRedis()) throw new Error("KV_REST_API_URL / KV_REST_API_TOKEN manquants");
+  return sharedRedis();
 }
 
 function toSnapshotDay(d: CalendarDay): SnapshotDay {

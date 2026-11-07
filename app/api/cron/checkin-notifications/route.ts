@@ -1,25 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { getBookingsWithArchive } from "@/lib/bookings";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import type { Beds24Booking } from "@/lib/types";
 import { readKeypadArrivals } from "@/lib/access-sync";
+import { getRedis } from "@/lib/redis";
+import { firstNameOnly } from "@sejour/socle/lib/arrival-readiness/format";
 
 const CHECKIN_INFO_CODE = "CHECKIN";
 const REDIS_KEY_TTL_SECONDS = 60 * 24 * 3600; // 60 jours
-
-let redisClient: Redis | null = null;
-function getRedis(): Redis {
-  if (!redisClient) {
-    redisClient = new Redis({
-      url: process.env.KV_REST_API_URL!,
-      token: process.env.KV_REST_API_TOKEN!,
-    });
-  }
-  return redisClient;
-}
 
 function addDays(yyyymmdd: string, delta: number): string {
   const d = new Date(yyyymmdd + "T00:00:00Z");
@@ -33,9 +23,13 @@ function findCheckInItem(booking: Beds24Booking) {
   );
 }
 
+/**
+ * Le prénom seul : le sujet ntfy est public par nature (son nom est son seul secret), le nom
+ * de famille n'a rien à y faire. Un nom complet saisi dans le champ prénom est coupé au
+ * premier mot.
+ */
 function formatGuest(b: Beds24Booking): string {
-  const name = [b.firstName, b.lastName].filter(Boolean).join(" ").trim();
-  return name || "Voyageur inconnu";
+  return firstNameOnly(b.firstName) || "Voyageur";
 }
 
 function nights(b: Beds24Booking): number {

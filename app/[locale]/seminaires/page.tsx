@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { alternatesFor, openGraphLocales, seminarsPath } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
+import { PROPERTY_INFO } from "@/lib/property-info";
+import { aggregateRatingJsonLd } from "@/lib/reviews";
 import type { Locale } from "@/lib/i18n";
 
 const WHATSAPP = "https://wa.me/33620921005";
@@ -400,8 +402,8 @@ export default async function Seminaires({
         addressCountry: "FR",
       },
       geo: { "@type": "GeoCoordinates", latitude: 47.9842, longitude: 0.1976 },
-      numberOfRooms: 9,
-      maximumAttendeeCapacity: 20,
+      numberOfRooms: PROPERTY_INFO.bedrooms,
+      maximumAttendeeCapacity: PROPERTY_INFO.maxGuests,
       amenityFeature: [
         { "@type": "LocationFeatureSpecification", name: "Meeting space", value: true },
         { "@type": "LocationFeatureSpecification", name: "Presentation screen (smart TV, HDMI)", value: true },
@@ -411,12 +413,7 @@ export default async function Seminaires({
         { "@type": "LocationFeatureSpecification", name: "Garden", value: true },
         { "@type": "LocationFeatureSpecification", name: "Gym", value: true },
       ],
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        reviewCount: "24",
-        bestRating: "5",
-      },
+      aggregateRating: aggregateRatingJsonLd(),
       inLanguage: locale,
     },
     {

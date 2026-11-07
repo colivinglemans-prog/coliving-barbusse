@@ -5,18 +5,39 @@ import {
   getLockedDevices,
   saveLockedDevices,
   setDeviceMode,
-  getOccupiedMode,
-  getBetweenReservationsMode,
   getSummerMode,
 } from "@/lib/heatzy";
+import { expectedHeatingMode, type HeatingSituation } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
+import { alertTransition, failingInputs } from "@/lib/alert-memory";
+import { beat } from "@/lib/heartbeat";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Libellé de l'action, par situation — ceux d'avant la fonction unique. */
+const LABEL: Record<Exclude<HeatingSituation, "vacant">, string> = {
+  "preheat-cft": "pré-chauffage confort (arrivée aujourd'hui)",
+  "preheat-eco": "pré-chauffage éco (montée progressive)",
+  "arrival-morning": "hors-gel (arrivée aujourd'hui, avant pré-chauffage)",
+  occupied: "(occupé)",
+  turnaround: "(entre deux réservations)",
+  checkout: "hors-gel (départ)",
+};
+
+/**
+ * Pilotage du chauffage, toutes les 15 min (cron-job.org) et à 7 h (Vercel).
+ *
+ * Le mode vient de `expectedHeatingMode` (`lib/heating-schedule.ts`), la seule source :
+ * préchauffage éco à 12 h, confort à 15 h, occupé à partir de 17 h, rotation en éco de 10 h à
+ * 17 h, hors-gel au départ, rien d'imposé sans réservation.
+ *
+ * Les radiateurs qui refusent leur mode (`failures`) déclenchent une alerte ntfy, une fois par
+ * changement d'état (`barbusse:alert:heating-automation`).
+ */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -24,6 +45,7 @@ export async function GET(request: NextRequest) {
 
   try {
     if (await getSummerMode()) {
+      await beat("heating-automation", "ok");
       return NextResponse.json({
         success: true,
         skipped: "summer-mode",
@@ -42,102 +64,69 @@ export async function GET(request: NextRequest) {
     const actions: string[] = [];
     const lockedDevices = await getLockedDevices();
 
-    const hasCheckInToday = allBookings.some((b) => b.arrival === today);
     const hasCheckOutToday = allBookings.some((b) => b.departure === today);
-    const isCurrentlyOccupied = allBookings.some(
-      (b) =>
-        (b.arrival < today && b.departure > today) ||
-        (b.arrival === today && b.departure > today && currentHour >= 17) ||
-        (b.departure === today && currentHour < 10),
-    );
-    // Same-day turnaround: checkout AND checkin on the same day
-    const hasSameDayTurnaround = hasCheckOutToday && hasCheckInToday;
+    const situation = expectedHeatingMode(allBookings, today, currentHour, {}).situation;
 
-    // Unlock all devices at checkout (end of reservation)
-    if (hasCheckOutToday && !isCurrentlyOccupied && lockedDevices.size > 0) {
+    // Fin de réservation : tous les radiateurs verrouillés sont rendus à l'automatisation.
+    if (hasCheckOutToday && situation !== "occupied" && lockedDevices.size > 0) {
       await saveLockedDevices(new Set());
       actions.push(`Déverrouillage de ${lockedDevices.size} device(s) (fin de réservation)`);
       lockedDevices.clear();
     }
 
     const failures: string[] = [];
+    const failedDevices: string[] = [];
 
     for (const zone of config.zones) {
+      const { mode } = expectedHeatingMode(allBookings, today, currentHour, zone);
       for (const device of zone.devices) {
         const did = device.did;
 
-        // Skip locked devices
         if (lockedDevices.has(did)) {
           actions.push(`${device.name}: ignoré (verrouillé)`);
           continue;
         }
+        // Aucune réservation autour : rien d'imposé.
+        if (mode === null || situation === "vacant") continue;
 
         try {
-          // Pre-heating: check-in today (guests arrive at 17h)
-          // 12h-15h: éco (progressive warm-up, avoids tripping breakers)
-          // 15h+: confort (final warm-up before arrival)
-          if (hasCheckInToday && currentHour >= 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
-            await setDeviceMode(did, "cft");
-            actions.push(`${device.name}: pré-chauffage confort (arrivée aujourd'hui)`);
-            await sleep(100);
-            continue;
-          }
-          if (hasCheckInToday && currentHour >= 12 && currentHour < 15 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
-            await setDeviceMode(did, "eco");
-            actions.push(`${device.name}: pré-chauffage éco (montée progressive)`);
-            await sleep(100);
-            continue;
-          }
-          // Check-in today but before pre-heating window -> frost protection
-          if (hasCheckInToday && currentHour < 12 && !isCurrentlyOccupied && !hasSameDayTurnaround) {
-            await setDeviceMode(did, "fro");
-            actions.push(`${device.name}: hors-gel (arrivée aujourd'hui, avant pré-chauffage)`);
-            await sleep(100);
-            continue;
-          }
-
-          // Currently occupied -> zone-aware mode (nightMode for RDC 0h-5h)
-          if (isCurrentlyOccupied) {
-            const mode = getOccupiedMode(zone, currentHour);
-            await setDeviceMode(did, mode);
-            actions.push(`${device.name}: ${mode} (occupé)`);
-            await sleep(100);
-            continue;
-          }
-
-          // Same-day turnaround: éco during 9h-17h, fro otherwise
-          if (hasSameDayTurnaround) {
-            const mode = getBetweenReservationsMode(currentHour);
-            await setDeviceMode(did, mode);
-            actions.push(`${device.name}: ${mode} (entre deux réservations)`);
-            await sleep(100);
-            continue;
-          }
-
-          // Check-out today, no following check-in -> frost protection
-          if (hasCheckOutToday) {
-            await setDeviceMode(did, "fro");
-            actions.push(`${device.name}: hors-gel (départ)`);
-            await sleep(100);
-            continue;
-          }
+          await setDeviceMode(did, mode);
+          const label = LABEL[situation];
+          actions.push(label.startsWith("(") ? `${device.name}: ${mode} ${label}` : `${device.name}: ${label}`);
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Unknown error";
           failures.push(`${device.name}: ${msg}`);
+          failedDevices.push(device.name);
           console.error(`Heating automation error for ${device.name}:`, e);
-          await sleep(100);
         }
+        await sleep(100);
       }
     }
 
+    // Alerte sur les radiateurs qui n'ont pas pris leur mode — une fois par changement d'état.
+    const transition = await alertTransition("heating-automation", failingInputs(failedDevices));
+    if (transition.action === "open" || transition.action === "escalate") {
+      await sendHeatingAlert(
+        `${failedDevices.length} radiateur(s) n'ont pas pris leur mode`,
+        [`Situation : ${situation}`, "", ...failures.map((f) => `  - ${f}`)].join("\n"),
+      ).catch(() => {});
+    } else if (transition.action === "recover") {
+      await sendHeatingAlert("Tous les radiateurs ont repris leur mode", "Plus aucun échec de commande.", 2).catch(
+        () => {},
+      );
+    }
+
+    await beat("heating-automation", "ok");
     return NextResponse.json({
       success: true,
+      situation,
       actions,
       failures,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("heating-automation", "error");
     await sendHeatingAlert(
       "Erreur automation chauffage",
       `L'automation du chauffage a rencontré une erreur :\n\n${message}`,

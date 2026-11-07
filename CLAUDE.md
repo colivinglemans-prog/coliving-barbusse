@@ -25,7 +25,8 @@ npm run dev      # Serveur de développement
 npm run build    # Build production
 npm run lint     # ESLint
 npm run typecheck # Vérification TypeScript (tsc --noEmit)
-npm test         # Tests unitaires (vitest, tests/)
+npm test         # Tests unitaires (vitest, tests/ hors tests/deploy)
+npm run test:deploy # Contrôles post-déploiement contre la prod (DEPLOY_LEVEL=vital|full)
 git push         # Sur main : déploie la production (intégration GitHub de Vercel)
 ```
 
@@ -159,6 +160,41 @@ factures, taxe de séjour et fiscalité n'ont pas été normalisés : ils relèv
 - **CI** : `.github/workflows/ci.yml` — `npm ci`, lint, `typecheck`, `test`, `build`, sur chaque push et PR. Le build ne doit exiger **aucune** variable d'environnement (vérifié sans `.env.local`) : une variable lue au build est un défaut à corriger dans le code, pas un secret à ajouter à la CI. Le socle, en `git+ssh` dans le lock, est forcé en HTTPS sur le runner.
 - **Tests** : vitest, dans `tests/` (hors de `lib/`). Tests de caractérisation du rapport hebdomadaire du pricing et de `diffSnapshots`. Données **inventées** (dépôt public). Le socle est transformé par vitest (`server.deps.inline`) car il est publié en TypeScript source.
 - **Non-régression d'une montée de version** : protocole du socle contre `next start` local, avant/après, avec `--compare` (voir le `CLAUDE.md` du socle). Le mot de passe admin local diffère de la prod : l'injecter par `BARBUSSE_ADMIN_PASSWORD` dans l'environnement, `loadEnvFile` n'écrase pas une variable déjà posée.
+
+## Tests post-déploiement et surveillance
+
+Le moteur est dans le socle (`@sejour/socle/testing/deploy`, v3.9.0+) ; ce dépôt ne déclare que ses **attendus**, importés de son propre code, jamais recopiés.
+
+**Fichiers**
+- `tests/deploy/site.ts` — `satisfies DeploySite`. Importe `PROPERTY_ID`/`ROOM_ID`/`availabilityPath` (`lib/beds24-property.ts`), `PROPERTY_INFO`, `CANCELLATION_POLICY`, `PAYMENT_POLICY` (`lib/property-info.ts`), `reviewsSummary()` (`lib/reviews.ts`), `LOCALES`, `BLOG_POSTS` (éditions `supersededBy`). Les `cronRoutes` sont **lues dans `app/api/cron/`** : un cron ajouté est contrôlé (401 sans Bearer) dès son premier déploiement.
+- `tests/deploy/deploy.test.ts` — `defineDeploySuite(site)`.
+- `vitest.deploy.config.ts` — `TZ=Europe/Paris`, inclut `tests/deploy/**` ; `vitest.config.ts` l'exclut (`npm test` reste sans réseau).
+- `.github/workflows/surveillance.yml` — un `cron` à :15 ; le niveau se décide à l'heure de Paris (`full` à 6h, `vital` sinon : le `cron` GitHub est en UTC) ; `max_green_age_hours: 26` au passage `full` ; `workflow_dispatch` (niveau, URL).
+- `.github/workflows/post-deploy.yml` — sur `deployment_status` en `success`, `full` contre `environment_url` ; alerte seulement si l'environnement est `Production`.
+- Les deux appellent `colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml` **par SHA** (v3.10.0 = `6446989…`), `permissions: {}` au niveau du workflow, secrets passés un par un.
+
+**Commandes**
+```bash
+DEPLOY_LEVEL=vital npm run test:deploy                 # ~4 s, production
+DEPLOY_LEVEL=full npm run test:deploy                  # ~8 s
+DEPLOY_BASE_URL=https://<preview> npm run test:deploy  # une preview (les contrôles « prod seulement » sautent)
+DEPLOY_ONLY=llms.,indexing.robots npm run test:deploy  # un sous-ensemble (préfixe avec un point final)
+```
+Lecture seule : aucun POST hors login (mauvais mot de passe), webhook sans secret et `invoices/generate` en anonyme/viewer (refusé avant validation). Aucune route de pilotage du chauffage ou du ballon n'est appelée.
+
+**Secrets GitHub attendus** (Settings → Secrets → Actions) : `BEDS24_MONITOR_TOKEN` (refresh token Beds24 `read:inventory` seul, propre à la surveillance ; sans lui `calendar.matchesBeds24` saute), `DEPLOY_VIEWER_PASSWORD` (compte viewer **dédié** à la surveillance ; sans lui `security.viewer` saute), `VERCEL_AUTOMATION_BYPASS_SECRET` (previews protégées), `NTFY_TOPIC`. Anti-extinction des `schedule` (60 jours sans activité) : cron-job.org lance `workflow_dispatch` chaque jour avec un jeton GitHub à grain fin, **à renouveler avant son expiration**.
+
+**Pages volontairement hors du crible des fuites** : `/guide-arrivee` publie le Wi-Fi en clair (décision du 2026-11-07) ; le mot de passe est dans `mustNeverAppear` pour qu'il n'apparaisse **nulle part ailleurs** (accueil, chambres, séminaires, blog, `llms.txt`).
+
+**KO attendus en `full` (au 2026-11-07), jusqu'à la réécriture des textes par la session « réservation IA »**
+- `llms.forbidden` — « gratuite jusqu'à 14 jours » / « acompte de 10 % » dans `llms.txt` et les 5 dictionnaires (`fr.ts:197-198` et équivalents) ;
+- `llms.policies` — les nombres de la politique Ferme (100/50 %, 48 h, 100 % direct) absents de `llms.txt` ;
+- `llms.coverage` — `llms.txt` ne référence ni `/en`, `/it`, `/de`, `/es` ni `/fr/chambres` ;
+- `indexing.reviewsJsonLd` — tant que la prod sert `reviewCount: "24"` (corrigé ici : calculé depuis `data/reviews.json`, 30 avis).
+
+Le `full` quotidien gardera donc l'issue `surveillance-ko` ouverte jusqu'à ce correctif ; le `vital` horaire doit être vert.
+
+**En attente** : `heartbeat: { path: "/api/health/heartbeat" }` reste en commentaire dans `site.ts` tant que la route n'est pas en production. `channel` et `referer` restent hors de `viewerForbiddenFields` : le DTO du socle (`toBookingListItem`) les sert encore au viewer. Défaut du socle remonté : `excludedPaths` compare par sous-chaîne, si bien que `blog/motogp-france-le-mans` (périmé) masquerait `…-2027` ; les slugs périmés qui en préfixent un autre sont donc retirés de la liste.
 
 ## TODO — dette technique restante (au 2026-11-07)
 
@@ -593,7 +629,18 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
 - **Température API** : valeurs en dixièmes (179 = 17.9°C), diviser par 10
 - **Config** : `data/heatzy-zones.json` (device IDs, zones, nightMode, mapping Beds24)
 
-### Logique scheduling (centralisée dans `lib/heatzy.ts`)
+### Logique scheduling (une seule source : `lib/heating-schedule.ts`)
+
+**`expectedHeatingMode(bookings, today, hour, zone)`** rend `{ situation, mode }` — `occupied`,
+`arrival-morning`, `preheat-eco`, `preheat-cft`, `turnaround`, `checkout`, `vacant` (`mode: null` :
+rien d'imposé). C'est **la** règle, pure, utilisée par `heating-automation`, `heating-reset`
+(`resetTarget`), `/api/dashboard/heating` (`expectedMode`, `getHeatingRules(situation, …)`) et la
+sonde `heating` de la préparation d'arrivée. Elle remplace trois copies qui avaient divergé
+(2026-11-07) : le dashboard annonçait hors-gel puis confort un jour de rotation, là où
+l'automatisation pose l'éco de 10 h à 17 h. **La référence est l'automatisation.** Le test
+`tests/heating/expected-mode.test.ts` garde les anciennes copies en oracle sur une semaine
+simulée ; toute modification de la règle doit l'y faire apparaître. `lib/heatzy.ts` réexporte
+ces fonctions pour les anciens imports.
 
 **Chambres occupées** :
 - 7h-20h : mode présence
@@ -615,12 +662,30 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
 
 **Pré-chauffage** (jour du check-in) : éco à 12h, confort à 15h (montée progressive pour éviter de faire sauter les plombs)
 
-### Fonctions utilitaires (`lib/heatzy.ts`)
+**Reset (`heating-reset`, toutes les 4 h)** : un **jour d'arrivée compte comme occupé dès 12 h**
+(`resetTarget`) — mode du préchauffage (ou éco en rotation), consignes remises seulement si
+elles ont été montées. Avant le 2026-11-07, les passages de 12 h et 16 h remettaient le
+hors-gel par défaut et coupaient le préchauffage jusqu'au quart d'heure suivant.
 
-- `getOccupiedMode(zone, hour)` : mode selon zone + heure
-- `getBetweenReservationsMode(hour)` : éco 9h-17h, sinon hors-gel
-- `getHeatingRules(occupied, hour, sameDayTurnaround, nextCheckIn)` : règles affichées
-- `getLockedDevices()` : lit `LOCKED_DEVICES` env var
+### Fonctions utilitaires
+
+- `lib/heating-schedule.ts` : `expectedHeatingMode`, `heatingSituation`, `isOccupiedAt`,
+  `getOccupiedMode(zone, hour)`, `getBetweenReservationsMode(hour)`, `resetTarget`,
+  `getHeatingRules(situation, hour, nextCheckIn)`
+- `lib/heatzy.ts` : client Gizwits, `getLockedDevices()` (Redis `heatzy:locked-devices`, repli
+  `LOCKED_DEVICES`), mode été
+- `data/heatzy-zones.json` : `unpaired: true` sur les **Chambres 3 et 7** (module non appairé) —
+  ignorées par la préparation d'arrivée, toujours pilotées par l'automatisation
+
+### Alertes des crons chauffage (ntfy, anti-répétition)
+
+`heating-health` (connectivité) et `heating-automation` (radiateurs qui refusent leur mode,
+`failures[]`) passent par `nextAlertState` du socle, état dans Redis
+`barbusse:alert:heating-health` / `barbusse:alert:heating-automation` (`lib/alert-memory.ts`) :
+une notification à l'ouverture, une quand un nouveau radiateur tombe, une en priorité 2 au
+rétablissement — **jamais deux fois à gravité égale**. `heating-health` renvoyait la même alerte
+toutes les 30 min. `sendHeatingAlert(subject, body, priority = 4)` (`lib/alerts.ts`) : la
+priorité est un troisième argument facultatif.
 
 ### Alertes (basées sur température + comportement)
 
@@ -1106,7 +1171,63 @@ La condition `isCurrentlyOccupied` :
 || (departure === today && hour < 10)
 ```
 
-Appliquée dans : `heating-automation`, `heating-reset`, et `dashboard/heating` (alertes + règles affichées).
+Elle n'existe plus qu'une fois : `isOccupiedAt` dans `lib/heating-schedule.ts`, derrière
+`expectedHeatingMode` (cf. « Heatzy Pilote Pro »). Exception voulue : `heating-reset` traite le
+jour d'arrivée comme occupé dès 12 h.
+
+## Préparation d'arrivée (`/api/cron/arrival-readiness`, depuis le 2026-11-07)
+
+Contrôle **en lecture seule** de la serrure, des radiateurs et du ballon avant chaque arrivée ;
+prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-répétition, format) est
+`@sejour/socle/lib/arrival-readiness` ; les réglages et les sondes propres à la maison sont dans
+`lib/readiness/` (`config.ts`, `heating-probe.ts`, `water-heater-probe.ts`, `run.ts`).
+
+| Passage | Heure (Paris) | Sondes |
+|---|---|---|
+| `eve` | J-1 19h | serrure (dont pile, code du séjour), radiateurs en ligne, ballon en ligne |
+| `noon` | J 12h30 | + mode attendu (éco) ; relevé des températures de référence |
+| `preheat` | J 15h30 | mode attendu (confort, **éco en rotation**) ; +1 °C depuis 12h30 **ou** ≥ 14 °C |
+| `final` | J 16h30 | ≥ consigne du mode attendu − 3 °C ; eau ≥ 50 °C **ou** ≥ 60 % du ballon |
+| `late` | arrivée annoncée − 1 h | serrure, eau |
+| `noShow` | J+1 9h | entrée avec le code depuis 14 h (journal Nuki), **une seule alerte** |
+| `daily` | 9h | pile : < 25 % → priorité 3, < 10 % → 4 |
+
+- **Ignorés** : Chambres 3 et 7 (`unpaired`), radiateurs verrouillés ou exclus, mode été, et
+  **toute température de pièce à partir de 17 h**. L'eau est mesurée au passage `late` : c'est
+  sa raison d'être.
+- **Silence de 22 h à 8 h**, sauf `eve` et `late`. Hors ligne seulement après 2 lectures ratées.
+- **Gravité** des défauts bloquants selon le passage : 3 (J-1, 12h30, 9h), 4 (15h30, non-arrivée),
+  5 (16h30, tardif).
+- **Redis** : `barbusse:readiness:state:<arrival:id|equipment>` (anti-répétition par séjour),
+  `…:memory` (lectures ratées), `…:baseline:<id>` (températures de 12h30), `…:last-run`.
+- **`?dryRun=1`** : calcule et rend l'aperçu de la notification sans rien écrire ni envoyer
+  (`run.ts` n'appelle jamais `send` en `dryRun`, et la route lui passe une fonction qui lève).
+  `&at=<ISO>` simule l'instant (refusé hors `dryRun`). Les sondes lisent toujours l'état
+  **actuel** des appareils.
+- Le corps ntfy porte le prénom seul, jamais de PIN (`scrubCodes`) ni de nom de famille ; la
+  réponse HTTP hors `dryRun` ne porte que les identifiants des constats.
+
+## Battement de cœur des crons (`/api/health/heartbeat`)
+
+`nuki-sync`, `heating-automation`, `water-heater-automation` et `arrival-readiness` appellent
+`beat(name, "ok" | "error")` (`lib/heartbeat.ts`, `recordHeartbeat` du socle) en fin de passage
+réel — pas en `dry`/`dryRun`. Redis `barbusse:heartbeat:<nom>` et `…:ok` (TTL 30 j).
+
+Retards acceptés (dernier passage **réussi**) : `heating-automation` 45 min, les trois autres
+150 min — fréquence réelle plus un passage manqué.
+
+`GET /api/health/heartbeat` est **publique** (hors `matcher` de `proxy.ts`) : 200
+`{ ok: true, overdue: 0 }` ou 503 `{ ok: false, overdue: N }`, **jamais un nom**. Les noms
+partent par ntfy (`sendCronAlert`) une fois par changement d'état
+(`barbusse:alert:heartbeat`). L'appeler écrit donc dans Redis : ne pas la viser en local avec
+les variables de production.
+
+## Client Redis unique (`lib/redis.ts`)
+
+`getRedis()` est le seul client Upstash du site (les six copies ont été retirées le
+2026-11-07). Les **nouvelles** clés passent par `redisKey(...)` → préfixe `barbusse:` ; les
+anciennes (`heatzy:*`, `cozytouch:*`, `nuki:*`, `checkin:notified:*`, `pricing:*`,
+`invoice:counter:*`) ne sont pas renommées.
 
 ## Cozytouch (Ballon thermodynamique Atlantic)
 
@@ -1466,12 +1587,19 @@ Exemple résa Direct (85615323) : Σ(daily rates) + Ménage 250 + Draps 140 **�
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
 | Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
+| Préparation d'arrivée | `/api/cron/arrival-readiness` | `35 * * * *` (jour et nuit) |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
 | Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
 
-Le reset vérifie après application que les devices ont bien pris les changements (températures). Si échec → alerte ntfy.
+`arrival-readiness` à **:35** : chaque passage nominal (12h30, 15h30, 16h30, J-1 19h, 9h) tombe
+une fois dans sa fenêtre de ± 30 min, et l'automatisation du chauffage a déjà posé le confort de
+15 h. Jour et nuit : le passage `late` d'une arrivée à 23 h est à 22 h, les heures de silence
+sont gérées par la route.
+
+Le reset ne relit pas les radiateurs après application : un échec de commande n'apparaît que
+dans `failures` de sa réponse. Les échecs de `heating-automation`, eux, partent par ntfy.
 
 Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `beds24-backup` dimanche 3 h (UTC).
 
@@ -1521,6 +1649,7 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 
 - **Détection** : première ouverture réussie au clavier par le code `<n° de réservation>: …`, lue dans le **journal de la serrure** (`keypadArrivals` du socle, `GET /smartlock/{id}/log`). L'ancien signal — un `infoItems[]` `CHECKIN` que déposait le connecteur Beds24 → Nuki, horodaté dans `createTime` — reste lu en secours pendant la transition ; il disparaît avec le connecteur.
 - **Cron** : `/api/cron/checkin-notifications` toutes les 10 min, fenêtre arrivées J-3 → J+1.
+- **Contenu** : le **prénom seul** (`firstNameOnly` du socle, premier mot), jamais le nom de famille — le sujet ntfy n'a pour secret que son nom.
 - **Anti-doublon** : Redis `checkin:notified:{bookingId}` (TTL 60 jours) — une seule notif par résa, même si le code est retapé.
 - **Service push** : ntfy.sh (gratuit, topic privé non-devinable). Variable `NTFY_TOPIC` = URL complète (ex `https://ntfy.sh/coliving-barbusse-xxxxx`). Subscribe au topic depuis l'app ntfy mobile.
 - **Helper** : `sendNtfy(message, { title, priority, tags, click })` dans [lib/ntfy.ts](lib/ntfy.ts). Encode automatiquement le titre en RFC 2047 pour les emojis/accents (les headers ntfy doivent être ASCII).

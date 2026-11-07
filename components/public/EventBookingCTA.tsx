@@ -3,6 +3,7 @@
 import EventBookingCTA, {
   type EventBookingLabels,
 } from "@sejour/socle/components/EventBookingCTA";
+import { PROPERTY_ID } from "@/lib/beds24-property";
 import type { LocalEvent } from "@/lib/events";
 import type { Locale } from "@/lib/i18n";
 
@@ -20,7 +21,6 @@ import type { Locale } from "@/lib/i18n";
  * édition ». Ils coexistent sur une même page.
  */
 
-const PROPERTY_ID = 303771;
 const DEFAULT_MIN_STAY = 2;
 
 /** Étiquettes BCP 47 pour le formatage des dates affichées. */
