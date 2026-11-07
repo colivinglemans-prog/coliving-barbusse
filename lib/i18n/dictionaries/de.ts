@@ -116,7 +116,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     nights: (n) => `${n} Nacht${n > 1 ? "e" : ""}`,
     adults: "Erwachsene",
     teens: "Kinder (0-17 Jahre)",
-    teensNote: "Unter 10 Jahren: nicht geeignet (Treppen, keine Babyausstattung), aber unter Aufsicht der Erwachsenen erlaubt.",
+    teensNote: "Ein Haus für Jugendliche und Erwachsene: Für Kleinkinder ist nichts eingerichtet (ungesicherte Treppen, hohe Hocker, Fitnessraum). Kinder unter 10 Jahren sind unter der Verantwortung ihrer Eltern willkommen.",
     clear: "Löschen",
     bookNow: "Jetzt buchen",
     directDiscount: "Bestpreis garantiert: −7 % bei Direktbuchung gegenüber den Plattformen",

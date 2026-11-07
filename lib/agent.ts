@@ -72,7 +72,7 @@ const FACTS_FR: Omit<PropertyFacts, "pages"> = {
     "Animaux non autorisés",
     "Non-fumeur à l'intérieur",
     "Pas de fête ni d'événement bruyant (les repas de famille sont bienvenus)",
-    "Non adapté aux moins de 10 ans (escaliers, pas d'équipement bébé), mais acceptés sous la surveillance des adultes",
+    "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, TV dans les chambres, salle de sport dans une annexe). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents",
     "Stationnement gratuit dans la rue, sans place réservée",
   ],
   contact: { phone: PROPERTY_INFO.contact.phone, whatsapp: PROPERTY_INFO.contact.whatsapp, email: PROPERTY_INFO.contact.email },
@@ -94,7 +94,7 @@ const FACTS_EN: Omit<PropertyFacts, "pages"> = {
     "No pets",
     "No smoking indoors",
     "No parties or noisy events (family meals are welcome)",
-    "Not suited to children under 10 (stairs, no baby equipment), but they are accepted under adult supervision",
+    "A house designed for teens and adults: nothing is set up for young children (unguarded stairs, high stools, TV in every bedroom, gym in a separate annex). Children under 10 are welcome under their parents' responsibility",
     "Free street parking, no reserved space",
   ],
 };
@@ -112,7 +112,7 @@ export const STAY_AGENT: StayAgentConfig = {
   calendarPath: (lang) => `/${lang}#disponibilite`,
   instantBooking: true,
   childrenDescription:
-    "mineurs de 0 à 17 ans (exonérés de taxe de séjour). Moins de 10 ans : logement non adapté (escaliers, pas d'équipement bébé), mais accepté sous la surveillance des adultes.",
+    "mineurs de 0 à 17 ans (exonérés de taxe de séjour). Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, TV dans les chambres, salle de sport dans une annexe). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents.",
 };
 
 /** Les branchements réels, recalculés à chaque requête (`today` change à minuit). */

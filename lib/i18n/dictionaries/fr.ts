@@ -116,7 +116,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     nights: (n) => `${n} nuit${n > 1 ? "s" : ""}`,
     adults: "Adultes",
     teens: "Enfants (0-17 ans)",
-    teensNote: "Moins de 10 ans : logement non adapté (escaliers, pas d'équipement bébé), mais accepté sous la surveillance des adultes.",
+    teensNote: "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents.",
     clear: "Effacer",
     bookNow: "Réserver maintenant",
     directDiscount: "Meilleur tarif garanti : −7 % en réservation directe vs les plateformes",

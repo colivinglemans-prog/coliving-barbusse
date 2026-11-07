@@ -116,7 +116,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     nights: (n) => `${n} noche${n > 1 ? "s" : ""}`,
     adults: "Adultos",
     teens: "Niños (0-17 años)",
-    teensNote: "Menores de 10 años: no adaptado (escaleras, sin equipamiento para bebés), pero aceptados bajo la supervisión de los adultos.",
+    teensNote: "Casa pensada para adolescentes y adultos: no hay nada adaptado para niños pequeños (escaleras sin protección, taburetes altos, gimnasio). Los menores de 10 años son bienvenidos bajo la responsabilidad de sus padres.",
     clear: "Borrar",
     bookNow: "Reservar ahora",
     directDiscount: "Mejor precio garantizado: −7% reservando directo frente a las plataformas",

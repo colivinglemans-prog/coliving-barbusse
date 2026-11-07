@@ -116,7 +116,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     nights: (n) => `${n} nott${n > 1 ? "i" : "e"}`,
     adults: "Adulti",
     teens: "Bambini (0-17 anni)",
-    teensNote: "Sotto i 10 anni: non adatto (scale, nessuna attrezzatura per neonati), ma accettati sotto la sorveglianza degli adulti.",
+    teensNote: "Casa pensata per ragazzi e adulti: nulla è predisposto per i bambini piccoli (scale non protette, sgabelli alti, palestra). I bambini sotto i 10 anni sono accettati sotto la responsabilità dei genitori.",
     clear: "Cancella",
     bookNow: "Prenota ora",
     directDiscount: "Miglior prezzo garantito: −7% prenotando diretto rispetto alle piattaforme",
