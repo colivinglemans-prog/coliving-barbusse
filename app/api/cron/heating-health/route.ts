@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { getDevices, getFullZoneConfig } from "@/lib/heatzy";
-import { sendHeatingAlert } from "@/lib/email";
+import { sendHeatingAlert } from "@/lib/alerts";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
 
 export async function GET(request: NextRequest) {

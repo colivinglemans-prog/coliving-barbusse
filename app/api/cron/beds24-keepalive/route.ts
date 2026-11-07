@@ -6,7 +6,7 @@ import {
   refreshBeds24PublicToken,
   refreshBeds24MessagesToken,
 } from "@/lib/beds24";
-import { sendBeds24Alert } from "@/lib/email";
+import { sendBeds24Alert } from "@/lib/alerts";
 
 /**
  * Maintient les refresh tokens Beds24 en vie.
@@ -105,7 +105,7 @@ async function entretenir(
         ...REPARATION[quoi],
         "4. Redéployer : npx vercel --prod",
       ].join("\n"),
-    ).catch((e) => console.error("[beds24-keepalive] alerte email échouée:", e));
+    ).catch((e) => console.error("[beds24-keepalive] alerte ntfy échouée:", e));
 
     return { ok: false, error: message };
   }

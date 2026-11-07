@@ -10,7 +10,7 @@ import {
   getSummerMode,
 } from "@/lib/heatzy";
 import { getActiveBookings } from "@/lib/bookings";
-import { sendHeatingAlert } from "@/lib/email";
+import { sendHeatingAlert } from "@/lib/alerts";
 import { todayParis, tomorrowParis, currentHourParis } from "@sejour/socle/lib/time";
 
 function sleep(ms: number) {

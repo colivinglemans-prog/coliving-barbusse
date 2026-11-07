@@ -9,7 +9,7 @@ import {
   setTargetTemperature,
 } from "@/lib/cozytouch";
 import { getActiveBookings, countGuests } from "@/lib/bookings";
-import { sendWaterHeaterAlert } from "@/lib/email";
+import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
 
 export async function GET(request: NextRequest) {
