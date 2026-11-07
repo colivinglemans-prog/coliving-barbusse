@@ -153,7 +153,7 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
     const [health, auths, bookings] = await Promise.all([
       getLockHealth(cfg),
       listAuths(cfg),
-      getBookings({ departureFrom: addDays(today, -1), statuses: ALL_STATUSES, includeInfoItems: true }),
+      getBookings({ departureFrom: addDays(today, -1), statuses: ALL_STATUSES, includeInfoItems: true, fresh: true }),
     ]);
     const house = bookings.filter((b) => b.propertyId === HOUSE_PROPERTY_ID);
 
@@ -166,7 +166,7 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
       .map(Number)
       .filter((id) => !known.has(id));
     for (const id of new Set(missing)) {
-      const b = await getBookingById(id);
+      const b = await getBookingById(id, { fresh: true });
       if (b && b.propertyId === HOUSE_PROPERTY_ID) house.push(b);
     }
 

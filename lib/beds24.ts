@@ -135,6 +135,11 @@ export interface BookingQuery {
   statuses?: string[];
   includeInvoiceItems?: boolean;
   includeInfoItems?: boolean;
+  /**
+   * Hors du cache de 60 s du client. Obligatoire pour la synchronisation de la serrure :
+   * relire un PIN qu'elle vient d'écrire comme absent lui en ferait attribuer un second.
+   */
+  fresh?: boolean;
 }
 
 /**
@@ -164,6 +169,7 @@ export async function getBookings(params?: BookingQuery): Promise<Beds24Booking[
     statuses.map((status) =>
       client.get<{ data: Beds24Booking[] }>("/bookings", {
         params: status ? { ...queryParams, status } : queryParams,
+        fresh: params?.fresh,
       }),
     ),
   );
@@ -310,8 +316,12 @@ export async function confirmBooking(bookingId: number): Promise<void> {
   }
 }
 
-export async function getBookingById(id: number): Promise<Beds24Booking | null> {
+export async function getBookingById(
+  id: number,
+  { fresh }: { fresh?: boolean } = {},
+): Promise<Beds24Booking | null> {
   const data = await client.get<{ data: Beds24Booking[] }>("/bookings", {
+    fresh,
     params: {
       id: String(id),
       includeInvoiceItems: "true",
