@@ -70,7 +70,7 @@ const ok = (id: string, action: string): ProbeFinding => ({ id, severity: 1, blo
 /**
  * Sonde `heating` de Barbusse (radiateurs Heatzy), en lecture seule.
  *
- * - **Ignorés** : radiateurs `unpaired` (Chambres 3 et 7), verrouillés, exclus (absents des
+ * - **Ignorés** : radiateurs `unpaired`, verrouillés, exclus (absents des
  *   zones), et tout le chauffage en mode été.
  * - **Chaque passage** : radiateur hors ligne → bloquant (gravité du passage : 5 à 16h30).
  * - **12h30, 15h30, 16h30** : mode réel = mode attendu (`expectedHeatingMode`, la même
