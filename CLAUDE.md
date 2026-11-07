@@ -4,16 +4,17 @@ Site vitrine + dashboard privé pour un coliving au Mans (Airbnb, Booking, Abrit
 
 ## Stack
 
-- **Framework** : Next.js 16.1.6 (App Router, React 19, TypeScript)
+- **Framework** : Next.js 16.4.5 (App Router, React 19.3, TypeScript)
 - **Styling** : Tailwind CSS v4
 - **Auth** : JWT via `jose` (HS256, cookie httpOnly, 90 jours) — mécanique dans `@sejour/socle`
 - **Charts** : Recharts (dashboard)
 - **PDF** : `@react-pdf/renderer` (factures LMNP, dashboard)
 - **Paiements** : Stripe (lecture seule, utilisée pour générer des factures acquittées)
-- **Email** : Resend (alertes chauffage)
+- **Alertes** : ntfy (`@sejour/socle/lib/ntfy`) — Resend retiré le 2026-11-07
 - **i18n** : Système custom Context (FR/EN/IT/DE/ES)
 - **API externes** : Beds24 (réservations), Heatzy/Gizwits (chauffage)
-- **Déploiement** : Vercel (deploy via CLI `npx vercel --prod`)
+- **Déploiement** : Vercel — **un `git push` sur `main` déploie la prod** (intégration GitHub) ; `npx vercel --prod` en secours
+- **CI** : GitHub Actions (`.github/workflows/ci.yml`) — lint, types, tests, build à chaque push et PR, sans secret
 - **Cron externe** : cron-job.org (plan Hobby Vercel limité aux crons quotidiens)
 - **Package manager** : npm
 
@@ -23,8 +24,9 @@ Site vitrine + dashboard privé pour un coliving au Mans (Airbnb, Booking, Abrit
 npm run dev      # Serveur de développement
 npm run build    # Build production
 npm run lint     # ESLint
-npx tsc --noEmit # Vérification TypeScript
-npx vercel --prod # Déployer en production
+npm run typecheck # Vérification TypeScript (tsc --noEmit)
+npm test         # Tests unitaires (vitest, tests/)
+git push         # Sur main : déploie la production (intégration GitHub de Vercel)
 ```
 
 ## Structure
@@ -99,7 +101,7 @@ lib/
                       # (proxy.ts tourne en edge) : les cookies sont dans le socle.
   beds24.ts           # Client API Beds24 (cache Next.js 60s : next.revalidate)
   heatzy.ts           # Client API Heatzy + logique scheduling
-  email.ts            # Alertes email via Resend
+  alerts.ts           # Alertes d'exploitation des crons → ntfy (priorité 4)
   invoice-config.ts   # INVOICE_TEMPLATE (branding + mentions) et le préfixe du compteur.
                       # Le reste est dans @sejour/socle/lib/invoice-config (Lot 4).
   invoice-number.ts   # Le client Upstash, branché sur createInvoiceNumbering du socle.
@@ -151,6 +153,12 @@ factures, taxe de séjour et fiscalité n'ont pas été normalisés : ils relèv
 - **Zoom photo** : composant partagé [components/public/Lightbox.tsx](components/public/Lightbox.tsx) (plein écran, clavier ←/→/Échap, swipe tactile, scroll lock). Utilisé par SleepingArrangement (par chambre), CommonSpaces, Garden. La galerie d'accueil PhotoGallery garde sa propre implémentation historique.
 - **Commits** : penser à commit/push régulièrement
 - **Deploy** : un `git push` sur `main` déploie la prod via l'intégration GitHub de Vercel (constaté le 2026-11-04, en moins d'une minute). `npx vercel --prod` reste possible en secours.
+
+## CI et tests
+
+- **CI** : `.github/workflows/ci.yml` — `npm ci`, lint, `typecheck`, `test`, `build`, sur chaque push et PR. Le build ne doit exiger **aucune** variable d'environnement (vérifié sans `.env.local`) : une variable lue au build est un défaut à corriger dans le code, pas un secret à ajouter à la CI. Le socle, en `git+ssh` dans le lock, est forcé en HTTPS sur le runner.
+- **Tests** : vitest, dans `tests/` (hors de `lib/`). Tests de caractérisation du rapport hebdomadaire du pricing et de `diffSnapshots`. Données **inventées** (dépôt public). Le socle est transformé par vitest (`server.deps.inline`) car il est publié en TypeScript source.
+- **Non-régression d'une montée de version** : protocole du socle contre `next start` local, avant/après, avec `--compare` (voir le `CLAUDE.md` du socle). Le mot de passe admin local diffère de la prod : l'injecter par `BARBUSSE_ADMIN_PASSWORD` dans l'environnement, `loadEnvFile` n'écrase pas une variable déjà posée.
 
 ## i18n (5 langues : fr / en / it / de / es)
 
@@ -389,7 +397,7 @@ réellement chaque jeton et nomme celui qui échoue.
 curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 ```
 
-**Vercel** : les deux tokens doivent être configurés sur Production + Development (Preview est bloqué par le wrapper plugin Vercel — non critique vu le workflow `vercel --prod` direct).
+**Vercel** : les quatre refresh tokens (`BEDS24_PUBLIC_REFRESH_TOKEN`, `BEDS24_READ_REFRESH_TOKEN`, `BEDS24_REFRESH_TOKEN`, `BEDS24_MESSAGES_REFRESH_TOKEN`) doivent être configurés sur Production + Development.
 
 ### Le transport et les types viennent du socle
 
@@ -1350,7 +1358,15 @@ Exemple résa Direct (85615323) : Σ(daily rates) + Ménage 250 + Draps 140 **�
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
 
-Le reset vérifie après application que les devices ont bien pris les changements (températures). Si échec → email alerte.
+Le reset vérifie après application que les devices ont bien pris les changements (températures). Si échec → alerte ntfy.
+
+Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `beds24-backup` dimanche 3 h (UTC).
+
+### Sauvegarde Beds24 (cron Vercel, hebdomadaire)
+
+`/api/cron/beds24-backup` aspire tout le compte (lignes de facture, infoItems, voyageurs) par la voie `lecture` et l'écrit gzippé dans **Vercel Blob en accès privé** : `beds24-backup/AAAA-MM-JJ_N.json.gz` (N = nombre de réservations). Données personnelles : rien du contenu dans la réponse, les logs ou la notification. Rétention : 8 sauvegardes. Garde-fou : une sauvegarde vide ou sous la moitié de la précédente n'est pas écrite et n'efface rien. Succès → ntfy priorité 1 ; échec → priorité 4. `?dry=1` lit Beds24 et vérifie le store sans rien écrire.
+
+⚠️ Exige un store Blob **privé** relié au projet (`BLOB_READ_WRITE_TOKEN` sur Vercel). Au 2026-11-07 il n'y en a pas : le jeton du `.env.local` pointe vers un store supprimé.
 
 ### Keepalive Beds24 (refresh token)
 
@@ -1369,7 +1385,7 @@ encore valide gardé en mémoire. Aucun des quatre ne s'entretient seul de faço
   précis où l'on veut écrire au voyageur — c'est-à-dire trop tard.
 
 Les quatre sont tentés même si le premier échoue — un jeton mort ne doit pas en entraîner un
-second — et chaque échec déclenche un email d'alerte (`sendBeds24Alert`) nommant les scopes
+second — et chaque échec déclenche une alerte ntfy (`sendBeds24Alert`) nommant les scopes
 exacts à régénérer pour cette voie-là.
 
 ⚠️ **Deux des trois morts seraient silencieuses.** Si le jeton public meurt, le repli vers la
@@ -1382,7 +1398,7 @@ visible. C'est sa vraie raison d'être, plus encore que l'expiration.
 1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code avec les scopes `read:bookings` et `write:bookings` (le token de lecture actuel n'a **que** des scopes read, il ne peut pas écrire).
 2. `curl -H "code: <INVITE>" -H "deviceName: coliving-dashboard" https://api.beds24.com/v2/authentication/setup`
 3. Copier le champ `refreshToken` dans `BEDS24_REFRESH_TOKEN` (`.env.local` + Vercel).
-4. `npx vercel --prod`
+4. Redéployer (`npx vercel --prod`, ou le prochain push sur `main`) : une variable modifiée n'est lue qu'au déploiement suivant.
 
 L'invite code est à usage unique et valable 24 h.
 
@@ -1437,8 +1453,7 @@ BEDS24_MESSAGES_REFRESH_TOKEN # Messages voyageur : read:bookings + read/write:b
 HEATZY_EMAIL             # Email du compte Heatzy
 HEATZY_PASSWORD          # Mot de passe du compte Heatzy
 CRON_SECRET              # Secret pour les cron jobs
-RESEND_API_KEY           # Clé API Resend (emails)
-ALERT_EMAIL              # Email destination des alertes chauffage
+BLOB_READ_WRITE_TOKEN    # Store Vercel Blob PRIVÉ de la sauvegarde Beds24 (posé par Vercel à la liaison du store)
 LOCKED_DEVICES           # Device IDs verrouillés (comma-separated, optionnel)
 COZYTOUCH_EMAIL          # Email du compte Cozytouch/Atlantic
 COZYTOUCH_PASSWORD       # Mot de passe du compte Cozytouch
@@ -1453,7 +1468,7 @@ INVOICE_BANK_NAME        # Nom de la banque
 INVOICE_WEBSITE          # URL du site affichée sur la facture (optionnel)
 STRIPE_SECRET_KEY        # Clé Stripe (restricted read-only suffit) pour lister les paiements
 
-# Notifications push (crons check-in et veille des événements)
+# Notifications push (alertes des crons, check-in, veille des événements, pricing, sauvegarde)
 NTFY_TOPIC                            # URL complète du topic ntfy (ex https://ntfy.sh/coliving-barbusse-xxx)
 CHECKIN_NOTIFICATIONS_ENABLED         # Optionnel : "false" pour désactiver les notifs check-in sans redeploy
 
