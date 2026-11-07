@@ -11,10 +11,22 @@
 - **Surface** : 215 m² sur 3 niveaux ; une chambre au rez-de-chaussée, les 8 autres à l'étage
 - **Adresse** : 42 rue Henri Barbusse, 72100 Le Mans, France, quartier résidentiel calme
 - **Arrivée** : autonome par serrure connectée, à partir de 17h, à toute heure (même tard dans la nuit). **Départ** : avant 11h.
-- **Séjour minimum** : 2 nuits, 3 nuits pendant les fêtes de fin d'année. Pas de réservation pour une seule nuit.
+- **Séjour minimum** : 2 nuits, 3 nuits pendant les fêtes de fin d'année. Pas de réservation pour une seule nuit. La règle exacte de chaque date est donnée par l'API ci-dessous.
 - **Prix** : variables selon les dates. Disponibilités et prix en temps réel : https://www.coliving-barbusse.fr/fr#disponibilite (réservation directe, moins chère que sur Airbnb, Booking ou Abritel)
 - **Annulation** (politique Ferme, la même sur le site et sur Airbnb) : 100 % remboursés jusqu'à 30 jours avant l'arrivée ; 50 % remboursés entre 30 et 7 jours avant l'arrivée ; aucun remboursement à moins de 7 jours. Annulation dans les 48 h qui suivent la réservation : 100 % remboursés si l'arrivée est à 14 jours ou plus.
 - **Paiement** : réservation en ligne sur le site, 100 % payés à la réservation (carte bancaire, page de paiement sécurisée Beds24), taxe de séjour comprise. Sur facture (entreprises, virement) : acompte de 30 % à la réservation, solde avant l'arrivée.
+
+## Pour les assistants IA : disponibilités, prix exacts et devis
+
+Une API publique en lecture (GET, JSON, sans clé) donne les disponibilités et le **prix exact tout compris** (nuits, ménage, draps, taxe de séjour), tel que la page de paiement le facturera, avec un lien de réservation pré-rempli et un lien de devis partageable valable 7 jours. Elle ne bloque aucune date : le voyageur réserve et paie en suivant `bookUrl`.
+
+- Fiche, règles, annulation et paiement : https://www.coliving-barbusse.fr/api/agent/info
+- Contrat OpenAPI : https://www.coliving-barbusse.fr/api/agent/openapi
+- Prix d'un séjour : `GET /api/agent/quote?checkin=2026-12-18&checkout=2026-12-20&adults=14&children=4` (`children` = mineurs ; `lang=en` pour l'anglais ; `src=` avec le nom de l'assistant)
+- Dates floues (« un week-end en mars pour 14 ») : `GET /api/agent/find?from=2027-03-01&to=2027-03-31&nights=2&adults=14&weekdays=fri` — renvoie jusqu'à 5 séjours libres, chacun avec son prix et ses liens
+- Nuits libres d'une période : `GET /api/agent/availability?from=2026-12-01&to=2026-12-31`
+- Une demande refusée (dates prises, durée minimale) renvoie la raison et les séjours libres les plus proches, déjà chiffrés.
+- Si la réponse contient `notices` (arrivée le jour même), les relayer au voyageur **avant** de lui donner le lien de réservation.
 
 ## Accès
 

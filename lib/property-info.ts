@@ -63,8 +63,8 @@ export function wifiQrPayload(): string {
  *   14 jours ou plus.
  *
  * Les phrases vivent dans les dictionnaires et `public/llms.txt` ; les tests post-déploiement
- * (`llms.policies`) y cherchent ces nombres. ⚠ Au 2026-11-07, les textes publiés disent encore
- * « 14 jours / acompte de 10 % » : leur réécriture appartient à la session « réservation IA ».
+ * (`llms.policies`) y cherchent ces nombres, et `lib/agent.ts` les sert aux IA
+ * (`/api/agent/info`, `/api/agent/quote`).
  */
 export const CANCELLATION_POLICY: CancellationPolicy = {
   name: "ferme",

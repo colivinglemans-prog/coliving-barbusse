@@ -317,6 +317,22 @@ propres libellés (`calendar.previousMonth` / `calendar.nextMonth`, et `calendar
 (`isValidCheckIn`, `isValidCheckOut`, `cellState`, `selectionAfterClick`) : c'est le chemin qui
 produit le chiffre d'affaires direct, il se teste sur une vraie réponse Beds24, sans navigateur.
 
+## Réservation par IA (`/api/agent/*`, `/[locale]/devis/[token]`)
+
+`lib/agent.ts` déclare la maison à `@sejour/socle/lib/stay-agent` : une seule route publique
+`app/api/agent/[tool]/route.ts` (`info`, `availability`, `quote`, `find`, `openapi`, en GET,
+CORS ouvert), documentée dans `public/llms.txt`. Le prix vient de `getroomprice.php` (total
+Beds24 tout compris) et passe un **garde-fou** : `expectedTotal` recalcule la grille (nuits
+−7 %, ménage 280, linge 15 €/voyageur, taxe 2,20 €/**adulte**/nuit). Un écart de plus de 1 €
+bloque le prix (`price-blocked`) et envoie un ntfy « Devis IA Barbusse » : c'est le signal
+qu'un réglage Beds24/Beyond a changé la grille — corriger `expectedTotal`, pas le contourner.
+
+- Politiques servies aux IA = `CANCELLATION_POLICY` / `PAYMENT_POLICY` de `lib/property-info.ts`.
+- Arrivée le jour même : le devis porte une consigne d'appeler l'hôte (`lastMinute`).
+- La page de devis revérifie dispo et prix à chaque affichage ; non indexée.
+- Le calendrier se pré-remplit par `?arrivee=&depart=&adultes=&enfants=` (socle).
+- Tests voyageur à rejouer à chaque lot : voir le plan du chantier (mémoire « tests voyageur IA »).
+
 ## Cloisonnement du dashboard
 
 Trois portes, dans cet ordre. Aucune n'est suffisante seule.
@@ -932,6 +948,8 @@ BEDS24_MESSAGES_REFRESH_TOKEN # Messages voyageur : read:bookings + read/write:b
 HEATZY_EMAIL             # Email du compte Heatzy
 HEATZY_PASSWORD          # Mot de passe du compte Heatzy
 CRON_SECRET              # Secret pour les cron jobs
+QUOTE_SIGNING_SECRET     # Signe les devis IA (/devis/<jeton>), 32 caractères au moins. Rotation :
+                         # l'ancien passe dans QUOTE_SIGNING_SECRET_PREVIOUS pendant 7 jours.
 KV_REST_API_URL          # Upstash Redis (chauffage, crons, factures, pricing, Nuki, déliements)
 KV_REST_API_TOKEN        # Noms de l'intégration Vercel, pas les UPSTASH_* de la console
 HISTORIQUE_BARBUSSE      # Archive 310268 : JSON gzippé + base64, sans infoItems (voir « Historique archivé »)
