@@ -194,9 +194,10 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
       {
         title: "Conditions d'annulation",
         items: [
-          "Annulation gratuite jusqu'à 14 jours avant l'arrivée",
-          "Acompte de 10% à la réservation",
-          "Solde intégral avant le check-in",
+          "Annulation gratuite jusqu'à 30 jours avant l'arrivée",
+          "50 % remboursés entre 30 et 7 jours avant l'arrivée, rien ensuite",
+          "Réservation en ligne : paiement intégral à la réservation",
+          "Sur facture (entreprises) : acompte de 30 %, solde avant l'arrivée",
           "Paiement sécurisé par carte (Visa, Mastercard)",
         ],
       },

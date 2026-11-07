@@ -194,9 +194,10 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
       {
         title: "Stornierungsbedingungen",
         items: [
-          "Kostenlose Stornierung bis 14 Tage vor Anreise",
-          "10 % Anzahlung bei Buchung",
-          "Restbetrag vor dem Check-in",
+          "Kostenlose Stornierung bis 30 Tage vor Anreise",
+          "50 % Erstattung zwischen 30 und 7 Tagen vor Anreise, danach keine",
+          "Online-Buchung: vollständige Zahlung bei Buchung",
+          "Auf Rechnung (Unternehmen): 30 % Anzahlung, Restbetrag vor Anreise",
           "Sichere Kartenzahlung (Visa, Mastercard)",
         ],
       },

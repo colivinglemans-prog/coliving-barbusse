@@ -194,9 +194,10 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
       {
         title: "Cancellation policy",
         items: [
-          "Free cancellation up to 14 days before arrival",
-          "10% deposit at booking",
-          "Full balance due before check-in",
+          "Free cancellation up to 30 days before arrival",
+          "50% refund between 30 and 7 days before arrival, none after",
+          "Online booking: full payment at booking",
+          "By invoice (companies): 30% deposit, balance before arrival",
           "Secure card payment (Visa, Mastercard)",
         ],
       },

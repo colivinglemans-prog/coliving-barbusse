@@ -194,9 +194,10 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
       {
         title: "Política de cancelación",
         items: [
-          "Cancelación gratuita hasta 14 días antes de la llegada",
-          "Depósito del 10 % al reservar",
-          "Saldo íntegro antes del check-in",
+          "Cancelación gratuita hasta 30 días antes de la llegada",
+          "Reembolso del 50 % entre 30 y 7 días antes de la llegada, nada después",
+          "Reserva en línea: pago íntegro al reservar",
+          "Con factura (empresas): depósito del 30 %, saldo antes de la llegada",
           "Pago seguro con tarjeta (Visa, Mastercard)",
         ],
       },

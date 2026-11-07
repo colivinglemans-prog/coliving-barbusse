@@ -194,9 +194,10 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
       {
         title: "Condizioni di cancellazione",
         items: [
-          "Cancellazione gratuita fino a 14 giorni prima dell'arrivo",
-          "Acconto del 10% al momento della prenotazione",
-          "Saldo completo prima del check-in",
+          "Cancellazione gratuita fino a 30 giorni prima dell'arrivo",
+          "Rimborso del 50% tra 30 e 7 giorni prima dell'arrivo, nessuno dopo",
+          "Prenotazione online: pagamento completo alla prenotazione",
+          "Con fattura (aziende): acconto del 30%, saldo prima dell'arrivo",
           "Pagamento sicuro con carta (Visa, Mastercard)",
         ],
       },
