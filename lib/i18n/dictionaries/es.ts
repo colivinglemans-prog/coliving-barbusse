@@ -196,6 +196,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
         items: [
           "Cancelación gratuita hasta 30 días antes de la llegada",
           "Reembolso del 50 % entre 30 y 7 días antes de la llegada, nada después",
+          "Cancelación en las 48 horas siguientes a la reserva: reembolso total si la llegada es dentro de 14 días o más",
           "Reserva en línea: pago íntegro al reservar",
           "Con factura (empresas): depósito del 30 %, saldo antes de la llegada",
           "Pago seguro con tarjeta (Visa, Mastercard)",

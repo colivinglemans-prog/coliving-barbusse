@@ -196,6 +196,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
         items: [
           "Cancellazione gratuita fino a 30 giorni prima dell'arrivo",
           "Rimborso del 50% tra 30 e 7 giorni prima dell'arrivo, nessuno dopo",
+          "Cancellazione entro 48 ore dalla prenotazione: rimborso totale se l'arrivo è tra almeno 14 giorni",
           "Prenotazione online: pagamento completo alla prenotazione",
           "Con fattura (aziende): acconto del 30%, saldo prima dell'arrivo",
           "Pagamento sicuro con carta (Visa, Mastercard)",

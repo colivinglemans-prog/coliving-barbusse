@@ -196,6 +196,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
         items: [
           "Free cancellation up to 30 days before arrival",
           "50% refund between 30 and 7 days before arrival, none after",
+          "Cancellation within 48 hours of booking: full refund if arrival is at least 14 days away",
           "Online booking: full payment at booking",
           "By invoice (companies): 30% deposit, balance before arrival",
           "Secure card payment (Visa, Mastercard)",

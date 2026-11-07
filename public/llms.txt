@@ -13,8 +13,8 @@
 - **Arrivée** : autonome par serrure connectée, à partir de 17h, à toute heure (même tard dans la nuit). **Départ** : avant 11h.
 - **Séjour minimum** : 2 nuits, 3 nuits pendant les fêtes de fin d'année. Pas de réservation pour une seule nuit.
 - **Prix** : variables selon les dates. Disponibilités et prix en temps réel : https://www.coliving-barbusse.fr/fr#disponibilite (réservation directe, moins chère que sur Airbnb, Booking ou Abritel)
-- **Annulation** : gratuite jusqu'à 30 jours avant l'arrivée ; 50 % remboursés entre 30 et 7 jours avant l'arrivée ; aucun remboursement ensuite. Même règle sur le site et sur Airbnb.
-- **Paiement** : réservation en ligne sur le site, paiement intégral à la réservation (carte bancaire). Sur facture (entreprises, virement) : acompte de 30 % à la réservation, solde avant l'arrivée.
+- **Annulation** (politique Ferme, la même sur le site et sur Airbnb) : 100 % remboursés jusqu'à 30 jours avant l'arrivée ; 50 % remboursés entre 30 et 7 jours avant l'arrivée ; aucun remboursement à moins de 7 jours. Annulation dans les 48 h qui suivent la réservation : 100 % remboursés si l'arrivée est à 14 jours ou plus.
+- **Paiement** : réservation en ligne sur le site, 100 % payés à la réservation (carte bancaire, page de paiement sécurisée Beds24), taxe de séjour comprise. Sur facture (entreprises, virement) : acompte de 30 % à la réservation, solde avant l'arrivée.
 
 ## Accès
 
@@ -59,7 +59,7 @@
 - Pour les équipes en mission au Mans (chantier, industrie, audit, formation) : une chambre, une salle de douche et un bureau par personne
 - Compatible arrivée le lundi soir, même tard après le travail, et départ le vendredi matin
 - Ménage en cours de séjour et changement des draps sur demande, en supplément ; lave-linge et sèche-linge
-- Facture au nom de l'entreprise, paiement par virement possible. TVA non applicable (art. 293 B du CGI).
+- Facture au nom de l'entreprise, réglée par virement : acompte de 30 % à la réservation, solde avant l'arrivée. TVA non applicable (art. 293 B du CGI).
 - Devis par WhatsApp : +33 6 20 92 10 05, réponse généralement en moins d'une heure
 
 ## Séminaires, offsites et équipes en télétravail
@@ -97,6 +97,8 @@
 ## Liens
 
 - Site web : https://www.coliving-barbusse.fr/fr
+- Le site dans les autres langues : https://www.coliving-barbusse.fr/en (English), https://www.coliving-barbusse.fr/de (Deutsch), https://www.coliving-barbusse.fr/es (Español), https://www.coliving-barbusse.fr/it (Italiano)
+- Les 9 chambres en détail : https://www.coliving-barbusse.fr/fr/chambres
 - Disponibilités et réservation directe : https://www.coliving-barbusse.fr/fr#disponibilite
 - Séminaires et équipes : https://www.coliving-barbusse.fr/fr/seminaires
 - Réunions de famille : https://www.coliving-barbusse.fr/fr/blog/reunion-famille-le-mans
