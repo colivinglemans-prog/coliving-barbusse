@@ -287,6 +287,29 @@ export async function addNukiPin(bookingId: number, pin: string): Promise<void> 
   }
 }
 
+/**
+ * Passe une réservation « new » en « confirmed ». Appelé par la synchronisation de la
+ * serrure une fois le PIN écrit et le code posé : l'exploitant le faisait à la main, et
+ * voulait que le code existe avant la confirmation (2026-11-07).
+ */
+export async function confirmBooking(bookingId: number): Promise<void> {
+  const t = await client.token("ecriture");
+  const res = await fetch(`${BEDS24_BASE_URL}/bookings`, {
+    method: "POST",
+    headers: { token: t, "Content-Type": "application/json" },
+    body: JSON.stringify([{ id: bookingId, status: "confirmed" }]),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    if (res.status === 401) client.invalidate("ecriture");
+    throw new Error(`Beds24 a refusé la confirmation (HTTP ${res.status})`);
+  }
+  const parsed = (await res.json().catch(() => null)) as { success?: boolean }[] | null;
+  if (!Array.isArray(parsed) || parsed[0]?.success !== true) {
+    throw new Error("Beds24 n'a pas confirmé le changement de statut");
+  }
+}
+
 export async function getBookingById(id: number): Promise<Beds24Booking | null> {
   const data = await client.get<{ data: Beds24Booking[] }>("/bookings", {
     params: {

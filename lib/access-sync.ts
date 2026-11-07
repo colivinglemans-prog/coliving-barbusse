@@ -9,7 +9,8 @@
  *
  * Règles de l'exploitant (2026-11-07) : code valable de 14 h le jour d'arrivée à 14 h le jour
  * du départ ; nom `<n° de réservation>: <Prénom>` ; codes `#…` jamais touchés ; seules les
- * réservations `confirmed` et `new` reçoivent un code ; le PIN est tiré du téléphone du
+ * réservations `confirmed` et `new` reçoivent un code (une `new` passe ensuite en
+ * `confirmed`, une fois son code posé) ; le PIN est tiré du téléphone du
  * voyageur quand c'est possible, et **écrit dans Beds24 avant d'être posé sur la serrure**.
  *
  * **Deux modes.** `NUKI_SYNC_MODE=live` écrit ; toute autre valeur (ou `?dry=1`) calcule le
@@ -47,7 +48,7 @@ import {
 import { addDays } from "@sejour/socle/lib/dates";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
-import { addNukiPin, getBookingById, getBookings, nukiCodeOf } from "./beds24";
+import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";
 import type { Beds24Booking } from "./types";
 
 /** Les alertes du planificateur, plus celles de la serrure et de l'exécution. */
@@ -193,7 +194,15 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
     }
 
     const actions: SyncReport["actions"] = plan.actions.map(describe);
+
+    // « new » → « confirmed », une fois le PIN dans Beds24 et le code sur la serrure : soit
+    // déjà le cas, soit fait par ce passage sans échec pour cette réservation.
+    const pinned = new Set(stays.filter((s) => s.pin).map((s) => s.bookingId));
+    for (const a of plan.actions) if (a.kind === "assign-pin") pinned.add(a.bookingId);
+    const toConfirm = house.filter((b) => b.status === "new" && pinned.has(b.id)).map((b) => b.id);
+
     if (mode === "dry") {
+      for (const id of toConfirm) actions.push({ kind: "confirm", bookingId: id });
       return { mode, health, stays: stays.length, actions, alerts, notified: 0 };
     }
 
@@ -220,6 +229,19 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
           severity: "high",
           message: `Réservation ${action.bookingId} : échec de « ${action.kind} » — ${error}`,
         });
+      }
+    }
+
+    const failed = new Set(actions.filter((a) => a.ok === false).map((a) => a.bookingId as number));
+    for (const id of toConfirm) {
+      if (failed.has(id)) continue;
+      try {
+        await confirmBooking(id);
+        actions.push({ kind: "confirm", bookingId: id, ok: true });
+      } catch (err) {
+        const error = err instanceof Error ? err.message : String(err);
+        actions.push({ kind: "confirm", bookingId: id, ok: false, error });
+        alerts.push({ kind: "execution", bookingId: id, severity: "normal", message: `Réservation ${id} : passage en « confirmé » impossible — ${error}` });
       }
     }
 
