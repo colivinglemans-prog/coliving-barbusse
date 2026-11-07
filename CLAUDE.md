@@ -1449,7 +1449,7 @@ Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur l
 
 `/api/cron/beds24-backup` aspire tout le compte (lignes de facture, infoItems, voyageurs) par la voie `lecture` et l'écrit gzippé dans **Vercel Blob en accès privé** : `beds24-backup/AAAA-MM-JJ_N.json.gz` (N = nombre de réservations). Données personnelles : rien du contenu dans la réponse, les logs ou la notification. Rétention : 8 sauvegardes. Garde-fou : une sauvegarde vide ou sous la moitié de la précédente n'est pas écrite et n'efface rien. Succès → ntfy priorité 1 ; échec → priorité 4. `?dry=1` lit Beds24 et vérifie le store sans rien écrire.
 
-⚠️ Exige un store Blob **privé** relié au projet (`BLOB_READ_WRITE_TOKEN` sur Vercel). Au 2026-11-07 il n'y en a pas : le jeton du `.env.local` pointe vers un store supprimé.
+Store : `barbusse-sauvegardes` (privé, région cdg1, relié en Production + Development), créé le 2026-11-07 ; première sauvegarde le même jour. ⚠️ Lier un store par la CLI (`vercel blob create-store`) réécrit `.env.local` et ajoute `.env*` au `.gitignore` : sauvegarder le fichier avant, refusionner après.
 
 ### Keepalive Beds24 (refresh token)
 
