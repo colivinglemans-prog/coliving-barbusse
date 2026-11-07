@@ -268,6 +268,20 @@ affiché ce jour-là**, même si la grille change ensuite. `lib/pricing/engine-c
 rapport du lundi la part des nuits ordinaires à ±10 % de Beyond (seuil de bascule : 80 %), l'écart
 médian, les grands événements côte à côte et le prix moteur des nuits vendues dans la semaine.
 
+**Page `/dashboard/pricing`** (admin, **interne** : bandeau « Simulation », aucun chiffre du moteur
+dans `/dashboard/stats`). Verdict et tendance des lundis, courbe des nuits à venir (Beyond plein,
+moteur tirets, bande ±10 %, vendues/bloquées, événements en bandeau, tap → détail de la nuit avec
+raisons du moteur et prix vu par canal), cartes, grands événements avec leur **J-60**, évolution d'un
+prix photo après photo, réservations de la semaine. Données : `GET /api/dashboard/pricing`
+(`lib/pricing/dashboard-payload.ts`, pur) et `GET /api/dashboard/pricing/history?from&to`
+(14 nuits max, réduit côté serveur). Les majorations par canal de `lib/pricing/channel-prices.ts` sont
+une **copie datée** de Beds24, pas une source. La notification ntfy du lundi ouvre la page (`click`).
+- ⚠️ **Ne jamais ajouter ces chemins à `allowedPaths`** de `proxy.ts` : la liste blanche les ferme au
+  `viewer`, et `denyNonAdmin` garde les deux routes. Réservations projetées en liste blanche
+  (`PricingBookingItem`), réponse `Cache-Control: private, no-store`.
+- La page de connexion respecte désormais `?retour=` posé par le proxy (chemins `/dashboard/…`
+  seulement) : avant, toute connexion menait au calendrier.
+
 ## Calendrier public de réservation
 
 `components/public/ReservationCalendar.tsx` n'est plus qu'une enveloppe : le calendrier vit

@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 
+function destinationApresConnexion(): string {
+  const retour = new URLSearchParams(window.location.search).get("retour");
+  return retour && /^\/dashboard\/[a-z0-9\-/]*$/i.test(retour) && !retour.startsWith("//")
+    ? retour
+    : "/dashboard/calendar";
+}
+
 export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,7 +33,12 @@ export default function Login() {
         // Le calendrier pour tout le monde : c'est l'accueil du dashboard depuis que
         // /dashboard y redirige, et y aller directement économise le hop — au viewer,
         // qui n'a de toute façon droit qu'à cet écran, comme à l'administrateur.
-        window.location.href = "/dashboard/calendar";
+        //
+        // Exception : `?retour=`, que le proxy pose quand il renvoie ici une page protégée
+        // (`@sejour/socle/lib/proxy`). Sans lui, le tap sur la notification du lundi menait au
+        // calendrier au lieu de /dashboard/pricing. Chemins relatifs du dashboard seulement :
+        // une redirection ouverte vers un autre site serait une porte d'hameçonnage.
+        window.location.href = destinationApresConnexion();
         return; // garde le spinner actif pendant le chargement de la page
       } else {
         const data = await res.json();

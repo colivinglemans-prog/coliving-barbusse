@@ -60,6 +60,8 @@ export async function GET(request: NextRequest) {
       title: `Pricing — semaine du ${addDays(today, -7)}`,
       priority: 2,
       tags: ["chart_with_upwards_trend"],
+      // URL nue : le sujet ntfy n'est pas authentifié, aucun jeton ni donnée en paramètre.
+      click: "https://www.coliving-barbusse.fr/dashboard/pricing",
     });
     return NextResponse.json({ success: true, sent: true, message });
   } catch (err) {

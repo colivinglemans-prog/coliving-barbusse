@@ -20,6 +20,7 @@ import type { DashboardRole } from "@/lib/auth";
 const LIENS: DashboardLink[] = [
   { href: "/dashboard/calendar", label: "Calendrier", adminOnly: false },
   { href: "/dashboard/stats", label: "Statistiques", adminOnly: true },
+  { href: "/dashboard/pricing", label: "Pricing", adminOnly: true },
   { href: "/dashboard/heating", label: "Chauffage", adminOnly: false },
   { href: "/dashboard/water-heater", label: "Eau chaude", adminOnly: false },
   { href: "/dashboard/invoices", label: "Factures", adminOnly: true },
