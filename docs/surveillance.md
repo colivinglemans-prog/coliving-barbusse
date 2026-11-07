@@ -73,9 +73,10 @@ ailleurs** (accueil, chambres, séminaires, blog, `llms.txt`).
 L'issue `surveillance-ko` reste donc ouverte jusqu'à ce correctif (une notification à
 l'ouverture, pas à chaque passage) ; le `vital` horaire doit être vert.
 
-**En attente** : `heartbeat` reste en commentaire dans `site.ts` tant que la route n'est pas en
-production. `channel` et `referer` restent hors de `viewerForbiddenFields` : le DTO du socle
-(`toBookingListItem`) les sert encore au viewer.
+**`heartbeat` activé** dans `site.ts` le 2026-11-07, une fois le job cron-job.org
+`arrival-readiness` créé : chaque passage de la surveillance appelle la route, ce qui réévalue
+aussi l'alerte ntfy des crons en retard. **En attente** : `channel` et `referer` restent hors de
+`viewerForbiddenFields` : le DTO du socle (`toBookingListItem`) les sert encore au viewer.
 
 ## Préparation d'arrivée (`/api/cron/arrival-readiness`)
 

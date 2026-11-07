@@ -197,10 +197,11 @@ const site = {
   },
 
   /**
-   * Heartbeat des crons (Redis) : la route `/api/health/heartbeat` est créée par l'autre
-   * chef-de-stand du lot ; elle sera activée ici quand elle sera en production.
+   * Heartbeat des crons (Redis) : `nuki-sync`, `heating-automation`, `water-heater-automation`
+   * et `arrival-readiness` ont tous battu en production (job cron-job.org `arrival-readiness`
+   * créé le 2026-11-07). Appeler la route réévalue aussi l'alerte ntfy `barbusse:alert:heartbeat`.
    */
-  // heartbeat: { path: "/api/health/heartbeat" },
+  heartbeat: { path: "/api/health/heartbeat" },
 } satisfies DeploySite;
 
 export default site;
