@@ -160,6 +160,36 @@ export async function getBookings(params?: BookingQuery): Promise<Beds24Booking[
 }
 
 /**
+ * **Tout le compte**, brut, pour la sauvegarde (`/api/cron/beds24-backup`) : toutes
+ * propriétés, toutes pages, avec lignes de facture, infoItems et voyageurs — ce que
+ * `scripts/beds24-backup.mjs` aspirait à la main. Données personnelles : ne sort d'ici que
+ * vers un stockage privé, jamais vers une réponse HTTP ni un log.
+ *
+ * Voie `lecture` (la seule à porter `read:bookings-personal`), sans cache : 60 s de retard
+ * sur une sauvegarde ne coûteraient rien, mais les pages paginées ne doivent pas se mélanger.
+ */
+export async function getAllBookingsRaw(): Promise<Beds24Booking[]> {
+  const params = {
+    arrivalFrom: "2020-01-01",
+    arrivalTo: `${new Date().getFullYear() + 2}-12-31`,
+    includeInvoiceItems: "true",
+    includeInfoItems: "true",
+    includeGuests: "true",
+  };
+  const all: Beds24Booking[] = [];
+  for (let page = 1; page <= 100; page++) {
+    const res = await client.get<{ data?: Beds24Booking[]; pages?: { nextPageExists?: boolean } }>(
+      "/bookings",
+      { params: { ...params, page: String(page) }, route: "lecture", fresh: true },
+    );
+    const data = res.data ?? [];
+    all.push(...data);
+    if (!res.pages?.nextPageExists || data.length === 0) return all;
+  }
+  throw new Error("Beds24 : plus de 100 pages de réservations, pagination suspecte");
+}
+
+/**
  * Traduction du format de transport vers le type canonique du domaine.
  *
  * La clé de dédoublonnage est l'`id` numérique, que l'archive de ce site a conservé — chez
