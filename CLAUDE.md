@@ -1285,6 +1285,7 @@ avant l'arrivée. Le champ `kind` de `InvoicePayload` vaut `standard` (défaut),
 
 - `/dashboard/invoices/**` et `/api/dashboard/invoices/**` : `proxy.ts` bloque viewer (redirect / 403) — et `invoices/prefill` **revérifie elle-même** : elle renvoie la réservation Beds24 brute, PIN de serrure compris, et ne doit pas dépendre d'un seul point de contrôle.
 - Numérotation séquentielle **continue** (obligation légale FR) : le compteur n'est incrémenté qu'à la génération réelle, pas à l'ouverture du formulaire. Le bouton **Aperçu** (`POST …/generate?preview=1`) rend le PDF avec le numéro fictif `PREVIEW_NUMBER` sans toucher au compteur — relire un brouillon ne creuse plus de trou dans la série. La sentinelle est en ASCII pur car elle transite par l'en-tête `X-Invoice-Number`.
+- **Dates au jour de Paris (socle v3.8.1, 2026-11-07)** : l'année du numéro (`invoice:counter:barbusse:{année}`), le « Émise le » du PDF, les dates par défaut du formulaire et l'échéance J+3 sont lus au calendrier de Paris. Avant, une facture faite entre 0 h et 1 h (2 h l'été) était datée de la veille, et celle du 1er janvier dans cette heure-là prenait un numéro de l'année précédente. Hors de cette fenêtre nocturne, rien ne change.
 
 ## Dashboard Fiscalité LMNP / LMP (`/dashboard/fiscal`)
 
@@ -1305,6 +1306,16 @@ la déclaration officielle** (faite via LMNP.ai pour ce dossier).
 > basculera à mesure que le carnet se remplit. Le bien manuel « Dahlias » n'entre dans aucun
 > invariant. Dette : Abritel n'apparaît pas sur `/dashboard/taxe-sejour` (la route ne garde que
 > Direct, Airbnb, Booking.com) ; la réponse fiscale ne porte pas le mode projeté.
+
+> **Socle `v3.8.1` (2026-11-07) — le taux d'occupation est désormais réalisé.** `occupancyRatio`
+> = nuits réalisées ÷ jours observés (1er janvier → aujourd'hui, bornes incluses) ; le carnet à
+> venir n'y entre plus, la nuit du 31/12 d'un séjour à cheval est comptée. Effet mesuré en local
+> le 2026-11-07 sur 2026 : **38,7 % → 35,4 %**, CA réalisé, à venir, commissions et BIC
+> inchangés. Exercice futur (`?year=2027`) : plus rien n'est « réalisé » — ce qui l'était à tort
+> (1 360,67 €, les nuits de janvier d'un séjour arrivé le 31/12) passe en « à venir », taux 0,
+> total et BIC identiques ; `commissionsProjected` = commissions connues. `ecartDeCollecte`,
+> corrigé dans la même version, est ré-exporté par `lib/taxe-sejour.ts` mais **utilisé nulle
+> part** ici : aucun effet sur `/dashboard/taxe-sejour`.
 
 ### Contexte utilisateur (fiscalité 2026)
 
