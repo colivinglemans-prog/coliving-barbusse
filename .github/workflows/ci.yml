@@ -1,4 +1,4 @@
-# Vérifications à chaque push et à chaque PR : lint, types, build.
+# Vérifications à chaque push et à chaque PR : lint, types, tests, build.
 #
 # Aucun secret : le build passe sans aucune variable d'environnement (vérifié le
 # 2026-11-07 sans .env.local). Si un jour il en exige une, c'est un défaut à corriger
@@ -46,6 +46,9 @@ jobs:
 
       - name: Types
         run: npm run typecheck
+
+      - name: Tests
+        run: npm test
 
       - name: Build
         run: npm run build
