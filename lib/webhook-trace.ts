@@ -14,6 +14,13 @@ export interface WebhookTrace {
   result: WebhookResult;
   /** La valeur reçue commençait par « < » et finissait par « > ». */
   bracketed?: boolean;
+  /**
+   * Diagnostic d'un refus : longueurs et 6 premiers caractères hexadécimaux du SHA-256 de la
+   * valeur reçue et de la valeur attendue — assez pour voir « mauvaise longueur » ou « autre
+   * secret », jamais assez pour retrouver le secret.
+   */
+  got?: { length: number; hash: string };
+  expected?: { length: number; hash: string };
 }
 
 const KEY = () => redisKey("webhook", "beds24", "last");
