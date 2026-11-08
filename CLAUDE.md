@@ -125,7 +125,8 @@ lib/
   # periodes.ts, calendar-utils.ts, channel.ts, cron-auth.ts, ntfy.ts et time.ts vivent
   # désormais dans @sejour/socle — voir sa CLAUDE.md.
   i18n/               # Traductions FR/EN/IT/DE/ES (dictionaries/, context, types)
-  property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, Wi-Fi, contact, navigation links)
+  property-info.ts    # PROPERTY_INFO (adresse, check-in/out par locale, contact, navigation links)
+  wifi.ts             # Wi-Fi lu dans WIFI_SSID / WIFI_PASSWORD (plus dans le dépôt public), guide d'arrivée seulement
   auth.ts             # Configuration locale de @sejour/socle/lib/auth : rôles, préfixes
                       # de mots de passe, `guard` de route. N'importe PAS next/headers
                       # (proxy.ts tourne en edge) : les cookies sont dans le socle.
@@ -971,6 +972,10 @@ BEDS24_MESSAGES_REFRESH_TOKEN # Messages voyageur : read:bookings + read/write:b
 HEATZY_EMAIL             # Email du compte Heatzy
 HEATZY_PASSWORD          # Mot de passe du compte Heatzy
 CRON_SECRET              # Secret pour les cron jobs
+WIFI_SSID                # Wi-Fi de la maison (lib/wifi.ts) : lu AU BUILD par le guide d'arrivée prérendu,
+WIFI_PASSWORD            # un changement exige un redéploiement. Absentes : le guide renvoie vers l'hôte.
+                         # Risque accepté (2026-11-08) : l'ancien mot de passe reste dans l'historique git
+                         # public et le guide (noindex, sans authentification) l'affiche ; l'hôte ne le change pas.
 QUOTE_SIGNING_SECRET     # Signe les devis IA (/devis/<jeton>), 32 caractères au moins. Rotation :
                          # l'ancien passe dans QUOTE_SIGNING_SECRET_PREVIOUS pendant 7 jours.
 KV_REST_API_URL          # Upstash Redis (chauffage, crons, factures, pricing, Nuki, déliements)

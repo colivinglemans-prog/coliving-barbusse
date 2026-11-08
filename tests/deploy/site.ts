@@ -127,7 +127,10 @@ const site = {
     "NUKI_PIN",
     // Nom de champ Beds24 : sa présence dans une page publique trahit un objet brut sérialisé.
     /\bbookid\b/,
-    // Le mot de passe Wi-Fi n'est plus dans le dépôt : contrôlé seulement si la CI le reçoit.
+    // La charge du QR Wi-Fi ne doit jamais apparaître dans une page publique scannée (motif sans secret).
+    /WIFI:T:/,
+    // Le mot de passe lui-même n'est contrôlé qu'en local : le workflow du socle
+    // (`deploy-checks.yml`) ne transmet pas ce secret à la CI.
     ...(process.env.WIFI_PASSWORD ? [process.env.WIFI_PASSWORD] : []),
   ],
 

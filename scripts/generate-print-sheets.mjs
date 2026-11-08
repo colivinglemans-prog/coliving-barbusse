@@ -8,7 +8,8 @@
  * ou impression directe, format A4 portrait, marges « Aucune ».
  *
  * Les textes reprennent ceux du guide d'arrivée (app/[locale]/guide-arrivee/page.tsx)
- * et le Wi-Fi est lu depuis lib/property-info.ts pour rester synchronisé.
+ * et le Wi-Fi est lu dans WIFI_SSID / WIFI_PASSWORD (environnement, sinon .env.local),
+ * comme lib/wifi.ts : il n'est plus dans le dépôt public depuis le 2026-11-08.
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";

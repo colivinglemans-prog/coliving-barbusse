@@ -23,5 +23,7 @@ export function getWifi(): WifiInfo | null {
 
 /** Charge utile du QR code Wi-Fi (format reconnu par les appareils photo iOS et Android). */
 export function wifiQrPayload(wifi: WifiInfo): string {
-  return `WIFI:T:${wifi.encryption};S:${wifi.ssid};P:${wifi.password};;`;
+  // Le format WIFI: réserve \ ; , : et " : on les échappe d'une barre oblique inverse.
+  const esc = (s: string) => s.replace(/([\\;,:"])/g, "\\$1");
+  return `WIFI:T:${wifi.encryption};S:${esc(wifi.ssid)};P:${esc(wifi.password)};;`;
 }
