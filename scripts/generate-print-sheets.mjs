@@ -421,9 +421,9 @@ const SITE = "https://www.coliving-barbusse.fr";
 const STAY_T = {
   fr: { title: "Pendant votre séjour", guide: "Le guide de la maison", guideSub: "chauffage, café, règles, départ", around: "Autour de la maison", aroundSub: "restos, courses, balades, visites", issue: "Un souci pendant le séjour ? Écrivez-nous tout de suite, on règle ça." },
   en: { title: "During your stay", guide: "House guide", guideSub: "heating, coffee, rules, check-out", around: "Around the house", aroundSub: "restaurants, shops, walks, sights", issue: "Any problem during your stay? Message us right away and we'll sort it." },
-  es: { title: "Durante su estancia", guide: "La guía de la casa", guideSub: "calefacción, café, normas, salida", around: "Alrededor de la casa", aroundSub: "restaurantes, compras, paseos, visitas", issue: "¿Algún problema durante la estancia? Escríbanos enseguida y lo resolvemos." },
-  it: { title: "Durante il soggiorno", guide: "La guida della casa", guideSub: "riscaldamento, caffè, regole, partenza", around: "Intorno alla casa", aroundSub: "ristoranti, spesa, passeggiate, visite", issue: "Un problema durante il soggiorno? Scriveteci subito, lo risolviamo." },
-  de: { title: "Während Ihres Aufenthalts", guide: "Hausführer", guideSub: "Heizung, Kaffee, Regeln, Abreise", around: "Rund um das Haus", aroundSub: "Restaurants, Einkäufe, Spaziergänge, Ausflüge", issue: "Ein Problem während des Aufenthalts? Schreiben Sie uns sofort, wir kümmern uns darum." },
+  es: { title: "Durante tu estancia", guide: "La guía de la casa", guideSub: "calefacción, café, normas, salida", around: "Alrededor de la casa", aroundSub: "restaurantes, compras, paseos, visitas", issue: "¿Algún problema durante la estancia? Escríbenos enseguida y lo resolvemos." },
+  it: { title: "Durante il soggiorno", guide: "La guida della casa", guideSub: "riscaldamento, caffè, regole, partenza", around: "Intorno alla casa", aroundSub: "ristoranti, spesa, passeggiate, visite", issue: "Un problema durante il soggiorno? Scrivici subito, lo risolviamo." },
+  de: { title: "Während Ihres Aufenthalts", guide: "Hausguide", guideSub: "Heizung, Kaffee, Regeln, Abreise", around: "Rund um das Haus", aroundSub: "Restaurants, Einkäufe, Spaziergänge, Ausflüge", issue: "Ein Problem während des Aufenthalts? Schreiben Sie uns sofort, wir kümmern uns darum." },
 };
 
 function staySheet() {

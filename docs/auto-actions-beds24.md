@@ -12,8 +12,8 @@
   Coliving » (arrivée) et l'ouverture « Le depart approche » / « Your departure is approaching »
   (départ). Le dashboard les lit dans le fil pour savoir qu'un message est déjà parti
   (`SIGNATURES`, `lib/guest-messages.ts`).
-- **Jamais le guide d'arrivée ni le code** dans la confirmation : le PIN n'existe qu'à J-6, et le
-  guide affiche le Wi-Fi.
+- **Jamais le guide d'arrivée ni le code** dans la confirmation : le guide affiche le Wi-Fi, et le
+  code part avec le message d'arrivée (la synchronisation le pose dès la réservation).
 - **Avis** : jamais « si vous avez aimé », jamais « 5 étoiles », aucune contrepartie (règles
   Airbnb, Booking, Google). Jamais « moins cher qu'Airbnb » dans un message à un voyageur d'une
   plateforme.
@@ -74,7 +74,12 @@ Alexandre
 ## 3. « Before checkout » — lignes à ajouter
 
 Garder le texte actuel (ouverture « Le depart approche » intacte) et ajouter, avant la formule de
-fin, les mêmes lignes que le message de départ du dashboard (`DEPARTURE_TEMPLATES`) :
+fin, les mêmes lignes que le message de départ du dashboard (`DEPARTURE_TEMPLATES`).
+
+⚠️ Ces lignes parlent de « la plateforme » : **limiter l'auto-action aux canaux Airbnb, Booking et
+Vrbo** (conditions de l'auto-action), ou dupliquer l'action pour les réservations directes avec la
+phrase « Votre avis, quel qu'il soit, nous aide : https://maps.app.goo.gl/k141gZkCRKuv3Sai7 » à la
+place de la ligne plateforme.
 
 ### Français
 

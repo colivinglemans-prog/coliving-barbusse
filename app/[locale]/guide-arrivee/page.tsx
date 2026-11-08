@@ -88,7 +88,7 @@ const T = {
     partSurPlace: "Sur place",
     s8All: "Tous nos articles pour votre séjour",
     s11Title: "Revenir au Mans",
-    s11Sub: "Les prochains grands événements, pour réserver votre prochain séjour en groupe.",
+    s11Sub: "Les prochains grands événements au Mans, aux dates officielles.",
     bcp47: "fr-FR",
     s9Intro: `Sauf accord préalable, merci de libérer la maison ${PROPERTY_INFO.checkOut.fr}.`,
     s9CheckoutSubT: "Le ménage est inclus, nous vous remercions de :",
@@ -200,7 +200,7 @@ const T = {
     partSurPlace: "At the house",
     s8All: "All our articles for your stay",
     s11Title: "Coming back to Le Mans",
-    s11Sub: "The next major events, to book your next group stay.",
+    s11Sub: "The next major events in Le Mans, with their official dates.",
     bcp47: "en-GB",
     s9Intro: `Unless previously agreed, please vacate the house ${PROPERTY_INFO.checkOut.en}.`,
     s9CheckoutSubT: "Cleaning is included, however we kindly ask you to:",
@@ -312,7 +312,7 @@ const T = {
     partSurPlace: "In casa",
     s8All: "Tutti i nostri articoli per il soggiorno",
     s11Title: "Tornare a Le Mans",
-    s11Sub: "I prossimi grandi eventi, per prenotare il vostro prossimo soggiorno di gruppo.",
+    s11Sub: "I prossimi grandi eventi a Le Mans, con le date ufficiali.",
     bcp47: "it-IT",
     s9Intro: `Salvo accordi diversi, ti chiediamo di liberare la casa ${PROPERTY_INFO.checkOut.it}.`,
     s9CheckoutSubT: "Le pulizie sono incluse, ti ringraziamo di:",
@@ -424,7 +424,7 @@ const T = {
     partSurPlace: "Im Haus",
     s8All: "Alle unsere Artikel für Ihren Aufenthalt",
     s11Title: "Wieder nach Le Mans kommen",
-    s11Sub: "Die nächsten großen Events, um Ihren nächsten Gruppenaufenthalt zu buchen.",
+    s11Sub: "Die nächsten großen Events in Le Mans, mit ihren offiziellen Terminen.",
     bcp47: "de-DE",
     s9Intro: `Sofern nicht anders vereinbart, bitten wir Sie, das Haus ${PROPERTY_INFO.checkOut.de} zu verlassen.`,
     s9CheckoutSubT: "Die Reinigung ist inklusive, wir bitten Sie jedoch darum:",
@@ -536,7 +536,7 @@ const T = {
     partSurPlace: "En la casa",
     s8All: "Todos nuestros artículos para tu estancia",
     s11Title: "Volver a Le Mans",
-    s11Sub: "Los próximos grandes eventos, para reservar vuestra próxima estancia en grupo.",
+    s11Sub: "Los próximos grandes eventos en Le Mans, con sus fechas oficiales.",
     bcp47: "es-ES",
     s9Intro: `Salvo acuerdo previo, te pedimos liberar la casa ${PROPERTY_INFO.checkOut.es}.`,
     s9CheckoutSubT: "La limpieza está incluida, te agradecemos:",
@@ -576,6 +576,9 @@ const T = {
     closingNote: "¡Buena estancia en Le Mans!",
   },
 } as const;
+
+/** Régénéré chaque jour : « Revenir » liste les événements à venir (date du jour). */
+export const revalidate = 86400;
 
 export async function generateMetadata({
   params,

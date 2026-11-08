@@ -17,15 +17,6 @@ describe("messages aux voyageurs (Lot 4 du parcours)", () => {
     expect(detectGuestMessageKind(m)).toBeNull();
   });
 
-  it("l'article de l'événement du séjour s'ajoute quand il est fourni", () => {
-    const m = buildGuestMessage("fr", {
-      url: guideUrl("fr"),
-      code: "1",
-      eventArticle: { title: "MotoGP France 2027", url: "https://www.coliving-barbusse.fr/fr/blog/motogp-france-le-mans-2027" },
-    });
-    expect(m).toContain("MotoGP France 2027 : https://www.coliving-barbusse.fr/fr/blog/motogp-france-le-mans-2027");
-  });
-
   it("le message de départ garde son ouverture (signature), une remarque par WhatsApp et une ligne d'avis neutre", () => {
     for (const l of GUIDE_LOCALES) {
       const m = buildDepartureMessage(l, { firstName: "Ana" });

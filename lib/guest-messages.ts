@@ -7,18 +7,8 @@ export interface GuestMessageParams {
   code?: string;
   /** Articles « Pendant votre séjour » (`aroundUrl`), pour tout le groupe. */
   aroundUrl?: string;
-  /** Article de l'événement qui chevauche le séjour (`articleForStay`), s'il y en a un. */
-  eventArticle?: { title: string; url: string };
 }
 
-/** Ligne « votre événement » du message d'arrivée. */
-const EVENT_LINE: Record<GuideLocale, string> = {
-  fr: "Pour l'événement de votre séjour, notre guide pratique :",
-  en: "For the event during your stay, our practical guide:",
-  it: "Per l'evento del tuo soggiorno, la nostra guida pratica:",
-  de: "Für die Veranstaltung während Ihres Aufenthalts, unser praktischer Guide:",
-  es: "Para el evento de tu estancia, nuestra guía práctica:",
-};
 
 /**
  * Message prêt à envoyer au voyageur, dans sa langue.
@@ -91,18 +81,17 @@ const AROUND: Record<GuideLocale, string> = {
   "fr": "Pour tout le groupe, nos adresses autour de la maison (restos, courses, balades) :",
   "en": "For the whole group, our tips around the house (restaurants, shops, walks):",
   "it": "Per tutto il gruppo, i nostri indirizzi intorno alla casa (ristoranti, spesa, passeggiate):",
-  "de": "Für die ganze Gruppe, unsere Tipps rund um das Haus (Restaurants, Einkäufe, Spaziergänge):",
+  "de": "Für die ganze Gruppe finden Sie hier unsere Tipps rund um das Haus (Restaurants, Einkäufe, Spaziergänge):",
   "es": "Para todo el grupo, nuestras direcciones alrededor de la casa (restaurantes, compras, paseos):"
 };
 
 export function buildGuestMessage(
   locale: GuideLocale,
-  { firstName, url, code, aroundUrl, eventArticle }: GuestMessageParams,
+  { firstName, url, code, aroundUrl }: GuestMessageParams,
 ): string {
   const trimmed = firstName?.trim();
   const name = trimmed ? ` ${trimmed}` : "";
   const around = [
-    ...(eventArticle ? ["", EVENT_LINE[locale], `${eventArticle.title} : ${eventArticle.url}`] : []),
     ...(aroundUrl ? ["", AROUND[locale], aroundUrl] : []),
   ];
   return TEMPLATES[locale]({ name, url, code, around }).join("\n");
