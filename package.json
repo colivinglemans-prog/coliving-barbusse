@@ -10,12 +10,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:deploy": "vitest run -c vitest.deploy.config.ts",
-    "translate-reviews": "node scripts/translate-reviews.mjs"
+    "translate-reviews": "node scripts/translate-reviews.mjs",
+    "indexnow": "node node_modules/@sejour/socle/scripts/indexnow.mjs --site https://www.coliving-barbusse.fr --key c910319d235f0e2c0586086f4d17d2d9 --extra /llms.txt"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
     "@react-pdf/renderer": "^4.5.1",
-    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#v3.13.0",
+    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#43151dc",
     "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.8.2",

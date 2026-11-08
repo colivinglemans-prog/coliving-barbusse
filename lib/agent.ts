@@ -21,6 +21,43 @@ import { SITE_URL } from "@/lib/site";
 /** `+33620921005` → `+33 6 20 92 10 05`, dérivé du contact plutôt que recopié. */
 const PHONE = PROPERTY_INFO.contact.phone.replace(/^\+33(\d)(\d{2})(\d{2})(\d{2})(\d{2})$/, "+33 $1 $2 $3 $4 $5");
 
+/** Les lignes du détail du prix, par langue. */
+const LINE_LABELS: Record<
+  string,
+  { nights: (n: number) => string; cleaning: string; linen: (g: number) => string; tax: (adults: number) => string }
+> = {
+  fr: {
+    nights: (n) => `${n} nuit${n > 1 ? "s" : ""}, remise directe de 7 % incluse`,
+    cleaning: "Ménage de fin de séjour",
+    linen: (g) => `Draps et serviettes (${g} pers.)`,
+    tax: (a) => `Taxe de séjour (${a} adulte${a > 1 ? "s" : ""} ; mineurs exonérés)`,
+  },
+  en: {
+    nights: (n) => `${n} night${n > 1 ? "s" : ""}, 7% direct-booking discount included`,
+    cleaning: "End-of-stay cleaning",
+    linen: (g) => `Bed linen and towels (${g} guests)`,
+    tax: (a) => `Tourist tax (${a} adult${a > 1 ? "s" : ""}; minors exempt)`,
+  },
+  de: {
+    nights: (n) => `${n} Nacht${n > 1 ? "e" : ""}, inkl. 7 % Direktbuchungsrabatt`,
+    cleaning: "Endreinigung",
+    linen: (g) => `Bettwäsche und Handtücher (${g} Pers.)`,
+    tax: (a) => `Kurtaxe (${a} Erwachsene; Minderjährige befreit)`,
+  },
+  es: {
+    nights: (n) => `${n} noche${n > 1 ? "s" : ""}, descuento directo del 7 % incluido`,
+    cleaning: "Limpieza final",
+    linen: (g) => `Ropa de cama y toallas (${g} pers.)`,
+    tax: (a) => `Tasa turística (${a} adulto${a > 1 ? "s" : ""}; menores exentos)`,
+  },
+  it: {
+    nights: (n) => `${n} nott${n > 1 ? "i" : "e"}, sconto diretto del 7 % incluso`,
+    cleaning: "Pulizia finale",
+    linen: (g) => `Biancheria e asciugamani (${g} pers.)`,
+    tax: (a) => `Tassa di soggiorno (${a} adult${a > 1 ? "i" : "o"}; minori esenti)`,
+  },
+};
+
 export const STAY_QUOTE: StayQuoteConfig = {
   roomId: ROOM_ID,
   // Le second compteur du calendrier est « Ados (10-17 ans) » : jusqu'à 17, avec au moins un adulte.
@@ -31,8 +68,16 @@ export const STAY_QUOTE: StayQuoteConfig = {
   // linge 15 € par voyageur, taxe de séjour 2,20 € par **adulte** et par nuit (mineurs
   // exonérés : 14 adultes + 4 enfants = 1 657,85 € du 18 au 20/12/2026). Un écart bloque le prix
   // et prévient l'hôte — Beyond ou un réglage Beds24 qui change la grille se voit tout de suite.
-  expectedTotal: ({ nightly, adults, children, nights }) =>
-    nightly.reduce((s, n) => s + n, 0) * 0.93 + 280 + 15 * (adults + children) + 2.2 * adults * nights,
+  // Ce détail est montré au voyageur (devis, page de devis) et sa somme sert de garde-fou.
+  breakdown: ({ nightly, adults, children, nights, lang }) => {
+    const t = LINE_LABELS[lang] ?? LINE_LABELS.fr;
+    return [
+      { id: "nights", label: t.nights(nights), amount: nightly.reduce((s, n) => s + n, 0) * 0.93 },
+      { id: "cleaning", label: t.cleaning, amount: 280 },
+      { id: "linen", label: t.linen(adults + children), amount: 15 * (adults + children) },
+      { id: "tax", label: t.tax(adults), amount: 2.2 * adults * nights },
+    ];
+  },
   lastMinute: {
     withinDays: 0,
     notice: {

@@ -323,10 +323,10 @@ produit le chiffre d'affaires direct, il se teste sur une vraie réponse Beds24,
 `lib/agent.ts` déclare la maison à `@sejour/socle/lib/stay-agent` : une seule route publique
 `app/api/agent/[tool]/route.ts` (`info`, `availability`, `quote`, `find`, `openapi`, en GET,
 CORS ouvert), documentée dans `public/llms.txt`. Le prix vient de `getroomprice.php` (total
-Beds24 tout compris) et passe un **garde-fou** : `expectedTotal` recalcule la grille (nuits
+Beds24 tout compris) et passe un **garde-fou** : `breakdown` (le détail montré au voyageur) recalcule la grille (nuits
 −7 %, ménage 280, linge 15 €/voyageur, taxe 2,20 €/**adulte**/nuit). Un écart de plus de 1 €
 bloque le prix (`price-blocked`) et envoie un ntfy « Devis IA Barbusse » : c'est le signal
-qu'un réglage Beds24/Beyond a changé la grille — corriger `expectedTotal`, pas le contourner.
+qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas le contourner. IndexNow : `npm run indexnow` (clé publique dans `public/<clé>.txt`) soumet sitemap + llms.txt à Bing et aux moteurs participants, à lancer après chaque déploiement de contenu.
 
 - Politiques servies aux IA = `CANCELLATION_POLICY` / `PAYMENT_POLICY` de `lib/property-info.ts`.
 - Arrivée le jour même : le devis porte une consigne d'appeler l'hôte (`lastMinute`).
