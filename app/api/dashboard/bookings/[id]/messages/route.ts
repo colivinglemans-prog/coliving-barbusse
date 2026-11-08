@@ -8,7 +8,9 @@ import {
 } from "@/lib/beds24";
 import { guard } from "@/lib/auth";
 import { isPinOnLock } from "@/lib/access-sync";
-import { GUIDE_LOCALES, guestLocaleFromCountry, guideUrl, type GuideLocale } from "@/lib/site";
+import { GUIDE_LOCALES, SITE_URL, aroundUrl, guestLocaleFromCountry, guideUrl, type GuideLocale } from "@/lib/site";
+import { articleForStay, todayInParis } from "@/lib/blog/journey";
+import { getLocalizedPost } from "@/lib/blog/posts";
 import {
   buildDepartureMessage,
   buildGuestMessage,
@@ -171,6 +173,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         firstName: booking.firstName,
         url: guideUrl(locale),
         code,
+        aroundUrl: aroundUrl(locale),
+        eventArticle: (() => {
+          const post = articleForStay(booking.id, booking.arrival, booking.departure, todayInParis());
+          return post
+            ? { title: getLocalizedPost(post, locale).title, url: `${SITE_URL}/${locale}/blog/${post.slug}` }
+            : undefined;
+        })(),
       });
     } else {
       message = buildDepartureMessage(locale, { firstName: booking.firstName });

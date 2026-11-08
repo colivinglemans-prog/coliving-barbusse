@@ -5,7 +5,20 @@ export interface GuestMessageParams {
   url: string;
   /** PIN Nuki ; absent tant que Beds24 ne l'a pas généré (~J-6). */
   code?: string;
+  /** Articles « Pendant votre séjour » (`aroundUrl`), pour tout le groupe. */
+  aroundUrl?: string;
+  /** Article de l'événement qui chevauche le séjour (`articleForStay`), s'il y en a un. */
+  eventArticle?: { title: string; url: string };
 }
+
+/** Ligne « votre événement » du message d'arrivée. */
+const EVENT_LINE: Record<GuideLocale, string> = {
+  fr: "Pour l'événement de votre séjour, notre guide pratique :",
+  en: "For the event during your stay, our practical guide:",
+  it: "Per l'evento del tuo soggiorno, la nostra guida pratica:",
+  de: "Für die Veranstaltung während Ihres Aufenthalts, unser praktischer Guide:",
+  es: "Para el evento de tu estancia, nuestra guía práctica:",
+};
 
 /**
  * Message prêt à envoyer au voyageur, dans sa langue.
@@ -14,67 +27,85 @@ export interface GuestMessageParams {
  */
 const TEMPLATES: Record<
   GuideLocale,
-  (p: { name: string; url: string; code?: string }) => string[]
+  (p: { name: string; url: string; code?: string; around: string[] }) => string[]
 > = {
-  fr: ({ name, url, code }) => [
+  fr: ({ name, url, code, around }) => [
     `Bonjour${name},`,
     "",
     "Voici le guide d'arrivée avec toutes les infos pratiques (accès, Wi-Fi, stationnement) :",
     url,
     ...(code ? ["", `Votre code d'accès à la porte : ${code}`] : []),
+    ...around,
     "",
     "Bon séjour !",
     "Alexandre",
   ],
-  en: ({ name, url, code }) => [
+  en: ({ name, url, code, around }) => [
     `Hello${name},`,
     "",
     "Here is the welcome guide with all the practical information (access, Wi-Fi, parking):",
     url,
     ...(code ? ["", `Your door access code: ${code}`] : []),
+    ...around,
     "",
     "Enjoy your stay!",
     "Alexandre",
   ],
-  it: ({ name, url, code }) => [
+  it: ({ name, url, code, around }) => [
     `Ciao${name},`,
     "",
     "Ecco la guida all'arrivo con tutte le informazioni pratiche (accesso, Wi-Fi, parcheggio):",
     url,
     ...(code ? ["", `Il tuo codice di accesso alla porta: ${code}`] : []),
+    ...around,
     "",
     "Buon soggiorno!",
     "Alexandre",
   ],
-  de: ({ name, url, code }) => [
+  de: ({ name, url, code, around }) => [
     `Hallo${name},`,
     "",
     "hier ist der Ankunftsguide mit allen praktischen Informationen (Zugang, WLAN, Parken):",
     url,
     ...(code ? ["", `Ihr Türzugangscode: ${code}`] : []),
+    ...around,
     "",
     "Einen schönen Aufenthalt!",
     "Alexandre",
   ],
-  es: ({ name, url, code }) => [
+  es: ({ name, url, code, around }) => [
     `Hola${name},`,
     "",
     "Aquí tienes la guía de llegada con toda la información práctica (acceso, wifi, aparcamiento):",
     url,
     ...(code ? ["", `Tu código de acceso a la puerta: ${code}`] : []),
+    ...around,
     "",
     "¡Buena estancia!",
     "Alexandre",
   ],
 };
 
+/** Ligne « autour de la maison » du message d'arrivée. */
+const AROUND: Record<GuideLocale, string> = {
+  "fr": "Pour tout le groupe, nos adresses autour de la maison (restos, courses, balades) :",
+  "en": "For the whole group, our tips around the house (restaurants, shops, walks):",
+  "it": "Per tutto il gruppo, i nostri indirizzi intorno alla casa (ristoranti, spesa, passeggiate):",
+  "de": "Für die ganze Gruppe, unsere Tipps rund um das Haus (Restaurants, Einkäufe, Spaziergänge):",
+  "es": "Para todo el grupo, nuestras direcciones alrededor de la casa (restaurantes, compras, paseos):"
+};
+
 export function buildGuestMessage(
   locale: GuideLocale,
-  { firstName, url, code }: GuestMessageParams,
+  { firstName, url, code, aroundUrl, eventArticle }: GuestMessageParams,
 ): string {
   const trimmed = firstName?.trim();
   const name = trimmed ? ` ${trimmed}` : "";
-  return TEMPLATES[locale]({ name, url, code }).join("\n");
+  const around = [
+    ...(eventArticle ? ["", EVENT_LINE[locale], `${eventArticle.title} : ${eventArticle.url}`] : []),
+    ...(aroundUrl ? ["", AROUND[locale], aroundUrl] : []),
+  ];
+  return TEMPLATES[locale]({ name, url, code, around }).join("\n");
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -110,6 +141,9 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "Si vous souhaitez nous aider davantage, vous pouvez retirer les draps et",
     "serviettes et les regrouper dans les couloirs ou en bas des escaliers.",
     "",
+    "Une remarque, une suggestion ? Dites-le-nous directement : https://wa.me/33620921005",
+    "La plateforme vous proposera de laisser un commentaire : chaque retour, positif ou critique, nous est utile.",
+    "",
     "Merci, et bonne route !",
     "Alexandre",
   ],
@@ -130,6 +164,9 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "",
     "If you would like to help further, you can strip the beds and gather the",
     "sheets and towels in the hallways or at the bottom of the stairs.",
+    "",
+    "Any comment or suggestion? Tell us directly: https://wa.me/33620921005",
+    "The platform will invite you to leave a review: every piece of feedback, positive or critical, helps us.",
     "",
     "Thank you, and safe travels!",
     "Alexandre",
@@ -152,6 +189,9 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "Se vuoi darci una mano in più, puoi togliere lenzuola e asciugamani e",
     "raggrupparli nei corridoi o in fondo alle scale.",
     "",
+    "Un commento, un suggerimento? Diccelo direttamente: https://wa.me/33620921005",
+    "La piattaforma ti inviterà a lasciare una recensione: ogni riscontro, positivo o critico, ci è utile.",
+    "",
     "Grazie e buon viaggio!",
     "Alexandre",
   ],
@@ -173,6 +213,9 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "Wenn Sie uns zusätzlich helfen möchten, können Sie Bettwäsche und Handtücher",
     "abziehen und in den Fluren oder am Fuß der Treppe sammeln.",
     "",
+    "Eine Anmerkung, ein Vorschlag? Sagen Sie es uns direkt: https://wa.me/33620921005",
+    "Die Plattform lädt Sie ein, eine Bewertung abzugeben: Jede Rückmeldung, ob positiv oder kritisch, hilft uns.",
+    "",
     "Vielen Dank und gute Fahrt!",
     "Alexandre",
   ],
@@ -193,6 +236,9 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "",
     "Si quieres ayudarnos un poco más, puedes retirar las sábanas y toallas y",
     "agruparlas en los pasillos o al pie de las escaleras.",
+    "",
+    "¿Algún comentario o sugerencia? Dínoslo directamente: https://wa.me/33620921005",
+    "La plataforma te invitará a dejar un comentario: cada opinión, positiva o crítica, nos ayuda.",
     "",
     "¡Gracias y buen viaje!",
     "Alexandre",

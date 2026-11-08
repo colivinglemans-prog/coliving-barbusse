@@ -1,4 +1,4 @@
-import { LE_MANS_EVENTS, type LocalEvent } from "@/lib/events";
+import { LE_MANS_EVENTS, eventForStay, type LocalEvent } from "@/lib/events";
 import { BLOG_POSTS, type BlogPostMeta } from "./posts";
 
 /**
@@ -116,4 +116,20 @@ export function filterKeysOf(post: BlogPostMeta): Exclude<FilterKey, "tous">[] {
 /** Date du jour à Paris (AAAA-MM-JJ), pour « passé » et « à venir ». */
 export function todayInParis(now: Date = new Date()): string {
   return now.toLocaleDateString("en-CA", { timeZone: "Europe/Paris" });
+}
+
+/**
+ * L'article de l'événement qui chevauche un séjour (message d'arrivée) : la vraie préparation du
+ * séjour pour les 13 articles d'événement, sans les étiqueter « préparer ». Édition passée ou
+ * archive : rien.
+ */
+export function articleForStay(
+  bookingId: number,
+  arrival: string,
+  departure: string,
+  today: string,
+): BlogPostMeta | undefined {
+  const event = eventForStay(bookingId, arrival, departure);
+  if (!event) return undefined;
+  return listedPosts().find((p) => p.event === event.key && !isPastEvent(p, today));
 }

@@ -14,6 +14,14 @@ export function guideUrl(locale: GuideLocale): string {
   return `${SITE_URL}/${locale}/guide-arrivee`;
 }
 
+/**
+ * Les articles « Pendant votre séjour » du blog (ancre fixe, jamais renommée) : pour tout le
+ * groupe, pas seulement celui qui a réservé.
+ */
+export function aroundUrl(locale: GuideLocale): string {
+  return `${SITE_URL}/${locale}/blog#pendant-le-sejour`;
+}
+
 /** Pays Beds24 (ISO 3166-1 alpha-2) → langue du guide à mettre en avant. */
 const COUNTRY_TO_LOCALE: Record<string, GuideLocale> = {
   FR: "fr",

@@ -4,16 +4,13 @@ import Image from "next/image";
 import type { Locale } from "@/lib/i18n";
 import { alternatesFor, arrivalGuidePath } from "@/lib/seo";
 import { PROPERTY_INFO } from "@/lib/property-info";
-import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
+import { getLocalizedPost } from "@/lib/blog/posts";
+import { eventOf, isUpcomingOfficial, listedPosts, sortForList, todayInParis } from "@/lib/blog/journey";
+import { formatRange } from "@/components/public/BlogCard";
 import WifiQRCode from "@/components/guide/WifiQRCode";
 import { getWifi, wifiQrPayload } from "@/lib/wifi";
 
 const HERO_IMAGE = "/images/house/3-maison-AI.jpg";
-const FEATURED_BLOG_SLUGS = [
-  "restos-bars-magasins-le-mans",
-  "que-visiter-le-mans-sarthe",
-  "entreprises-proches-le-mans",
-];
 
 type Lang = Locale;
 
@@ -86,7 +83,13 @@ const T = {
     s8Title: "Découvrir Le Mans",
     s8Sub: "Quelques articles pour profiter pleinement de votre séjour.",
     s8ReadMore: "Lire l'article",
-    s9Title: "Avant de partir",
+    s9Title: "Le jour du départ",
+    partAvant: "Avant de venir",
+    partSurPlace: "Sur place",
+    s8All: "Tous nos articles pour votre séjour",
+    s11Title: "Revenir au Mans",
+    s11Sub: "Les prochains grands événements, pour réserver votre prochain séjour en groupe.",
+    bcp47: "fr-FR",
     s9Intro: `Sauf accord préalable, merci de libérer la maison ${PROPERTY_INFO.checkOut.fr}.`,
     s9CheckoutSubT: "Le ménage est inclus, nous vous remercions de :",
     s9CheckoutItems: [
@@ -192,7 +195,13 @@ const T = {
     s8Title: "Discover Le Mans",
     s8Sub: "A few articles to make the most of your stay.",
     s8ReadMore: "Read the article",
-    s9Title: "Before you leave",
+    s9Title: "On departure day",
+    partAvant: "Before you come",
+    partSurPlace: "At the house",
+    s8All: "All our articles for your stay",
+    s11Title: "Coming back to Le Mans",
+    s11Sub: "The next major events, to book your next group stay.",
+    bcp47: "en-GB",
     s9Intro: `Unless previously agreed, please vacate the house ${PROPERTY_INFO.checkOut.en}.`,
     s9CheckoutSubT: "Cleaning is included, however we kindly ask you to:",
     s9CheckoutItems: [
@@ -298,7 +307,13 @@ const T = {
     s8Title: "Scopri Le Mans",
     s8Sub: "Alcuni articoli per goderti al meglio il tuo soggiorno.",
     s8ReadMore: "Leggi l'articolo",
-    s9Title: "Prima di partire",
+    s9Title: "Il giorno della partenza",
+    partAvant: "Prima di arrivare",
+    partSurPlace: "In casa",
+    s8All: "Tutti i nostri articoli per il soggiorno",
+    s11Title: "Tornare a Le Mans",
+    s11Sub: "I prossimi grandi eventi, per prenotare il vostro prossimo soggiorno di gruppo.",
+    bcp47: "it-IT",
     s9Intro: `Salvo accordi diversi, ti chiediamo di liberare la casa ${PROPERTY_INFO.checkOut.it}.`,
     s9CheckoutSubT: "Le pulizie sono incluse, ti ringraziamo di:",
     s9CheckoutItems: [
@@ -404,7 +419,13 @@ const T = {
     s8Title: "Le Mans entdecken",
     s8Sub: "Einige Artikel, um Ihren Aufenthalt voll auszukosten.",
     s8ReadMore: "Artikel lesen",
-    s9Title: "Vor der Abreise",
+    s9Title: "Am Abreisetag",
+    partAvant: "Vor der Anreise",
+    partSurPlace: "Im Haus",
+    s8All: "Alle unsere Artikel für Ihren Aufenthalt",
+    s11Title: "Wieder nach Le Mans kommen",
+    s11Sub: "Die nächsten großen Events, um Ihren nächsten Gruppenaufenthalt zu buchen.",
+    bcp47: "de-DE",
     s9Intro: `Sofern nicht anders vereinbart, bitten wir Sie, das Haus ${PROPERTY_INFO.checkOut.de} zu verlassen.`,
     s9CheckoutSubT: "Die Reinigung ist inklusive, wir bitten Sie jedoch darum:",
     s9CheckoutItems: [
@@ -510,7 +531,13 @@ const T = {
     s8Title: "Descubrir Le Mans",
     s8Sub: "Algunos artículos para aprovechar al máximo tu estancia.",
     s8ReadMore: "Leer el artículo",
-    s9Title: "Antes de irte",
+    s9Title: "El día de la salida",
+    partAvant: "Antes de venir",
+    partSurPlace: "En la casa",
+    s8All: "Todos nuestros artículos para tu estancia",
+    s11Title: "Volver a Le Mans",
+    s11Sub: "Los próximos grandes eventos, para reservar vuestra próxima estancia en grupo.",
+    bcp47: "es-ES",
     s9Intro: `Salvo acuerdo previo, te pedimos liberar la casa ${PROPERTY_INFO.checkOut.es}.`,
     s9CheckoutSubT: "La limpieza está incluida, te agradecemos:",
     s9CheckoutItems: [
@@ -578,9 +605,12 @@ export default async function GuideArrivee({
   const t = T[locale];
   const wifi = getWifi();
 
-  const featuredPosts = FEATURED_BLOG_SLUGS
-    .map((slug) => BLOG_POSTS.find((p) => p.slug === slug))
-    .filter((p): p is NonNullable<typeof p> => Boolean(p));
+  // « Découvrir Le Mans » : les articles de l'étape « sur place » (`journey`), calculés et non
+  // plus listés à la main ; plus d'article de vente aux entreprises ici.
+  const featuredPosts = listedPosts().filter((p) => p.journey.includes("sur-place"));
+  // « Revenir » : les prochains événements aux dates officielles qui ont leur article.
+  const today = todayInParis();
+  const upcoming = sortForList(listedPosts(), today).filter((p) => isUpcomingOfficial(p, today));
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
@@ -609,6 +639,10 @@ export default async function GuideArrivee({
           </div>
         </div>
       </section>
+
+      <p id="avant" className="mt-14 scroll-mt-20 border-b border-border pb-2 text-sm font-semibold uppercase tracking-wide text-primary">
+        {t.partAvant}
+      </p>
 
       {/* 1. Comment venir */}
       <section className="mt-12">
@@ -679,6 +713,47 @@ export default async function GuideArrivee({
           ⚠️ {t.s2Note}
         </p>
       </section>
+
+      {/* 6.ter Lits d'appoint */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold text-foreground">🛏️ {t.sSofaTitle}</h2>
+        <div className="mt-5 grid gap-5 sm:grid-cols-[200px_1fr] sm:items-start">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <Image
+              src="/images/guide/canape-lit.jpg"
+              alt={t.sSofaTitle}
+              width={720}
+              height={960}
+              className="h-auto w-full object-cover"
+              sizes="(max-width: 640px) 100vw, 200px"
+            />
+          </div>
+          <div>
+            <p className="text-sm text-secondary">{t.sSofaBody}</p>
+            <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              💬 {t.sSofaNote}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Règles */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold text-foreground">📋 {t.s7Title}</h2>
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+          {t.s7Items.map((item) => (
+            <li key={item} className="flex gap-2 text-sm text-foreground">
+              <span className="mt-0.5 text-primary">✓</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-xs text-secondary italic">{t.s7Teens}</p>
+      </section>
+
+      <p id="sur-place" className="mt-14 scroll-mt-20 border-b border-border pb-2 text-sm font-semibold uppercase tracking-wide text-primary">
+        {t.partSurPlace}
+      </p>
 
       {/* 3. Accès maison */}
       <section className="mt-12">
@@ -851,43 +926,6 @@ export default async function GuideArrivee({
         </div>
       </section>
 
-      {/* 6.ter Lits d'appoint */}
-      <section className="mt-12">
-        <h2 className="text-2xl font-bold text-foreground">🛏️ {t.sSofaTitle}</h2>
-        <div className="mt-5 grid gap-5 sm:grid-cols-[200px_1fr] sm:items-start">
-          <div className="overflow-hidden rounded-xl border border-border">
-            <Image
-              src="/images/guide/canape-lit.jpg"
-              alt={t.sSofaTitle}
-              width={720}
-              height={960}
-              className="h-auto w-full object-cover"
-              sizes="(max-width: 640px) 100vw, 200px"
-            />
-          </div>
-          <div>
-            <p className="text-sm text-secondary">{t.sSofaBody}</p>
-            <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              💬 {t.sSofaNote}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Règles */}
-      <section className="mt-12">
-        <h2 className="text-2xl font-bold text-foreground">📋 {t.s7Title}</h2>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {t.s7Items.map((item) => (
-            <li key={item} className="flex gap-2 text-sm text-foreground">
-              <span className="mt-0.5 text-primary">✓</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 text-xs text-secondary italic">{t.s7Teens}</p>
-      </section>
-
       {/* 7.bis En savoir plus sur la maison */}
       <section className="mt-12">
         <h2 className="text-2xl font-bold text-foreground">ℹ️ {t.knowMoreTitle}</h2>
@@ -969,9 +1007,14 @@ export default async function GuideArrivee({
             );
           })}
         </div>
+        <p className="mt-4 text-sm">
+          <Link href={`/${locale}/blog#pendant-le-sejour`} className="font-semibold text-primary underline">
+            {t.s8All} →
+          </Link>
+        </p>
       </section>
 
-      {/* 9. Avant de partir */}
+      {/* 9. Le jour du départ */}
       <section className="mt-12">
         <h2 className="text-2xl font-bold text-foreground">👋 {t.s9Title}</h2>
         <p className="mt-3 rounded-md bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
@@ -1044,6 +1087,27 @@ export default async function GuideArrivee({
           </a>
         </div>
       </section>
+
+      {/* 9.bis Revenir : les prochains événements officiels */}
+      {upcoming.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-2xl font-bold text-foreground">🏁 {t.s11Title}</h2>
+          <p className="mt-2 text-sm text-secondary">{t.s11Sub}</p>
+          <ul className="mt-5 divide-y divide-border rounded-xl border border-border">
+            {upcoming.map((post) => {
+              const ev = eventOf(post)!;
+              return (
+                <li key={post.slug}>
+                  <Link href={`/${locale}/blog/${post.slug}`} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm hover:bg-light-bg">
+                    <span className="font-medium text-foreground">{getLocalizedPost(post, locale).title}</span>
+                    <span className="text-secondary">{formatRange(ev.start, ev.end, t.bcp47)} →</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* 10. Contact / urgence */}
       <section className="mt-12">

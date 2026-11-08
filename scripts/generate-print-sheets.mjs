@@ -409,9 +409,83 @@ ${footer(`${WIFI_T.fr.help} — ${WIFI_T.en.help}`)}
 }
 
 /* ------------------------------------------------------------------ */
+/* Fiche 3 — Pendant votre séjour (2 QR vers des raccourcis sans langue) */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Les QR pointent vers `/bienvenue` et `/autour` (app/bienvenue, app/autour) : des adresses
+ * courtes qui redirigent dans la langue du téléphone. Changer leur destination ne demande pas
+ * de réimprimer la fiche.
+ */
+const SITE = "https://www.coliving-barbusse.fr";
+const STAY_T = {
+  fr: { title: "Pendant votre séjour", guide: "Le guide de la maison", guideSub: "chauffage, café, règles, départ", around: "Autour de la maison", aroundSub: "restos, courses, balades, visites", issue: "Un souci pendant le séjour ? Écrivez-nous tout de suite, on règle ça." },
+  en: { title: "During your stay", guide: "House guide", guideSub: "heating, coffee, rules, check-out", around: "Around the house", aroundSub: "restaurants, shops, walks, sights", issue: "Any problem during your stay? Message us right away and we'll sort it." },
+  es: { title: "Durante su estancia", guide: "La guía de la casa", guideSub: "calefacción, café, normas, salida", around: "Alrededor de la casa", aroundSub: "restaurantes, compras, paseos, visitas", issue: "¿Algún problema durante la estancia? Escríbanos enseguida y lo resolvemos." },
+  it: { title: "Durante il soggiorno", guide: "La guida della casa", guideSub: "riscaldamento, caffè, regole, partenza", around: "Intorno alla casa", aroundSub: "ristoranti, spesa, passeggiate, visite", issue: "Un problema durante il soggiorno? Scriveteci subito, lo risolviamo." },
+  de: { title: "Während Ihres Aufenthalts", guide: "Hausführer", guideSub: "Heizung, Kaffee, Regeln, Abreise", around: "Rund um das Haus", aroundSub: "Restaurants, Einkäufe, Spaziergänge, Ausflüge", issue: "Ein Problem während des Aufenthalts? Schreiben Sie uns sofort, wir kümmern uns darum." },
+};
+
+function staySheet() {
+  const qr = (value) =>
+    renderToStaticMarkup(React.createElement(QRCodeSVG, { value, size: 260, level: "M", marginSize: 1 })).replace(
+      "<svg ",
+      '<svg preserveAspectRatio="xMidYMid meet" '
+    );
+  const css = `
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-top: 8mm; }
+    .card { border: 0.4mm solid #DDD; border-radius: 4mm; padding: 6mm; text-align: center; }
+    .card svg { display: block; width: 62mm; height: auto; margin: 0 auto; }
+    .card h2 { margin-top: 4mm; font-size: 5.4mm; }
+    .card p { margin-top: 1.2mm; font-size: 3.2mm; color: #717171; }
+    .card .url { margin-top: 2mm; font-family: "Consolas", "SF Mono", monospace; font-size: 3.2mm; color: #222; }
+    .langs { margin-top: 7mm; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm 7mm; }
+    .langs div { font-size: 3.05mm; line-height: 1.4; color: #444; }
+    .issue { margin-top: 7mm; border-left: 1.2mm solid #FF385C; background: #FFF5F7; border-radius: 0 2mm 2mm 0; padding: 4mm 5mm; }
+    .issue h3 { font-size: 4mm; margin-bottom: 2mm; }
+    .issue div { font-size: 3.05mm; line-height: 1.4; color: #444; }
+    .issue div + div { margin-top: 1.2mm; }
+  `;
+  const body = `
+${masthead("🏡", STAY_T.fr.title, uniq(LANGS.map((l) => STAY_T[l].title)).join(" · "))}
+
+  <div class="cards">
+    <section class="card">
+      ${qr(`${SITE}/bienvenue`)}
+      <h2>${STAY_T.fr.guide}</h2>
+      <p>${STAY_T.fr.guideSub}</p>
+      <p class="url">coliving-barbusse.fr/bienvenue</p>
+    </section>
+    <section class="card">
+      ${qr(`${SITE}/autour`)}
+      <h2>${STAY_T.fr.around}</h2>
+      <p>${STAY_T.fr.aroundSub}</p>
+      <p class="url">coliving-barbusse.fr/autour</p>
+    </section>
+  </div>
+
+  <div class="langs">
+    ${LANGS.filter((l) => l !== "fr")
+      .map((l) => `<div><span class="lang">${l}</span><strong>${STAY_T[l].guide}</strong> · <strong>${STAY_T[l].around}</strong></div>`)
+      .join("\n    ")}
+  </div>
+
+  <section class="issue">
+    <h3>💬 Un souci ? / Any problem?</h3>
+    ${LANGS.map((l) => `<div><span class="lang">${l}</span>${STAY_T[l].issue}</div>`).join("")}
+  </section>
+
+${footer("Bon séjour au Mans !")}
+`;
+  return page("Pendant votre séjour — Coliving Barbusse", css, body);
+}
+
+/* ------------------------------------------------------------------ */
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(path.join(OUT_DIR, "serrure-connectee.html"), lockSheet(), "utf8");
 writeFileSync(path.join(OUT_DIR, "wifi.html"), wifiSheet(), "utf8");
+writeFileSync(path.join(OUT_DIR, "pendant-votre-sejour.html"), staySheet(), "utf8");
+console.log(`✓ ${path.join(OUT_DIR, "pendant-votre-sejour.html")}`);
 console.log(`✓ ${path.join(OUT_DIR, "serrure-connectee.html")}`);
 console.log(`✓ ${path.join(OUT_DIR, "wifi.html")}`);

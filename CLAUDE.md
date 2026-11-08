@@ -58,7 +58,7 @@ app/
     page.tsx          # Homepage (metadata/JSON-LD localisés, inclut ReservationCalendar)
     blog/
     chambres/         # Suites + ReservationCalendar
-    guide-arrivee/    # Guide voyageurs noindex (accès, Wi-Fi QR, chauffage, café, lits d'appoint, checkout)
+    guide-arrivee/    # Guide voyageurs noindex (#avant / #sur-place, Wi-Fi QR depuis l'env, Découvrir Le Mans calculé, Revenir)
     seminaires/
     # /fr/reservation supprimée (avril 2026) → redirect 301 vers /fr via proxy.ts (5 locales).
     # Le calendrier de dispo est sur la homepage (#disponibilite) et /chambres.
@@ -658,6 +658,15 @@ Bloc dans la popup de réservation du calendrier — [components/dashboard/Guest
 - **Code Nuki** : le PIN 6 chiffres vit dans `infoItems[]` sous `code = "NUKI_PIN"` (champ `text`). Il y est désormais écrit **par notre synchronisation** dès la réservation (voir « Serrure Nuki »), et non plus par le connecteur Beds24 à J-6 → l'état « Pas encore généré » ne dure que jusqu'au passage suivant. Le bouton « Arrivée + code » refuse (`409`) tant que le code n'est pas **sur la serrure** avec ce PIN. Lu via `GET /api/dashboard/bookings/[id]/nuki-code` (admin only via JWT, re-vérifié dans la route car le middleware ne bloque pas viewer sur `/api/dashboard/bookings`). Route dédiée volontairement : le calendrier charge ~19 mois de résas, hors de question d'y faire transiter les PIN. **Ne jamais logger le PIN — le dépôt est public.**
 - **URL et langues** : `guideUrl()` / `guestLocaleFromCountry()` dans [lib/site.ts](lib/site.ts) ; modèles de message dans [lib/guest-messages.ts](lib/guest-messages.ts) (vouvoiement FR/DE, tutoiement IT/ES, comme le guide).
 - **Presse-papier** : le dashboard est utilisé en mode « app » sur mobile, où `navigator.clipboard` peut être refusé → repli sur un champ sélectionnable, jamais d'échec silencieux.
+- **Lien « Pendant votre séjour »** (`aroundUrl()`, `/xx/blog#pendant-le-sejour`) : ligne de copie dans le bloc, et ajouté au message d'arrivée (`buildGuestMessage`, param `aroundUrl`), comme l'article de l'événement qui chevauche le séjour (`articleForStay`, param `eventArticle`, route d'envoi seulement). Le libellé du code (« Votre code d'accès à la porte ») et l'ouverture du départ (« Le départ approche ») sont des **signatures** (`SIGNATURES`) : ne jamais les reformuler.
+- **Message de départ** : une remarque par WhatsApp et une ligne d'avis **neutre** (« chaque retour, positif ou critique, nous est utile ») ; jamais « si vous avez aimé » ni « 5 étoiles » (règles Google / Airbnb / Booking). Pas de variante « réservation directe » : le dashboard n'écrit qu'aux réservations des plateformes (les directes n'ont pas de fil).
+- **Textes des auto-actions Beds24** (confirmation, lendemain de l'arrivée, avant le départ) : [docs/auto-actions-beds24.md](docs/auto-actions-beds24.md), référence à recopier dans Beds24.
+
+### Guide d'arrivée — parties, raccourcis QR (2026-11-08)
+
+- Deux repères à ancre fixe sur la même page : `#avant` (venir, stationnement, lits d'appoint, règles) et `#sur-place` (serrure, Wi-Fi, chauffage, café, Découvrir Le Mans, le jour du départ, revenir, contact).
+- « Découvrir Le Mans » est **calculé** (articles `journey` « sur-place ») avec un lien vers `/xx/blog#pendant-le-sejour` ; « Revenir » liste les prochains événements aux dates officielles (`isUpcomingOfficial`). Aucune page indexée ne renvoie vers le guide (il affiche le Wi-Fi) : le lien va du guide vers le blog, jamais l'inverse.
+- Raccourcis imprimés (QR de la fiche « Pendant votre séjour », `scripts/generate-print-sheets.mjs`) : `/bienvenue` → `/xx/guide-arrivee#sur-place`, `/autour` → `/xx/blog#pendant-le-sejour` (`app/bienvenue`, `app/autour`, `lib/short-links.ts` : 307 selon `Accept-Language`, `Vary`, hors proxy). Changer la destination ne demande pas de réimprimer.
 
 ### Envoi des messages arrivée / départ depuis le calendrier
 

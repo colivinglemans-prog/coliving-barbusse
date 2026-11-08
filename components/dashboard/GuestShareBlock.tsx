@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GUIDE_LOCALES, guideUrl, guestLocaleFromCountry, type GuideLocale } from "@/lib/site";
+import { GUIDE_LOCALES, aroundUrl, guideUrl, guestLocaleFromCountry, type GuideLocale } from "@/lib/site";
 import { buildGuestMessage } from "@/lib/guest-messages";
 
 type MessageKind = "arrivee" | "depart";
@@ -180,7 +180,7 @@ Il le recevra immédiatement.`,
     }
   }
 
-  function localeRow(kind: "link" | "msg", textFor: (l: GuideLocale) => string) {
+  function localeRow(kind: "link" | "around" | "msg", textFor: (l: GuideLocale) => string) {
     return (
       <div className="mt-1 flex flex-wrap gap-1.5">
         {GUIDE_LOCALES.map((l) => {
@@ -220,11 +220,17 @@ Il le recevra immédiatement.`,
       </div>
 
       <div className="mt-3">
+        <p className="text-xs text-gray-400">Lien « Pendant votre séjour » (articles pour tout le groupe)</p>
+        {localeRow("around", (l) => aroundUrl(l))}
+      </div>
+
+      <div className="mt-3">
         <p className="text-xs text-gray-400">Message complet</p>
         {localeRow("msg", (l) =>
           buildGuestMessage(l, {
             firstName,
             url: guideUrl(l),
+            aroundUrl: aroundUrl(l),
             code: code ?? undefined,
           }),
         )}
