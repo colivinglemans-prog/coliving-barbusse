@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { constantTimeEqual } from "@sejour/socle/lib/cron-auth";
 import { runAccessSync } from "@/lib/access-sync";
@@ -24,7 +25,9 @@ import { firstRefusalAlert, recordWebhookCall, type WebhookResult } from "@/lib/
  */
 export const maxDuration = 60;
 
-function check(request: NextRequest): { result: WebhookResult; bracketed: boolean } {
+const fingerprint = (v: string) => ({ length: v.length, hash: createHash("sha256").update(v).digest("hex").slice(0, 6) });
+
+function check(request: NextRequest): { result: WebhookResult; bracketed: boolean; got?: string; expected?: string } {
   // `trim()` : une valeur collée dans Vercel avec un retour à la ligne refuserait tout, l'en-tête
   // HTTP arrivant, lui, sans blancs de bord. Même comparaison que la route d'Albiez.
   const secret = process.env.BEDS24_WEBHOOK_SECRET?.trim();
@@ -32,13 +35,19 @@ function check(request: NextRequest): { result: WebhookResult; bracketed: boolea
   const bracketed = Boolean(given && given.startsWith("<") && given.endsWith(">"));
   if (!secret) return { result: "no-config", bracketed };
   if (!given) return { result: "no-header", bracketed };
-  return { result: constantTimeEqual(given, secret) ? "accepted" : "bad-secret", bracketed };
+  return constantTimeEqual(given, secret) ? { result: "accepted", bracketed } : { result: "bad-secret", bracketed, got: given, expected: secret };
 }
 
 export async function POST(request: NextRequest) {
-  const { result, bracketed } = check(request);
+  const { result, bracketed, got, expected } = check(request);
   // Témoin du dernier appel, lu par l'écran Messages : la preuve que Beds24 envoie le bon secret.
-  await recordWebhookCall({ at: new Date().toISOString(), result, ...(bracketed ? { bracketed } : {}) });
+  await recordWebhookCall({
+    at: new Date().toISOString(),
+    result,
+    ...(bracketed ? { bracketed } : {}),
+    // Diagnostic d'un refus : longueur et empreinte courte, jamais le secret.
+    ...(got && expected ? { got: fingerprint(got), expected: fingerprint(expected) } : {}),
+  });
   if (result !== "accepted") {
     // Pas d'alerte sans en-tête : ce sont des robots, pas Beds24 (la trace, elle, est gardée).
     if (result !== "no-header" && (await firstRefusalAlert())) {
