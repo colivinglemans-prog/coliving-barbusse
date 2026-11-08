@@ -59,7 +59,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Jardin clos de 90 m², plein sud|20 places à table|Belle saison",
     capNote: "Jusqu'à 9 participants, chacun a sa chambre et sa salle de douche privative ; jusqu'à 11, personne ne partage un lit ; la maison couche jusqu'à 20 personnes. Pour travailler, tout le monde s'assoit en intérieur chauffé, toute l'année : 16 autour de la grande table, 20 en y rapprochant les mini-tables de la véranda.",
     whatTitle: "Ce qui est inclus",
-    whatItems: "7 chambres individuelles et 2 chambres à deux, 9 salles de bain privatives·Grande table de 16 places, 20 avec les mini-tables de la véranda·Grand écran smart TV avec entrée HDMI au salon·Wi-Fi haut débit, bureau dans chaque chambre·Stationnement libre et gratuit dans la rue, sans disque ni horodateur·Cuisine entièrement équipée·Salle de sport et espace zen·Jardin clos de 90 m², exposé plein sud·Serrure connectée (self check-in)·Facture professionnelle, paiement par virement·Support WhatsApp 7j/7",
+    whatItems: "7 chambres individuelles et 2 chambres à deux, 9 salles de bain privatives·Grande table de 16 places, 20 avec les mini-tables de la véranda·Grand écran smart TV avec entrée HDMI au salon·Wi-Fi haut débit, bureau dans chaque chambre·Stationnement libre et gratuit dans la rue, sans disque ni horodateur·Cuisine entièrement équipée·Salle de sport et espace zen·Jardin clos de 90 m², exposé plein sud·Serrure connectée (self check-in)·Facture professionnelle, paiement par virement ou carte·Support WhatsApp 7j/7",
     extrasTitle: "Acteurs locaux pour compléter votre séjour",
     extrasIntro: "Nous n'organisons pas ces prestations, mais des professionnels locaux peuvent les prendre en charge directement :",
     extrasItems: "Traiteurs locaux (petit-déjeuner, déjeuner, dîner)·Taxis pour les transferts gare/circuit/maison·Prestataires d'activités team-building (karting, simulateurs, EVA…)",
@@ -78,7 +78,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Où se garer ?|Stationnement libre et gratuit rue Henri Barbusse et dans les rues adjacentes, sans disque ni horodateur. Aucune place n'est réservée ni garantie : les jours d'événement la rue se remplit, privilégiez le train ou le covoiturage.·" +
       "Comment venir depuis Paris ?|Gare TGV du Mans à 55 min de Paris-Montparnasse, puis 10 minutes à pied jusqu'à la maison. Aucun transfert à organiser, aucun taxi à réserver.·" +
       "La restauration est-elle incluse ?|Non, mais la cuisine est entièrement équipée et des traiteurs locaux livrent petits-déjeuners, déjeuners et dîners sur place. Les restaurants du centre-ville sont accessibles à pied.·" +
-      "Peut-on avoir une facture au nom de l'entreprise ?|Oui : facture professionnelle et paiement par virement. La réservation se fait en direct, sans commission de plateforme.",
+      "Peut-on avoir une facture au nom de l'entreprise ?|Oui : facture professionnelle et paiement par virement ou carte. La réservation se fait en direct, sans commission de plateforme.",
     testimonialTitle: "Ils sont déjà venus",
     testimonialQuote: "Hôte super, logement au top tout était parfait pour une équipe de 9 personnes ! Je recommande à 200%. Merci pour votre accueil.",
     testimonialAuthor: "Loic",
@@ -119,7 +119,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Enclosed 90 m² south-facing garden|Seats 20 at table|Warm season",
     capNote: "Up to 9 participants, everyone has their own bedroom and en-suite shower room; up to 11, nobody shares a bed; the house sleeps up to 20. For work, everyone sits indoors in the warm, all year round: 16 around the big table, 20 once the veranda bistro tables are pulled up to it.",
     whatTitle: "What's included",
-    whatItems: "7 single-occupancy bedrooms and 2 twin bedrooms, 9 en-suite bathrooms·16-seat table, 20 with the veranda bistro tables·Large smart TV with HDMI input in the living room·High-speed Wi-Fi, desk in every bedroom·Free street parking, no permit and no meter·Fully equipped kitchen·Gym and zen space·Enclosed 90 m² south-facing garden·Smart lock (self check-in)·Professional invoice, payment by bank transfer·WhatsApp support 7 days a week",
+    whatItems: "7 single-occupancy bedrooms and 2 twin bedrooms, 9 en-suite bathrooms·16-seat table, 20 with the veranda bistro tables·Large smart TV with HDMI input in the living room·High-speed Wi-Fi, desk in every bedroom·Free street parking, no permit and no meter·Fully equipped kitchen·Gym and zen space·Enclosed 90 m² south-facing garden·Smart lock (self check-in)·Professional invoice, payment by bank transfer or card·WhatsApp support 7 days a week",
     extrasTitle: "Local providers to complete your stay",
     extrasIntro: "We do not organise these services ourselves, but local professionals can handle them directly:",
     extrasItems: "Local caterers (breakfast, lunch, dinner)·Taxis for station/circuit/house transfers·Team-building activity providers (karting, simulators, EVA…)",
@@ -138,7 +138,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Where can we park?|Free street parking on Rue Henri Barbusse and adjacent streets, with no permit and no parking meter. No space is reserved or guaranteed: on event days the street fills up, so the train or car-sharing is the safer choice.·" +
       "How do we get there from Paris?|Le Mans TGV station is 55 min from Paris-Montparnasse, then 10 minutes on foot to the house. No transfer to arrange, no taxi to book.·" +
       "Are meals included?|No, but the kitchen is fully equipped and local caterers deliver breakfast, lunch and dinner on site. City-centre restaurants are within walking distance.·" +
-      "Can we get an invoice in the company's name?|Yes: professional invoice and payment by bank transfer. Booking is direct, with no platform commission.",
+      "Can we get an invoice in the company's name?|Yes: professional invoice and payment by bank transfer or card. Booking is direct, with no platform commission.",
     testimonialTitle: "They've already stayed with us",
     testimonialQuote: "Great host, top-notch accommodation, everything was perfect for our team of 9! Highly recommend. Thank you for the warm welcome.",
     testimonialAuthor: "Loic",
@@ -179,7 +179,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Giardino recintato di 90 m², esposto a sud|20 posti a tavola|Bella stagione",
     capNote: "Fino a 9 partecipanti, ognuno ha la sua camera e la sua doccia privata; fino a 11, nessuno condivide il letto; la casa ospita fino a 20 persone. Per lavorare, tutti siedono al chiuso e al caldo, tutto l'anno: 16 attorno al grande tavolo, 20 avvicinando i tavolini della veranda.",
     whatTitle: "Cosa è incluso",
-    whatItems: "7 camere singole e 2 camere doppie, 9 bagni privati·Grande tavolo da 16 posti, 20 con i tavolini della veranda·Grande smart TV con ingresso HDMI in soggiorno·Wi-Fi ad alta velocità, scrivania in ogni camera·Parcheggio libero e gratuito in strada, senza disco né parchimetro·Cucina completamente attrezzata·Palestra e spazio zen·Giardino recintato di 90 m², esposto a sud·Serratura connessa (self check-in)·Fattura professionale, pagamento con bonifico·Supporto WhatsApp 7 giorni su 7",
+    whatItems: "7 camere singole e 2 camere doppie, 9 bagni privati·Grande tavolo da 16 posti, 20 con i tavolini della veranda·Grande smart TV con ingresso HDMI in soggiorno·Wi-Fi ad alta velocità, scrivania in ogni camera·Parcheggio libero e gratuito in strada, senza disco né parchimetro·Cucina completamente attrezzata·Palestra e spazio zen·Giardino recintato di 90 m², esposto a sud·Serratura connessa (self check-in)·Fattura professionale, pagamento con bonifico o carta·Supporto WhatsApp 7 giorni su 7",
     extrasTitle: "Operatori locali per completare il soggiorno",
     extrasIntro: "Non organizziamo noi questi servizi, ma professionisti locali possono occuparsene direttamente:",
     extrasItems: "Catering locali (colazione, pranzo, cena)·Taxi per i trasferimenti stazione/circuito/casa·Fornitori di attività team-building (karting, simulatori, EVA…)",
@@ -198,7 +198,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Dove si parcheggia?|Parcheggio libero e gratuito in rue Henri Barbusse e nelle vie adiacenti, senza disco né parchimetro. Nessun posto è riservato né garantito: nei giorni di evento la via si riempie, meglio il treno o il car pooling.·" +
       "Come si arriva da Parigi?|La stazione TGV di Le Mans è a 55 min da Paris-Montparnasse, poi 10 minuti a piedi fino alla casa. Nessun trasferimento da organizzare, nessun taxi da prenotare.·" +
       "La ristorazione è inclusa?|No, ma la cucina è completamente attrezzata e i catering locali consegnano colazioni, pranzi e cene sul posto. I ristoranti del centro sono raggiungibili a piedi.·" +
-      "Si può avere una fattura intestata all'azienda?|Sì: fattura professionale e pagamento con bonifico. La prenotazione è diretta, senza commissioni di piattaforma.",
+      "Si può avere una fattura intestata all'azienda?|Sì: fattura professionale e pagamento con bonifico o carta. La prenotazione è diretta, senza commissioni di piattaforma.",
     testimonialTitle: "Sono già stati con noi",
     testimonialQuote: "Host fantastico, alloggio al top, tutto perfetto per un team di 9 persone! Lo consiglio al 200%. Grazie per l'accoglienza.",
     testimonialAuthor: "Loic",
@@ -239,7 +239,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Eingezäunter Südgarten, 90 m²|20 Plätze am Tisch|Warme Jahreszeit",
     capNote: "Bis 9 Teilnehmende hat jede Person ihr eigenes Zimmer und ihr eigenes Duschbad; bis 11 teilt sich niemand ein Bett; das Haus bietet bis zu 20 Schlafplätze. Zum Arbeiten sitzen alle drinnen im Warmen, das ganze Jahr: 16 am großen Tisch, 20 mit den herangerückten Stehtischen der Veranda.",
     whatTitle: "Was inbegriffen ist",
-    whatItems: "7 Einzelzimmer und 2 Zweibettzimmer, 9 eigene Bäder·Großer Tisch mit 16 Plätzen, 20 mit den Stehtischen der Veranda·Großer Smart-TV mit HDMI-Eingang im Wohnzimmer·Highspeed-WLAN, Schreibtisch in jedem Zimmer·Kostenloses Parken auf der Straße, ohne Parkscheibe und ohne Parkuhr·Voll ausgestattete Küche·Fitnessraum und Zen-Bereich·Eingezäunter Südgarten, 90 m²·Smart Lock (Self-Check-in)·Professionelle Rechnung, Zahlung per Überweisung·WhatsApp-Support 7 Tage die Woche",
+    whatItems: "7 Einzelzimmer und 2 Zweibettzimmer, 9 eigene Bäder·Großer Tisch mit 16 Plätzen, 20 mit den Stehtischen der Veranda·Großer Smart-TV mit HDMI-Eingang im Wohnzimmer·Highspeed-WLAN, Schreibtisch in jedem Zimmer·Kostenloses Parken auf der Straße, ohne Parkscheibe und ohne Parkuhr·Voll ausgestattete Küche·Fitnessraum und Zen-Bereich·Eingezäunter Südgarten, 90 m²·Smart Lock (Self-Check-in)·Professionelle Rechnung, Zahlung per Überweisung oder Karte·WhatsApp-Support 7 Tage die Woche",
     extrasTitle: "Lokale Anbieter für Ihren Aufenthalt",
     extrasIntro: "Wir organisieren diese Leistungen nicht selbst, lokale Anbieter können sie aber direkt übernehmen:",
     extrasItems: "Lokale Caterer (Frühstück, Mittag-, Abendessen)·Taxis für Transfers Bahnhof/Rennstrecke/Haus·Teambuilding-Anbieter (Karting, Simulatoren, EVA…)",
@@ -258,7 +258,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Wo kann man parken?|Kostenloses Parken in der Rue Henri Barbusse und den Nebenstraßen, ohne Parkscheibe und ohne Parkuhr. Kein Platz ist reserviert oder garantiert: an Veranstaltungstagen füllt sich die Straße, besser mit dem Zug oder in Fahrgemeinschaften anreisen.·" +
       "Wie kommt man von Paris aus hin?|Der TGV-Bahnhof Le Mans liegt 55 Min. von Paris-Montparnasse entfernt, dann sind es 10 Minuten zu Fuß bis zum Haus. Kein Transfer, kein Taxi nötig.·" +
       "Ist die Verpflegung inbegriffen?|Nein, aber die Küche ist voll ausgestattet und lokale Caterer liefern Frühstück, Mittag- und Abendessen ins Haus. Die Restaurants der Innenstadt sind zu Fuß erreichbar.·" +
-      "Ist eine Rechnung auf die Firma möglich?|Ja: professionelle Rechnung und Zahlung per Überweisung. Die Buchung erfolgt direkt, ohne Plattformprovision.",
+      "Ist eine Rechnung auf die Firma möglich?|Ja: professionelle Rechnung und Zahlung per Überweisung oder Karte. Die Buchung erfolgt direkt, ohne Plattformprovision.",
     testimonialTitle: "Sie waren schon bei uns",
     testimonialQuote: "Großartiger Gastgeber, top Unterkunft, alles perfekt für ein Team von 9 Personen! Absolute Empfehlung. Danke für den herzlichen Empfang.",
     testimonialAuthor: "Loic",
@@ -299,7 +299,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Jardín cerrado de 90 m², orientado al sur|20 plazas en mesa|Buena estación",
     capNote: "Hasta 9 participantes, cada uno tiene su habitación y su ducha privada; hasta 11, nadie comparte cama; la casa aloja hasta 20 personas. Para trabajar, todos se sientan bajo techo y con calefacción, todo el año: 16 en torno a la gran mesa, 20 acercando las mesitas de la veranda.",
     whatTitle: "Lo que está incluido",
-    whatItems: "7 habitaciones individuales y 2 habitaciones dobles, 9 baños privados·Gran mesa de 16 plazas, 20 con las mesitas de la veranda·Gran smart TV con entrada HDMI en el salón·Wi-Fi de alta velocidad, escritorio en cada habitación·Aparcamiento libre y gratuito en la calle, sin disco ni parquímetro·Cocina totalmente equipada·Gimnasio y espacio zen·Jardín cerrado de 90 m², orientado al sur·Cerradura conectada (self check-in)·Factura profesional, pago por transferencia·Soporte WhatsApp 7 días a la semana",
+    whatItems: "7 habitaciones individuales y 2 habitaciones dobles, 9 baños privados·Gran mesa de 16 plazas, 20 con las mesitas de la veranda·Gran smart TV con entrada HDMI en el salón·Wi-Fi de alta velocidad, escritorio en cada habitación·Aparcamiento libre y gratuito en la calle, sin disco ni parquímetro·Cocina totalmente equipada·Gimnasio y espacio zen·Jardín cerrado de 90 m², orientado al sur·Cerradura conectada (self check-in)·Factura profesional, pago por transferencia o tarjeta·Soporte WhatsApp 7 días a la semana",
     extrasTitle: "Proveedores locales para completar tu estancia",
     extrasIntro: "No organizamos estos servicios nosotros, pero profesionales locales pueden encargarse directamente:",
     extrasItems: "Catering local (desayuno, almuerzo, cena)·Taxis para traslados estación/circuito/casa·Proveedores de actividades team-building (karting, simuladores, EVA…)",
@@ -318,7 +318,7 @@ const T: Record<Lang, Record<string, string>> = {
       "¿Dónde aparcar?|Aparcamiento libre y gratuito en la rue Henri Barbusse y calles adyacentes, sin disco ni parquímetro. Ninguna plaza está reservada ni garantizada: los días de evento la calle se llena, mejor el tren o compartir coche.·" +
       "¿Cómo llegar desde París?|La estación TGV de Le Mans está a 55 min de Paris-Montparnasse, y luego 10 minutos a pie hasta la casa. Ningún traslado que organizar, ningún taxi que reservar.·" +
       "¿La restauración está incluida?|No, pero la cocina está totalmente equipada y los caterings locales entregan desayunos, almuerzos y cenas en la casa. Los restaurantes del centro están a poca distancia a pie.·" +
-      "¿Se puede emitir factura a nombre de la empresa?|Sí: factura profesional y pago por transferencia. La reserva es directa, sin comisión de plataforma.",
+      "¿Se puede emitir factura a nombre de la empresa?|Sí: factura profesional y pago por transferencia o tarjeta. La reserva es directa, sin comisión de plataforma.",
     testimonialTitle: "Ya han estado con nosotros",
     testimonialQuote: "Anfitrión genial, alojamiento de primera, ¡todo perfecto para un equipo de 9 personas! Lo recomiendo al 200 %. Gracias por la acogida.",
     testimonialAuthor: "Loic",

@@ -26,7 +26,6 @@ const INCLUDED: Record<string, string> = {
   it: "Biancheria, asciugamani, pulizia finale e tassa di soggiorno incluse.",
 };
 
-/** L'accueil des jeunes enfants, rappelé sous le prix (décision de l'hôte du 2026-11-07). */
 /** Rappel du paiement sur le devis (relevé par le test voyageur : le devis ne le disait pas). */
 const PAYMENT_NOTE: Record<string, string> = {
   fr: "Paiement : 100 % à la réservation, par carte, sur la page sécurisée Beds24.",
@@ -36,6 +35,7 @@ const PAYMENT_NOTE: Record<string, string> = {
   it: "Pagamento: 100% alla prenotazione, con carta, sulla pagina sicura di Beds24.",
 };
 
+/** L'accueil des jeunes enfants, rappelé sous le prix (décision de l'hôte du 2026-11-07). */
 const CHILDREN_NOTE: Record<string, string> = {
   fr: "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents.",
   en: "A house designed for teenagers and adults: nothing is set up for young children (unprotected stairs, high stools, gym). Children under 10 are welcome under their parents' responsibility.",
