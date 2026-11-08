@@ -46,10 +46,17 @@ https://www.coliving-barbusse.fr/en/blog#evenements
 You will receive the arrival guide and your door code a few days before arrival.
 ```
 
-## 2. Lendemain de l'arrivée, vers 10 h — nouvelle auto-action
+## 2. Lendemain de l'arrivée, vers 10 h — ⚠️ NE PAS CRÉER
 
-Déclencheur : 1 jour après l'arrivée, 10:00. Le message qui pèse le plus sur les avis : il fait
-remonter un souci en privé avant qu'il devienne public.
+> **Abandonné le 2026-11-08 (décision de l'hôte)** : ce message est fondu dans le « lendemain de
+> l'arrivée » de l'outil maison (`lib/messages/templates.ts`, `bien-installe`, 9h, lien « autour de
+> la maison » compris). L'auto-action « bien installé » existante part déjà ce jour-là : en créer
+> une seconde ferait **deux messages le même matin**. S'il a été créé malgré tout, le désactiver ; son
+> texte reste reconnu par le moteur (empreinte « Tout se passe bien à la maison »). Texte gardé
+> pour mémoire.
+
+Déclencheur proposé : 1 jour après l'arrivée, 10:00. Le message qui pèse le plus sur les avis : il
+fait remonter un souci en privé avant qu'il devienne public.
 
 ### Français
 
@@ -71,28 +78,26 @@ Any problem or question? Message us here or on WhatsApp (+33 6 20 92 10 05) and 
 Alexandre
 ```
 
-## 3. « Before checkout » — lignes à ajouter
+## 3. « Before checkout » — ligne à ajouter
 
 Garder le texte actuel (ouverture « Le depart approche » intacte) et ajouter, avant la formule de
-fin, les mêmes lignes que le message de départ du dashboard (`DEPARTURE_TEMPLATES`).
+fin, la même ligne que le message de départ du dashboard (`DEPARTURE_TEMPLATES`) et de l'outil
+maison (`depart`). Elle vaut pour tous les canaux, directes comprises.
 
-⚠️ Ces lignes parlent de « la plateforme » : **limiter l'auto-action aux canaux Airbnb, Booking et
-Vrbo** (conditions de l'auto-action), ou dupliquer l'action pour les réservations directes avec la
-phrase « Votre avis, quel qu'il soit, nous aide : https://maps.app.goo.gl/k141gZkCRKuv3Sai7 » à la
-place de la ligne plateforme.
+**Pas** de ligne « la plateforme vous proposera de laisser un commentaire » (décision de l'hôte du
+2026-11-08) : le message d'avis du lendemain du départ le fait déjà, et elle serait fausse pour une
+réservation directe.
 
 ### Français
 
 ```
 Une remarque, une suggestion ? Dites-le-nous directement : https://wa.me/33620921005
-La plateforme vous proposera de laisser un commentaire : chaque retour, positif ou critique, nous est utile.
 ```
 
 ### English
 
 ```
 Any comment or suggestion? Tell us directly: https://wa.me/33620921005
-The platform will invite you to leave a review: every piece of feedback, positive or critical, helps us.
 ```
 
 Variable prénom : `[GUESTFIRSTNAME]`, jamais `[GUESTSFIRSTNAMES]` (vide → « Hello , »).

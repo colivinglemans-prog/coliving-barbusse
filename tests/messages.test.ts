@@ -81,7 +81,26 @@ describe("messages voyageurs de Barbusse", () => {
     for (const locale of LOCALES) {
       const text = buildGuestMessage(locale, { firstName: "Test", url: "https://exemple.fr", code: "0000" });
       expect(ledgerFromThread([{ source: "host", time: "2026-11-01T10:00:00Z", message: text }], TEMPLATES).map((e) => e.templateId), locale).toEqual(["arrivee-code"]);
+      // Avec la ligne « autour de la maison » (Lot 4) : toujours l'arrivée, jamais le lendemain.
+      const around = buildGuestMessage(locale, { firstName: "Test", url: "https://exemple.fr", code: "0000", aroundUrl: "https://exemple.fr/blog" });
+      expect(ledgerFromThread([{ source: "host", time: "2026-11-01T10:00:00Z", message: around }], TEMPLATES).map((e) => e.templateId), locale).toEqual(["arrivee-code"]);
     }
+  });
+
+  it("le moteur voit le bouton « Départ », dans les cinq langues (et pas comme un avis)", async () => {
+    const { buildDepartureMessage } = await import("@/lib/guest-messages");
+    for (const locale of LOCALES) {
+      const text = buildDepartureMessage(locale, { firstName: "Test" });
+      expect(ledgerFromThread([{ source: "host", time: "2026-11-01T10:00:00Z", message: text }], TEMPLATES).map((e) => e.templateId), locale).toEqual(["depart"]);
+    }
+  });
+
+  it("le message J+1 proposé au Lot 4 (docs/auto-actions-beds24.md), s'il a été créé, vaut « bien installé »", () => {
+    const thread = [
+      { source: "host", time: "2026-11-02T09:00:00Z", message: "Bonjour Test,\nTout se passe bien à la maison ? Pour tout le groupe, nos adresses autour de la maison :\nhttps://exemple.fr\nAlexandre" },
+      { source: "host", time: "2026-11-03T09:00:00Z", message: "Hello Test,\nIs everything going well at the house? For the whole group, our tips around the house:\nhttps://exemple.fr\nAlexandre" },
+    ];
+    expect(ledgerFromThread(thread, TEMPLATES).map((e) => e.templateId)).toEqual(["bien-installe", "bien-installe"]);
   });
 
   it("avis : jamais « si vous avez aimé », et la version directe ne parle pas de plateforme", () => {

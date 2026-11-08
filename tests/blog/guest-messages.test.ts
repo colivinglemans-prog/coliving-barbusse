@@ -17,14 +17,14 @@ describe("messages aux voyageurs (Lot 4 du parcours)", () => {
     expect(detectGuestMessageKind(m)).toBeNull();
   });
 
-  it("le message de départ garde son ouverture (signature), une remarque par WhatsApp et une ligne d'avis neutre", () => {
+  it("le message de départ garde son ouverture (signature), une remarque par WhatsApp, et pas de ligne « plateforme » (l'avis du lendemain s'en charge ; fausse pour une directe)", () => {
     for (const l of GUIDE_LOCALES) {
       const m = buildDepartureMessage(l, { firstName: "Ana" });
       expect(detectGuestMessageKind(m), l).toBe("depart");
       expect(m, l).toContain("https://wa.me/33620921005");
     }
     const fr = buildDepartureMessage("fr", {});
-    expect(fr).toContain("chaque retour, positif ou critique, nous est utile");
+    expect(fr).not.toMatch(/plateforme/i);
     expect(fr).not.toMatch(/5 étoiles|si vous avez aimé/i);
   });
 });

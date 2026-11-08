@@ -710,13 +710,16 @@ l'avis du lendemain le fait déjà.
   avant de remplacer les auto-actions) : au moment où le message partirait, une copie part à
   `MESSAGES_TEST_TO`, à défaut à `SMTP_FROM` (`contact@coliving-barbusse.fr`), avec un bandeau
   « COPIE DE TEST » ; rien au voyageur, trace `MSG_<ID>_TEST` jamais lue comme un envoi. Les
-  auto-actions Beds24 continuent pendant ce temps. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
+  auto-actions Beds24 continuent pendant ce temps. La copie part par le SMTP : sans `SMTP_*`,
+  **tous** les modèles en `test` sont bloqués (`no-test-transport`, une alerte ntfy par
+  réservation et modèle) — poser `SMTP_*` avant de passer en `test`. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
   10 min, verrou Redis `barbusse:messages:cron:lock`, plafond 5 envois par passage, alertes ntfy
   (échec, blocage, orphelin). Pas encore dans `EXPECTED_CRONS` : à ajouter au passage en réel.
 - **Écran** : [/dashboard/messages](app/(dashboard)/dashboard/messages/page.tsx) et le panneau
   « Messages au voyageur » de la fiche du calendrier (admin seulement).
 - **Bascule, un message à la fois, dans cet ordre : avis, départ, bien-installé, arrivée**
-  (chef-de-stand). Pour chacun, à une heure creuse sans échéance dans les 2 h : **d'abord désactiver
+  (chef-de-stand), chacun **après** sa période en `test` (copies reçues et relues, comparées à ce
+  que l'auto-action a réellement envoyé). Pour chacun, à une heure creuse sans échéance dans les 2 h : **d'abord désactiver
   l'auto-action Beds24, puis** passer le modèle en `live` — l'inverse fait une course entre les deux
   envois, et un e-mail Beds24 (réservation directe) n'apparaît pas dans le fil, donc le doublon est
   certain. Les rattrapages couvrent l'écart (arrivée jusqu'au soir de J, départ 6 h, avis 8 h).
