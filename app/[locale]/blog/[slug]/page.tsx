@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { eventJsonLd, findEventByKey } from "@sejour/socle/lib/events";
+import { isPastEvent, todayInParis } from "@/lib/blog/journey";
 import EventBookingCTA from "@/components/public/EventBookingCTA";
 import FamilyDates from "@/components/public/FamilyDates";
 import EventDates from "@/components/public/EventDates";
@@ -362,7 +363,13 @@ export default async function BlogPost({
   // L'événement de l'article, quand il en référence un — par sa clé. Le bloc de
   // réservation décide lui-même de s'afficher ou non selon la disponibilité réelle et la
   // date du jour ; il calcule sa fenêtre de séjour à partir de l'événement.
-  const linkedEvent = post.event ? findEventByKey(LE_MANS_EVENTS, post.event) : undefined;
+  // Édition passée (calculé au build, la page est statique) : ni JSON-LD `Event` (Google n'en
+  // affiche jamais un passé, la Search Console le signale), ni bloc de réservation (son état
+  // initial « Vérification des disponibilités… » partait dans le HTML puis disparaissait).
+  const linkedEvent =
+    post.event && !isPastEvent(post, todayInParis())
+      ? findEventByKey(LE_MANS_EVENTS, post.event)
+      : undefined;
   // `eventJsonLd` rend `null` tant que les dates ne sont pas officielles : on ne déclare
   // pas une date supposée à Google, qui l'afficherait comme un fait. Le test est dans le
   // socle, avec le champ qui le commande, pour qu'aucun appelant ne l'oublie.

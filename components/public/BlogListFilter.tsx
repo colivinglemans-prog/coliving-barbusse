@@ -18,9 +18,9 @@ import type { Locale } from "@/lib/i18n";
 const LABELS: Record<Locale, { aria: string } & Record<FilterKey, string>> = {
   fr: { aria: "Filtrer les articles", tous: "Tous", evenements: "Grands événements", groupes: "Séjours de groupe", "pendant-le-sejour": "Pendant votre séjour" },
   en: { aria: "Filter articles", tous: "All", evenements: "Major events", groupes: "Group stays", "pendant-le-sejour": "During your stay" },
-  it: { aria: "Filtra gli articoli", tous: "Tutti", evenements: "Grandi eventi", groupes: "Soggiorni di gruppo", "pendant-le-sejour": "Durante il soggiorno" },
+  it: { aria: "Filtra gli articoli", tous: "Tutti", evenements: "Grandi eventi", groupes: "Soggiorni di gruppo", "pendant-le-sejour": "Durante il tuo soggiorno" },
   de: { aria: "Artikel filtern", tous: "Alle", evenements: "Große Events", groupes: "Gruppenaufenthalte", "pendant-le-sejour": "Während Ihres Aufenthalts" },
-  es: { aria: "Filtrar los artículos", tous: "Todos", evenements: "Grandes eventos", groupes: "Estancias de grupo", "pendant-le-sejour": "Durante su estancia" },
+  es: { aria: "Filtrar los artículos", tous: "Todos", evenements: "Grandes eventos", groupes: "Estancias de grupo", "pendant-le-sejour": "Durante tu estancia" },
 };
 
 export default function BlogListFilter({
@@ -38,8 +38,13 @@ export default function BlogListFilter({
 
   useEffect(() => {
     const fromHash = () => {
-      const h = decodeURIComponent(window.location.hash.slice(1)) as FilterKey;
-      setActive(keys.includes(h) ? h : "tous");
+      let h = "";
+      try {
+        h = decodeURIComponent(window.location.hash.slice(1));
+      } catch {
+        // Ancre malformée (`#%E0`) : on retombe sur « tous » plutôt que de planter.
+      }
+      setActive(keys.includes(h as FilterKey) ? (h as FilterKey) : "tous");
     };
     // Voulu : l'ancre s'applique après l'hydratation, pour que le HTML initial (celui des
     // robots) reste la liste complète.

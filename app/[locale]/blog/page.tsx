@@ -51,9 +51,9 @@ const TITLES: Record<Locale, string> = {
 const CTA: Record<Locale, { text: string; link: string }> = {
   fr: { text: "Vous avez déjà vos dates ?", link: "Voir les disponibilités" },
   en: { text: "Already know your dates?", link: "Check availability" },
-  it: { text: "Avete già le vostre date?", link: "Vedi le disponibilità" },
-  de: { text: "Sie kennen Ihre Termine schon?", link: "Verfügbarkeit ansehen" },
-  es: { text: "¿Ya tiene sus fechas?", link: "Ver la disponibilidad" },
+  it: { text: "Hai già le tue date?", link: "Vedi le disponibilità" },
+  de: { text: "Kennen Sie Ihre Termine schon?", link: "Verfügbarkeit ansehen" },
+  es: { text: "¿Ya tienes tus fechas?", link: "Ver la disponibilidad" },
 };
 
 export async function generateMetadata({

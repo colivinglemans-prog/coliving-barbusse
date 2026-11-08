@@ -21,12 +21,12 @@ const COPY: Record<
   fr: { finished: (y) => `Édition ${y} terminée`, soldOut: "Complet", official: "Dates officielles", bcp47: "fr-FR" },
   en: { finished: (y) => `${y} edition over`, soldOut: "Fully booked", official: "Official dates", bcp47: "en-GB" },
   it: { finished: (y) => `Edizione ${y} conclusa`, soldOut: "Completo", official: "Date ufficiali", bcp47: "it-IT" },
-  de: { finished: (y) => `Ausgabe ${y} beendet`, soldOut: "Ausgebucht", official: "Offizielle Termine", bcp47: "de-DE" },
+  de: { finished: (y) => `Edition ${y} beendet`, soldOut: "Ausgebucht", official: "Offizielle Termine", bcp47: "de-DE" },
   es: { finished: (y) => `Edición ${y} terminada`, soldOut: "Completo", official: "Fechas oficiales", bcp47: "es-ES" },
 };
 
 /** « 8 – 11 avril 2027 » ; sur deux mois, « 30 juin – 3 juillet 2027 ». En UTC : pas de décalage. */
-function formatRange(start: string, end: string, bcp47: string): string {
+export function formatRange(start: string, end: string, bcp47: string): string {
   const d = (s: string) => new Date(`${s}T00:00:00Z`);
   const opts = { timeZone: "UTC" } as const;
   if (start === end) {
