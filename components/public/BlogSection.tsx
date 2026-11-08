@@ -1,56 +1,53 @@
-"use client";
-
 import Link from "next/link";
-import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
-import { useTranslation } from "@/lib/i18n";
+import BlogCard from "@/components/public/BlogCard";
+import { homeSelection, todayInParis } from "@/lib/blog/journey";
+import type { Locale } from "@/lib/i18n";
 
-export default function BlogSection() {
-  const { locale } = useTranslation();
-  // Available articles first, sold-out ones last
-  const posts = [...BLOG_POSTS]
-    .sort((a, b) => Number(!!a.soldOut) - Number(!!b.soldOut))
-    .slice(0, 6);
-  const dateLocaleMap = { fr: "fr-FR", en: "en-US", it: "it-IT", de: "de-DE", es: "es-ES" } as const;
-  const dateLocale = dateLocaleMap[locale];
+/**
+ * Les articles de l'accueil : les 3 prochains événements aux dates officielles (les seuls visibles
+ * sur mobile), puis 3 séjours de groupe. Jamais d'archive ni d'édition passée.
+ *
+ * Avant le 2026-11-08 : les 6 derniers articles publiés, si bien que les 24 Heures du Mans 2027
+ * n'y figuraient pas. Composant serveur (il était client et embarquait les métadonnées des 28
+ * articles dans le paquet du navigateur) ; l'accueil se régénère chaque jour (`revalidate`).
+ */
+const TEXTS: Record<Locale, { heading: string; sub: string; all: string; allMobile: string }> = {
+  fr: {
+    heading: "Nos articles pour préparer votre séjour",
+    sub: "Les prochains grands événements au Mans, et nos idées de séjours en groupe.",
+    all: "Tous les articles →",
+    allMobile: "Voir tous les articles →",
+  },
+  en: {
+    heading: "Articles to help you plan your stay",
+    sub: "The next major events in Le Mans, and our ideas for group stays.",
+    all: "All articles →",
+    allMobile: "See all articles →",
+  },
+  it: {
+    heading: "I nostri articoli per preparare il tuo soggiorno",
+    sub: "I prossimi grandi eventi a Le Mans e le nostre idee per soggiorni di gruppo.",
+    all: "Tutti gli articoli →",
+    allMobile: "Vedi tutti gli articoli →",
+  },
+  de: {
+    heading: "Unsere Artikel zur Vorbereitung Ihres Aufenthalts",
+    sub: "Die nächsten großen Events in Le Mans und unsere Ideen für Gruppenaufenthalte.",
+    all: "Alle Artikel →",
+    allMobile: "Alle Artikel anzeigen →",
+  },
+  es: {
+    heading: "Nuestros artículos para preparar tu estancia",
+    sub: "Los próximos grandes eventos en Le Mans y nuestras ideas para estancias en grupo.",
+    all: "Todos los artículos →",
+    allMobile: "Ver todos los artículos →",
+  },
+};
 
-  const TEXTS = {
-    fr: {
-      heading: "Nos articles pour préparer votre séjour",
-      sub: "Guides pratiques : grands événements au Mans, tourisme, bonnes adresses du quartier.",
-      all: "Tous les articles →",
-      allMobile: "Voir tous les articles →",
-      soldOut: (year: string) => `Complet pour l'édition ${year}`,
-    },
-    en: {
-      heading: "Articles to help you plan your stay",
-      sub: "Practical guides: major events in Le Mans, tourism, local tips.",
-      all: "All articles →",
-      allMobile: "See all articles →",
-      soldOut: (year: string) => `Sold out for ${year}`,
-    },
-    it: {
-      heading: "I nostri articoli per preparare il tuo soggiorno",
-      sub: "Guide pratiche: grandi eventi a Le Mans, turismo, indirizzi del quartiere.",
-      all: "Tutti gli articoli →",
-      allMobile: "Vedi tutti gli articoli →",
-      soldOut: (year: string) => `Tutto esaurito per l'edizione ${year}`,
-    },
-    de: {
-      heading: "Unsere Artikel zur Vorbereitung Ihres Aufenthalts",
-      sub: "Praktische Guides: große Events in Le Mans, Tourismus, lokale Adressen.",
-      all: "Alle Artikel →",
-      allMobile: "Alle Artikel anzeigen →",
-      soldOut: (year: string) => `Ausgebucht für die Edition ${year}`,
-    },
-    es: {
-      heading: "Nuestros artículos para preparar tu estancia",
-      sub: "Guías prácticas: grandes eventos en Le Mans, turismo, buenas direcciones del barrio.",
-      all: "Todos los artículos →",
-      allMobile: "Ver todos los artículos →",
-      soldOut: (year: string) => `Completo para la edición ${year}`,
-    },
-  };
-  const texts = TEXTS[locale];
+export default function BlogSection({ locale }: { locale: Locale }) {
+  const texts = TEXTS[locale] ?? TEXTS.fr;
+  const today = todayInParis();
+  const posts = homeSelection(today);
 
   return (
     <section className="mx-auto max-w-6xl border-b border-border px-6 py-10">
@@ -68,44 +65,17 @@ export default function BlogSection() {
       </div>
 
       <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post, i) => {
-          const loc = getLocalizedPost(post, locale);
-          const mobileHidden = i >= 3 ? "hidden sm:block" : "";
-          const soldOut = !!post.soldOut;
-          return (
-            <li
-              key={post.slug}
-              className={`group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md ${mobileHidden} ${soldOut ? "opacity-75" : ""}`}
-            >
-              <Link href={`/${locale}/blog/${post.slug}`} className="block">
-                <div className="relative aspect-[16/10] w-full overflow-hidden">
-                  <div
-                    className={`absolute inset-0 bg-cover bg-center ${soldOut ? "grayscale" : ""}`}
-                    style={{ backgroundImage: `url(${post.image})` }}
-                  />
-                  {soldOut && (
-                    <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
-                      {texts.soldOut(post.date.slice(0, 4))}
-                    </span>
-                  )}
-                </div>
-                <div className="p-4">
-                  <time className="text-xs font-medium uppercase tracking-wide text-secondary">
-                    {new Date(post.date).toLocaleDateString(dateLocale, {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </time>
-                  <h3 className="mt-1.5 line-clamp-2 text-base font-semibold text-foreground transition-colors group-hover:text-primary">
-                    {loc.title}
-                  </h3>
-                  <p className="mt-1.5 line-clamp-2 text-sm text-secondary">{loc.excerpt}</p>
-                </div>
-              </Link>
-            </li>
-          );
-        })}
+        {posts.map((post, i) => (
+          <BlogCard
+            key={post.slug}
+            post={post}
+            locale={locale}
+            today={today}
+            heading="h3"
+            compact
+            className={i >= 3 ? "hidden sm:block" : ""}
+          />
+        ))}
       </ul>
 
       <div className="mt-5 text-center sm:hidden">

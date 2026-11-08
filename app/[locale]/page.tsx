@@ -10,7 +10,7 @@ import {
 import { SITE_URL } from "@/lib/site";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { aggregateRatingJsonLd } from "@/lib/reviews";
-import { isLocale } from "@/lib/i18n";
+import { isLocale, type Locale } from "@/lib/i18n";
 import PhotoGallery from "@/components/public/PhotoGallery";
 import PropertyHeader from "@/components/public/PropertyHeader";
 import Highlights from "@/components/public/Highlights";
@@ -26,6 +26,9 @@ import AirbnbReviews from "@/components/public/AirbnbReviews";
 import BlogSection from "@/components/public/BlogSection";
 import HouseRules from "@/components/public/HouseRules";
 
+
+/** Régénérée chaque jour : la section blog met en avant les prochains événements (date du jour). */
+export const revalidate = 86400;
 
 export async function generateMetadata({
   params,
@@ -118,7 +121,7 @@ export default async function Home({
       <LocationSection />
       <HostSection />
       <AirbnbReviews />
-      <BlogSection />
+      <BlogSection locale={locale as Locale} />
       <HouseRules />
     </>
   );

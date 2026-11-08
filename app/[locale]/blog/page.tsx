@@ -1,10 +1,24 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
 import { alternatesFor, blogPath, pageOpenGraph, pageTwitter } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import BlogCard from "@/components/public/BlogCard";
+import BlogListFilter from "@/components/public/BlogListFilter";
+import {
+  filterKeysOf,
+  listedPosts,
+  sortForList,
+  todayInParis,
+  visibleFilters,
+} from "@/lib/blog/journey";
+
+/**
+ * Régénérée chaque jour : l'ordre (événements à venir d'abord) et les badges « Édition terminée »
+ * dépendent de la date du jour, qu'une page figée au build garderait indéfiniment.
+ */
+export const revalidate = 86400;
 
 const DESCRIPTIONS: Record<Locale, string> = {
   fr: "Conseils et guides pratiques pour séjourner en groupe au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.",
@@ -22,14 +36,6 @@ const SUBHEADINGS: Record<Locale, string> = {
   es: "Guías prácticas para tu estancia en Le Mans y para disfrutar de los grandes eventos.",
 };
 
-const SOLD_OUT_LABEL: Record<Locale, (year: string) => string> = {
-  fr: (y) => `Complet pour l'édition ${y}`,
-  en: (y) => `Sold out for ${y}`,
-  it: (y) => `Tutto esaurito per l'edizione ${y}`,
-  de: (y) => `Ausgebucht für die Edition ${y}`,
-  es: (y) => `Completo para la edición ${y}`,
-};
-
 /**
  * Un titre par langue : le même « Blog — Coliving Barbusse Le Mans » servait aux cinq index,
  * ce que les moteurs lisent comme cinq pages en double (audit du 2026-11-08).
@@ -42,12 +48,12 @@ const TITLES: Record<Locale, string> = {
   es: "Blog — estancias en grupo en Le Mans | Coliving Barbusse",
 };
 
-const DATE_LOCALE: Record<Locale, string> = {
-  fr: "fr-FR",
-  en: "en-US",
-  it: "it-IT",
-  de: "de-DE",
-  es: "es-ES",
+const CTA: Record<Locale, { text: string; link: string }> = {
+  fr: { text: "Vous avez déjà vos dates ?", link: "Voir les disponibilités" },
+  en: { text: "Already know your dates?", link: "Check availability" },
+  it: { text: "Avete già le vostre date?", link: "Vedi le disponibilità" },
+  de: { text: "Sie kennen Ihre Termine schon?", link: "Verfügbarkeit ansehen" },
+  es: { text: "¿Ya tiene sus fechas?", link: "Ver la disponibilidad" },
 };
 
 export async function generateMetadata({
@@ -78,61 +84,34 @@ export default async function BlogIndex({
 }) {
   const { locale: rawLocale } = await params;
   const locale = rawLocale as Locale;
-  const dateLocale = DATE_LOCALE[locale] ?? "fr-FR";
-  const heading = "Blog";
   const subheading = SUBHEADINGS[locale] ?? SUBHEADINGS.fr;
-  const soldOutLabel = SOLD_OUT_LABEL[locale] ?? SOLD_OUT_LABEL.fr;
+  const cta = CTA[locale] ?? CTA.fr;
+
+  const today = todayInParis();
+  // Les archives (`supersededBy`) sortent de la liste, comme du sitemap : elles restent en ligne,
+  // en noindex, pour les liens existants.
+  const listed = listedPosts();
+  const posts = sortForList(listed, today);
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
-      <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{heading}</h1>
+      <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Blog</h1>
       <p className="mt-3 text-secondary">{subheading}</p>
 
-      <ul className="mt-10 grid gap-6 sm:grid-cols-2">
-        {[...BLOG_POSTS]
-          .sort((a, b) => Number(!!a.soldOut) - Number(!!b.soldOut))
-          .map((post) => {
-          const loc = getLocalizedPost(post, locale);
-          const soldOut = !!post.soldOut;
-          return (
-            <li
-              key={post.slug}
-              className={`group overflow-hidden rounded-xl border border-border transition-shadow hover:shadow-md ${
-                soldOut ? "opacity-75" : ""
-              }`}
-            >
-              <Link href={`/${locale}/blog/${post.slug}`} className="block">
-                <div className="relative aspect-[16/10] w-full overflow-hidden">
-                  <div
-                    className={`absolute inset-0 bg-cover bg-center ${
-                      soldOut ? "grayscale" : ""
-                    }`}
-                    style={{ backgroundImage: `url(${post.image})` }}
-                  />
-                  {soldOut && (
-                    <span className="absolute left-3 top-3 rounded-full bg-red-600 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow">
-                      {soldOutLabel(post.date.slice(0, 4))}
-                    </span>
-                  )}
-                </div>
-                <div className="p-5">
-                  <time className="text-xs font-medium uppercase tracking-wide text-secondary">
-                    {new Date(post.date).toLocaleDateString(dateLocale, {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </time>
-                  <h2 className="mt-2 text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
-                    {loc.title}
-                  </h2>
-                  <p className="mt-2 text-sm text-secondary">{loc.excerpt}</p>
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <BlogListFilter locale={locale} filters={visibleFilters(listed)}>
+        <ul className="mt-8 grid gap-6 sm:grid-cols-2">
+          {posts.map((post) => (
+            <BlogCard key={post.slug} post={post} locale={locale} today={today} filterKeys={filterKeysOf(post)} />
+          ))}
+        </ul>
+      </BlogListFilter>
+
+      <p className="mt-10 rounded-xl border border-border bg-light-bg px-5 py-4 text-sm text-foreground">
+        {cta.text}{" "}
+        <Link href={`/${locale}#disponibilite`} className="font-semibold text-primary underline">
+          {cta.link}
+        </Link>
+      </p>
     </div>
   );
 }

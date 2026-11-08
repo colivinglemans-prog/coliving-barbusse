@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n";
+import type { Journey } from "./journey";
 
 export interface LocalizedPost {
   title: string;
@@ -10,6 +11,12 @@ export interface LocalizedPost {
 export interface BlogPostMeta {
   slug: string;
   date: string;
+  /**
+   * Étapes du parcours voyageur (`lib/blog/journey.ts`) : au moins une, sans `null` qui
+   * voudrait dire « partout » (la leçon du filtre de saison d'Albiez). Lues par les pastilles
+   * de la liste, l'ordre de la liste, l'accueil et le guide d'arrivée.
+   */
+  journey: readonly [Journey, ...Journey[]];
   image: string;
   /** Si true, affiche un bandeau "Complet — rendez-vous en {nextEdition}" + grayscale */
   soldOut?: boolean;
@@ -59,6 +66,7 @@ export interface BlogPostMeta {
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
     slug: "concours-salons-le-mans",
+    journey: ["groupe"],
     date: "2026-11-08",
     image: "/images/blog/antares-le-mans.jpg",
     imageCredit: {
@@ -133,6 +141,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "fetes-fin-annee-le-mans",
+    journey: ["groupe"],
     date: "2026-11-06",
     image: "/images/blog/reunion-famille-le-mans.jpg",
     familyDates: true,
@@ -201,6 +210,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "reunion-famille-le-mans",
+    journey: ["groupe"],
     date: "2026-11-04",
     image: "/images/blog/reunion-famille-le-mans.jpg",
     familyDates: true,
@@ -279,6 +289,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "24-heures-velo-le-mans-2027",
+    journey: ["evenement"],
     date: "2026-11-03",
     image: "/images/blog/24h-velo.jpg",
     imageCredit: {
@@ -354,6 +365,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "concours-equestre-pole-europeen-du-cheval",
+    journey: ["groupe"],
     date: "2026-11-01",
     image: "/images/blog/hippodrome.jpg",
     locales: {
@@ -421,6 +433,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "equipe-de-nuit-le-mans",
+    journey: ["groupe"],
     date: "2026-10-20",
     image: "/images/blog/entreprises.jpg",
     locales: {
@@ -488,6 +501,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "exposants-ecuries-circuit-le-mans",
+    journey: ["evenement", "groupe"],
     date: "2026-10-10",
     image: "/images/blog/village-exposants-le-mans.jpg",
     imageCredit: {
@@ -563,6 +577,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "24-heures-moto-le-mans-2027",
+    journey: ["evenement"],
     date: "2026-10-01",
     image: "/images/blog/24h-moto.jpg",
     event: "24h-moto-2027",
@@ -641,6 +656,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "le-mans-classic-2027",
+    journey: ["evenement"],
     date: "2026-09-01",
     image: "/images/blog/le-mans-classic.jpg",
     event: "classic-2027",
@@ -719,6 +735,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "ou-se-loger-24h-du-mans-2027",
+    journey: ["evenement"],
     date: "2026-09-01",
     image: "/images/blog/24h-du-mans.jpg",
     event: "24h-mans-2027",
@@ -797,6 +814,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "motogp-france-le-mans-2027",
+    journey: ["evenement"],
     date: "2026-10-01",
     image: "/images/blog/motogp.jpg",
     event: "motogp-2027",
@@ -875,6 +893,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "equipe-sportive-le-mans",
+    journey: ["groupe"],
     date: "2026-09-29",
     image: "/images/blog/equipe-sportive-handball.jpg",
     locales: {
@@ -942,6 +961,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "porsche-sprint-challenge-le-mans",
+    journey: ["evenement"],
+    event: "porsche-sprint-2026",
     date: "2026-09-02",
     image: "/images/blog/porsche-sprint-challenge.jpg",
     imageCredit: {
@@ -1031,6 +1052,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "le-mans-classic",
+    journey: ["evenement"],
     date: "2026-05-27",
     image: "/images/blog/le-mans-classic.jpg",
     locales: {
@@ -1111,6 +1133,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "jardin-securise-le-mans",
+    journey: ["groupe", "preparer"],
     date: "2026-05-29",
     image: "/images/blog/jardin-securise-le-mans.jpg",
     locales: {
@@ -1188,6 +1211,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "championnat-monde-karting-kz-le-mans",
+    journey: ["evenement"],
     date: "2026-04-22",
     image: "/images/blog/mondial-karting-kz.jpg",
     event: "mondial-karting-2026",
@@ -1271,6 +1295,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "24-heures-camions-le-mans",
+    journey: ["evenement"],
     date: "2026-04-22",
     image: "/images/blog/24h-camions.jpg",
     event: "24h-camions-2026",
@@ -1356,6 +1381,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "sws-karting-finals-le-mans",
+    journey: ["evenement"],
+    event: "sws-karting-2026",
     date: "2026-04-20",
     image: "/images/blog/sws-karting.jpg",
     soldOut: true,
@@ -1440,6 +1467,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "seminaire-entreprise-le-mans",
+    journey: ["groupe"],
     date: "2026-04-18",
     image: "/images/blog/seminaire.jpg",
     locales: {
@@ -1527,6 +1555,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "hippodrome-des-hunaudieres",
+    journey: ["sur-place", "evenement"],
     date: "2026-04-17",
     image: "/images/blog/hippodrome.jpg",
     locales: {
@@ -1604,6 +1633,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "24-heures-rollers-le-mans",
+    journey: ["evenement"],
+    event: "24h-rollers-2026",
     date: "2026-04-16",
     image: "/images/blog/24h-rollers.jpg",
     soldOut: false,
@@ -1684,6 +1715,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "restos-bars-magasins-le-mans",
+    journey: ["sur-place", "preparer"],
     date: "2026-04-12",
     image: "/images/blog/restos-bars.jpg",
     locales: {
@@ -1761,6 +1793,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "entreprises-proches-le-mans",
+    journey: ["groupe"],
     date: "2026-04-06",
     image: "/images/blog/entreprises.jpg",
     locales: {
@@ -1843,6 +1876,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "ou-se-loger-24h-du-mans-2026",
+    journey: ["evenement"],
     date: "2026-03-28",
     image: "/images/blog/24h-du-mans.jpg",
     soldOut: true,
@@ -1923,6 +1957,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "motogp-france-le-mans",
+    journey: ["evenement"],
     date: "2026-03-17",
     image: "/images/blog/motogp.jpg",
     soldOut: true,
@@ -2003,6 +2038,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "24-heures-moto-le-mans",
+    journey: ["evenement"],
     date: "2026-03-05",
     image: "/images/blog/24h-moto.jpg",
     soldOut: true,
@@ -2083,6 +2119,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "gp-explorer-le-mans",
+    journey: ["evenement"],
     date: "2026-09-08",
     image: "/images/blog/gp-explorer.jpg",
     locales: {
@@ -2160,6 +2197,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "que-visiter-le-mans-sarthe",
+    journey: ["sur-place", "preparer"],
     date: "2026-01-22",
     image: "/images/blog/tourisme.jpg",
     locales: {
