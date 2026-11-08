@@ -639,7 +639,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "24 Horas Moto Le Mans 2027 (8-11 abril): dónde alojarse",
+        title: "24 Horas Moto Le Mans 2027 (8-11 de abril): dónde alojarse",
         description:
           "Todo para organizar su fin de semana de las 24 Horas Moto 2027 en Le Mans, 50ª edición del 8 al 11 de abril: zonas de alojamiento, precios, parking moto, consejos para grupos de moteros.",
         excerpt:
@@ -718,7 +718,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Le Mans Classic Heritage 2027 (1-4 julio): dónde alojarse",
+        title: "Le Mans Classic Heritage 2027 (1-4 de julio): dónde alojarse",
         description:
           "Le Mans Classic Heritage 2027, del 1 al 4 de julio: el mayor encuentro mundial de coches de carreras clásicos. Fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
         excerpt:
