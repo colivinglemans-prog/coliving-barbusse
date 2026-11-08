@@ -214,6 +214,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     paymentText:
       "Instant online booking, paid by card on the secure page. Companies: booking on invoice, 30% deposit then balance before arrival, by bank transfer or card — contact us.",
     conditions: "Booking conditions",
+    legal: "Legal notice",
   },
   gallery: {
     showPhotos: (count) => `View all ${count} photos`,

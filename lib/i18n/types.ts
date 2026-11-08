@@ -147,6 +147,7 @@ export interface Dictionary {
     paymentTitle: string;
     paymentText: string;
     conditions: string;
+    legal: string;
   };
   gallery: {
     showPhotos: (count: number) => string;

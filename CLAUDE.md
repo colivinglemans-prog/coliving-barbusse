@@ -332,6 +332,7 @@ qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas l
 - Arrivée le jour même : le devis porte une consigne d'appeler l'hôte (`lastMinute`).
 - La page de devis revérifie dispo et prix à chaque affichage ; non indexée.
 - **Conditions de réservation** : `app/[locale]/conditions/page.tsx` (5 langues, `conditionsPath`, au sitemap, liée depuis le pied de page et `llms.txt`). Nombres lus dans `PROPERTY_INFO` / `CANCELLATION_POLICY` / `PAYMENT_POLICY`, texte d'annulation généré par `cancellationText` du socle. Pied de page : « Paiement et réservation » (instantané par carte ; entreprises sur facture, 30 %).
+- **Mentions légales** : `app/[locale]/mentions-legales/page.tsx` (5 langues, `legalPath`, `noindex, follow`, hors sitemap, liée depuis le pied de page). Identité EI (nom, statut, SIREN) dans `lib/legal.ts` avec l'hébergeur Vercel ; adresse et contact lus dans `PROPERTY_INFO` ; données personnelles renvoyées aux conditions. Médiateur de la consommation à ajouter une fois désigné.
 - Le calendrier se pré-remplit par `?arrivee=&depart=&adultes=&enfants=` (socle).
 - **Connecteur MCP** : `app/api/mcp/route.ts` (`createMcpRoute`, socle v3.12.0), mêmes outils que `/api/agent/*` via `runTool`, sans état. Route publique ; à couvrir par la règle Vercel Firewall comme `/api/agent/*`.
 - Tests voyageur à rejouer à chaque lot : voir le plan du chantier (mémoire « tests voyageur IA »).

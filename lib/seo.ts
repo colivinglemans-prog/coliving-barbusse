@@ -82,3 +82,6 @@ export const HOME_DESCRIPTIONS: Record<Locale, string> = {
   es: "Casa de 215 m² en Le Mans: 9 habitaciones con ducha privada, hasta 20 personas, a 10 min de la estación TGV. Familias, equipos, seminarios.",
   it: "Casa di 215 m² a Le Mans: 9 camere con doccia privata, fino a 20 persone, a 10 min dalla stazione TGV. Famiglie, team, seminari.",
 };
+
+/** Mentions légales — `noindex`, hors sitemap, liées depuis le pied de page. */
+export const legalPath = sectionPath("mentions-legales");
