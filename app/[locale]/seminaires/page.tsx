@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { alternatesFor, openGraphLocales, seminarsPath } from "@/lib/seo";
+import { alternatesFor, DEFAULT_OG_IMAGE, openGraphLocales, seminarsPath } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { aggregateRatingJsonLd } from "@/lib/reviews";
@@ -351,6 +351,7 @@ export async function generateMetadata({
       url,
       ...openGraphLocales(locale),
       type: "website",
+      images: [DEFAULT_OG_IMAGE],
     },
   };
 }
@@ -598,7 +599,7 @@ export default async function Seminaires({
       <section className="mt-12">
         <h2 className="text-2xl font-bold text-foreground">{t.testimonialTitle}</h2>
         <figure className="mt-6 rounded-2xl border border-border bg-light-bg p-6 sm:p-8">
-          <div className="flex gap-1 text-amber-500" aria-label="5 stars">
+          <div className="flex gap-1 text-amber-500" role="img" aria-label="5 stars">
             {Array.from({ length: 5 }).map((_, i) => (
               <svg key={i} className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l2.9 6.9L22 9.2l-5.5 4.8L18.2 22 12 18.3 5.8 22l1.7-8L2 9.2l7.1-.3L12 2z" />

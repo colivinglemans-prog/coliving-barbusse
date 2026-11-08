@@ -87,7 +87,7 @@ export default function Header() {
               type="button"
               onClick={() => setLangOpen((v) => !v)}
               className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-secondary transition-colors hover:bg-light-bg hover:text-foreground"
-              aria-label="Switch language"
+              aria-label={`${LOCALE_META[locale].short} — Switch language`}
               aria-expanded={langOpen}
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -122,7 +122,7 @@ export default function Header() {
               type="button"
               onClick={() => setLangOpen((v) => !v)}
               className="flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-semibold text-secondary"
-              aria-label="Switch language"
+              aria-label={`${LOCALE_META[locale].short} — Switch language`}
               aria-expanded={langOpen}
             >
               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

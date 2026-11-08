@@ -5,7 +5,7 @@ import { isLocale, LOCALES, type Locale } from "@/lib/i18n";
 import { HOST_PROVIDER, LEGAL_ENTITY } from "@/lib/legal";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { SITE_URL } from "@/lib/site";
-import { alternatesFor, conditionsPath, legalPath, openGraphLocales } from "@/lib/seo";
+import { alternatesFor, conditionsPath, DEFAULT_OG_IMAGE, legalPath, openGraphLocales } from "@/lib/seo";
 
 /**
  * Mentions légales (LCEN, art. 6-III) : éditeur, directeur de la publication, hébergeur.
@@ -222,6 +222,7 @@ export async function generateMetadata({
       url: `${SITE_URL}${legalPath(locale)}`,
       ...openGraphLocales(locale),
       type: "website",
+      images: [DEFAULT_OG_IMAGE],
     },
   };
 }

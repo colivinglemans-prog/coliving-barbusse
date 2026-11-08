@@ -6,7 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { I18nProvider, isLocale, LOCALES } from "@/lib/i18n";
-import { HOME_DESCRIPTIONS, HOME_TITLES, openGraphLocales } from "@/lib/seo";
+import { DEFAULT_OG_IMAGE, HOME_DESCRIPTIONS, HOME_TITLES, openGraphLocales } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
@@ -74,20 +74,13 @@ export async function generateMetadata({
       siteName: "Coliving Barbusse",
       ...og,
       type: "website",
-      images: [
-        {
-          url: `${SITE_URL}/images/house/3-maison-AI.jpg`,
-          width: 1200,
-          height: 630,
-          alt: "Coliving Barbusse - Maison premium au Mans",
-        },
-      ],
+      images: [DEFAULT_OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: TITLE,
       description: DESCRIPTION,
-      images: [`${SITE_URL}/images/house/3-maison-AI.jpg`],
+      images: [DEFAULT_OG_IMAGE.url],
     },
     verification: {
       google: [

@@ -32,6 +32,22 @@ export const { alternatesFor, hreflangMap, articleJsonLd } = seo;
 
 export { openGraphLocales, homePath };
 
+/**
+ * L'image de partage par défaut (WhatsApp, Facebook, LinkedIn).
+ *
+ * Next fusionne les métadonnées **en surface** : une page qui déclare son propre bloc
+ * `openGraph` perd celui du layout, image comprise. L'accueil et la page séminaires en
+ * déclaraient un sans image — leur lien partagé s'affichait sans vignette dans les cinq langues
+ * (audit du 2026-11-08). Chaque bloc `openGraph` de page reprend donc cette constante.
+ * Dimensions réelles du fichier (1536 × 1024), et non les 1200 × 630 déclarés jusque-là.
+ */
+export const DEFAULT_OG_IMAGE = {
+  url: `${SITE_URL}/images/house/3-maison-AI.jpg`,
+  width: 1536,
+  height: 1024,
+  alt: "Coliving Barbusse — maison de 9 chambres au Mans",
+};
+
 /** Les 9 suites. Slug commun aux cinq langues. */
 export const roomsPath = sectionPath("chambres");
 

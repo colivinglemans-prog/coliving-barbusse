@@ -74,7 +74,7 @@ export default async function Chambres({
         <h1 className="text-2xl font-semibold text-foreground">{t.title}</h1>
         <p className="mt-2 text-sm text-secondary">{t.sub}</p>
       </div>
-      <SleepingArrangement />
+      <SleepingArrangement firstPhotoPriority />
       <Amenities />
       <ReservationCalendar />
     </>

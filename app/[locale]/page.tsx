@@ -3,6 +3,7 @@ import {
   alternatesFor,
   HOME_DESCRIPTIONS,
   HOME_TITLES,
+  DEFAULT_OG_IMAGE,
   homePath,
   openGraphLocales,
 } from "@/lib/seo";
@@ -47,6 +48,7 @@ export async function generateMetadata({
       description,
       url: `${SITE_URL}${homePath(locale)}`,
       ...openGraphLocales(locale),
+      images: [DEFAULT_OG_IMAGE],
     },
     alternates: alternatesFor(locale, homePath),
   };

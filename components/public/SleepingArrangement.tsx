@@ -86,12 +86,15 @@ function RoomCarousel({
   prevLabel,
   nextLabel,
   onZoom,
+  priority = false,
 }: {
   photos: string[];
   name: string;
   prevLabel: string;
   nextLabel: string;
   onZoom: (index: number) => void;
+  /** Charge la première photo sans attendre le défilement (image principale de la page). */
+  priority?: boolean;
 }) {
   const [index, setIndex] = useState(0);
 
@@ -110,6 +113,7 @@ function RoomCarousel({
           src={encodeURI(photos[index])}
           alt={`${name} — photo ${index + 1}`}
           fill
+          priority={priority && index === 0}
           className="object-cover"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
@@ -151,7 +155,13 @@ function RoomCarousel({
   );
 }
 
-export default function SleepingArrangement() {
+/**
+ * `firstPhotoPriority` : sur `/chambres`, la photo de la chambre 1 est l'image principale du
+ * premier écran, et elle était chargée en différé (`loading="lazy"`) — Lighthouse mobile la
+ * mesurait comme LCP retardé (audit du 2026-11-08). Sur l'accueil, la section est plus bas : on
+ * n'y touche pas.
+ */
+export default function SleepingArrangement({ firstPhotoPriority = false }: { firstPhotoPriority?: boolean } = {}) {
   const { t } = useTranslation();
   const [lightbox, setLightbox] = useState<{ photos: LightboxPhoto[]; index: number } | null>(null);
 
@@ -176,6 +186,7 @@ export default function SleepingArrangement() {
                 prevLabel={t.sleeping.prevPhoto}
                 nextLabel={t.sleeping.nextPhoto}
                 onZoom={(idx) => setLightbox({ photos: lbPhotos, index: idx })}
+                priority={firstPhotoPriority && i === 0}
               />
               <div className="p-4">
                 <h3 className="font-medium text-foreground">{roomName}</h3>

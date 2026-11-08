@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
-import { alternatesFor, blogPath } from "@/lib/seo";
+import { alternatesFor, blogPath, DEFAULT_OG_IMAGE, openGraphLocales } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 import { isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
@@ -29,6 +30,18 @@ const SOLD_OUT_LABEL: Record<Locale, (year: string) => string> = {
   es: (y) => `Completo para la edición ${y}`,
 };
 
+/**
+ * Un titre par langue : le même « Blog — Coliving Barbusse Le Mans » servait aux cinq index,
+ * ce que les moteurs lisent comme cinq pages en double (audit du 2026-11-08).
+ */
+const TITLES: Record<Locale, string> = {
+  fr: "Blog — séjourner au Mans en groupe | Coliving Barbusse",
+  en: "Blog — staying in Le Mans as a group | Coliving Barbusse",
+  it: "Blog — soggiornare a Le Mans in gruppo | Coliving Barbusse",
+  de: "Blog — mit der Gruppe in Le Mans | Coliving Barbusse",
+  es: "Blog — alojarse en Le Mans en grupo | Coliving Barbusse",
+};
+
 const DATE_LOCALE: Record<Locale, string> = {
   fr: "fr-FR",
   en: "en-US",
@@ -44,13 +57,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const title = "Blog — Coliving Barbusse Le Mans";
+  const title = TITLES[locale];
   const description = DESCRIPTIONS[locale] ?? DESCRIPTIONS.fr;
 
   return {
     title,
     description,
     alternates: alternatesFor(locale, blogPath),
+    // Sans ce bloc, l'index héritait de l'`og:title` de l'accueil : un lien partagé vers le blog
+    // s'annonçait comme la page d'accueil.
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}${blogPath(locale)}`,
+      ...openGraphLocales(locale),
+      type: "website",
+      images: [DEFAULT_OG_IMAGE],
+    },
   };
 }
 
