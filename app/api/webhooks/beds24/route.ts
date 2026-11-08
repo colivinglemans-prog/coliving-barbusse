@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { constantTimeEqual } from "@sejour/socle/lib/cron-auth";
 import { runAccessSync } from "@/lib/access-sync";
 import { modes, runCron } from "@/lib/messages/engine";
 
@@ -23,12 +23,11 @@ import { modes, runCron } from "@/lib/messages/engine";
 export const maxDuration = 60;
 
 function authorized(request: NextRequest): boolean {
-  const secret = process.env.BEDS24_WEBHOOK_SECRET;
+  // `trim()` : une valeur collée dans Vercel avec un retour à la ligne refuserait tout, l'en-tête
+  // HTTP arrivant, lui, sans blancs de bord. Même comparaison que la route d'Albiez.
+  const secret = process.env.BEDS24_WEBHOOK_SECRET?.trim();
   const given = request.headers.get("x-webhook-secret");
-  if (!secret || !given) return false;
-  const a = Buffer.from(secret);
-  const b = Buffer.from(given);
-  return a.length === b.length && timingSafeEqual(a, b);
+  return Boolean(secret && given && constantTimeEqual(given, secret));
 }
 
 export async function POST(request: NextRequest) {
