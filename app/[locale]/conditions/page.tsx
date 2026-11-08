@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cancellationText } from "@sejour/socle/lib/quote-labels";
-import type { Locale } from "@/lib/i18n";
+import { isLocale, type Locale } from "@/lib/i18n";
 import { CANCELLATION_POLICY, PAYMENT_POLICY, PROPERTY_INFO } from "@/lib/property-info";
 import { alternatesFor, conditionsPath } from "@/lib/seo";
 
@@ -47,7 +47,7 @@ function content(locale: Locale): Content {
             "Free street parking, no reserved space.",
           ] },
           { title: "Personal data", items: [
-            "The data needed for the booking (name, contact details, payment) is processed by Beds24, our booking software, and its payment provider, only to manage the booking and the stay.",
+            `The data needed for the booking (name, contact details, dates, payment) is used only to manage the booking and the stay. It is processed by Beds24 (booking software) and its payment provider; the first name is passed to the smart-lock provider (Nuki) to create the door code; the site and its management tools are hosted by Vercel and Upstash. Nothing is sold or used for advertising. To access or delete your data: ${PROPERTY_INFO.contact.email}.`,
             `To access, correct or delete your data: ${email}.`,
           ] },
         ],
@@ -72,7 +72,7 @@ function content(locale: Locale): Content {
             "Kostenloses Parken auf der Straße, kein reservierter Stellplatz.",
           ] },
           { title: "Personenbezogene Daten", items: [
-            "Die für die Buchung nötigen Daten (Name, Kontaktdaten, Zahlung) werden von Beds24, unserer Buchungssoftware, und deren Zahlungsdienstleister ausschließlich zur Verwaltung der Buchung und des Aufenthalts verarbeitet.",
+            `Die für die Buchung nötigen Daten (Name, Kontaktdaten, Daten, Zahlung) dienen nur der Verwaltung der Buchung und des Aufenthalts. Sie werden von Beds24 (Buchungssoftware) und deren Zahlungsdienstleister verarbeitet; der Vorname wird an den Anbieter des smarten Schlosses (Nuki) übermittelt, um den Türcode zu erstellen; Website und Verwaltungswerkzeuge werden bei Vercel und Upstash gehostet. Nichts wird verkauft oder für Werbung genutzt. Auskunft oder Löschung: ${PROPERTY_INFO.contact.email}.`,
             `Auskunft, Berichtigung oder Löschung: ${email}.`,
           ] },
         ],
@@ -97,7 +97,7 @@ function content(locale: Locale): Content {
             "Aparcamiento gratuito en la calle, sin plaza reservada.",
           ] },
           { title: "Datos personales", items: [
-            "Los datos necesarios para la reserva (nombre, contacto, pago) los trata Beds24, nuestro programa de reservas, y su proveedor de pago, solo para gestionar la reserva y la estancia.",
+            `Los datos necesarios para la reserva (nombre, contacto, fechas, pago) solo se usan para gestionar la reserva y la estancia. Los tratan Beds24 (software de reservas) y su proveedor de pago; el nombre de pila se transmite al proveedor de la cerradura inteligente (Nuki) para crear el código de la puerta; el sitio y sus herramientas de gestión están alojados en Vercel y Upstash. Nada se vende ni se usa con fines publicitarios. Acceso o supresión de sus datos: ${PROPERTY_INFO.contact.email}.`,
             `Para consultar, corregir o borrar sus datos: ${email}.`,
           ] },
         ],
@@ -122,7 +122,7 @@ function content(locale: Locale): Content {
             "Parcheggio gratuito in strada, senza posto riservato.",
           ] },
           { title: "Dati personali", items: [
-            "I dati necessari alla prenotazione (nome, recapiti, pagamento) sono trattati da Beds24, il nostro software di prenotazione, e dal suo fornitore di pagamento, solo per gestire la prenotazione e il soggiorno.",
+            `I dati necessari alla prenotazione (nome, recapiti, date, pagamento) servono solo a gestire la prenotazione e il soggiorno. Sono trattati da Beds24 (software di prenotazione) e dal suo fornitore di pagamento; il nome viene trasmesso al fornitore della serratura connessa (Nuki) per creare il codice della porta; il sito e i suoi strumenti di gestione sono ospitati da Vercel e Upstash. Nulla viene venduto né usato per pubblicità. Accesso o cancellazione dei dati: ${PROPERTY_INFO.contact.email}.`,
             `Per consultare, correggere o cancellare i dati: ${email}.`,
           ] },
         ],
@@ -147,7 +147,7 @@ function content(locale: Locale): Content {
             "Stationnement gratuit dans la rue, sans place réservée.",
           ] },
           { title: "Données personnelles", items: [
-            "Les données nécessaires à la réservation (nom, coordonnées, paiement) sont traitées par Beds24, notre logiciel de réservation, et son prestataire de paiement, uniquement pour gérer la réservation et le séjour.",
+            `Les données nécessaires à la réservation (nom, coordonnées, dates, paiement) servent uniquement à gérer la réservation et le séjour. Elles sont traitées par Beds24 (logiciel de réservation) et son prestataire de paiement ; le prénom est transmis au fournisseur de la serrure connectée (Nuki) pour créer le code de la porte ; le site et ses outils de gestion sont hébergés par Vercel et Upstash. Rien n'est vendu ni utilisé à des fins publicitaires. Accès ou suppression de vos données : ${PROPERTY_INFO.contact.email}.`,
             `Pour consulter, corriger ou supprimer vos données : ${email}.`,
           ] },
         ],
@@ -155,8 +155,7 @@ function content(locale: Locale): Content {
   }
 }
 
-const LOCALES: Locale[] = ["fr", "en", "it", "de", "es"];
-const asLocale = (raw: string): Locale => ((LOCALES as string[]).includes(raw) ? (raw as Locale) : "fr");
+const asLocale = (raw: string): Locale => (isLocale(raw) ? raw : "fr");
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale: raw } = await params;

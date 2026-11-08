@@ -8,6 +8,7 @@ import { quoteKeysFromEnv } from "@sejour/socle/lib/quote-token";
 import { STAY_AGENT, STAY_QUOTE, stayAgentDeps } from "@/lib/agent";
 import { PROPERTY_ID } from "@/lib/beds24-property";
 import { CANCELLATION_POLICY } from "@/lib/property-info";
+import { conditionsPath } from "@/lib/seo";
 
 /**
  * Le devis partagé par une IA (`/api/agent/quote` → `quoteUrl`). Revérifié à chaque affichage :
@@ -44,7 +45,7 @@ export default async function QuotePage({ params }: { params: Promise<{ locale: 
         lang={locale}
         labels={quoteLabels(locale, INCLUDED[locale] ?? INCLUDED.fr)}
         calendarUrl={calendarUrl}
-        conditionsUrl={`/${locale}#disponibilite`}
+        conditionsUrl={conditionsPath(locale)}
         cancellation={cancellationText(CANCELLATION_POLICY, locale)}
         header={<p className="text-sm uppercase tracking-wide text-secondary">{STAY_AGENT.facts(locale).name}</p>}
       />
