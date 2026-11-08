@@ -217,6 +217,8 @@ Alexandre`,
   fingerprints: [
     "merci pour votre reservation au coliving",
     "thank you for booking coliving henri barbusse",
+    // Auto-action Beds24 en anglais (relevée par l'hôte le 2026-11-08).
+    "thank you for booking at coliving henri barbusse",
     "vielen dank fur ihre buchung im coliving",
     "gracias por tu reserva en el coliving",
     "grazie per la tua prenotazione al coliving",
