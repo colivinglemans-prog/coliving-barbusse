@@ -575,6 +575,17 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
   RevenueProjection à 3 scénarios, camembert des canaux, `OccupancyGauge`) a disparu aux Lots
   C + D (description : docs/journal.md § Dashboard stats).
 
+## Dashboard référencement (`/dashboard/seo`)
+
+Rapport Google Search Console (requêtes, clics, impressions, position, pages, pays, appareils)
+dessiné par `SearchConsoleDashboard` du socle **v3.16.0**, le même écran que chez Albiez.
+- **Admin seulement** : `guard.denyNonAdmin` dans `app/api/dashboard/seo/route.ts`, et hors de
+  la liste blanche du viewer dans `proxy.ts`.
+- Variables d'environnement `GOOGLE_SERVICE_ACCOUNT_JSON` (clé du compte de service, collée
+  telle quelle) et `GSC_SITE_URL` — **jamais dans le dépôt**, qui est public.
+- Si Google refuse la propriété, la route liste celles que le compte de service voit : c'est la
+  bonne valeur de `GSC_SITE_URL`.
+
 ## Dashboard calendrier (`/dashboard/calendar`)
 
 > **Le moteur de placement monte, l'enveloppe reste.** `placeSegments` / `Segment` /
