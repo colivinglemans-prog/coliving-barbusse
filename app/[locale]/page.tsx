@@ -79,9 +79,9 @@ export default async function Home({
     image: `${SITE_URL}/images/house/3-maison-AI.jpg`,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Rue Henri Barbusse",
-      addressLocality: "Le Mans",
-      postalCode: "72000",
+      streetAddress: PROPERTY_INFO.address.street,
+      addressLocality: PROPERTY_INFO.address.city,
+      postalCode: PROPERTY_INFO.address.postalCode,
       addressCountry: "FR",
     },
     geo: {

@@ -37,6 +37,9 @@ export const roomsPath = sectionPath("chambres");
 /** La page séminaires. */
 export const seminarsPath = sectionPath("seminaires");
 
+/** Conditions de réservation (paiement, annulation, règles) — citées par llms.txt et la page de devis. */
+export const conditionsPath = sectionPath("conditions");
+
 /**
  * Le guide d'arrivée, remis aux voyageurs après réservation.
  *

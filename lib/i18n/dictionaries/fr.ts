@@ -179,6 +179,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
           "Non-fumeur (intérieur)",
           "Animaux non admis",
           "Pas de fête ni d'événement bruyant",
+          "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport) ; les moins de 10 ans sont acceptés sous la responsabilité de leurs parents",
         ],
       },
       {
@@ -209,9 +210,10 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     contact: "Contact",
     whatsapp: "WhatsApp",
     copyright: "Coliving Barbusse. Tous droits réservés.",
-    paymentTitle: "Paiement par virement",
+    paymentTitle: "Paiement et réservation",
     paymentText:
-      "Paiement par virement bancaire possible avec facture. Contactez-nous pour une demande de réservation.",
+      "Réservation en ligne instantanée, payée par carte sur la page sécurisée. Entreprises : réservation sur facture, acompte de 30 % puis solde avant l'arrivée, par virement ou carte — contactez-nous.",
+    conditions: "Conditions de réservation",
   },
   gallery: {
     showPhotos: (count) => `Afficher les ${count} photos`,

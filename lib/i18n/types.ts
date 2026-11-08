@@ -146,6 +146,7 @@ export interface Dictionary {
     copyright: string;
     paymentTitle: string;
     paymentText: string;
+    conditions: string;
   };
   gallery: {
     showPhotos: (count: number) => string;

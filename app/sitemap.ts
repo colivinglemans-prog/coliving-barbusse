@@ -4,6 +4,7 @@ import { LOCALES } from "@/lib/i18n";
 import {
   blogPath,
   blogPostPath,
+  conditionsPath,
   homePath,
   hreflangMap,
   roomsPath,
@@ -33,6 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { pathFor: roomsPath, changeFrequency: "monthly", priority: 0.8 },
     { pathFor: seminarsPath, changeFrequency: "monthly", priority: 0.85 },
     { pathFor: blogPath, changeFrequency: "weekly", priority: 0.7 },
+    { pathFor: conditionsPath, changeFrequency: "monthly", priority: 0.4 },
   ];
 
   const staticPages: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>

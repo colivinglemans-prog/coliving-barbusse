@@ -179,6 +179,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
           "No fumadores (en el interior)",
           "No se admiten animales",
           "Sin fiestas ni eventos ruidosos",
+          "Pensada para adolescentes y adultos: nada está adaptado a niños pequeños (escaleras sin protección, taburetes altos, gimnasio); los menores de 10 años son bienvenidos bajo la responsabilidad de sus padres",
         ],
       },
       {
@@ -209,9 +210,10 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     contact: "Contacto",
     whatsapp: "WhatsApp",
     copyright: "Coliving Barbusse. Todos los derechos reservados.",
-    paymentTitle: "Pago por transferencia",
+    paymentTitle: "Pago y reserva",
     paymentText:
-      "Pago por transferencia bancaria posible con factura. Contáctanos para una solicitud de reserva.",
+      "Reserva en línea inmediata, pagada con tarjeta en la página segura. Empresas: reserva con factura, depósito del 30 % y saldo antes de la llegada, por transferencia o tarjeta: contáctanos.",
+    conditions: "Condiciones de reserva",
   },
   gallery: {
     showPhotos: (count) => `Ver las ${count} fotos`,

@@ -179,6 +179,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
           "No smoking (indoors)",
           "No pets",
           "No parties or loud events",
+          "Designed for teenagers and adults: nothing is set up for young children (unprotected stairs, high stools, gym); children under 10 are welcome under their parents' responsibility",
         ],
       },
       {
@@ -209,9 +210,10 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     contact: "Contact",
     whatsapp: "WhatsApp",
     copyright: "Coliving Barbusse. All rights reserved.",
-    paymentTitle: "Bank transfer",
+    paymentTitle: "Payment and booking",
     paymentText:
-      "Bank transfer accepted (with invoice). Contact us to request a reservation.",
+      "Instant online booking, paid by card on the secure page. Companies: booking on invoice, 30% deposit then balance before arrival, by bank transfer or card — contact us.",
+    conditions: "Booking conditions",
   },
   gallery: {
     showPhotos: (count) => `View all ${count} photos`,

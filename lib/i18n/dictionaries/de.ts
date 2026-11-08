@@ -179,6 +179,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
           "Nichtraucher (im Innenbereich)",
           "Keine Haustiere erlaubt",
           "Keine Partys oder laute Veranstaltungen",
+          "Für Jugendliche und Erwachsene gedacht: nichts ist für kleine Kinder eingerichtet (ungesicherte Treppen, Barhocker, Fitnessraum); Kinder unter 10 Jahren sind unter der Verantwortung ihrer Eltern willkommen",
         ],
       },
       {
@@ -209,9 +210,10 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     contact: "Kontakt",
     whatsapp: "WhatsApp",
     copyright: "Coliving Barbusse. Alle Rechte vorbehalten.",
-    paymentTitle: "Zahlung per Überweisung",
+    paymentTitle: "Zahlung und Buchung",
     paymentText:
-      "Zahlung per Banküberweisung mit Rechnung möglich. Kontaktieren Sie uns für eine Reservierungsanfrage.",
+      "Sofortbuchung online, Zahlung per Karte auf der sicheren Seite. Unternehmen: Buchung auf Rechnung, 30 % Anzahlung, Restzahlung vor der Anreise, per Überweisung oder Karte — kontaktieren Sie uns.",
+    conditions: "Buchungsbedingungen",
   },
   gallery: {
     showPhotos: (count) => `Alle ${count} Fotos anzeigen`,

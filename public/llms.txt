@@ -35,7 +35,8 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 
 ## Accès
 
-- Gare TGV du Mans à 10 min à pied : Paris-Montparnasse en 55 min environ, liaisons directes vers Rennes, Nantes et Angers
+- Gare TGV du Mans à 10 min à pied : Paris-Montparnasse en 55 min environ ; **Nantes en 1 h 20 environ en TGV direct** (1 h 30 à 2 h en TER) ; liaisons directes aussi vers Rennes et Angers
+- En voiture par l'A11 : environ 185 km et 2 h depuis Nantes, environ 210 km et 2 h depuis Paris (hors bouchons) ; stationnement dans la rue, sans place réservée — pour un groupe venu de deux villes, le train est souvent le plus simple
 - Tramway T1 à proximité : centre-ville, gare et circuit (terminus Antarès / MMArena)
 - Circuit Bugatti et circuit des 24 Heures à 4,7 km
 - Zones d'activités du sud du Mans (Technopole Université, zone Sud) à moins de 10 min en voiture
@@ -119,4 +120,5 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Disponibilités et réservation directe : https://www.coliving-barbusse.fr/fr#disponibilite
 - Séminaires et équipes : https://www.coliving-barbusse.fr/fr/seminaires
 - Réunions de famille : https://www.coliving-barbusse.fr/fr/blog/reunion-famille-le-mans
+- Conditions de réservation (paiement, annulation, arrivée, règles dont l'accueil des enfants, données) : https://www.coliving-barbusse.fr/fr/conditions
 - Blog (événements du circuit, Le Mans) : https://www.coliving-barbusse.fr/fr/blog

@@ -34,6 +34,7 @@ export default function Footer() {
               <li><Link href={`${base}#disponibilite`} className="hover:text-foreground">{t.header.book}</Link></li>
               <li><Link href={`${base}/seminaires`} className="hover:text-foreground">{t.header.seminars}</Link></li>
               <li><Link href={`${base}/blog`} className="hover:text-foreground">{t.header.blog}</Link></li>
+              <li><Link href={`${base}/conditions`} className="hover:text-foreground">{t.footer.conditions}</Link></li>
             </ul>
           </div>
           <div>

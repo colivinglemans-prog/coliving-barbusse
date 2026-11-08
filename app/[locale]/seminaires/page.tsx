@@ -396,9 +396,9 @@ export default async function Seminaires({
       image: `${SITE_URL}/images/blog/seminaire.jpg`,
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Rue Henri Barbusse",
-        addressLocality: "Le Mans",
-        postalCode: "72000",
+        streetAddress: PROPERTY_INFO.address.street,
+        addressLocality: PROPERTY_INFO.address.city,
+        postalCode: PROPERTY_INFO.address.postalCode,
         addressCountry: "FR",
       },
       geo: { "@type": "GeoCoordinates", latitude: 47.9842, longitude: 0.1976 },

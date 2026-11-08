@@ -179,6 +179,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
           "Vietato fumare (all'interno)",
           "Animali non ammessi",
           "Niente feste o eventi rumorosi",
+          "Pensata per ragazzi e adulti: nulla è attrezzato per i bambini piccoli (scale non protette, sgabelli alti, palestra); i bambini sotto i 10 anni sono accettati sotto la responsabilità dei genitori",
         ],
       },
       {
@@ -209,9 +210,10 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     contact: "Contatti",
     whatsapp: "WhatsApp",
     copyright: "Coliving Barbusse. Tutti i diritti riservati.",
-    paymentTitle: "Pagamento tramite bonifico",
+    paymentTitle: "Pagamento e prenotazione",
     paymentText:
-      "Pagamento tramite bonifico bancario possibile con fattura. Contattaci per una richiesta di prenotazione.",
+      "Prenotazione online immediata, pagata con carta sulla pagina sicura. Aziende: prenotazione con fattura, acconto del 30% e saldo prima dell'arrivo, con bonifico o carta: contattaci.",
+    conditions: "Condizioni di prenotazione",
   },
   gallery: {
     showPhotos: (count) => `Mostra le ${count} foto`,
