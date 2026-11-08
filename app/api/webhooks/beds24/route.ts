@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
   // Témoin du dernier appel, lu par l'écran Messages : la preuve que Beds24 envoie le bon secret.
   await recordWebhookCall({ at: new Date().toISOString(), result, ...(bracketed ? { bracketed } : {}) });
   if (result !== "accepted") {
-    if (await firstRefusalAlert()) {
+    // Pas d'alerte sans en-tête : ce sont des robots, pas Beds24 (la trace, elle, est gardée).
+    if (result !== "no-header" && (await firstRefusalAlert())) {
       await sendNtfy(
         `Webhook Beds24 refusé (${result}${bracketed ? ", valeur entre chevrons" : ""}) : vérifier le « Custom Header » dans Beds24.`,
         { title: "Barbusse — webhook Beds24", priority: 3, tags: ["warning"] },
