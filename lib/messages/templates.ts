@@ -20,11 +20,21 @@ import type { MessageTemplate } from "@sejour/socle/lib/guest-messaging/types";
  * - `prenom` (facultative) ;
  * - `code` — PIN de la serrure (`infoItems` `NUKI_PIN`), envoyé seulement s'il est **sur la serrure** ;
  * - `guide` — URL du guide d'arrivée dans la langue ;
- * - `wifiReseau`, `wifiMotDePasse` — `PROPERTY_INFO.wifi` ;
- * - `telephone` — `PROPERTY_INFO.contact` ;
+ * - `wifiReseau`, `wifiMotDePasse` — `getWifi()` (`lib/wifi.ts`, variables d'environnement : le
+ *   dépôt est public) ;
+ * - `telephone`, `whatsapp` — `PROPERTY_INFO.contact` ;
+ * - `autour` — articles « Pendant votre séjour » du blog (`aroundUrl`), pour tout le groupe ;
  * - `avisGoogle`, `site` — fiche Google et site ;
  * - `direct` (facultative) — présente pour une réservation directe seulement : on ne propose
  *   jamais de réserver en direct par la messagerie d'une plateforme.
+ *
+ * Dernière minute (décision de l'hôte du 2026-11-08) : départ à partir de 2 nuits, lendemain de
+ * l'arrivée à partir de 3 ; tous deux, et l'avis, sont des messages de confort (`quietHours`) qui
+ * sautent si un autre message — ou la confirmation Beds24, à la création — vient de partir.
+ * L'arrivée, qui porte le code, part toujours.
+ *
+ * Avis (règles du Lot 4 « parcours voyageur », `docs/auto-actions-beds24.md`) : jamais « si vous
+ * avez aimé », jamais « 5 étoiles », aucune contrepartie.
  */
 
 const arrivee: MessageTemplate = {
@@ -165,15 +175,15 @@ Alexandre`,
 const installe: MessageTemplate = {
   id: "bien-installe",
   label: "Lendemain de l'arrivée",
-  version: 2,
+  version: 3,
   trigger: { anchor: "arrival", offsetDays: 1, at: "09:00" },
   late: { mode: "skip", graceHours: 6 },
-  // Sur une nuit, le lendemain de l'arrivée est le jour du départ.
-  conditions: { minNights: 2 },
+  // Sur deux nuits, le lendemain de l'arrivée est aussi la veille du départ : un seul message ce jour-là.
+  conditions: { minNights: 3, quietHours: 12 },
   onAnchorChange: "ignore",
-  variables: [],
+  variables: ["autour"],
   optionalVariables: ["prenom"],
-  previewVisible: ["prenom"],
+  previewVisible: ["prenom", "autour"],
   subject: {
     fr: "Bien installés ?",
     en: "All settled in?",
@@ -186,41 +196,59 @@ const installe: MessageTemplate = {
 
 J'espère que vous êtes bien installés et que vous avez trouvé vos marques. S'il vous manque quoi que ce soit, répondez simplement à ce message.
 
+Pour tout le groupe, nos adresses autour de la maison (restos, courses, balades) :
+{{autour}}
+
 Alexandre`,
     en: `Hello{{#prenom}} {{prenom}}{{/prenom}},
 
 I hope you are all settled in and finding your way around the house. If you need anything at all, just reply to this message.
+
+For the whole group, our tips around the house (restaurants, shops, walks):
+{{autour}}
 
 Alexandre`,
     de: `Hallo{{#prenom}} {{prenom}}{{/prenom}},
 
 ich hoffe, Sie haben sich gut eingelebt und finden sich im Haus zurecht. Wenn Ihnen etwas fehlt, antworten Sie einfach auf diese Nachricht.
 
+Für die ganze Gruppe finden Sie hier unsere Tipps rund um das Haus (Restaurants, Einkäufe, Spaziergänge):
+{{autour}}
+
 Alexandre`,
     es: `Hola{{#prenom}} {{prenom}}{{/prenom}},
 
 Espero que estéis bien instalados y que ya os sintáis como en casa. Si os falta cualquier cosa, respondedme simplemente a este mensaje.
+
+Para todo el grupo, nuestras direcciones alrededor de la casa (restaurantes, compras, paseos):
+{{autour}}
 
 Alexandre`,
     it: `Ciao{{#prenom}} {{prenom}}{{/prenom}},
 
 spero che vi siate sistemati bene e che vi troviate a vostro agio. Se vi manca qualcosa, rispondete semplicemente a questo messaggio.
 
+Per tutto il gruppo, i nostri indirizzi intorno alla casa (ristoranti, spesa, passeggiate):
+{{autour}}
+
 Alexandre`,
   },
-  fingerprints: ["que vous etes bien installe", "you are all settled in"],
+  // Plus le message « Tout se passe bien à la maison ? » proposé au Lot 4, s'il a été créé dans Beds24.
+  fingerprints: ["que vous etes bien installe", "you are all settled in", "tout se passe bien a la maison", "is everything going well at the house"],
 };
 
 const depart: MessageTemplate = {
   id: "depart",
   label: "Veille du départ",
-  version: 1,
+  version: 2,
   trigger: { anchor: "departure", offsetDays: -1, at: "17:00" },
   late: { mode: "skip", graceHours: 6 },
+  // Sur une nuit, la veille du départ est le jour de l'arrivée : le guide suffit.
+  conditions: { minNights: 2, quietHours: 12 },
   onAnchorChange: "ignore",
-  variables: ["telephone"],
+  variables: ["telephone", "whatsapp"],
   optionalVariables: ["prenom"],
-  previewVisible: ["prenom", "telephone"],
+  previewVisible: ["prenom", "telephone", "whatsapp"],
   subject: {
     fr: "Votre départ demain",
     en: "Your departure tomorrow",
@@ -248,6 +276,8 @@ REMISE DES CLÉS
 - verrouiller la serrure connectée en partant
 - nous envoyer un message pour confirmer votre départ
 
+Une remarque, une suggestion ? Dites-le-nous directement : {{whatsapp}}
+
 Au plaisir de vous accueillir à nouveau,
 Alexandre
 {{telephone}}`,
@@ -269,6 +299,8 @@ KEYS
 - put the keys back in the key box (if you used them)
 - lock the connected door lock when you leave
 - send us a message to confirm your departure
+
+Any comment or suggestion? Tell us directly: {{whatsapp}}
 
 We hope to welcome you again soon,
 Alexandre
@@ -292,6 +324,8 @@ SCHLÜSSEL
 - das elektronische Türschloss beim Gehen verriegeln
 - uns eine Nachricht zur Bestätigung Ihrer Abreise senden
 
+Eine Anmerkung, ein Vorschlag? Sagen Sie es uns direkt: {{whatsapp}}
+
 Wir freuen uns, Sie wieder begrüßen zu dürfen,
 Alexandre
 {{telephone}}`,
@@ -313,6 +347,8 @@ LLAVES
 - devuelve las llaves a la caja de llaves (si las has usado)
 - cierra la cerradura conectada al salir
 - envíanos un mensaje para confirmar tu salida
+
+¿Algún comentario o sugerencia? Dínoslo directamente: {{whatsapp}}
 
 ¡Esperamos volver a recibirte pronto!
 Alexandre
@@ -336,6 +372,8 @@ CHIAVI
 - chiudi la serratura connessa quando esci
 - mandaci un messaggio per confermare la partenza
 
+Un commento, un suggerimento? Diccelo direttamente: {{whatsapp}}
+
 Speriamo di riaccoglierti presto!
 Alexandre
 {{telephone}}`,
@@ -346,9 +384,10 @@ Alexandre
 const avis: MessageTemplate = {
   id: "avis",
   label: "Lendemain du départ (avis)",
-  version: 1,
+  version: 2,
   trigger: { anchor: "departure", offsetDays: 1, at: "10:00" },
   late: { mode: "skip", graceHours: 8 },
+  conditions: { quietHours: 12 },
   onAnchorChange: "ignore",
   variables: ["telephone", "avisGoogle"],
   optionalVariables: ["prenom", "direct"],
@@ -368,7 +407,7 @@ Nous espérons que vous avez passé un excellent séjour au Coliving Henri Barbu
 Ce fut un plaisir de vous accueillir, vous et votre groupe, au Mans.
 
 PARTAGEZ VOTRE EXPÉRIENCE
-Si votre séjour vous a plu, un avis sur la plateforme où vous avez réservé ne prend qu'une minute et compte beaucoup pour nous. Vous pouvez aussi en laisser un sur Google :
+{{^direct}}Votre avis, quel qu'il soit, nous aide. Sur la plateforme où vous avez réservé, il ne prend qu'une minute. Vous pouvez aussi en laisser un sur Google :{{/direct}}{{#direct}}Votre avis, quel qu'il soit, nous aide, et il ne prend qu'une minute sur Google :{{/direct}}
 {{avisGoogle}}
 {{#direct}}
 VOTRE PROCHAIN SÉJOUR
@@ -385,7 +424,7 @@ We hope you had a wonderful stay at Coliving Henri Barbusse and that you got hom
 It was a pleasure welcoming you and your group to Le Mans.
 
 SHARE YOUR EXPERIENCE
-If you enjoyed your stay, a review on the platform where you booked only takes a minute and means a lot to us. You can also leave one on Google:
+{{^direct}}Your feedback, whatever it is, helps us. On the platform where you booked, a review only takes a minute. You can also leave one on Google:{{/direct}}{{#direct}}Your feedback, whatever it is, helps us, and a review on Google only takes a minute:{{/direct}}
 {{avisGoogle}}
 {{#direct}}
 YOUR NEXT STAY
@@ -402,7 +441,7 @@ wir hoffen, Sie hatten einen wunderbaren Aufenthalt im Coliving Henri Barbusse u
 Es war uns eine Freude, Sie und Ihre Gruppe in Le Mans zu empfangen.
 
 TEILEN SIE IHRE ERFAHRUNG
-Wenn Ihnen Ihr Aufenthalt gefallen hat: Eine Bewertung auf der Plattform, auf der Sie gebucht haben, dauert nur eine Minute und bedeutet uns viel. Sie können auch eine auf Google hinterlassen:
+{{^direct}}Ihre Meinung, wie auch immer sie ausfällt, hilft uns. Auf der Plattform, auf der Sie gebucht haben, dauert eine Bewertung nur eine Minute. Sie können auch eine auf Google hinterlassen:{{/direct}}{{#direct}}Ihre Meinung, wie auch immer sie ausfällt, hilft uns – eine Bewertung auf Google dauert nur eine Minute:{{/direct}}
 {{avisGoogle}}
 {{#direct}}
 IHR NÄCHSTER AUFENTHALT
@@ -419,7 +458,7 @@ Esperamos que hayas pasado una estancia estupenda en el Coliving Henri Barbusse 
 Fue un placer recibirte a ti y a tu grupo en Le Mans.
 
 COMPARTE TU EXPERIENCIA
-Si te ha gustado la estancia, una opinión en la plataforma donde reservaste solo lleva un minuto y significa mucho para nosotros. También puedes dejar una en Google:
+{{^direct}}Tu opinión, sea cual sea, nos ayuda. En la plataforma donde reservaste, dejarla solo lleva un minuto. También puedes dejar una en Google:{{/direct}}{{#direct}}Tu opinión, sea cual sea, nos ayuda, y dejarla en Google solo lleva un minuto:{{/direct}}
 {{avisGoogle}}
 {{#direct}}
 TU PRÓXIMA ESTANCIA
@@ -436,7 +475,7 @@ speriamo che tu abbia trascorso un soggiorno splendido al Coliving Henri Barbuss
 È stato un piacere accogliere te e il tuo gruppo a Le Mans.
 
 CONDIVIDI LA TUA ESPERIENZA
-Se il soggiorno ti è piaciuto, una recensione sulla piattaforma dove hai prenotato richiede solo un minuto e per noi conta molto. Puoi lasciarne una anche su Google:
+{{^direct}}Il tuo parere, qualunque sia, ci aiuta. Sulla piattaforma dove hai prenotato, lasciare una recensione richiede solo un minuto. Puoi lasciarne una anche su Google:{{/direct}}{{#direct}}Il tuo parere, qualunque sia, ci aiuta, e lasciare una recensione su Google richiede solo un minuto:{{/direct}}
 {{avisGoogle}}
 {{#direct}}
 IL TUO PROSSIMO SOGGIORNO

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   }
   const { killSwitch, modes: m } = modes();
   if (killSwitch) return NextResponse.json({ ok: true, disabled: true });
-  if (!Object.values(m).includes("live")) {
+  if (!Object.values(m).some((x) => x === "live" || x === "test")) {
     // Rien en réel : inutile de dépenser des crédits Beds24, l'écran de suivi calcule le plan lui-même.
     return NextResponse.json({ ok: true, live: 0 });
   }
@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
       ok: !result.aborted && failed.length === 0,
       planned: result.planned,
       sent: result.results.filter((r) => r.outcome === "sent").length,
+      tested: result.results.filter((r) => r.outcome === "tested").length,
       blocked: blocked.length,
       failed: failed.length,
       aborted: result.aborted ?? null,

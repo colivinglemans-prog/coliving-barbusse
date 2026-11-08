@@ -2,17 +2,25 @@ import type { Beds24Booking } from "@sejour/socle/lib/beds24-types";
 import { messagingChannel, realGuestEmail } from "@sejour/socle/lib/guest-messaging/channel-rules";
 import { sendNow, sendPlanned, type DispatchDeps, type DispatchItemResult, type DispatchResult } from "@sejour/socle/lib/guest-messaging/dispatch";
 import { pickGuestLocale } from "@sejour/socle/lib/guest-messaging/language";
-import { ledgerCode, ledgerFromInfoItems, ledgerFromThread, ledgerText } from "@sejour/socle/lib/guest-messaging/ledger";
+import {
+  ledgerCode,
+  ledgerFromInfoItems,
+  ledgerFromThread,
+  ledgerText,
+  testLedgerCode,
+  testLedgerFromInfoItems,
+} from "@sejour/socle/lib/guest-messaging/ledger";
 import {
   buildGuestMessagesReport,
   buildPreview,
+  parseModes,
   type GuestMessagePreview,
   type GuestMessagesReport,
   type TemplateMode,
 } from "@sejour/socle/lib/guest-messaging/overview";
 import type { Vars } from "@sejour/socle/lib/guest-messaging/render";
-import { addDays, planMessages } from "@sejour/socle/lib/guest-messaging/schedule";
-import { createSmtpTransport, smtpConfigFrom } from "@sejour/socle/lib/guest-messaging/smtp";
+import { addDays, planByMode } from "@sejour/socle/lib/guest-messaging/schedule";
+import { createSmtpTransport, smtpConfigFrom, testRecipientFrom } from "@sejour/socle/lib/guest-messaging/smtp";
 import type { MessagingBooking } from "@sejour/socle/lib/guest-messaging/types";
 import { todayParis } from "@sejour/socle/lib/time";
 import { isPinOnLock } from "@/lib/access-sync";
@@ -29,7 +37,8 @@ import {
 } from "@/lib/beds24";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
-import { guideUrl, SITE_URL, type GuideLocale } from "@/lib/site";
+import { aroundUrl, guideUrl, SITE_URL, type GuideLocale } from "@/lib/site";
+import { getWifi } from "@/lib/wifi";
 import { TEMPLATES } from "./templates";
 
 /**
@@ -43,8 +52,11 @@ import { TEMPLATES } from "./templates";
  * - **Arrivée** (chef-de-stand) : le message ne part que si le PIN est dans Beds24 (`NUKI_PIN`)
  *   **et posé sur la serrure** (`isPinOnLock`). Réservation tardive : il part dès que la
  *   synchronisation horaire l'a posé, jusqu'au soir de l'arrivée.
- * - **Modes** : `MESSAGES_MODES` (`arrivee-code:live,depart:shadow,…`), **ombre par défaut** ;
- *   `MESSAGES_KILL_SWITCH=1` coupe tout.
+ * - **Modes** : `MESSAGES_MODES` (`arrivee-code:test,depart:shadow,…`), **ombre par défaut** ;
+ *   `MESSAGES_KILL_SWITCH=1` coupe tout. En `test`, la copie part à `MESSAGES_TEST_TO`, à défaut
+ *   à l'expéditeur SMTP (`contact@coliving-barbusse.fr`), et rien au voyageur.
+ * - **Wi-Fi** : `getWifi()` (variables `WIFI_SSID` / `WIFI_PASSWORD`). Absentes, le message
+ *   d'arrivée est bloqué (`missing:wifiReseau,…`) plutôt que d'annoncer un réseau vide.
  * - **Verrou de passage** : Redis `SET NX` (clé `barbusse:messages:cron:lock`), en plus du
  *   départage du moteur.
  *
@@ -67,14 +79,7 @@ const IDS = TEMPLATES.map((t) => t.id);
 
 /** Modes effectifs. L'interrupteur général donne des modes tous `off` — c'est ce que voit le moteur. */
 export function modes(): { modes: Record<string, TemplateMode>; display: Record<string, TemplateMode>; killSwitch: boolean } {
-  const display: Record<string, TemplateMode> = Object.fromEntries(IDS.map((id) => [id, "shadow" as TemplateMode]));
-  for (const part of (process.env.MESSAGES_MODES ?? "").split(",")) {
-    const [id, mode] = part.split(":").map((x) => x?.trim());
-    if (id && IDS.includes(id) && (mode === "off" || mode === "shadow" || mode === "live")) display[id] = mode;
-  }
-  const killSwitch = process.env.MESSAGES_KILL_SWITCH?.trim() === "1";
-  const effective = killSwitch ? Object.fromEntries(IDS.map((id) => [id, "off" as TemplateMode])) : display;
-  return { modes: effective, display, killSwitch };
+  return parseModes(IDS, process.env.MESSAGES_MODES, process.env.MESSAGES_KILL_SWITCH?.trim() === "1");
 }
 
 type Row = MessagingBooking & { firstName?: string; pin?: string };
@@ -93,6 +98,7 @@ function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[]):
     email: realGuestEmail(b.email),
     infoCodes: (b.infoItems ?? []).map((i) => (i.code ?? "").toUpperCase()),
     ledger: [...ledgerFromInfoItems(b.infoItems, IDS), ...ledgerFromThread(thread, TEMPLATES)],
+    testLedger: testLedgerFromInfoItems(b.infoItems, IDS),
     firstName: b.firstName?.trim() || undefined,
     // Gardé côté serveur pour l'envoi ; jamais dans un DTO (`buildGuestMessagesReport` projette).
     pin: nukiCodeOf(b) ?? undefined,
@@ -123,13 +129,16 @@ function formatPhone(e164: string): string {
 
 /** Valeurs des variables, en clair (PIN compris). Ne sortent que vers Beds24, le SMTP, ou `buildPreview` (masquées). */
 async function variables(b: Row): Promise<Vars> {
+  const wifi = getWifi();
   return {
     prenom: b.firstName,
     code: b.pin,
     guide: guideUrl(b.locale as GuideLocale),
-    wifiReseau: PROPERTY_INFO.wifi.ssid,
-    wifiMotDePasse: PROPERTY_INFO.wifi.password,
+    wifiReseau: wifi?.ssid,
+    wifiMotDePasse: wifi?.password,
     telephone: formatPhone(PROPERTY_INFO.contact.phone),
+    whatsapp: PROPERTY_INFO.contact.whatsapp,
+    autour: aroundUrl(b.locale as GuideLocale),
     avisGoogle: GOOGLE_REVIEW_URL,
     // Réservation directe seulement : on ne propose jamais de réserver en direct par la messagerie
     // d'une plateforme.
@@ -139,6 +148,7 @@ async function variables(b: Row): Promise<Vars> {
 
 function deps(): DispatchDeps {
   const smtp = smtpConfigFrom(process.env);
+  const testTo = testRecipientFrom(process.env);
   return {
     reload,
     variables: (b) => variables(b as Row),
@@ -153,6 +163,9 @@ function deps(): DispatchDeps {
     confirm: (b, t, e) => ecrireRegistre(b.id, ledgerCode(t.id, "sent"), ledgerText({ ...e, version: t.version })),
     platform: envoyerMessagePlateforme,
     email: smtp ? createSmtpTransport({ ...smtp, fromName: smtp.fromName ?? "Coliving Henri Barbusse" }) : null,
+    test: testTo
+      ? { to: testTo, record: (b, t, e) => ecrireRegistre(b.id, testLedgerCode(t.id), ledgerText({ ...e, version: t.version })) }
+      : undefined,
   };
 }
 
@@ -186,7 +199,7 @@ export async function runCron(
   try {
     const rows = await loadRows();
     const { modes: m } = modes();
-    const plan = planMessages(rows, TEMPLATES, now);
+    const plan = planByMode(rows, TEMPLATES, now, m);
     const result = await sendPlanned(plan, TEMPLATES, deps(), { now, cap: CAP, modes: m });
     return {
       ...result,

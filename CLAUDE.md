@@ -670,14 +670,20 @@ Bloc dans la popup de réservation du calendrier — [components/dashboard/Guest
 - « Découvrir Le Mans » est **calculé** (articles `journey` « sur-place ») avec un lien vers `/xx/blog#pendant-le-sejour` ; « Revenir » liste les prochains événements aux dates officielles (`isUpcomingOfficial`), sur un ton informatif, jamais « réservez » (le lien du guide part dans les fils Airbnb / Booking) ; la page se régénère chaque jour (`revalidate`). Aucune page indexée ne renvoie vers le guide (il affiche le Wi-Fi) : le lien va du guide vers le blog, jamais l'inverse.
 - Raccourcis imprimés (QR de la fiche « Pendant votre séjour », `scripts/generate-print-sheets.mjs`) : `/bienvenue` → `/xx/guide-arrivee#sur-place`, `/autour` → `/xx/blog#pendant-le-sejour` (`app/bienvenue`, `app/autour`, `lib/short-links.ts` : 307 selon `Accept-Language`, `Vary`, hors proxy). Changer la destination ne demande pas de réimprimer.
 
-### Messages voyageurs automatiques (depuis le 2026-11-08, socle v3.17.0)
+### Messages voyageurs automatiques (depuis le 2026-11-08, socle v3.18.0)
 
 Les auto-actions Beds24 sont remplacées par des messages écrits **dans ce dépôt** —
 [lib/messages/templates.ts](lib/messages/templates.ts), cinq langues, vouvoiement FR/DE et
 tutoiement IT/ES : arrivée + code (J-5 16h), lendemain de l'arrivée (9h), veille du départ (17h),
 avis (lendemain du départ 10h). Textes reconstitués à partir des fils le 2026-11-08 (aucun n'était
 sauvegardé) ; le « bien installé » partait en français à tout le monde. **La confirmation de
-réservation reste dans Beds24** (décision de l'hôte). Moteur : section v3.17.0 du CLAUDE.md du socle.
+réservation reste dans Beds24** (décision de l'hôte). Moteur : section v3.18.0 du CLAUDE.md du socle.
+Le message « Tout se passe bien à la maison ? » (J+1 10h) proposé au Lot 4 dans
+[docs/auto-actions-beds24.md](docs/auto-actions-beds24.md) est **fondu dans le lendemain de
+l'arrivée** (texte apprécié gardé, lien « autour de la maison » ajouté) — ne pas le créer dans
+Beds24 en plus ; s'il l'a été, son empreinte est reconnue. Sa ligne « remarque, suggestion » est
+dans la veille du départ ; la ligne « la plateforme vous proposera un commentaire » ne l'est pas :
+l'avis du lendemain le fait déjà.
 
 - **Faire évoluer un texte** : modifier le français, reporter dans les quatre langues, incrémenter
   `version`. [tests/messages.test.ts](tests/messages.test.ts) bloque toute incohérence, vérifie que
@@ -685,15 +691,26 @@ réservation reste dans Beds24** (décision de l'hôte). Moteur : section v3.17.
   sont reconnues sans confusion (« wonderful stay » est dans le départ **et** dans l'avis anglais).
 - **Arrivée** : envoyée seulement si `NUKI_PIN` existe **et** que le code est sur la serrure
   (`isPinOnLock`). Réservation tardive : rattrapée jusqu'au soir de l'arrivée.
-- **Avis** : le bloc « réservez en direct » n'apparaît que pour une réservation directe.
+- **Avis** : le bloc « réservez en direct » n'apparaît que pour une réservation directe (Airbnb
+  et Booking.com interdisent d'inciter à réserver hors plateforme dans leur messagerie ; confirmé
+  par l'hôte le 2026-11-08). Jamais « si vous avez aimé » ; la version directe ne parle pas de
+  plateforme.
+- **Dernière minute** (décision de l'hôte du 2026-11-08) : départ à partir de 2 nuits, lendemain de
+  l'arrivée à partir de 3 ; ces deux messages et l'avis sautent si un autre message — ou la
+  confirmation Beds24, à la création — est parti dans les 12 h précédentes (`quietHours`).
+  L'arrivée part toujours.
 - **Canal** : Airbnb, Booking.com, Abritel → messagerie ; direct → e-mail SMTP OVH (`SMTP_*`, non
   posées au 2026-11-08 : une directe est alors « bloquée ») ; HomeToGo et autres → rien, visible.
 - **Registre** : `infoItems` `MSG_*` (jeton d'écriture) + messages de l'hôte reconnus dans les fils
   — l'écran reprend donc tout l'historique des auto-actions. ⚠️ Chaque écriture déclenche le
   webhook Beds24 : deux écritures par envoi (`pending`, `sent`), donc la synchro Nuki repasse deux
   fois par message (inoffensif : son verrou absorbe, le cron horaire rattrape).
-- **Modes** : `MESSAGES_MODES=arrivee-code:live,depart:shadow,…`, **ombre par défaut** ;
-  `MESSAGES_KILL_SWITCH=1` coupe tout. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
+- **Modes** : `MESSAGES_MODES=arrivee-code:test,bien-installe:test,depart:test,avis:test`,
+  **ombre par défaut** ; `MESSAGES_KILL_SWITCH=1` coupe tout. **`test`** (étape voulue par l'hôte
+  avant de remplacer les auto-actions) : au moment où le message partirait, une copie part à
+  `MESSAGES_TEST_TO`, à défaut à `SMTP_FROM` (`contact@coliving-barbusse.fr`), avec un bandeau
+  « COPIE DE TEST » ; rien au voyageur, trace `MSG_<ID>_TEST` jamais lue comme un envoi. Les
+  auto-actions Beds24 continuent pendant ce temps. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
   10 min, verrou Redis `barbusse:messages:cron:lock`, plafond 5 envois par passage, alertes ntfy
   (échec, blocage, orphelin). Pas encore dans `EXPECTED_CRONS` : à ajouter au passage en réel.
 - **Écran** : [/dashboard/messages](app/(dashboard)/dashboard/messages/page.tsx) et le panneau
@@ -709,8 +726,8 @@ réservation reste dans Beds24** (décision de l'hôte). Moteur : section v3.17.
 - **Changement de dates** : le code est renvoyé (`onAnchorChange: "resend"`) ; `isPinOnLock` vérifie
   le code, pas encore sa plage horaire — le message peut précéder de moins d'une heure le recalage
   par la synchro.
-- ⚠️ Le Wi-Fi est lu dans `PROPERTY_INFO.wifi`, **en clair dans le dépôt public** (remarque de
-  chef-de-stand) : à passer en variable d'environnement et à changer sur la box.
+- **Wi-Fi** : `getWifi()` ([lib/wifi.ts](lib/wifi.ts), `WIFI_SSID` / `WIFI_PASSWORD`). Absentes,
+  le message d'arrivée est bloqué (`missing:wifiReseau,…`) au lieu d'annoncer un réseau vide.
 
 ### Envoi des messages arrivée / départ depuis le calendrier
 

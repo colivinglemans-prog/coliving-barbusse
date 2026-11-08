@@ -18,6 +18,8 @@ const VARS = {
   wifiMotDePasse: "motdepasse",
   telephone: "+33 0 00 00 00 00",
   avisGoogle: "https://exemple.fr/avis",
+  whatsapp: "https://wa.me/0",
+  autour: "https://exemple.fr/blog#pendant-le-sejour",
 };
 
 describe("messages voyageurs de Barbusse", () => {
@@ -80,5 +82,24 @@ describe("messages voyageurs de Barbusse", () => {
       const text = buildGuestMessage(locale, { firstName: "Test", url: "https://exemple.fr", code: "0000" });
       expect(ledgerFromThread([{ source: "host", time: "2026-11-01T10:00:00Z", message: text }], TEMPLATES).map((e) => e.templateId), locale).toEqual(["arrivee-code"]);
     }
+  });
+
+  it("avis : jamais « si vous avez aimé », et la version directe ne parle pas de plateforme", () => {
+    const avis = TEMPLATES.find((t) => t.id === "avis")!;
+    for (const locale of LOCALES) {
+      const platform = renderMessage(avis, { channel: "Airbnb", locale }, VARS).text;
+      const direct = renderMessage(avis, { channel: "Direct", locale }, { ...VARS, direct: "https://exemple.fr" }).text;
+      expect(platform, locale).not.toMatch(/vous a plu|you enjoyed|gefallen hat|te ha gustado|ti è piaciuto/i);
+      expect(direct, locale).not.toMatch(/plateforme|platform|plataforma|piattaforma/i);
+    }
+  });
+
+  it("dernière minute : départ à partir de 2 nuits, lendemain de l'arrivée à partir de 3, messages de confort", () => {
+    const by = (id: string) => TEMPLATES.find((t) => t.id === id)!;
+    expect(by("depart").conditions).toMatchObject({ minNights: 2, quietHours: 12 });
+    expect(by("bien-installe").conditions).toMatchObject({ minNights: 3, quietHours: 12 });
+    expect(by("avis").conditions).toMatchObject({ quietHours: 12 });
+    // L'arrivée porte le code : elle part toujours.
+    expect(by("arrivee-code").conditions?.quietHours).toBeUndefined();
   });
 });
