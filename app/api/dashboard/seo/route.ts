@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
   const refus = await guard.denyNonAdmin(request);
   if (refus) return refus;
 
-  const siteUrl = process.env.GSC_SITE_URL;
+  // `trim` : une valeur collée dans Vercel garde parfois son retour à la ligne final.
+  const siteUrl = process.env.GSC_SITE_URL?.trim();
   let credentials: ServiceAccountCredentials;
   try {
     credentials = parseServiceAccount(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
