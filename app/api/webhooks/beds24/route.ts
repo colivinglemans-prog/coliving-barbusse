@@ -99,3 +99,9 @@ async function messagingPass(): Promise<unknown> {
     return { ok: false };
   }
 }
+
+/**
+ * Beds24 envoie le webhook en **GET** quand « Additional Data » vaut None (doc Beds24, PROPERTIES
+ * -> ACCESS) : même traitement que POST, le corps n'étant jamais lu.
+ */
+export const GET = POST;
