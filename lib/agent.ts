@@ -42,7 +42,7 @@ const LINE_LABELS: Record<
     nights: (n) => `${n > 1 ? `${n} Nächte` : "1 Nacht"}, inkl. 7 % Direktbuchungsrabatt`,
     cleaning: "Endreinigung",
     linen: (g) => `Bettwäsche und Handtücher (${g} Pers.)`,
-    tax: (a) => `Kurtaxe (${a} Erwachsene; Minderjährige befreit)`,
+    tax: (a) => `Kurtaxe (${a} ${a > 1 ? "Erwachsene" : "Erwachsener"}; Minderjährige befreit)`,
   },
   es: {
     nights: (n) => `${n} noche${n > 1 ? "s" : ""}, descuento directo del 7 % incluido`,
