@@ -16,7 +16,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
     "@react-pdf/renderer": "^4.5.1",
-    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#e2fa7e1bdf00c7ebb6c43f7baca914c3c0a3347e",
+    "@sejour/socle": "github:colivinglemans-prog/sejour-socle#b439adfe779e479410b05337c2eded2eb3e60359",
     "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.8.2",
