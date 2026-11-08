@@ -6,9 +6,9 @@ import { isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 
 const DESCRIPTIONS: Record<Locale, string> = {
-  fr: "Conseils et guides pratiques pour séjourner au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.",
-  en: "Practical guides and tips for your stay in Le Mans: 24 Hours of Le Mans, MotoGP, Le Mans Classic, Sarthe tourism.",
-  it: "Consigli e guide pratiche per soggiornare a Le Mans: 24 Ore di Le Mans, MotoGP, Le Mans Classic, turismo nella Sarthe.",
+  fr: "Conseils et guides pratiques pour séjourner en groupe au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.",
+  en: "Practical guides and tips for a group stay in Le Mans: 24 Hours of Le Mans, MotoGP, Le Mans Classic and tourism in the Sarthe.",
+  it: "Consigli e guide pratiche per soggiornare in gruppo a Le Mans: 24 Ore di Le Mans, MotoGP, Le Mans Classic, turismo nella Sarthe.",
   de: "Praktische Guides und Tipps für Ihren Aufenthalt in Le Mans: 24 Stunden von Le Mans, MotoGP, Le Mans Classic, Tourismus in der Sarthe.",
   es: "Consejos y guías prácticas para tu estancia en Le Mans: 24 Horas de Le Mans, MotoGP, Le Mans Classic, turismo en la Sarthe.",
 };

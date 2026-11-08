@@ -6,7 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { I18nProvider, isLocale, LOCALES } from "@/lib/i18n";
-import { openGraphLocales } from "@/lib/seo";
+import { HOME_DESCRIPTIONS, HOME_TITLES, openGraphLocales } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
@@ -19,11 +19,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-const TITLE =
-  "Coliving Barbusse - Maison premium 9 suites privatives Le Mans Proche circuit";
-const DESCRIPTION =
-  "Maison de 215 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV. Idéal groupes, événements et séjours d'entreprise. Jusqu'à 20 personnes.";
 
 /**
  * `generateMetadata` et non un `metadata` constant, pour une seule raison : `og:locale`.
@@ -41,7 +36,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const og = openGraphLocales(isLocale(locale) ? locale : "fr");
+  const lang = isLocale(locale) ? locale : "fr";
+  const og = openGraphLocales(lang);
+  const TITLE = HOME_TITLES[lang];
+  const DESCRIPTION = HOME_DESCRIPTIONS[lang];
   return {
     title: TITLE,
     description: DESCRIPTION,

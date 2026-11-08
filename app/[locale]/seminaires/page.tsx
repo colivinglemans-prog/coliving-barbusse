@@ -30,8 +30,8 @@ type Lang = Locale;
  */
 const T: Record<Lang, Record<string, string>> = {
   fr: {
-    titleTag: "Séminaire d'entreprise au Mans — 10 à 20 personnes | Coliving Barbusse",
-    desc: "Séminaire de 10 à 20 personnes au Mans dans une maison entière : 9 personnes sans partager leur chambre ni leur salle de douche privative, 11 couchages sans partager de lit, grande table de 16 places (20 avec la véranda), écran HDMI. À 10 min à pied de la gare TGV, Paris en 55 min.",
+    titleTag: "Séminaire au Mans — 10 à 20 personnes | Coliving Barbusse",
+    desc: "Séminaire de 10 à 20 personnes au Mans dans une maison entière : 9 chambres avec douche privative, table de 16 places, à 10 min à pied de la gare TGV.",
     heroKicker: "Séjours d'entreprise",
     heroTitle: "Votre séminaire au Mans, de 10 à 20 personnes",
     heroSub: "Une maison entière plutôt que dix chambres d'hôtel : 9 personnes sans partager leur chambre ni leur salle de douche privative, 11 couchages sans partager de lit, 16 places assises autour d'une grande table — 20 avec la véranda. Gare TGV à 10 min à pied : Paris en 55 min, Nantes en 1 h 10 à 1 h 20. Seule la maison entière se loue.",
@@ -90,8 +90,8 @@ const T: Record<Lang, Record<string, string>> = {
     guideLink: "Lire le guide détaillé",
   },
   en: {
-    titleTag: "Corporate seminar in Le Mans — 10 to 20 people | Coliving Barbusse",
-    desc: "Seminar for 10 to 20 people in Le Mans in a whole house: 9 people without sharing their bedroom or en-suite shower room, 11 guests without sharing a bed, a 16-seat table (20 with the veranda), HDMI screen. 10 min on foot from the TGV station, Paris in 55 min.",
+    titleTag: "Team seminar in Le Mans — 10 to 20 people | Coliving Barbusse",
+    desc: "Seminar for 10 to 20 people in Le Mans in a whole house: 9 bedrooms with en-suite shower room, 16-seat table, 10 min on foot from the TGV station.",
     heroKicker: "Corporate retreats",
     heroTitle: "Your seminar in Le Mans, for 10 to 20 people",
     heroSub: "A whole house rather than ten hotel rooms: 9 people without sharing their bedroom or en-suite shower room, 11 guests without sharing a bed, 16 seats around one big table — 20 with the veranda. TGV station 10 min on foot: Paris in 55 min, Nantes in 1 h 10 to 1 h 20. Only the whole house is rented.",
@@ -151,7 +151,7 @@ const T: Record<Lang, Record<string, string>> = {
   },
   it: {
     titleTag: "Seminario aziendale a Le Mans — 10-20 persone | Coliving Barbusse",
-    desc: "Seminario per 10-20 persone a Le Mans in una casa intera: 9 persone senza condividere camera né doccia privata, 11 posti letto senza condividere il letto, grande tavolo da 16 posti (20 con la veranda), schermo HDMI. A 10 min a piedi dalla stazione TGV, Parigi in 55 min.",
+    desc: "Seminario per 10-20 persone a Le Mans in una casa intera: 9 camere con doccia privata, tavolo da 16 posti, a 10 min a piedi dalla stazione TGV.",
     heroKicker: "Soggiorni aziendali",
     heroTitle: "Il tuo seminario a Le Mans, da 10 a 20 persone",
     heroSub: "Una casa intera invece di dieci camere d'albergo: 9 persone senza condividere camera né doccia privata, 11 senza condividere il letto, 16 posti a sedere attorno a un grande tavolo — 20 con la veranda. Stazione TGV a 10 min a piedi: Parigi in 55 min, Nantes in 1 h 10 - 1 h 20. Si affitta solo la casa intera.",
@@ -211,7 +211,7 @@ const T: Record<Lang, Record<string, string>> = {
   },
   de: {
     titleTag: "Firmenseminar in Le Mans — 10 bis 20 Personen | Coliving Barbusse",
-    desc: "Seminar für 10 bis 20 Personen in Le Mans in einem ganzen Haus: 9 Personen ohne geteiltes Zimmer und mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, großer Tisch mit 16 Plätzen (20 mit der Veranda), HDMI-Bildschirm. 10 Min. zu Fuß vom TGV-Bahnhof, Paris in 55 Min.",
+    desc: "Seminar für 10 bis 20 Personen in Le Mans im ganzen Haus: 9 Zimmer mit eigenem Duschbad, Tisch für 16, 10 Min. zu Fuß vom TGV-Bahnhof.",
     heroKicker: "Firmenaufenthalte",
     heroTitle: "Ihr Seminar in Le Mans, für 10 bis 20 Personen",
     heroSub: "Ein ganzes Haus statt zehn Hotelzimmer: 9 Personen ohne geteiltes Zimmer und mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, 16 Sitzplätze an einem großen Tisch — 20 mit der Veranda. TGV-Bahnhof 10 Min. zu Fuß: Paris in 55 Min., Nantes in 1 Std. 10 bis 1 Std. 20. Vermietet wird nur das ganze Haus.",
@@ -270,8 +270,8 @@ const T: Record<Lang, Record<string, string>> = {
     guideLink: "Den detaillierten Guide lesen",
   },
   es: {
-    titleTag: "Seminario de empresa en Le Mans — 10 a 20 personas | Coliving Barbusse",
-    desc: "Seminario para 10 a 20 personas en Le Mans en una casa entera: 9 personas sin compartir habitación ni ducha privada, 11 plazas sin compartir cama, gran mesa de 16 plazas (20 con la veranda), pantalla HDMI. A 10 min a pie de la estación TGV, París en 55 min.",
+    titleTag: "Seminario en Le Mans — 10 a 20 personas | Coliving Barbusse",
+    desc: "Seminario para 10 a 20 personas en Le Mans en una casa entera: 9 habitaciones con ducha privada, mesa de 16 plazas, a 10 min a pie de la estación TGV.",
     heroKicker: "Estancias de empresa",
     heroTitle: "Tu seminario en Le Mans, de 10 a 20 personas",
     heroSub: "Una casa entera en lugar de diez habitaciones de hotel: 9 personas sin compartir habitación ni ducha privada, 11 sin compartir cama, 16 plazas sentadas en torno a una gran mesa — 20 con la veranda. Estación TGV a 10 min a pie: París en 55 min, Nantes en 1 h 10 a 1 h 20. Solo se alquila la casa entera.",

@@ -13,6 +13,8 @@ import { alternatesFor, conditionsPath } from "@/lib/seo";
 interface Content {
   title: string;
   intro: string;
+  /** Meta description, quand l'intro sort des 120-155 caractères recommandés par Bing. */
+  metaDesc?: string;
   sections: { title: string; items: string[] }[];
 }
 
@@ -31,6 +33,7 @@ function content(locale: Locale): Content {
       return {
         title: "Booking conditions",
         intro: "These conditions apply to direct bookings made on this website. The cancellation policy is the same as on Airbnb.",
+        metaDesc: "These conditions apply to direct bookings of the whole house in Le Mans made on this website. The cancellation policy is the same as on Airbnb.",
         sections: [
           { title: "Payment", items: [
             `Online booking: ${upfront}% paid at booking, by card, on the secure Beds24 payment page. Tourist tax included.`,
@@ -161,7 +164,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale: raw } = await params;
   const locale = asLocale(raw);
   const c = content(locale);
-  return { title: `${c.title} — Coliving Barbusse`, description: c.intro, alternates: alternatesFor(locale, conditionsPath) };
+  return { title: `${c.title} — Coliving Barbusse`, description: c.metaDesc ?? c.intro, alternates: alternatesFor(locale, conditionsPath) };
 }
 
 export default async function ConditionsPage({ params }: { params: Promise<{ locale: string }> }) {
