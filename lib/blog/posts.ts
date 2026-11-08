@@ -143,7 +143,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "fetes-fin-annee-le-mans",
     journey: ["groupe"],
     date: "2026-11-06",
-    image: "/images/blog/reunion-famille-le-mans.jpg",
+    image: "/images/blog/fetes-fin-annee-le-mans.jpg",
     familyDates: true,
     locales: {
       fr: {
