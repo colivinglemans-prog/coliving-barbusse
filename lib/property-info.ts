@@ -35,6 +35,8 @@ export const PROPERTY_INFO = {
     whatsapp: "https://wa.me/33620921005",
     email: "contact@coliving-barbusse.fr",
   },
+  /** Coordonnées du 42 rue Henri Barbusse (OpenStreetMap, identiques au lien Waze), lues par le JSON-LD. */
+  geo: { latitude: 47.9881, longitude: 0.1924 },
   googleMaps: {
     shortlink: "https://maps.app.goo.gl/k141gZkCRKuv3Sai7",
   },

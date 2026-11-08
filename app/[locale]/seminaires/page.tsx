@@ -401,7 +401,7 @@ export default async function Seminaires({
         postalCode: PROPERTY_INFO.address.postalCode,
         addressCountry: "FR",
       },
-      geo: { "@type": "GeoCoordinates", latitude: 47.9842, longitude: 0.1976 },
+      geo: { "@type": "GeoCoordinates", ...PROPERTY_INFO.geo },
       numberOfRooms: PROPERTY_INFO.bedrooms,
       maximumAttendeeCapacity: PROPERTY_INFO.maxGuests,
       amenityFeature: [

@@ -86,8 +86,8 @@ export default async function Home({
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: 47.9842,
-      longitude: 0.1976,
+      latitude: PROPERTY_INFO.geo.latitude,
+      longitude: PROPERTY_INFO.geo.longitude,
     },
     numberOfRooms: PROPERTY_INFO.bedrooms,
     amenityFeature: [
