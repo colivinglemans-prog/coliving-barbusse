@@ -37,6 +37,186 @@ import type { MessageTemplate } from "@sejour/socle/lib/guest-messaging/types";
  * avez aimé », jamais « 5 étoiles », aucune contrepartie.
  */
 
+/**
+ * Confirmation de réservation — **en mode test seulement** (2026-11-08) : la vraie confirmation
+ * reste dans Beds24 (tableau de facture, lien de paiement des directes). Celle-ci reprend les
+ * faits de l'auto-action Beds24 relevée dans les fils, corrigée : départ **avant 11h** (Beds24
+ * disait 10h, contre le site et `llms.txt`). Ni code ni guide d'arrivée ici (règle du Lot 4 : le
+ * guide affiche le Wi-Fi, le code part avec l'arrivée).
+ */
+const confirmation: MessageTemplate = {
+  id: "confirmation",
+  label: "Confirmation de réservation",
+  version: 1,
+  trigger: { anchor: "booked", delayMinutes: 0 },
+  late: { mode: "skip", graceHours: 24 },
+  onAnchorChange: "ignore",
+  variables: ["arrivee", "depart", "nuits", "adultes", "adresse", "autour", "evenements", "whatsapp"],
+  optionalVariables: ["prenom", "enfants"],
+  previewVisible: ["prenom", "arrivee", "depart", "nuits", "adultes", "enfants", "adresse", "autour", "evenements", "whatsapp"],
+  subject: {
+    fr: "Votre réservation au Coliving Henri Barbusse est confirmée",
+    en: "Your booking at Coliving Henri Barbusse is confirmed",
+    de: "Ihre Buchung im Coliving Henri Barbusse ist bestätigt",
+    es: "Tu reserva en el Coliving Henri Barbusse está confirmada",
+    it: "La tua prenotazione al Coliving Henri Barbusse è confermata",
+  },
+  body: {
+    fr: `Bonjour{{#prenom}} {{prenom}}{{/prenom}},
+
+Merci pour votre réservation au Coliving Henri Barbusse, au Mans ! Votre séjour est confirmé :
+
+Arrivée : {{arrivee}}, à partir de 17h
+Départ : {{depart}}, avant 11h
+Nuits : {{nuits}}
+Adultes : {{adultes}}{{#enfants}}
+Enfants : {{enfants}}{{/enfants}}
+
+CE QUI EST INCLUS
+- le ménage de fin de séjour
+- les draps et les serviettes
+- la cuisine équipée, à votre disposition (pas de petit-déjeuner)
+
+VOTRE ARRIVÉE
+L'arrivée est autonome, grâce à la serrure connectée. Vous recevrez votre code personnel et le guide d'arrivée avant votre séjour.
+Une chose à nous dire : votre heure d'arrivée approximative, en répondant simplement à ce message.
+
+PRÉPARER VOTRE SÉJOUR
+Nos adresses pour tout le groupe (restos, courses, visites) :
+{{autour}}
+Vous venez pour un événement du circuit ? Dates, accès, conseils :
+{{evenements}}
+
+Adresse : {{adresse}}
+Une question ? Répondez à ce message, ou écrivez-nous sur WhatsApp : {{whatsapp}}
+
+À très bientôt,
+Alexandre`,
+    en: `Hello{{#prenom}} {{prenom}}{{/prenom}},
+
+Thank you for booking Coliving Henri Barbusse in Le Mans! Your stay is confirmed:
+
+Arrival: {{arrivee}}, from 5 pm
+Departure: {{depart}}, before 11 am
+Nights: {{nuits}}
+Adults: {{adultes}}{{#enfants}}
+Children: {{enfants}}{{/enfants}}
+
+INCLUDED IN YOUR STAY
+- end-of-stay cleaning
+- bed linen and towels
+- the fully equipped kitchen (breakfast is not provided)
+
+YOUR ARRIVAL
+Check-in is self-service, with a connected lock. You will receive your personal code and the arrival guide before your stay.
+One thing to tell us: your approximate arrival time — just reply to this message.
+
+PLANNING YOUR STAY
+Our tips for the whole group (restaurants, shops, sights):
+{{autour}}
+Coming for an event at the circuit? Dates, access, tips:
+{{evenements}}
+
+Address: {{adresse}}
+Any question? Reply to this message, or message us on WhatsApp: {{whatsapp}}
+
+See you soon,
+Alexandre`,
+    de: `Hallo{{#prenom}} {{prenom}}{{/prenom}},
+
+vielen Dank für Ihre Buchung im Coliving Henri Barbusse in Le Mans! Ihr Aufenthalt ist bestätigt:
+
+Ankunft: {{arrivee}}, ab 17 Uhr
+Abreise: {{depart}}, bis 11 Uhr
+Nächte: {{nuits}}
+Erwachsene: {{adultes}}{{#enfants}}
+Kinder: {{enfants}}{{/enfants}}
+
+IM AUFENTHALT INBEGRIFFEN
+- die Endreinigung
+- Bettwäsche und Handtücher
+- die voll ausgestattete Küche (kein Frühstück)
+
+IHRE ANKUNFT
+Die Anreise erfolgt selbstständig, mit einem elektronischen Türschloss. Ihren persönlichen Code und den Ankunftsguide erhalten Sie vor Ihrem Aufenthalt.
+Eine Bitte: Teilen Sie uns Ihre ungefähre Ankunftszeit mit, indem Sie einfach auf diese Nachricht antworten.
+
+IHREN AUFENTHALT PLANEN
+Unsere Tipps für die ganze Gruppe (Restaurants, Einkäufe, Ausflüge):
+{{autour}}
+Sie kommen zu einer Veranstaltung an der Rennstrecke? Termine, Anfahrt, Tipps:
+{{evenements}}
+
+Adresse: {{adresse}}
+Eine Frage? Antworten Sie auf diese Nachricht oder schreiben Sie uns auf WhatsApp: {{whatsapp}}
+
+Bis bald,
+Alexandre`,
+    es: `Hola{{#prenom}} {{prenom}}{{/prenom}},
+
+¡Gracias por tu reserva en el Coliving Henri Barbusse, en Le Mans! Tu estancia está confirmada:
+
+Llegada: {{arrivee}}, a partir de las 17:00
+Salida: {{depart}}, antes de las 11:00
+Noches: {{nuits}}
+Adultos: {{adultes}}{{#enfants}}
+Niños: {{enfants}}{{/enfants}}
+
+INCLUIDO EN TU ESTANCIA
+- la limpieza final
+- sábanas y toallas
+- la cocina equipada, a tu disposición (no incluye desayuno)
+
+TU LLEGADA
+La llegada es autónoma, con cerradura conectada. Recibirás tu código personal y la guía de llegada antes de tu estancia.
+Solo una cosa: dinos tu hora aproximada de llegada respondiendo a este mensaje.
+
+PREPARA TU ESTANCIA
+Nuestras direcciones para todo el grupo (restaurantes, compras, visitas):
+{{autour}}
+¿Vienes para un evento del circuito? Fechas, acceso, consejos:
+{{evenements}}
+
+Dirección: {{adresse}}
+¿Alguna pregunta? Responde a este mensaje o escríbenos por WhatsApp: {{whatsapp}}
+
+¡Hasta pronto!
+Alexandre`,
+    it: `Ciao{{#prenom}} {{prenom}}{{/prenom}},
+
+grazie per la tua prenotazione al Coliving Henri Barbusse, a Le Mans! Il tuo soggiorno è confermato:
+
+Arrivo: {{arrivee}}, dalle 17:00
+Partenza: {{depart}}, entro le 11:00
+Notti: {{nuits}}
+Adulti: {{adultes}}{{#enfants}}
+Bambini: {{enfants}}{{/enfants}}
+
+INCLUSO NEL SOGGIORNO
+- le pulizie finali
+- lenzuola e asciugamani
+- la cucina attrezzata, a tua disposizione (colazione non inclusa)
+
+IL TUO ARRIVO
+L'arrivo è autonomo, con serratura connessa. Riceverai il tuo codice personale e la guida all'arrivo prima del soggiorno.
+Solo una cosa: facci sapere l'orario approssimativo di arrivo rispondendo a questo messaggio.
+
+PREPARA IL SOGGIORNO
+I nostri indirizzi per tutto il gruppo (ristoranti, spesa, visite):
+{{autour}}
+Vieni per un evento del circuito? Date, accesso, consigli:
+{{evenements}}
+
+Indirizzo: {{adresse}}
+Domande? Rispondi a questo messaggio o scrivici su WhatsApp: {{whatsapp}}
+
+A presto,
+Alexandre`,
+  },
+  // L'auto-action Beds24 (« Merci pour votre reservation au Coliving… ») et la nôtre.
+  fingerprints: ["merci pour votre reservation au coliving", "thank you for booking coliving henri barbusse"],
+};
+
 const arrivee: MessageTemplate = {
   id: "arrivee-code",
   label: "Arrivée + code de la porte",
@@ -494,4 +674,4 @@ Alexandre
   ],
 };
 
-export const TEMPLATES: readonly MessageTemplate[] = [arrivee, installe, depart, avis];
+export const TEMPLATES: readonly MessageTemplate[] = [confirmation, arrivee, installe, depart, avis];

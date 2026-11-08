@@ -691,6 +691,11 @@ l'avis du lendemain le fait déjà.
   sont reconnues sans confusion (« wonderful stay » est dans le départ **et** dans l'avis anglais).
 - **Arrivée** : envoyée seulement si `NUKI_PIN` existe **et** que le code est sur la serrure
   (`isPinOnLock`). Réservation tardive : rattrapée jusqu'au soir de l'arrivée.
+- **Confirmation** (`confirmation`, à la réservation) : **en mode test seulement** depuis le
+  2026-11-08 — la vraie reste l'auto-action Beds24 (facture, lien de paiement). Elle corrige le
+  départ de Beds24 (« avant 10h00 », faux : **11h**). Le webhook Beds24
+  ([app/api/webhooks/beds24/route.ts](app/api/webhooks/beds24/route.ts)) lance un passage de la
+  messagerie après la synchro Nuki : la copie part dans la minute, le cron de 10 min rattrape.
 - **Avis** : le bloc « réservez en direct » n'apparaît que pour une réservation directe (Airbnb
   et Booking.com interdisent d'inciter à réserver hors plateforme dans leur messagerie ; confirmé
   par l'hôte le 2026-11-08). Jamais « si vous avez aimé » ; la version directe ne parle pas de

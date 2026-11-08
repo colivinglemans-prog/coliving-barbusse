@@ -20,6 +20,12 @@ const VARS = {
   avisGoogle: "https://exemple.fr/avis",
   whatsapp: "https://wa.me/0",
   autour: "https://exemple.fr/blog#pendant-le-sejour",
+  evenements: "https://exemple.fr/blog#evenements",
+  adresse: "Rue Exemple, Ville",
+  arrivee: "jeudi 10 décembre",
+  depart: "dimanche 13 décembre",
+  nuits: "3",
+  adultes: "12",
 };
 
 describe("messages voyageurs de Barbusse", () => {

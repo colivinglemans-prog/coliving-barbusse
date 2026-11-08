@@ -19,7 +19,7 @@ import {
   type TemplateMode,
 } from "@sejour/socle/lib/guest-messaging/overview";
 import type { Vars } from "@sejour/socle/lib/guest-messaging/render";
-import { addDays, planByMode } from "@sejour/socle/lib/guest-messaging/schedule";
+import { addDays, nightsOf, planByMode } from "@sejour/socle/lib/guest-messaging/schedule";
 import { createSmtpTransport, smtpConfigFrom, testRecipientFrom } from "@sejour/socle/lib/guest-messaging/smtp";
 import type { MessagingBooking } from "@sejour/socle/lib/guest-messaging/types";
 import { todayParis } from "@sejour/socle/lib/time";
@@ -82,7 +82,7 @@ export function modes(): { modes: Record<string, TemplateMode>; display: Record<
   return parseModes(IDS, process.env.MESSAGES_MODES, process.env.MESSAGES_KILL_SWITCH?.trim() === "1");
 }
 
-type Row = MessagingBooking & { firstName?: string; pin?: string };
+type Row = MessagingBooking & { firstName?: string; pin?: string; adults?: number; children?: number };
 
 function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[]): Row {
   const { locale, source } = pickGuestLocale({ lang: b.lang, country: b.country });
@@ -100,6 +100,8 @@ function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[]):
     ledger: [...ledgerFromInfoItems(b.infoItems, IDS), ...ledgerFromThread(thread, TEMPLATES)],
     testLedger: testLedgerFromInfoItems(b.infoItems, IDS),
     firstName: b.firstName?.trim() || undefined,
+    adults: b.numAdult,
+    children: b.numChild,
     // Gardé côté serveur pour l'envoi ; jamais dans un DTO (`buildGuestMessagesReport` projette).
     pin: nukiCodeOf(b) ?? undefined,
   };
@@ -121,6 +123,21 @@ async function reload(id: number): Promise<Row | null> {
   return b ? toMessagingBooking(b, thread) : null;
 }
 
+/** Dates, nuits et voyageurs de la confirmation, dans la langue du voyageur. */
+function stayVars(b: Row): Vars {
+  const fmt = (day: string) =>
+    new Intl.DateTimeFormat(b.locale, { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+      new Date(`${day}T00:00:00Z`),
+    );
+  return {
+    arrivee: fmt(b.arrival),
+    depart: fmt(b.departure),
+    nuits: String(nightsOf(b)),
+    adultes: b.adults ? String(b.adults) : undefined,
+    enfants: b.children ? String(b.children) : undefined,
+  };
+}
+
 /** « +33620921005 » → « +33 6 20 92 10 05 ». */
 function formatPhone(e164: string): string {
   const m = /^\+33(\d)(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(e164);
@@ -139,6 +156,9 @@ async function variables(b: Row): Promise<Vars> {
     telephone: formatPhone(PROPERTY_INFO.contact.phone),
     whatsapp: PROPERTY_INFO.contact.whatsapp,
     autour: aroundUrl(b.locale as GuideLocale),
+    evenements: `${SITE_URL}/${b.locale}/blog#evenements`,
+    adresse: PROPERTY_INFO.address.full,
+    ...stayVars(b),
     avisGoogle: GOOGLE_REVIEW_URL,
     // Réservation directe seulement : on ne propose jamais de réserver en direct par la messagerie
     // d'une plateforme.
