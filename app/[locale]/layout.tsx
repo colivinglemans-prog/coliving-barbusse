@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Header from "@/components/Header";
+import MobileBookBar from "@/components/public/MobileBookBar";
 import Footer from "@/components/Footer";
 import { I18nProvider, isLocale, LOCALES } from "@/lib/i18n";
 import { DEFAULT_OG_IMAGE, HOME_DESCRIPTIONS, HOME_TITLES, openGraphLocales } from "@/lib/seo";
@@ -134,6 +135,7 @@ export default async function LocaleLayout({
           <Header />
           <main className="min-h-screen">{children}</main>
           <Footer />
+          <MobileBookBar />
         </I18nProvider>
         <Analytics />
         <SpeedInsights />

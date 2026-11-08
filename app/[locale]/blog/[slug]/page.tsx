@@ -281,6 +281,46 @@ const SUPERSEDED_CTA: Record<Locale, (title: string) => string> = {
   es: (t) => `Leer la próxima edición: ${t} →`,
 };
 
+// Raccourci sous le titre vers le bloc de réservation de l'événement, rendu en fin d'article :
+// 76 % des impressions viennent du mobile, où le bloc arrivait après six sections.
+const JUMP_TO_BOOKING: Record<Locale, string> = {
+  fr: "Disponibilités pour ces dates ↓",
+  en: "Availability for these dates ↓",
+  it: "Disponibilità per queste date ↓",
+  de: "Verfügbarkeit für diese Termine ↓",
+  es: "Disponibilidad para estas fechas ↓",
+};
+
+// Encadré de fin pour les articles sans bloc de réservation (édition passée, article sans
+// événement) : une page qui reçoit du trafic ne doit jamais finir sans chemin vers le calendrier.
+const HOUSE_CTA: Record<Locale, { title: string; text: string; button: string }> = {
+  fr: {
+    title: "Séjourner au Mans en groupe",
+    text: "Une maison entière pour 20 personnes : 9 suites avec salle de bain, 215 m². Réservation en direct, sans commission de plateforme.",
+    button: "Voir les disponibilités",
+  },
+  en: {
+    title: "Staying in Le Mans as a group",
+    text: "A whole house for 20 guests: 9 en-suite bedrooms, 215 m². Book direct, with no platform commission.",
+    button: "Check availability",
+  },
+  it: {
+    title: "Soggiornare a Le Mans in gruppo",
+    text: "Una casa intera per 20 persone: 9 suite con bagno, 215 m². Prenotazione diretta, senza commissioni di piattaforma.",
+    button: "Vedi le disponibilità",
+  },
+  de: {
+    title: "Mit der Gruppe in Le Mans übernachten",
+    text: "Ein ganzes Haus für 20 Personen: 9 Suiten mit eigenem Bad, 215 m². Direktbuchung, ohne Plattformprovision.",
+    button: "Verfügbarkeit ansehen",
+  },
+  es: {
+    title: "Alojarse en Le Mans en grupo",
+    text: "Una casa entera para 20 personas: 9 suites con baño, 215 m². Reserva directa, sin comisión de plataforma.",
+    button: "Ver disponibilidad",
+  },
+};
+
 export function generateStaticParams() {
   const locales: Locale[] = ["fr", "en", "it", "de", "es"];
   return locales.flatMap((locale) =>
@@ -358,6 +398,7 @@ export default async function BlogPost({
   const dateLocale = DATE_LOCALE[locale] ?? "fr-FR";
   const backLabel = BACK_LABEL[locale] ?? BACK_LABEL.fr;
   const isSoldOut = !!post.soldOut;
+  const houseCta = HOUSE_CTA[locale] ?? HOUSE_CTA.fr;
   const nextPost = post.supersededBy ? getPostBySlug(post.supersededBy) : undefined;
 
   // L'événement de l'article, quand il en référence un — par sa clé. Le bloc de
@@ -415,6 +456,14 @@ export default async function BlogPost({
           {loc.title}
         </h1>
         <p className="mt-3 text-lg text-secondary">{loc.description}</p>
+        {linkedEvent && (
+          <a
+            href="#reserver-evenement"
+            className="mt-4 inline-block rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+          >
+            {JUMP_TO_BOOKING[locale] ?? JUMP_TO_BOOKING.fr}
+          </a>
+        )}
       </header>
 
       {isSoldOut && (
@@ -473,9 +522,25 @@ export default async function BlogPost({
         <Content />
       </div>
 
-      {linkedEvent && <EventBookingCTA locale={locale} event={linkedEvent} />}
+      {linkedEvent && (
+        <div id="reserver-evenement" className="scroll-mt-24">
+          <EventBookingCTA locale={locale} event={linkedEvent} />
+        </div>
+      )}
       {post.familyDates && <FamilyDates locale={locale} />}
       {post.events && <EventDates locale={locale} eventKeys={post.events} />}
+      {!linkedEvent && !post.familyDates && !post.events && (
+        <aside className="mt-14 rounded-2xl border border-border bg-light-bg px-6 py-7">
+          <p className="text-lg font-semibold text-foreground">{houseCta.title}</p>
+          <p className="mt-2 text-sm text-secondary">{houseCta.text}</p>
+          <Link
+            href={`/${locale}#disponibilite`}
+            className="mt-5 inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
+          >
+            {houseCta.button}
+          </Link>
+        </aside>
+      )}
     </article>
   );
 }
