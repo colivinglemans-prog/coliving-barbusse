@@ -44,7 +44,7 @@ export const de: Dictionary = {
 
 9 Doppelzimmer, jedes mit eigenem Duschbad — niemand muss das Bad teilen, auch nicht in großen Gruppen!
 
-Hochwertige Bettwäsche, Stauraum und echte Privatsphäre in jedem Zimmer. Jede Suite verfügt über ein Doppelbett mit Stauraum, einen Schreibtisch mit Ethernet-Anschluss, ein eigenes Bad, einen Smart-TV, einen Kleiderbereich und einen individuellen Schlüssel.
+Hochwertige Bettwäsche, Stauraum und echte Privatsphäre in jedem Zimmer. Jede Suite verfügt über ein Doppelbett mit Stauraum, einen Schreibtisch, ein eigenes Bad, einen Smart-TV, schnelles WLAN, einen Kleiderbereich und einen individuellen Schlüssel.
 
 Das Haus erstreckt sich über 3 Etagen mit einem großen Wohnzimmer, einer voll ausgestatteten Wohnküche mit einem großen Tisch für 16 Personen (20, wenn man die Stehtische der Veranda heranrückt), einem 90 m² großen, eingezäunten Garten und einem voll ausgestatteten Fitnessraum mit Zen-Bereich.
 
@@ -67,7 +67,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     title: "Sportbereich",
     subtitle: "Privater Bereich in einem Anbau des Hauses, rund um die Uhr frei zugänglich — ohne Gefahr, jemanden zu wecken.",
     gym: "Fitnessraum",
-    gymDesc: "Fitnessgeräte verfügbar: Crosstrainer, Laufband, Hanteln und Hantelbank.",
+    gymDesc: "Fitnessgeräte verfügbar: Crosstrainer, Hanteln und Hantelbank, Yogamatten zum Dehnen.",
     zen: "Zen-Raum",
     zenDesc: "Ein Erholungsbereich zum Auftanken: Yoga, Meditation und Entspannung.",
   },
@@ -142,7 +142,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
       { name: "Bugatti-Rennstrecke", distance: "4,7 km", detail: "24 Stunden von Le Mans, MotoGP, Le Mans Classic. Erreichbar über Straßenbahn T1" },
       { name: "Gewerbegebiete Süd-Le Mans", distance: "< 10 Min. mit dem Auto", detail: "Technopole Universität, Gewerbezone Süd, Forschungszentren" },
       { name: "Parc Gué de Maulny", distance: "5 Min. zu Fuß", detail: "10 Hektar Grünfläche zum Entspannen" },
-      { name: "Straßenbahn T1", distance: "In der Nähe", detail: "Bedient die Innenstadt, den Bahnhof und die Rennstrecke" },
+      { name: "Straßenbahn T1", distance: "Am Bahnhof, 10 Min. zu Fuß", detail: "Bedient die Innenstadt, den Bahnhof und die Rennstrecke" },
       { name: "Cité Plantagenêt (Altstadt Le Mans)", distance: "15 Min. mit der Straßenbahn", detail: "Historisches mittelalterliches Viertel, Restaurants, Kulturerbe" },
     ],
   },

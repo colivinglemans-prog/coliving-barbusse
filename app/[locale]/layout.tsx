@@ -61,7 +61,6 @@ export async function generateMetadata({
       "MotoGP Le Mans location",
       "Le Mans Classic hébergement",
       "24 Heures Camions Le Mans",
-      "Marathon du Mans logement",
       "Festival de l'Épau hébergement",
       "Circuit des 24 Heures location",
       "Cité Plantagenêt séjour",

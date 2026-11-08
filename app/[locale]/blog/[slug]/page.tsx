@@ -6,6 +6,7 @@ import { LE_MANS_EVENTS } from "@/lib/events";
 import { eventJsonLd, findEventByKey } from "@sejour/socle/lib/events";
 import EventBookingCTA from "@/components/public/EventBookingCTA";
 import FamilyDates from "@/components/public/FamilyDates";
+import EventDates from "@/components/public/EventDates";
 import { alternatesFor, articleJsonLd, blogPostPath, openGraphLocales } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { isLocale } from "@/lib/i18n";
@@ -25,6 +26,55 @@ import type { Locale } from "@/lib/i18n";
 type ContentLoader = () => Promise<{ default: React.ComponentType }>;
 
 const CONTENT: Record<string, Record<Locale, ContentLoader>> = {
+  "concours-salons-le-mans": {
+    fr: () => import("@/lib/blog/content/fr/concours-salons-le-mans"),
+    en: () => import("@/lib/blog/content/en/concours-salons-le-mans"),
+    it: () => import("@/lib/blog/content/it/concours-salons-le-mans"),
+    de: () => import("@/lib/blog/content/de/concours-salons-le-mans"),
+    es: () => import("@/lib/blog/content/es/concours-salons-le-mans"),
+  },
+  "fetes-fin-annee-le-mans": {
+    fr: () => import("@/lib/blog/content/fr/fetes-fin-annee-le-mans"),
+    en: () => import("@/lib/blog/content/en/fetes-fin-annee-le-mans"),
+    it: () => import("@/lib/blog/content/it/fetes-fin-annee-le-mans"),
+    de: () => import("@/lib/blog/content/de/fetes-fin-annee-le-mans"),
+    es: () => import("@/lib/blog/content/es/fetes-fin-annee-le-mans"),
+  },
+  "24-heures-velo-le-mans-2027": {
+    fr: () => import("@/lib/blog/content/fr/24-heures-velo-le-mans-2027"),
+    en: () => import("@/lib/blog/content/en/24-heures-velo-le-mans-2027"),
+    it: () => import("@/lib/blog/content/it/24-heures-velo-le-mans-2027"),
+    de: () => import("@/lib/blog/content/de/24-heures-velo-le-mans-2027"),
+    es: () => import("@/lib/blog/content/es/24-heures-velo-le-mans-2027"),
+  },
+  "concours-equestre-pole-europeen-du-cheval": {
+    fr: () => import("@/lib/blog/content/fr/concours-equestre-pole-europeen-du-cheval"),
+    en: () => import("@/lib/blog/content/en/concours-equestre-pole-europeen-du-cheval"),
+    it: () => import("@/lib/blog/content/it/concours-equestre-pole-europeen-du-cheval"),
+    de: () => import("@/lib/blog/content/de/concours-equestre-pole-europeen-du-cheval"),
+    es: () => import("@/lib/blog/content/es/concours-equestre-pole-europeen-du-cheval"),
+  },
+  "equipe-de-nuit-le-mans": {
+    fr: () => import("@/lib/blog/content/fr/equipe-de-nuit-le-mans"),
+    en: () => import("@/lib/blog/content/en/equipe-de-nuit-le-mans"),
+    it: () => import("@/lib/blog/content/it/equipe-de-nuit-le-mans"),
+    de: () => import("@/lib/blog/content/de/equipe-de-nuit-le-mans"),
+    es: () => import("@/lib/blog/content/es/equipe-de-nuit-le-mans"),
+  },
+  "exposants-ecuries-circuit-le-mans": {
+    fr: () => import("@/lib/blog/content/fr/exposants-ecuries-circuit-le-mans"),
+    en: () => import("@/lib/blog/content/en/exposants-ecuries-circuit-le-mans"),
+    it: () => import("@/lib/blog/content/it/exposants-ecuries-circuit-le-mans"),
+    de: () => import("@/lib/blog/content/de/exposants-ecuries-circuit-le-mans"),
+    es: () => import("@/lib/blog/content/es/exposants-ecuries-circuit-le-mans"),
+  },
+  "equipe-sportive-le-mans": {
+    fr: () => import("@/lib/blog/content/fr/equipe-sportive-le-mans"),
+    en: () => import("@/lib/blog/content/en/equipe-sportive-le-mans"),
+    it: () => import("@/lib/blog/content/it/equipe-sportive-le-mans"),
+    de: () => import("@/lib/blog/content/de/equipe-sportive-le-mans"),
+    es: () => import("@/lib/blog/content/es/equipe-sportive-le-mans"),
+  },
   "reunion-famille-le-mans": {
     fr: () => import("@/lib/blog/content/fr/reunion-famille-le-mans"),
     en: () => import("@/lib/blog/content/en/reunion-famille-le-mans"),
@@ -416,6 +466,7 @@ export default async function BlogPost({
 
       {linkedEvent && <EventBookingCTA locale={locale} event={linkedEvent} />}
       {post.familyDates && <FamilyDates locale={locale} />}
+      {post.events && <EventDates locale={locale} eventKeys={post.events} />}
     </article>
   );
 }

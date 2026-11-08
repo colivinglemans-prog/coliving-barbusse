@@ -44,7 +44,7 @@ export const es: Dictionary = {
 
 9 habitaciones dobles, cada una con su baño privado con ducha — ¡nadie tiene que compartir el baño, ni siquiera en un grupo grande!
 
-Ropa de cama de calidad, almacenamiento y verdadera intimidad en cada habitación. Cada suite dispone de cama doble con almacenamiento, escritorio con toma Ethernet, baño privado, smart TV, vestidor y llave individual.
+Ropa de cama de calidad, almacenamiento y verdadera intimidad en cada habitación. Cada suite dispone de cama doble con almacenamiento, escritorio, baño privado, smart TV, Wi-Fi de alta velocidad, vestidor y llave individual.
 
 La casa se distribuye en 3 plantas con un gran salón, una cocina-comedor totalmente equipada con una gran mesa de 16 plazas (20 acercando las mesitas de la galería), un jardín cerrado de 90 m² y un gimnasio completo con espacio zen.
 
@@ -67,7 +67,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     title: "Espacio Deportivo",
     subtitle: "Espacio privado en un anexo de la casa, de libre acceso 24/7 — sin riesgo de despertar a nadie.",
     gym: "Gimnasio",
-    gymDesc: "Equipamiento fitness disponible: bicicleta elíptica, cinta de correr, mancuernas y banco de musculación.",
+    gymDesc: "Equipamiento fitness disponible: bicicleta elíptica, mancuernas y banco de musculación, esterillas de yoga para estiramientos.",
     zen: "Sala zen",
     zenDesc: "Un espacio relax para desconectar: yoga, meditación y relajación.",
   },
@@ -142,7 +142,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
       { name: "Circuito Bugatti", distance: "4,7 km", detail: "24 Horas de Le Mans, MotoGP, Le Mans Classic. Accesible mediante Tranvía T1" },
       { name: "Zonas empresariales Sur de Le Mans", distance: "< 10 min en coche", detail: "Technopole Université, zona Sur, centros de investigación" },
       { name: "Parc Gué de Maulny", distance: "5 min a pie", detail: "Espacio verde de 10 hectáreas para relajarse" },
-      { name: "Tranvía T1", distance: "En las inmediaciones", detail: "Conecta el centro de la ciudad, la estación y el circuito" },
+      { name: "Tranvía T1", distance: "En la estación, a 10 min a pie", detail: "Conecta el centro de la ciudad, la estación y el circuito" },
       { name: "Cité Plantagenêt (Le Mans antiguo)", distance: "15 min en tranvía", detail: "Barrio medieval histórico, restaurantes, patrimonio" },
     ],
   },

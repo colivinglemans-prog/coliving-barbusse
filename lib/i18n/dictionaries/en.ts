@@ -44,7 +44,7 @@ export const en: Dictionary = {
 
 9 double bedrooms, each with its own private shower room — no one has to share a bathroom, even in a large group!
 
-Quality bedding, storage and real privacy in every room. Each suite features a double bed with storage, a desk with Ethernet connection, a private bathroom, a smart TV, a dressing area and an individual key.
+Quality bedding, storage and real privacy in every room. Each suite features a double bed with storage, a desk, a private bathroom, a smart TV, high-speed Wi-Fi, a dressing area and an individual key.
 
 The house is spread over 3 levels with a large living room, a fully equipped dining kitchen with a 16-seat table (20 once the veranda bistro tables are pulled up to it), a 90 m² enclosed garden and a fully equipped gym with zen area.
 
@@ -67,7 +67,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     title: "Fitness Area",
     subtitle: "Private space in an annex of the house, freely accessible 24/7 — no risk of waking anyone.",
     gym: "Gym",
-    gymDesc: "Fitness equipment available: elliptical bike, treadmill, dumbbells and weight bench.",
+    gymDesc: "Fitness equipment available: elliptical bike, dumbbells and weight bench, yoga mats for stretching.",
     zen: "Zen room",
     zenDesc: "A relaxation space to recharge: yoga, meditation and relaxation.",
   },
@@ -142,7 +142,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
       { name: "Bugatti Circuit", distance: "4.7 km", detail: "24 Hours of Le Mans, MotoGP, Le Mans Classic. Accessible via Tramway T1" },
       { name: "South Le Mans business areas", distance: "< 10 min by car", detail: "Technopole University, South business zone, research centres" },
       { name: "Parc Gué de Maulny", distance: "5 min walk", detail: "10-hectare green space to relax" },
-      { name: "Tramway T1", distance: "Nearby", detail: "Serves the city centre, station and circuit" },
+      { name: "Tramway T1", distance: "At the station, 10 min walk", detail: "Serves the city centre, station and circuit" },
       { name: "Cité Plantagenêt (Old Le Mans)", distance: "15 min by tram", detail: "Historic medieval quarter, restaurants, heritage" },
     ],
   },

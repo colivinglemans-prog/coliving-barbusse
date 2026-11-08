@@ -106,7 +106,6 @@ export default function Article() {
         <li><strong>Nuit des Chimères</strong> — juillet et août</li>
         <li><strong>Le Mans Classic</strong> — juillet (années paires)</li>
         <li><strong>24 Heures Camions</strong> — octobre</li>
-        <li><strong>Marathon du Mans</strong> — octobre</li>
       </ul>
 
       <h2>Préparer votre séjour</h2>

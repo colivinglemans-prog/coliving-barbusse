@@ -104,7 +104,6 @@ export default function Article() {
         <li><strong>Nuit des Chimères</strong> — July and August</li>
         <li><strong>Le Mans Classic</strong> — July (even years)</li>
         <li><strong>24 Hours Trucks</strong> — October</li>
-        <li><strong>Le Mans Marathon</strong> — October</li>
       </ul>
 
       <h2>Planning your stay</h2>

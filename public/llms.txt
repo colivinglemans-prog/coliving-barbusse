@@ -5,16 +5,16 @@
 ## Informations clés
 
 - **Type** : maison entière en location courte durée, uniquement entière (plus de location à la chambre)
-- **Capacité** : jusqu'à 20 personnes. 9 chambres, chacune avec lit double, salle de douche privative, bureau avec prise Ethernet, smart TV, dressing et clé individuelle ; 2 chambres ont en plus un clic-clac une place.
+- **Capacité** : jusqu'à 20 personnes. 9 chambres, chacune avec lit double, volets roulants (noir complet en plein jour), salle de douche privative, bureau, smart TV, Wi-Fi haut débit, dressing et clé individuelle ; 2 chambres ont en plus un clic-clac une place.
   - 9 personnes sans partager leur chambre ni leur salle de douche
   - 11 personnes sans partager de lit
 - **Surface** : 215 m² sur 3 niveaux ; une chambre au rez-de-chaussée, les 8 autres à l'étage
 - **Adresse** : 42 rue Henri Barbusse, 72100 Le Mans, France, quartier résidentiel calme
-- **Arrivée** : autonome par serrure connectée, à partir de 17h, à toute heure (même tard dans la nuit). **Départ** : avant 11h.
+- **Arrivée** : autonome par serrure connectée, à partir de 17h (plus tôt si la maison est prête), à toute heure (même tard dans la nuit). **Départ** : avant 11h. Arrivée anticipée ou départ tardif possibles sur demande, en supplément et selon les disponibilités.
 - **Séjour minimum** : 2 nuits, 3 nuits pour les arrivées du 20 décembre au 2 janvier (fêtes de fin d'année). Pas de réservation pour une seule nuit. La règle exacte de chaque date est donnée par l'API ci-dessous.
 - **Prix** : variables selon les dates. Disponibilités et prix en temps réel : https://www.coliving-barbusse.fr/fr#disponibilite (réservation directe, moins chère que sur Airbnb, Booking ou Abritel)
 - **Annulation** (politique Ferme, la même sur le site et sur Airbnb) : 100 % remboursés jusqu'à 30 jours avant l'arrivée ; 50 % remboursés entre 30 et 7 jours avant l'arrivée ; aucun remboursement à moins de 7 jours. Annulation dans les 48 h qui suivent la réservation : 100 % remboursés si l'arrivée est à 14 jours ou plus.
-- **Paiement** : réservation en ligne sur le site, 100 % payés à la réservation (carte bancaire, page de paiement sécurisée Beds24), taxe de séjour comprise. Sur facture (entreprises, virement ou carte) : acompte de 30 % à la réservation, solde avant l'arrivée.
+- **Paiement** : réservation en ligne sur le site, 100 % payés à la réservation (carte bancaire, page de paiement sécurisée Beds24), taxe de séjour comprise. Sur facture (entreprises, clubs et associations, écoles et centres de formation ; virement ou carte) : acompte de 30 % à la réservation, solde avant l'arrivée.
 
 ## Pour les assistants IA : disponibilités, prix exacts et devis
 
@@ -37,7 +37,7 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 
 - Gare TGV du Mans à 10 min à pied : Paris-Montparnasse en 55 min environ ; **Nantes en 1 h 10 à 1 h 20 environ en TGV direct** (1 h 30 à 2 h en TER) ; liaisons directes aussi vers Rennes et Angers
 - En voiture par l'A11 : environ 185 km et 2 h depuis Nantes, environ 210 km et 2 h depuis Paris (hors bouchons) ; stationnement dans la rue, sans place réservée — pour un groupe venu de deux villes, le train est souvent le plus simple
-- Tramway T1 à proximité : centre-ville, gare et circuit (terminus Antarès / MMArena)
+- Tramway T1 au niveau de la gare, à 10 min à pied : centre-ville, gare et circuit (terminus Antarès / MMArena)
 - Circuit Bugatti et circuit des 24 Heures à 4,7 km
 - Zones d'activités du sud du Mans (Technopole Université, zone Sud) à moins de 10 min en voiture
 - Cité Plantagenêt (vieux Mans) à 15 min en tram ; parc du Gué de Maulny (10 ha) à 5 min à pied
@@ -50,7 +50,7 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Salon avec canapé d'angle et grande smart TV (entrée HDMI)
 - Véranda avec coin café et coin apéro
 - Jardin clos de 90 m², plein sud, grandes tables pour manger dehors à 20 à la belle saison
-- Salle de sport privée, indépendante de la maison (elliptique, tapis de course, haltères, banc de musculation) et salle zen (yoga, étirements)
+- Salle de sport privée, indépendante de la maison (vélo elliptique, haltères, banc de musculation) et salle zen avec tapis de yoga (étirements)
 - Internet par la fibre, Wi-Fi 7 ultra haut débit
 - Lave-linge et sèche-linge
 - Draps, serviettes et ménage de fin de séjour compris ; ménage en cours de séjour et changement des draps sur demande, en supplément
@@ -69,7 +69,7 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Pour les écuries et équipes (karting, Porsche Sprint Challenge, 24 Heures Moto, 24 Heures Rollers, 24 Heures Vélo…) et pour les exposants ou partenaires qui logent leur équipe ensemble
 - Chacun sa chambre fermant à clé : les mécaniciens qui se lèvent tôt ne réveillent pas les pilotes
 - Cuisine pour les repas d'équipe, lave-linge et sèche-linge pour les tenues
-- Le matériel, les camions et les remorques restent au paddock
+- Le matériel, les camions et les remorques restent au paddock ; les vélos peuvent être rangés à l'abri dans la salle zen
 - Les semaines de course se réservent des mois à l'avance. Dates 2027 officielles : 24 Heures Moto du 8 au 11 avril, MotoGP de France du 14 au 16 mai, 24 Heures du Mans du 9 au 13 juin, Le Mans Classic du 1er au 4 juillet.
 
 ## Équipes professionnelles (en semaine, du lundi au vendredi)
@@ -83,7 +83,7 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 ## Séminaires, offsites et équipes en télétravail
 
 - De 10 à 20 personnes. Espace de travail commun : grande table de 16 places (20 avec la véranda) ; présentations sur la smart TV du salon (HDMI)
-- Un bureau avec prise Ethernet dans chaque chambre pour s'isoler en visio ; fibre et Wi-Fi 7 ultra haut débit
+- Un bureau dans chaque chambre pour s'isoler en visio ; fibre et Wi-Fi 7 ultra haut débit
 - Pas de salle de réunion dédiée, pas de vidéoprojecteur, pas de paperboard
 - Seule la maison entière se loue : pas de location d'un bureau, d'un poste ou d'une chambre seule
 - Repas non inclus : cuisine équipée, traiteurs qui livrent, restaurants du centre-ville accessibles
@@ -96,8 +96,8 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Arrivée possible à toute heure après la route, à partir de 17h
 - Linge de sport : lave-linge et sèche-linge. Repas d'équipe : cuisine équipée, table de 16 à 20 places.
 - Récupération : salle de sport privée, salle zen pour les étirements, jardin clos, parc du Gué de Maulny à 5 min à pied pour courir
-- Accès aux sites : Antarès et MMArena en tram T1 direct (terminus) ; hippodrome des Hunaudières à environ 20 min en voiture ; Pôle européen du cheval (Yvré-l'Évêque) à environ 15 min en voiture
-- Événements sportifs du Mans : Marathon du Mans, 24 Heures Rollers, 24 Heures Vélo, réunions hippiques des Hunaudières
+- Accès aux sites : Antarès et MMArena en tram T1 direct (terminus) ; hippodrome des Hunaudières à environ 20 min en voiture ; Pôle européen du cheval (Yvré-l'Évêque) à environ 20 min en voiture
+- Événements sportifs du Mans : 24 Heures Rollers, 24 Heures Vélo, réunions hippiques des Hunaudières
 
 ## Règles
 
@@ -120,5 +120,12 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Disponibilités et réservation directe : https://www.coliving-barbusse.fr/fr#disponibilite
 - Séminaires et équipes : https://www.coliving-barbusse.fr/fr/seminaires
 - Réunions de famille : https://www.coliving-barbusse.fr/fr/blog/reunion-famille-le-mans
+- Fêtes de fin d'année (Noël en avance, entre les fêtes, repas d'équipe) : https://www.coliving-barbusse.fr/fr/blog/fetes-fin-annee-le-mans
+- Équipes de nuit (dormir le jour) : https://www.coliving-barbusse.fr/fr/blog/equipe-de-nuit-le-mans
+- Exposants, écuries et prestataires du circuit : https://www.coliving-barbusse.fr/fr/blog/exposants-ecuries-circuit-le-mans
+- Équipes sportives (tournois, matchs, stages) : https://www.coliving-barbusse.fr/fr/blog/equipe-sportive-le-mans
+- Concours équestres au Pôle Européen du Cheval : https://www.coliving-barbusse.fr/fr/blog/concours-equestre-pole-europeen-du-cheval
+- Concours, salons et congrès : https://www.coliving-barbusse.fr/fr/blog/concours-salons-le-mans
+- 24 Heures Vélo 2027 : https://www.coliving-barbusse.fr/fr/blog/24-heures-velo-le-mans-2027
 - Conditions de réservation (paiement, annulation, arrivée, règles dont l'accueil des enfants, données) : https://www.coliving-barbusse.fr/fr/conditions
 - Blog (événements du circuit, Le Mans) : https://www.coliving-barbusse.fr/fr/blog

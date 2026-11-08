@@ -46,10 +46,159 @@ export interface BlogPostMeta {
    * disponibilité réelle (`components/public/FamilyDates.tsx`).
    */
   familyDates?: boolean;
+  /**
+   * **Clés** de plusieurs événements de `LE_MANS_EVENTS`, pour un article qui en couvre
+   * plusieurs (ex. exposants et écuries) : liste des prochaines dates avec la disponibilité
+   * réelle de chacune (`components/public/EventDates.tsx`). Pas de JSON-LD `Event` — c'est
+   * le rôle de `event`, pour l'article consacré à un seul événement.
+   */
+  events?: string[];
   locales: Record<Locale, LocalizedPost>;
 }
 
 export const BLOG_POSTS: BlogPostMeta[] = [
+  {
+    slug: "concours-salons-le-mans",
+    date: "2026-11-08",
+    image: "/images/blog/antares-le-mans.jpg",
+    imageCredit: {
+      author: "Le Mans",
+      sourceUrl:
+        "https://commons.wikimedia.org/wiki/File:Antar%C3%A8s_Le_Mans.JPG",
+      license: "CC BY 3.0",
+      licenseUrl: "https://creativecommons.org/licenses/by/3.0/deed.fr",
+    },
+    locales: {
+      fr: {
+        "title": "Loger un groupe pour un concours ou un salon au Mans",
+        "description": "Concours d’apprentis, salon ou congrès au Mans : 9 chambres avec salle de douche, jusqu’à 20 couchages, gare TGV à 10 min à pied, tram au niveau de la gare.",
+        "excerpt": "Apprentis, formateurs et modèles sous le même toit, une salle de douche par chambre pour se préparer sans file d’attente : comment loger un groupe venu pour un concours, un salon ou un congrès au Mans.",
+        "keywords": [
+          "hébergement groupe concours Le Mans",
+          "Hair Artist Awards Le Mans",
+          "logement apprentis concours coiffure",
+          "hébergement salon parc des expositions Le Mans",
+          "location maison groupe congrès Le Mans"
+        ]
+      },
+      en: {
+        "title": "Competitions and Trade Shows in Le Mans: Group Accommodation",
+        "description": "Hair Artist Awards, trade shows, conferences in Le Mans: house apprentices, trainers and models together. 9 bedrooms with shower rooms, 10 min from the station.",
+        "excerpt": "Coming to Le Mans for an apprentice competition, a trade show or a conference? Here is how our house sleeps a whole group the night before, as it did for 14 people at the 2026 Hair Artist Awards.",
+        "keywords": [
+          "hair artist awards le mans accommodation",
+          "le mans exhibition centre hotel",
+          "group accommodation le mans trade show",
+          "antares le mans where to stay",
+          "apprentice competition accommodation le mans"
+        ]
+      },
+      it: {
+        "title": "Concorsi e fiere a Le Mans: alloggio per gruppi e scuole",
+        "description": "Hair Artist Awards, concorsi per apprendisti, fiere: una casa intera a Le Mans per scuole ed espositori, 9 camere con bagno, a 10 minuti dalla stazione.",
+        "excerpt": "Concorso per apprendisti, fiera o congresso a Le Mans? Una casa intera per alloggiare insieme apprendisti, modelli e formatori la sera prima, a 10 minuti a piedi dalla stazione.",
+        "keywords": [
+          "alloggio gruppo fiera Le Mans",
+          "Hair Artist Awards Le Mans",
+          "dove dormire Centre des expositions Le Mans",
+          "alloggio scuola concorso Le Mans",
+          "casa per gruppi vicino Antarès Le Mans"
+        ]
+      },
+      de: {
+        "title": "Wettbewerb oder Messe in Le Mans: Gruppenunterkunft bis 20 Personen",
+        "description": "Hair Artist Awards, Fachmesse oder Kongress in Le Mans: 9 Zimmer mit eigenem Duschbad für Azubis, Ausbilder und Modelle, 10 Gehminuten vom Bahnhof.",
+        "excerpt": "Im November 2026 hat ein Friseursalon aus der Ariège 14 Personen für die Hair Artist Awards bei uns untergebracht. So organisiert sich das Haus für Schulen, Ausbildungszentren und Aussteller bei Wettbewerben und Messen in Le Mans.",
+        "keywords": [
+          "Unterkunft Messe Le Mans",
+          "Hair Artist Awards Le Mans",
+          "Gruppenunterkunft Le Mans Auszubildende",
+          "Centre des expositions Le Mans Unterkunft",
+          "Unterkunft Antarès Le Mans"
+        ]
+      },
+      es: {
+        "title": "Concursos y ferias en Le Mans: alojar a su grupo la víspera",
+        "description": "Hair Artist Awards, ferias y congresos en Le Mans: una casa para 20 con 9 habitaciones con baño, a 10 min a pie de la estación y del tranvía a Antarès.",
+        "excerpt": "Concurso de aprendices, feria profesional o congreso en Le Mans: cómo alojar juntos a alumnos, formadores y modelos la víspera, en una casa con un baño por habitación.",
+        "keywords": [
+          "alojamiento grupo feria Le Mans",
+          "Hair Artist Awards Le Mans",
+          "alojamiento Centre des expositions Le Mans",
+          "alojamiento cerca de Antarès Le Mans",
+          "casa para grupos Le Mans concurso"
+        ]
+      },
+    },
+  },
+  {
+    slug: "fetes-fin-annee-le-mans",
+    date: "2026-11-06",
+    image: "/images/blog/reunion-famille-le-mans.jpg",
+    familyDates: true,
+    locales: {
+      fr: {
+        "title": "Fêter la fin d’année au Mans : Noël en avance, entre les fêtes ou en équipe",
+        "description": "Noël avant le 24, retrouvailles entre Noël et le Nouvel An, repas d’équipe de fin d’année : une maison entière au Mans pour 20, table de 16 à 20 places, 9 chambres avec salle de douche.",
+        "excerpt": "Le 24 et le 31, chacun est pris ailleurs. Alors on se retrouve autour des fêtes : le week-end d’avant Noël, entre Noël et le Nouvel An, ou pour le repas d’équipe.",
+        "keywords": [
+          "location maison Noël Le Mans",
+          "maison 20 personnes Nouvel An Sarthe",
+          "Noël entre amis grande maison",
+          "repas de fin d’année entreprise Le Mans",
+          "location fêtes de fin d’année Le Mans"
+        ]
+      },
+      en: {
+        "title": "Celebrating the festive season in Le Mans: early Christmas or team dinner",
+        "description": "An early Christmas, a reunion between Christmas and New Year, an end-of-year team dinner: a whole house in Le Mans for 20, a table for 16 to 20, 9 en-suite bedrooms.",
+        "excerpt": "On the 24th and 31st, everyone is busy elsewhere. So groups get together around the festive season: the weekend before Christmas, between the holidays, or for the team dinner.",
+        "keywords": [
+          "Christmas house rental Le Mans",
+          "house for 20 people New Year France",
+          "large holiday home Christmas with friends",
+          "end-of-year team dinner venue Le Mans",
+          "festive season group accommodation Sarthe"
+        ]
+      },
+      it: {
+        "title": "Festeggiare Natale e Capodanno a Le Mans in una casa per 20",
+        "description": "Natale in anticipo, tra Natale e Capodanno o cena aziendale di fine anno: una casa intera a Le Mans per 20 persone, tavolo da 16 a 20 posti, 9 camere con doccia privata.",
+        "excerpt": "Il 24 e il 31 dicembre ognuno è spesso impegnato altrove: così sempre più gruppi si ritrovano attorno alle feste. Una casa intera a Le Mans per 20 persone, con un tavolo all'altezza, è fatta proprio per questo.",
+        "keywords": [
+          "casa per Natale in gruppo Le Mans",
+          "affitto casa Capodanno 20 persone Francia",
+          "casa vacanze feste di fine anno Sarthe",
+          "cena aziendale di fine anno Le Mans",
+          "casa per grandi gruppi Natale Francia"
+        ]
+      },
+      de: {
+        "title": "Jahresende in Le Mans feiern: Weihnachten vorab, zwischen den Jahren",
+        "description": "Weihnachten vor dem 24., Wiedersehen zwischen den Jahren, Jahresabschlussfeier im Team: ein ganzes Haus in Le Mans für 20, Tisch für 16 bis 20, 9 Zimmer mit Duschbad.",
+        "excerpt": "Am 24. und 31. sind die meisten anderweitig verplant. Also trifft man sich rund um die Feiertage: am Wochenende vor Weihnachten, zwischen den Jahren oder zur Jahresabschlussfeier im Team.",
+        "keywords": [
+          "Ferienhaus Weihnachten Le Mans",
+          "Haus für 20 Personen Silvester Frankreich",
+          "Weihnachten mit Freunden großes Ferienhaus",
+          "Weihnachtsfeier Firma Unterkunft Le Mans",
+          "Ferienhaus zwischen den Jahren Frankreich"
+        ]
+      },
+      es: {
+        "title": "Celebrar el fin de año en Le Mans: Navidad, Año Nuevo o con el equipo",
+        "description": "Navidad antes del 24, reencuentros entre Navidad y Año Nuevo, comida de empresa: una casa entera en Le Mans para 20, mesa de 16 a 20 plazas y 9 habitaciones con baño.",
+        "excerpt": "El 24 y el 31 cada uno tiene ya sus compromisos, así que cada vez más grupos se reúnen alrededor de las fiestas. Una casa entera en Le Mans para 20, con una mesa a la altura.",
+        "keywords": [
+          "casa para Navidad en grupo Francia",
+          "alquiler casa Fin de Año 20 personas",
+          "casa grande Navidad Le Mans",
+          "comida de empresa Navidad Le Mans",
+          "casa rural grupos Navidad Sarthe"
+        ]
+      },
+    },
+  },
   {
     slug: "reunion-famille-le-mans",
     date: "2026-11-04",
@@ -125,6 +274,290 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "alquiler casa Navidad en familia Francia",
           "alojamiento invitados boda Le Mans",
         ],
+      },
+    },
+  },
+  {
+    slug: "24-heures-velo-le-mans-2027",
+    date: "2026-11-03",
+    image: "/images/blog/24h-velo.jpg",
+    imageCredit: {
+      author: "Peter Trimming",
+      sourceUrl:
+        "https://commons.wikimedia.org/wiki/File:Olympic_Games_2012_-_Men%27s_Road_Race_(7663272188).jpg",
+      license: "CC BY 2.0",
+      licenseUrl: "https://creativecommons.org/licenses/by/2.0/deed.fr",
+    },
+    event: "24h-velo-2027",
+    locales: {
+      fr: {
+        "title": "24 Heures Vélo du Mans 2027 : dates, format et où loger l’équipe",
+        "description": "24 Heures Vélo les 28 et 29 août 2027 sur le circuit Bugatti : solo, duo ou équipes de 4 à 8, programme, inscriptions, et une maison de 9 chambres pour l’équipe.",
+        "excerpt": "Course cycliste de 24 heures sur le circuit Bugatti, en solo ou en relais. Dates 2027, format, inscriptions, et comment loger une équipe de relayeurs qui dort par tranches.",
+        "keywords": [
+          "24 heures vélo 2027",
+          "24h vélo Le Mans",
+          "hébergement 24 heures vélo",
+          "circuit Bugatti vélo",
+          "logement équipe cycliste Le Mans"
+        ]
+      },
+      en: {
+        "title": "24 Heures Vélo Le Mans 2027: Dates, Format and Team Accommodation",
+        "description": "24 Heures Vélo on 28–29 August 2027 at the Bugatti circuit: format, 2026 times and prices, entries, and a house for relay teams 4.7 km from the track.",
+        "excerpt": "The 24 Heures Vélo returns to the Bugatti circuit on 28 and 29 August 2027. Everything to know about the format, entries and programme, and how to house a relay team that never sleeps at the same time.",
+        "keywords": [
+          "24 heures velo le mans 2027",
+          "24 hour cycling race le mans",
+          "24h velo le mans accommodation",
+          "bugatti circuit cycling relay",
+          "where to stay 24 heures velo"
+        ]
+      },
+      it: {
+        "title": "24 Heures Vélo Le Mans 2027: date, iscrizioni e alloggio",
+        "description": "24 Heures Vélo 2027 il 28 e 29 agosto sul circuito Bugatti: formato, programma, iscrizioni e una casa per squadre a 4,7 km dal circuito.",
+        "excerpt": "La 24 Heures Vélo torna il 28 e 29 agosto 2027 sul circuito Bugatti. Formato, orari, iscrizioni e come ospitare una squadra di staffettisti che dorme a turni.",
+        "keywords": [
+          "24 Heures Vélo Le Mans 2027",
+          "24 ore in bici Le Mans",
+          "gara ciclistica 24 ore Le Mans iscrizioni",
+          "alloggio 24 Heures Vélo Le Mans",
+          "dove dormire circuito Bugatti"
+        ]
+      },
+      de: {
+        "title": "24 Heures Vélo 2027 in Le Mans: Termine, Format und Unterkunft",
+        "description": "24 Heures Vélo am 28. und 29. August 2027 auf dem Circuit Bugatti: Format, Ablauf, Anmeldung und ein Haus mit 9 Zimmern für Ihr Staffelteam, 4,7 km entfernt.",
+        "excerpt": "Die 24 Heures Vélo finden am 28. und 29. August 2027 auf dem Circuit Bugatti statt. Alles zu Format, Anmeldung und Ablauf, und wie Sie ein Staffelteam unterbringen, das nie gleichzeitig schläft.",
+        "keywords": [
+          "24 Heures Vélo 2027",
+          "24 Stunden Radrennen Le Mans",
+          "24h Radrennen Le Mans Unterkunft",
+          "Circuit Bugatti Radrennen 2027",
+          "Unterkunft Radteam Le Mans"
+        ]
+      },
+      es: {
+        "title": "24 Heures Vélo Le Mans 2027: fechas, inscripción y alojamiento",
+        "description": "24 Heures Vélo 2027 en el circuito Bugatti, 28 y 29 de agosto: formato, inscripciones, horarios y una casa para 20 relevistas a 4,7 km del circuito.",
+        "excerpt": "Las 24 Heures Vélo vuelven al circuito Bugatti el 28 y 29 de agosto de 2027. Formato, inscripciones y cómo alojar a un equipo de relevistas que nunca duerme a la vez.",
+        "keywords": [
+          "24 Heures Vélo Le Mans 2027",
+          "24 horas ciclismo Le Mans",
+          "inscripción 24 Heures Vélo",
+          "alojamiento 24 Heures Vélo Le Mans",
+          "carrera ciclista 24 horas circuito Bugatti"
+        ]
+      },
+    },
+  },
+  {
+    slug: "concours-equestre-pole-europeen-du-cheval",
+    date: "2026-11-01",
+    image: "/images/blog/hippodrome.jpg",
+    locales: {
+      fr: {
+        "title": "Concours équestre au Pôle Européen du Cheval : où loger cavaliers, grooms et familles",
+        "description": "Concours au Pôle Européen du Cheval d’Yvré-l’Évêque : une maison entière au Mans pour loger toute l’équipe, 9 chambres avec salle de douche, grande table, lave-linge, à une vingtaine de minutes du site.",
+        "excerpt": "Un week-end de concours, c’est toute une équipe à loger : cavaliers, coachs, grooms, parents. Comment la maison s’organise autour du rythme d’un concours équestre.",
+        "keywords": [
+          "hébergement concours équestre Le Mans",
+          "logement Pôle Européen du Cheval",
+          "où dormir Yvré-l’Évêque concours",
+          "gîte cavaliers Sarthe",
+          "hébergement club équitation Le Mans"
+        ]
+      },
+      en: {
+        "title": "Horse show at the Pôle Européen du Cheval: a house for your team",
+        "description": "Competing at the Pôle Européen du Cheval near Le Mans? A whole house for riders, coaches and grooms: 9 bedrooms with en-suite shower rooms, a table for 20.",
+        "excerpt": "Riders, coaches, grooms, parents: a show weekend means a whole team to put up. How the house works for a competition at the Pôle Européen du Cheval, 20 minutes away.",
+        "keywords": [
+          "Pôle Européen du Cheval accommodation",
+          "horse show accommodation Le Mans",
+          "equestrian team house rental Sarthe",
+          "where to stay Yvré-l'Évêque",
+          "riding club group accommodation France"
+        ]
+      },
+      it: {
+        "title": "Concorso ippico al Pôle Européen du Cheval: dove alloggiare",
+        "description": "Dove alloggiare per un concorso al Pôle Européen du Cheval di Yvré-l'Évêque: casa intera a Le Mans per cavalieri, istruttori e famiglie, 9 camere con bagno privato.",
+        "excerpt": "Un weekend di concorso significa spesso un'intera squadra da alloggiare: cavalieri, istruttori, groom, genitori. Ecco come si organizza la casa per un concorso ippico al Pôle Européen du Cheval.",
+        "keywords": [
+          "alloggio concorso ippico Le Mans",
+          "Pôle Européen du Cheval dove dormire",
+          "alloggio Yvré-l'Évêque equitazione",
+          "casa per squadra di equitazione Francia",
+          "alloggio gruppo giovani cavalieri Sarthe"
+        ]
+      },
+      de: {
+        "title": "Reitturnier am Pôle Européen du Cheval: ein Haus für Ihr Team",
+        "description": "Turnierwochenende oder Turnierwoche am Pôle Européen du Cheval: ein ganzes Haus in Le Mans für Reiter, Trainer und Eltern, 9 Zimmer mit Duschbad, großer Tisch, Waschmaschine.",
+        "excerpt": "Der Pôle Européen du Cheval richtet rund vierzig Turniere pro Jahr aus. So organisiert sich das Haus für ein Vereinsteam am Wochenende oder eine Gruppe junger Reiter für eine ganze Woche.",
+        "keywords": [
+          "Unterkunft Reitturnier Le Mans",
+          "Pôle Européen du Cheval Unterkunft",
+          "Ferienhaus Reitverein Gruppe Frankreich",
+          "Unterkunft Springturnier Sarthe",
+          "Gruppenhaus Reiter Le Mans"
+        ]
+      },
+      es: {
+        "title": "Concurso hípico en el Pôle Européen du Cheval: dónde alojarse en Le Mans",
+        "description": "Concurso en el Pôle Européen du Cheval de Yvré-l'Évêque: una casa entera en Le Mans para todo el equipo, 9 habitaciones con baño, gran mesa y lavadora, a unos 20 minutos.",
+        "excerpt": "Un fin de semana de concurso supone alojar a todo un equipo: jinetes, entrenadores, mozos de cuadra, padres. Así se organiza la casa al ritmo de un concurso hípico.",
+        "keywords": [
+          "alojamiento concurso hípico Le Mans",
+          "dónde dormir Pôle Européen du Cheval",
+          "alojamiento jinetes Francia",
+          "casa para equipo de hípica Le Mans",
+          "alojamiento club hípico Sarthe"
+        ]
+      },
+    },
+  },
+  {
+    slug: "equipe-de-nuit-le-mans",
+    date: "2026-10-20",
+    image: "/images/blog/entreprises.jpg",
+    locales: {
+      fr: {
+        "title": "Loger une équipe de nuit au Mans : une maison pour dormir le jour",
+        "description": "Mission de nuit au Mans : 9 chambres avec salle de douche privative et volets roulants pour dormir en plein jour, rue calme, salle de sport indépendante, cuisine équipée. À 10 min à pied de la gare.",
+        "excerpt": "Quand on travaille de nuit, le vrai sujet est de dormir en plein jour. Une chambre noire par personne, le calme, et de quoi occuper ceux qui dorment peu sans réveiller les autres.",
+        "keywords": [
+          "logement équipe de nuit Le Mans",
+          "hébergement travailleurs de nuit Le Mans",
+          "logement chantier gare du Mans",
+          "hébergement ouvriers en déplacement Le Mans",
+          "maison pour équipe en mission Le Mans"
+        ]
+      },
+      en: {
+        "title": "Night shift crew in Le Mans: a house where you can sleep by day",
+        "description": "Night work near Le Mans station: a whole house with 9 bedrooms, each with its own shower room and roller shutters, a gym, a kitchen and company invoicing.",
+        "excerpt": "When you work nights, the challenge is sleeping in broad daylight. A bedroom and shower room each, roller shutters and a quiet street: why the house suits night crews.",
+        "keywords": [
+          "night shift accommodation Le Mans",
+          "contractor accommodation Le Mans",
+          "workforce housing near Le Mans station",
+          "group accommodation for work crews France",
+          "house for 9 workers Le Mans"
+        ]
+      },
+      it: {
+        "title": "Alloggio per squadre notturne a Le Mans: dormire bene di giorno",
+        "description": "Squadra che lavora di notte a Le Mans? Casa intera con 9 camere e bagno privato, tapparelle, palestra, cucina attrezzata, a 10 minuti a piedi dalla stazione. Fattura all'azienda.",
+        "excerpt": "Quando si lavora di notte, il vero problema è dormire in pieno giorno. Una camera a testa, il buio totale e la quiete: ecco perché la casa si presta alle squadre notturne a Le Mans.",
+        "keywords": [
+          "alloggio squadra notturna Le Mans",
+          "alloggio trasferta lavoro Le Mans",
+          "casa per operai in trasferta Francia",
+          "alloggio aziendale vicino stazione Le Mans",
+          "casa intera per squadra di lavoro Sarthe"
+        ]
+      },
+      de: {
+        "title": "Unterkunft für Nachtschichtteams in Le Mans: tagsüber gut schlafen",
+        "description": "Ein ganzes Haus in Le Mans für Nachtschichtteams: 9 Zimmer mit eigenem Duschbad und Rollläden, ruhiges Viertel, Küche, Fitnessraum, Bahnhof 10 Min. zu Fuß, Firmenrechnung.",
+        "excerpt": "Wer nachts arbeitet, muss am helllichten Tag schlafen können. Im Oktober 2026 hat ein Nachtschichtteam bei uns gewohnt: Darum eignet sich das Haus dafür, und darauf sollten Sie vor der Buchung achten.",
+        "keywords": [
+          "Monteurunterkunft Le Mans",
+          "Unterkunft Nachtschicht Team Frankreich",
+          "Monteurhaus Le Mans Bahnhof",
+          "Gruppenunterkunft Arbeiter Sarthe",
+          "Firmenunterkunft Le Mans mit Rechnung"
+        ]
+      },
+      es: {
+        "title": "Alojar a un equipo de noche en Le Mans: una casa para dormir de día",
+        "description": "Misión nocturna en Le Mans: 9 habitaciones con baño privado y persianas para dormir de día, calle tranquila, gimnasio independiente y cocina equipada. A 10 min a pie de la estación.",
+        "excerpt": "Cuando se trabaja de noche, lo importante es poder dormir de día. Una habitación a oscuras por persona, tranquilidad y con qué entretener a quienes duermen poco sin despertar a los demás.",
+        "keywords": [
+          "alojamiento trabajadores Le Mans",
+          "alojamiento equipo de trabajo Francia",
+          "casa para trabajadores desplazados Le Mans",
+          "alojamiento cerca estación Le Mans",
+          "alquiler casa empresa Le Mans"
+        ]
+      },
+    },
+  },
+  {
+    slug: "exposants-ecuries-circuit-le-mans",
+    date: "2026-10-10",
+    image: "/images/blog/village-exposants-le-mans.jpg",
+    imageCredit: {
+      author: "Kevin Decherf",
+      sourceUrl:
+        "https://commons.wikimedia.org/wiki/File:Village_-_Stand_Toyota_-_VR_(41157055540).jpg",
+      license: "CC BY-SA 2.0",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0/deed.fr",
+    },
+    events: ["24h-moto-2027", "motogp-2027", "24h-mans-2027", "classic-2027"],
+    locales: {
+      fr: {
+        "title": "Loger son équipe d’exposant ou d’écurie au circuit du Mans",
+        "description": "Exposants, écuries, prestataires : logez toute votre équipe pendant les 24 Heures, le MotoGP ou Le Mans Classic. 9 chambres avec clé, à 4,7 km du circuit.",
+        "excerpt": "Montage tôt, démontage tard, journées sans fin : comment loger une équipe d’exposant, d’écurie ou de prestataire sous le même toit pendant les grands événements du circuit du Mans.",
+        "keywords": [
+          "hébergement exposant 24 Heures du Mans",
+          "logement écurie Le Mans",
+          "hébergement équipe MotoGP Le Mans",
+          "logement prestataire circuit du Mans",
+          "maison groupe professionnel Le Mans"
+        ]
+      },
+      en: {
+        "title": "Exhibitors and Race Teams at Le Mans: House Your Whole Crew",
+        "description": "Stand, racing team or contractor at the Le Mans circuit? 9 lockable bedrooms with shower rooms, long stays from set-up to take-down, company invoice.",
+        "excerpt": "Exhibitors, racing teams and contractors live the Le Mans events differently: early set-up, long days, late take-down. Here is how to house your whole team under one roof, 4.7 km from the circuit, with 2027 dates to block out now.",
+        "keywords": [
+          "le mans 24 hours team accommodation",
+          "race team house rental le mans",
+          "exhibitor accommodation le mans circuit",
+          "le mans classic 2027 accommodation",
+          "motogp le mans 2027 group accommodation"
+        ]
+      },
+      it: {
+        "title": "Alloggio per espositori e team al circuito di Le Mans",
+        "description": "Espositori, team e fornitori: una casa intera a 4,7 km dal circuito di Le Mans, 9 camere con chiave e bagno, fattura all'azienda. Date 2027.",
+        "excerpt": "Allestimento, giornate lunghe, smontaggio: una casa intera a 4,7 km dal circuito per alloggiare tutta la squadra, con fattura intestata all'azienda e le date 2027 da bloccare.",
+        "keywords": [
+          "alloggio team 24 Ore di Le Mans",
+          "alloggio espositori MotoGP Le Mans",
+          "casa per squadra Le Mans Classic",
+          "dove dormire staff circuito Le Mans",
+          "alloggio aziendale Le Mans fattura"
+        ]
+      },
+      de: {
+        "title": "Unterkunft für Aussteller und Rennställe an der Strecke Le Mans",
+        "description": "24 Stunden, MotoGP, Le Mans Classic 2027: ganzes Haus mit 9 abschließbaren Zimmern für Ihr Team, 4,7 km von der Strecke, Rechnung auf Ihr Unternehmen.",
+        "excerpt": "Aussteller, Rennställe und Dienstleister bleiben vom Aufbau bis zum Abbau. So bringen Sie Ihr ganzes Team 4,7 km von der Rennstrecke von Le Mans unter einem Dach unter, mit den Terminen 2027.",
+        "keywords": [
+          "Unterkunft Rennstall Le Mans",
+          "Unterkunft Aussteller 24h Le Mans",
+          "Teamunterkunft 24 Stunden von Le Mans 2027",
+          "Unterkunft MotoGP Le Mans Team",
+          "Ferienhaus Le Mans Firmenrechnung"
+        ]
+      },
+      es: {
+        "title": "Expositores y escuderías: alojar a su equipo en Le Mans",
+        "description": "Montaje, carrera y desmontaje en el circuito de Le Mans: casa entera para 20, 9 habitaciones con llave y baño, factura a la empresa, a 4,7 km del circuito.",
+        "excerpt": "Expositores, escuderías y proveedores del circuito de Le Mans: una casa entera para todo su equipo, del montaje al desmontaje, con factura a nombre de la empresa.",
+        "keywords": [
+          "alojamiento equipo 24 Horas de Le Mans",
+          "alojamiento escudería Le Mans",
+          "alojamiento expositores MotoGP Le Mans",
+          "casa grupo Le Mans Classic 2027",
+          "alojamiento empresa circuito Le Mans"
+        ]
       },
     },
   },
@@ -437,6 +870,73 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "alquiler casa MotoGP Francia",
           "fin de semana MotoGP Circuito Bugatti",
         ],
+      },
+    },
+  },
+  {
+    slug: "equipe-sportive-le-mans",
+    date: "2026-09-29",
+    image: "/images/blog/equipe-sportive-handball.jpg",
+    locales: {
+      fr: {
+        "title": "Loger une équipe sportive au Mans : une maison pour tout le club",
+        "description": "Tournoi, match à l’extérieur ou stage au Mans : 9 chambres avec salle de douche, table de 16 à 20 places, lave-linge, salle de sport. Jusqu’à 20 personnes.",
+        "excerpt": "Joueurs, coachs et staff sous le même toit : une chambre avec salle de douche par joueur ou par binôme, repas d’équipe, maillots lavés sur place et vidéo d’avant-match sur grand écran.",
+        "keywords": [
+          "hébergement équipe sportive Le Mans",
+          "logement club sportif Le Mans",
+          "tournoi Le Mans hébergement groupe",
+          "stage sportif Le Mans maison",
+          "gîte équipe 20 personnes Le Mans"
+        ]
+      },
+      en: {
+        "title": "Sports Team Accommodation in Le Mans: A Whole House for 20",
+        "description": "Away match, tournament or training camp in Le Mans? 9 bedrooms with private shower rooms, a table for 20, kit washing, a private gym, 10 min from the station.",
+        "excerpt": "For a sports team in Le Mans, a whole house beats a hotel: 9 bedrooms with private shower rooms, team meals around one big table and kit washed on site. Handball, karting and cycling teams stayed with us in 2026.",
+        "keywords": [
+          "sports team accommodation le mans",
+          "group accommodation le mans",
+          "where to stay le mans tournament",
+          "large group house le mans",
+          "team training camp accommodation france"
+        ]
+      },
+      it: {
+        "title": "Alloggio per squadre sportive a Le Mans: casa intera fino a 20 posti",
+        "description": "Casa intera a Le Mans per squadre sportive: 9 camere con bagno privato, tavolo da 20, lavatrice, palestra. Vicino ad Antarès, stadio e circuito kart.",
+        "excerpt": "Torneo, trasferta o ritiro a Le Mans? Una casa intera con 9 camere e bagno privato, un grande tavolo per i pasti di squadra e tutto per lavare le divise e recuperare.",
+        "keywords": [
+          "alloggio squadra sportiva Le Mans",
+          "casa per gruppi Le Mans",
+          "dove dormire torneo Le Mans",
+          "alloggio squadra kart Le Mans",
+          "casa vacanze 20 persone Le Mans"
+        ]
+      },
+      de: {
+        "title": "Unterkunft für Sportteams in Le Mans: ganzes Haus bis 20 Personen",
+        "description": "Turnier, Spiel oder Trainingslager in Le Mans: 9 Zimmer mit eigenem Duschbad, Tisch für 20, Waschmaschine, Fitnessraum. Rechnung für Vereine möglich.",
+        "excerpt": "Eine Handballmannschaft, ein Kartteam aus Singapur und eine Radsportgruppe haben 2026 bei uns gewohnt. Warum ein ganzes Haus zu einer Sportmannschaft passt und was Sie vor der Buchung wissen sollten.",
+        "keywords": [
+          "Unterkunft Sportmannschaft Le Mans",
+          "Gruppenunterkunft Le Mans Verein",
+          "Ferienhaus Le Mans 20 Personen",
+          "Unterkunft Turnier Le Mans",
+          "Kartteam Unterkunft Le Mans"
+        ]
+      },
+      es: {
+        "title": "Alojamiento para equipos deportivos en Le Mans: casa entera hasta 20",
+        "description": "Casa entera en Le Mans para equipos deportivos: 9 habitaciones con baño, mesa para 20, lavadora, gimnasio privado y tranvía a Antarès y al estadio.",
+        "excerpt": "Un torneo, una concentración o un partido en Le Mans: una casa entera con 9 habitaciones con baño, una gran mesa y lavadora para alojar a todo el equipo bajo el mismo techo.",
+        "keywords": [
+          "alojamiento equipo deportivo Le Mans",
+          "casa grupo Le Mans 20 personas",
+          "alojamiento torneo Le Mans",
+          "dónde dormir equipo balonmano Francia",
+          "alojamiento karting Le Mans"
+        ]
       },
     },
   },

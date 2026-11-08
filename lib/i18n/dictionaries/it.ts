@@ -44,7 +44,7 @@ export const it: Dictionary = {
 
 9 camere matrimoniali, ciascuna con bagno doccia privato — nessuno deve condividere il bagno, anche in un gruppo numeroso!
 
-Biancheria di qualità, armadi e vera privacy in ogni camera. Ogni suite dispone di un letto matrimoniale con vani contenitori, una scrivania con presa Ethernet, un bagno privato, una smart TV, un guardaroba e una chiave individuale.
+Biancheria di qualità, armadi e vera privacy in ogni camera. Ogni suite dispone di un letto matrimoniale con vani contenitori, una scrivania, un bagno privato, una smart TV, Wi-Fi ad alta velocità, un guardaroba e una chiave individuale.
 
 La casa è distribuita su 3 livelli con un grande soggiorno, una cucina-sala da pranzo completamente attrezzata con un grande tavolo da 16 posti (20 avvicinando i tavolini della veranda), un giardino recintato di 90 m² e una palestra completa con spazio zen.
 
@@ -67,7 +67,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     title: "Area Sport",
     subtitle: "Spazio privato in un annesso della casa, accessibile liberamente 7 giorni su 7, 24 ore su 24 — senza rischio di svegliare nessuno.",
     gym: "Palestra",
-    gymDesc: "Attrezzature fitness a disposizione: bici ellittica, tapis roulant, manubri e panca pesi.",
+    gymDesc: "Attrezzature fitness a disposizione: bici ellittica, manubri e panca pesi, tappetini da yoga per lo stretching.",
     zen: "Sala zen",
     zenDesc: "Uno spazio relax per rigenerarsi: yoga, meditazione e rilassamento.",
   },
@@ -142,7 +142,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
       { name: "Circuito Bugatti", distance: "4,7 km", detail: "24 Ore di Le Mans, MotoGP, Le Mans Classic. Accessibile tramite Tram T1" },
       { name: "Zone economiche Sud Le Mans", distance: "< 10 min in auto", detail: "Technopole Université, zona Sud, centri di ricerca" },
       { name: "Parc Gué de Maulny", distance: "5 min a piedi", detail: "Spazio verde di 10 ettari per rilassarsi" },
-      { name: "Tram T1", distance: "Nelle vicinanze", detail: "Serve il centro città, la stazione e il circuito" },
+      { name: "Tram T1", distance: "Alla stazione, 10 min a piedi", detail: "Serve il centro città, la stazione e il circuito" },
       { name: "Cité Plantagenêt (Vecchia Le Mans)", distance: "15 min in tram", detail: "Quartiere medievale storico, ristoranti, patrimonio" },
     ],
   },

@@ -44,7 +44,7 @@ export const fr: Dictionary = {
 
 9 chambres doubles, chacune avec sa salle de douche privative — personne n'a à partager la salle de bain, même dans un grand groupe !
 
-Literie de qualité, rangements et vraie intimité dans chaque chambre. Chaque suite dispose d'un lit double avec rangements, d'un bureau avec prise Ethernet, d'une salle de bain privative, d'une smart TV, d'un dressing et d'une clé individuelle.
+Literie de qualité, rangements et vraie intimité dans chaque chambre. Chaque suite dispose d'un lit double avec rangements, d'un bureau, d'une salle de bain privative, d'une smart TV, du Wi-Fi haut débit, d'un dressing et d'une clé individuelle.
 
 La maison est répartie sur 3 niveaux avec un grand salon, une cuisine-salle à manger entièrement équipée avec une grande table de 16 places (20 en y rapprochant les mini-tables de la véranda), un jardin clos de 90 m² et une salle de sport complète avec espace zen.
 
@@ -67,7 +67,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     title: "Espace Sport",
     subtitle: "Espace privatif dans une annexe de la maison, en accès libre 7j/7, 24h/24 — sans risque de réveiller qui que ce soit.",
     gym: "Salle de sport",
-    gymDesc: "Équipements fitness à disposition : vélo elliptique, tapis de course, haltères et banc de musculation.",
+    gymDesc: "Équipements fitness à disposition : vélo elliptique, haltères et banc de musculation, tapis de yoga pour les étirements.",
     zen: "Salle zen",
     zenDesc: "Un espace détente pour se ressourcer : yoga, méditation et relaxation.",
   },
@@ -142,7 +142,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
       { name: "Circuit Bugatti", distance: "4.7 km", detail: "24 Heures du Mans, MotoGP, Le Mans Classic. Accessible via Tramway T1" },
       { name: "Zones d'emploi Sud du Mans", distance: "< 10 min en voiture", detail: "Technopole Université, ZA Sud, centres de recherche" },
       { name: "Parc Gué de Maulny", distance: "5 min à pied", detail: "Espace vert de 10 hectares pour se détendre" },
-      { name: "Tramway T1", distance: "À proximité", detail: "Dessert le centre-ville, la gare et le circuit" },
+      { name: "Tramway T1", distance: "Au niveau de la gare, 10 min à pied", detail: "Dessert le centre-ville, la gare et le circuit" },
       { name: "Cité Plantagenêt (Vieux Mans)", distance: "15 min en tramway", detail: "Quartier médiéval historique, restaurants, patrimoine" },
     ],
   },

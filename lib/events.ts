@@ -1,5 +1,5 @@
 /**
- * Les événements datés du Mans — circuit Bugatti, hippodrome des Hunaudières, marathon.
+ * Les événements datés du Mans — circuit Bugatti, hippodrome des Hunaudières.
  *
  * **Il ne reste ici que les données et les libellés.** Le type `LocalEvent` et les fonctions
  * (`findEventForStay`, `findEventOnDay`, `findEventByKey`, `stayWindow`, `eventJsonLd`) sont
@@ -41,7 +41,6 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
   { key: "24h-rollers-2025", name: "24 Heures Rollers 2025", start: "2025-07-05", end: "2025-07-06", confirmed: true },
   { key: "classic-2025", name: "Le Mans Classic 2025", start: "2025-07-03", end: "2025-07-06", confirmed: true },
   { key: "24h-camions-2025", name: "24 Heures Camions 2025", start: "2025-10-04", end: "2025-10-05", confirmed: true },
-  { key: "marathon-2025", name: "Marathon du Mans 2025", start: "2025-10-12", end: "2025-10-12", confirmed: true },
 
   // 2026 — Circuit du Mans (calendrier officiel lemans.org)
   { key: "karting-ouest-2026", name: "Championnat de l'Ouest Karting / Fun Cup 2026", start: "2026-03-28", end: "2026-03-29", confirmed: true },
@@ -83,7 +82,6 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
     tickets: { url: "https://ticket.24h-camions.com/", price: { amount: 53, currency: "EUR" }, validFrom: "2025-12-09" },
   },
   { key: "iame-karting-2026", name: "Euro Challenge IAME 2026", start: "2026-10-07", end: "2026-10-11", confirmed: true },
-  { key: "marathon-2026", name: "Marathon du Mans 2026", start: "2026-10-11", end: "2026-10-11", confirmed: true },
   { key: "slalom-aco-2026", name: "Inter Écurie / Slalom ACO 2026", start: "2026-11-07", end: "2026-11-08", confirmed: true },
   { key: "tte-2026", name: "Trophée Tourisme Endurance 2026", start: "2026-11-13", end: "2026-11-15", confirmed: true },
   // Hippodrome des Hunaudières 2026 (réunions hippiques)
@@ -130,6 +128,11 @@ export const LE_MANS_EVENTS: LocalEvent[] = [
     url: "https://www.lemansclassic.com/",
     // Co-organisé avec l'ACO ; Peter Auto porte l'événement et sa billetterie.
     organizer: { name: "Peter Auto", url: "https://www.peterauto.fr/" },
+  },
+  {
+    // Dates annoncées par l'organisateur (« Rendez-vous les 28 & 29 août 2027 »), relevé du 2026-11-08.
+    key: "24h-velo-2027", name: "24 Heures Vélo 2027", start: "2027-08-28", end: "2027-08-29", confirmed: true,
+    url: "https://www.24heuresvelo.fr/",
   },
 ];
 
