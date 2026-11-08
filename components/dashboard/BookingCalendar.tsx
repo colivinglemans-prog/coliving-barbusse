@@ -21,6 +21,7 @@ import { addMonths, daysInMonth, firstDayOfMonth, formatDate } from "@sejour/soc
 import { nightsBetween } from "@sejour/socle/lib/booking";
 import { chartEuro } from "@sejour/socle/lib/chart-theme";
 import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
+import { GuestMessagesBookingPanel } from "@sejour/socle/components/GuestMessagesDashboard";
 
 /*
  * Un événement du circuit n'est pas une réservation, et ne doit pas se lire comme elle.
@@ -1096,6 +1097,17 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   bookingId={popup.booking.id}
                   firstName={popup.booking.firstName}
                   country={popup.booking.country}
+                />
+              )}
+
+              {/* Messages automatiques de ce séjour : envoyés, prévus, bloqués. Réservations Beds24 seulement. */}
+              {isAdmin && popup.booking.id > 0 && (
+                <GuestMessagesBookingPanel
+                  bookingId={popup.booking.id}
+                  accent="#334155"
+                  endpoint="/api/dashboard/messages"
+                  previewEndpoint="/api/dashboard/messages/apercu"
+                  sendEndpoint="/api/dashboard/messages/envoyer"
                 />
               )}
 

@@ -152,6 +152,10 @@ const site = {
       { path: `/api/dashboard/stats?period=currentYear`, anonymous: [401], viewer: [403] },
       { path: `/api/dashboard/fiscal?year=${thisYear()}&projected=false`, anonymous: [401], viewer: [403] },
       { path: `/api/dashboard/taxe-sejour?year=${thisYear()}`, anonymous: [401], viewer: [403] },
+      // Messagerie voyageur (2026-11-08) : admin seulement, prénoms et aperçus de messages.
+      { path: "/api/dashboard/messages", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/messages/apercu?bookingId=1&templateId=depart", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/messages/envoyer", method: "POST", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/invoices/prefill?bookingId=1", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/invoices/generate", method: "POST", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/invoices/stripe-payments", anonymous: [401], viewer: [403] },

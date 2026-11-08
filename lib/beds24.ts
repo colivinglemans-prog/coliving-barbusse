@@ -644,3 +644,66 @@ export async function sendBookingMessage(bookingId: number, message: string): Pr
   }
   if (refus) throw new Error(`Beds24 a refusé l'envoi : ${refus}`);
 }
+
+/*
+ * ——— Messagerie voyageur automatique (`lib/messages/engine.ts`, socle v3.17.0) ———
+ *
+ * Lectures **fraîches** sur la voie `messagerie` (prénom, langue, e-mail) : le moteur relit le
+ * registre juste avant d'envoyer. Le registre (`infoItems` `MSG_*`) s'écrit par la voie
+ * `ecriture`, comme le PIN. Maison entière seulement (`PROPERTY_ID`).
+ */
+
+/** Réservations de la fenêtre, avec `infoItems` et données du voyageur. */
+export async function reservationsMessagerie(params: { departDu: string; arriveeAu: string }): Promise<Beds24Booking[]> {
+  const { data = [] } = await client.get<{ data: Beds24Booking[] }>("/bookings", {
+    params: {
+      propertyId: String(PROPERTY_ID),
+      departureFrom: params.departDu,
+      arrivalTo: params.arriveeAu,
+      includeInfoItems: "true",
+    },
+    route: "messagerie",
+    fresh: true,
+  });
+  return data.filter((b) => b.propertyId === PROPERTY_ID);
+}
+
+/** Une réservation de la maison, fraîche, avec `infoItems` et données du voyageur. */
+export async function reservationMessagerie(id: number): Promise<Beds24Booking | null> {
+  const { data = [] } = await client.get<{ data: Beds24Booking[] }>("/bookings", {
+    params: { id: String(id), propertyId: String(PROPERTY_ID), includeInfoItems: "true" },
+    route: "messagerie",
+    fresh: true,
+  });
+  return data.find((b) => b.propertyId === PROPERTY_ID) ?? null;
+}
+
+/** Messages de l'hôte des `jours` derniers jours, toutes réservations, en une requête paginée. */
+export async function messagesHote(jours: number): Promise<Beds24Message[]> {
+  const out: Beds24Message[] = [];
+  for (let page = 1; page <= 5; page++) {
+    const r = await client.get<{ data?: Beds24Message[]; pages?: { nextPageExists?: boolean } }>("/bookings/messages", {
+      params: { maxAge: String(jours), source: "host", page: String(page) },
+      route: "messagerie",
+      fresh: true,
+    });
+    out.push(...(r.data ?? []));
+    if (!r.pages?.nextPageExists) break;
+  }
+  return out;
+}
+
+/** Écrit une trace du registre (`MSG_*`) sur la réservation. */
+export function ecrireRegistre(id: number, code: string, texte: string): Promise<void> {
+  return client.addInfoItems(id, [{ code, text: texte }], "ecriture");
+}
+
+/** Poste un message dans la messagerie de la plateforme (moteur). */
+export function envoyerMessagePlateforme(id: number, texte: string): Promise<void> {
+  return client.sendMessage(id, texte, "messagerie");
+}
+
+/** Crédits Beds24 restants, lus sur la dernière réponse (indicatif). */
+export function creditsBeds24(): number | undefined {
+  return client.quota()?.remaining;
+}

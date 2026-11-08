@@ -24,6 +24,7 @@ const LIENS: DashboardLink[] = [
   { href: "/dashboard/pricing", label: "Pricing", adminOnly: true },
   { href: "/dashboard/heating", label: "Chauffage", adminOnly: false },
   { href: "/dashboard/water-heater", label: "Eau chaude", adminOnly: false },
+  { href: "/dashboard/messages", label: "Messages", adminOnly: true },
   { href: "/dashboard/invoices", label: "Factures", adminOnly: true },
   { href: "/dashboard/taxe-sejour", label: "Taxe de séjour", adminOnly: true },
   { href: "/dashboard/fiscal", label: "Fiscalité", adminOnly: true },

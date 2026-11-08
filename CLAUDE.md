@@ -214,7 +214,9 @@ docs/journal.md § Conventions).
   sur Albiez d'abord, se vérifie, puis sur Barbusse. Ne montent **jamais** au socle : le
   chauffage et l'eau chaude (`lib/heatzy.ts`, `lib/cozytouch.ts`, leurs routes et composants),
   les crons, les données du Mans (`lib/events.ts`, zone scolaire B), le bien et le voyageur
-  (`lib/property-info.ts`, `lib/guest-messages.ts`, guide d'arrivée, code Nuki).
+  (`lib/property-info.ts`, les **textes** des messages voyageurs — `lib/guest-messages.ts`,
+  `lib/messages/templates.ts` —, guide d'arrivée, code Nuki). Le **moteur** des messages
+  automatiques, lui, est au socle (`@sejour/socle/lib/guest-messaging`, v3.17.0) : deux appelants.
 - Ce fichier est la **référence au présent**. Les récits datés, enquêtes et débogages résolus
   vont dans [docs/journal.md](docs/journal.md), sous le même titre de section.
 
@@ -667,6 +669,39 @@ Bloc dans la popup de réservation du calendrier — [components/dashboard/Guest
 - Deux repères à ancre fixe sur la même page : `#avant` (venir, stationnement, lits d'appoint, règles) et `#sur-place` (serrure, Wi-Fi, chauffage, café, Découvrir Le Mans, le jour du départ, revenir, contact).
 - « Découvrir Le Mans » est **calculé** (articles `journey` « sur-place ») avec un lien vers `/xx/blog#pendant-le-sejour` ; « Revenir » liste les prochains événements aux dates officielles (`isUpcomingOfficial`), sur un ton informatif, jamais « réservez » (le lien du guide part dans les fils Airbnb / Booking) ; la page se régénère chaque jour (`revalidate`). Aucune page indexée ne renvoie vers le guide (il affiche le Wi-Fi) : le lien va du guide vers le blog, jamais l'inverse.
 - Raccourcis imprimés (QR de la fiche « Pendant votre séjour », `scripts/generate-print-sheets.mjs`) : `/bienvenue` → `/xx/guide-arrivee#sur-place`, `/autour` → `/xx/blog#pendant-le-sejour` (`app/bienvenue`, `app/autour`, `lib/short-links.ts` : 307 selon `Accept-Language`, `Vary`, hors proxy). Changer la destination ne demande pas de réimprimer.
+
+### Messages voyageurs automatiques (depuis le 2026-11-08, socle v3.17.0)
+
+Les auto-actions Beds24 sont remplacées par des messages écrits **dans ce dépôt** —
+[lib/messages/templates.ts](lib/messages/templates.ts), cinq langues, vouvoiement FR/DE et
+tutoiement IT/ES : arrivée + code (J-5 16h), lendemain de l'arrivée (9h), veille du départ (17h),
+avis (lendemain du départ 10h). Textes reconstitués à partir des fils le 2026-11-08 (aucun n'était
+sauvegardé) ; le « bien installé » partait en français à tout le monde. **La confirmation de
+réservation reste dans Beds24** (décision de l'hôte). Moteur : section v3.17.0 du CLAUDE.md du socle.
+
+- **Faire évoluer un texte** : modifier le français, reporter dans les quatre langues, incrémenter
+  `version`. [tests/messages.test.ts](tests/messages.test.ts) bloque toute incohérence, vérifie que
+  les anciens boutons reconnaissent les nouveaux messages, et que les auto-actions Beds24 réelles
+  sont reconnues sans confusion (« wonderful stay » est dans le départ **et** dans l'avis anglais).
+- **Arrivée** : envoyée seulement si `NUKI_PIN` existe **et** que le code est sur la serrure
+  (`isPinOnLock`). Réservation tardive : rattrapée jusqu'au soir de l'arrivée.
+- **Avis** : le bloc « réservez en direct » n'apparaît que pour une réservation directe.
+- **Canal** : Airbnb, Booking.com, Abritel → messagerie ; direct → e-mail SMTP OVH (`SMTP_*`, non
+  posées au 2026-11-08 : une directe est alors « bloquée ») ; HomeToGo et autres → rien, visible.
+- **Registre** : `infoItems` `MSG_*` (jeton d'écriture) + messages de l'hôte reconnus dans les fils
+  — l'écran reprend donc tout l'historique des auto-actions. ⚠️ Chaque écriture déclenche le
+  webhook Beds24 : la synchro Nuki repasse une fois par message (inoffensif).
+- **Modes** : `MESSAGES_MODES=arrivee-code:live,depart:shadow,…`, **ombre par défaut** ;
+  `MESSAGES_KILL_SWITCH=1` coupe tout. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
+  10 min, verrou Redis `barbusse:messages:cron:lock`, plafond 5 envois par passage, alertes ntfy
+  (échec, blocage, orphelin). Pas encore dans `EXPECTED_CRONS` : à ajouter au passage en réel.
+- **Écran** : [/dashboard/messages](app/(dashboard)/dashboard/messages/page.tsx) et le panneau
+  « Messages au voyageur » de la fiche du calendrier (admin seulement).
+- **Bascule, un message à la fois** : passer le modèle en `live`, puis désactiver l'auto-action
+  Beds24 correspondante ; la relecture du fil absorbe un envoi concurrent. Les anciens boutons
+  (ci-dessous) restent jusqu'à la bascule de l'arrivée et du départ.
+- ⚠️ Le Wi-Fi est lu dans `PROPERTY_INFO.wifi`, **en clair dans le dépôt public** (remarque de
+  chef-de-stand) : à passer en variable d'environnement et à changer sur la box.
 
 ### Envoi des messages arrivée / départ depuis le calendrier
 

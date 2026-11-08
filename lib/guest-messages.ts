@@ -275,6 +275,11 @@ const SIGNATURES: Record<GuestMessageKind, readonly string[]> = {
     // Auto-actions Beds24 « Before arrival - Send Nuki PIN », relevées dans le fil.
     "bienvenue au coliving",
     "welcome to coliving",
+    // Les modèles du moteur (lib/messages/templates.ts, 2026-11-08) dans les trois autres langues :
+    // sans eux, le bouton resterait cliquable après un envoi automatique en DE, ES ou IT.
+    "willkommen im coliving",
+    "bienvenido al coliving",
+    "benvenuto al coliving",
     // Nos 5 gabarits : le libellé du code, présent seulement quand le PIN l'est.
     "votre code d'acces a la porte",
     "your door access code",
