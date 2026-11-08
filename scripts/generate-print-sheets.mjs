@@ -11,7 +11,7 @@
  * et le Wi-Fi est lu depuis lib/property-info.ts pour rester synchronisé.
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import React from "react";
@@ -25,16 +25,23 @@ const OUT_DIR = path.join(ROOT, "docs", "print");
 /* Données                                                             */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Le Wi-Fi vient des variables WIFI_SSID / WIFI_PASSWORD (environnement, sinon `.env.local`),
+ * comme `lib/wifi.ts` : il n'est plus dans `lib/property-info.ts`, suivi par git dans un dépôt public.
+ */
 function readWifi() {
-  const src = readFileSync(path.join(ROOT, "lib", "property-info.ts"), "utf8");
-  const block = src.match(/wifi:\s*\{([\s\S]*?)\}/);
-  if (!block) throw new Error("Bloc wifi introuvable dans lib/property-info.ts");
-  const pick = (key) => {
-    const m = block[1].match(new RegExp(`${key}:\\s*"([^"]+)"`));
-    if (!m) throw new Error(`Clé wifi.${key} introuvable`);
-    return m[1];
-  };
-  return { ssid: pick("ssid"), password: pick("password"), encryption: pick("encryption") };
+  let env = { ...process.env };
+  const local = path.join(ROOT, ".env.local");
+  if ((!env.WIFI_SSID || !env.WIFI_PASSWORD) && existsSync(local)) {
+    for (const line of readFileSync(local, "utf8").split(/\r?\n/)) {
+      const m = line.match(/^\s*(WIFI_SSID|WIFI_PASSWORD)\s*=\s*"?([^"\r\n]*)"?\s*$/);
+      if (m && !env[m[1]]) env[m[1]] = m[2];
+    }
+  }
+  if (!env.WIFI_SSID || !env.WIFI_PASSWORD) {
+    throw new Error("WIFI_SSID et WIFI_PASSWORD manquants (environnement ou .env.local)");
+  }
+  return { ssid: env.WIFI_SSID.trim(), password: env.WIFI_PASSWORD.trim(), encryption: "WPA" };
 }
 
 const WIFI = readWifi();

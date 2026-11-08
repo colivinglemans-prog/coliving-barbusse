@@ -6,6 +6,7 @@ import { alternatesFor, arrivalGuidePath } from "@/lib/seo";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
 import WifiQRCode from "@/components/guide/WifiQRCode";
+import { getWifi, wifiQrPayload } from "@/lib/wifi";
 
 const HERO_IMAGE = "/images/house/3-maison-AI.jpg";
 const FEATURED_BLOG_SLUGS = [
@@ -56,6 +57,7 @@ const T = {
     s4OutStep2: "Appuyez sur la touche retour (la touche en bas à droite du clavier).",
     s5Title: "Wi-Fi",
     s5Sub: "Connectez tout le groupe en un instant.",
+    s5Missing: "Le code Wi-Fi vous est donné sur place : demandez-le-nous par message si besoin.",
     s6Title: "Chauffage",
     s6Body: "Les radiateurs sont contrôlés par un petit boîtier de commande. Tout est automatique : le chauffage s'allume avant votre arrivée et se coupe à votre départ.",
     s6Note: "Vous pouvez ajuster la température via les boutons + / – si vous avez trop chaud ou trop froid. Merci de ne pas toucher directement aux radiateurs. En cas de besoin, je peux les piloter à distance — n'hésitez pas à m'envoyer un message.",
@@ -69,7 +71,7 @@ const T = {
       "Poubelle jaune (tri) et tout-venant devant la maison",
       "20 voyageurs maximum",
     ],
-    s7Teens: "Adolescents 10-17 ans bienvenus. Le logement n'est pas adapté aux jeunes enfants.",
+    s7Teens: "Adolescents 10-17 ans bienvenus. Le logement n'est pas adapté aux moins de 10 ans (escaliers), qui restent acceptés sous la responsabilité de leurs parents.",
     knowMoreTitle: "En savoir plus sur la maison",
     knowMoreSub: "Pour préparer votre séjour et organiser la répartition des chambres avant l'arrivée.",
     knowMoreRoomsT: "Les 9 suites privatives",
@@ -106,7 +108,8 @@ const T = {
     s9Feedback: "Nous serions ravis d'avoir votre retour : n'hésitez pas à nous envoyer un message pour partager vos impressions et nous aider à nous améliorer.",
     s9FeedbackCta: "Nous écrire sur WhatsApp",
     s9ReviewT: "Votre avis compte 🌟",
-    s9ReviewBody: "Si vous avez aimé votre séjour, votre avis Google nous aide énormément à gagner en visibilité et à accueillir d'autres voyageurs comme vous.",
+    s9ReviewBody: "Votre avis, quel qu'il soit, aide d'autres groupes à nous trouver et nous aide à nous améliorer.",
+    s9ReviewPlatform: "Réservé sur Airbnb ou Booking ? La plateforme vous invitera aussi à laisser un commentaire.",
     s9ReviewCta: "Laissez-nous un avis sur Google",
     s10Title: "Contact & urgences",
     s10HostT: "Votre hôte Alexandre",
@@ -160,6 +163,7 @@ const T = {
     s4OutStep2: 'Press the "return key" (bottom-right key of the keypad).',
     s5Title: "Wi-Fi",
     s5Sub: "Get the whole group connected in one go.",
+    s5Missing: "The Wi-Fi code is given to you at the house: just message us if you need it.",
     s6Title: "Heating",
     s6Body: "The radiators are controlled by a small control unit. Everything is automatic: heating turns on before your arrival and off when you leave.",
     s6Note: "You can adjust the temperature using the + / – buttons if you feel too hot or too cold. Please don't touch the radiators directly. If needed, I can control them remotely — feel free to send me a message.",
@@ -173,7 +177,7 @@ const T = {
       "Yellow bin (recycling) and general waste in front of the house",
       "20 guests maximum",
     ],
-    s7Teens: "Teens aged 10-17 are welcome. The property is not suitable for young children.",
+    s7Teens: "Teens aged 10-17 are welcome. The house is not suited to children under 10 (stairs), who are still accepted under their parents' responsibility.",
     knowMoreTitle: "Learn more about the house",
     knowMoreSub: "To prepare your stay and organise who-sleeps-where before arrival.",
     knowMoreRoomsT: "The 9 private suites",
@@ -210,7 +214,8 @@ const T = {
     s9Feedback: "We would love to hear from you! Feel free to send us a message to share your impressions and help us improve.",
     s9FeedbackCta: "Message us on WhatsApp",
     s9ReviewT: "Your review matters 🌟",
-    s9ReviewBody: "If you enjoyed your stay, a Google review helps us tremendously gain visibility and welcome more travellers like you.",
+    s9ReviewBody: "Your review, whatever it says, helps other groups find us and helps us improve.",
+    s9ReviewPlatform: "Booked on Airbnb or Booking? The platform will also invite you to leave a review.",
     s9ReviewCta: "Leave us a Google review",
     s10Title: "Contact & emergencies",
     s10HostT: "Your host Alexandre",
@@ -264,6 +269,7 @@ const T = {
     s4OutStep2: "Premi il tasto di ritorno (il tasto in basso a destra della tastiera).",
     s5Title: "Wi-Fi",
     s5Sub: "Collega tutto il gruppo in un istante.",
+    s5Missing: "Il codice Wi-Fi ti viene dato in casa: chiedicelo pure con un messaggio.",
     s6Title: "Riscaldamento",
     s6Body: "I radiatori sono controllati da una piccola centralina. Tutto è automatico: il riscaldamento si accende prima del tuo arrivo e si spegne alla tua partenza.",
     s6Note: "Puoi regolare la temperatura tramite i pulsanti + / – se hai troppo caldo o troppo freddo. Per favore non toccare direttamente i radiatori. In caso di necessità, posso pilotarli a distanza — non esitare a inviarmi un messaggio.",
@@ -277,7 +283,7 @@ const T = {
       "Bidone giallo (riciclo) e indifferenziato davanti alla casa",
       "Massimo 20 ospiti",
     ],
-    s7Teens: "Adolescenti 10-17 anni benvenuti. L'alloggio non è adatto ai bambini piccoli.",
+    s7Teens: "Adolescenti 10-17 anni benvenuti. L'alloggio non è adatto ai bambini sotto i 10 anni (scale), che restano comunque accettati sotto la responsabilità dei genitori.",
     knowMoreTitle: "Scopri di più sulla casa",
     knowMoreSub: "Per preparare il tuo soggiorno e organizzare la distribuzione delle camere prima dell'arrivo.",
     knowMoreRoomsT: "Le 9 suite private",
@@ -314,7 +320,8 @@ const T = {
     s9Feedback: "Saremmo felici di avere un tuo riscontro: non esitare a inviarci un messaggio per condividere le tue impressioni e aiutarci a migliorare.",
     s9FeedbackCta: "Scrivici su WhatsApp",
     s9ReviewT: "La tua recensione conta 🌟",
-    s9ReviewBody: "Se hai apprezzato il tuo soggiorno, una recensione Google ci aiuta enormemente a guadagnare visibilità e ad accogliere altri viaggiatori come te.",
+    s9ReviewBody: "La tua recensione, qualunque essa sia, aiuta altri gruppi a trovarci e ci aiuta a migliorare.",
+    s9ReviewPlatform: "Hai prenotato su Airbnb o Booking? Anche la piattaforma ti inviterà a lasciare una recensione.",
     s9ReviewCta: "Lascia una recensione su Google",
     s10Title: "Contatti & emergenze",
     s10HostT: "Il tuo host Alexandre",
@@ -368,6 +375,7 @@ const T = {
     s4OutStep2: "Drücken Sie die Rückkehr-Taste (die Taste unten rechts auf dem Tastenfeld).",
     s5Title: "WLAN",
     s5Sub: "Bringen Sie die ganze Gruppe im Handumdrehen ins Netz.",
+    s5Missing: "Den WLAN-Code erhalten Sie vor Ort: Schreiben Sie uns einfach, wenn Sie ihn brauchen.",
     s6Title: "Heizung",
     s6Body: "Die Heizkörper werden von einem kleinen Steuergerät gesteuert. Alles läuft automatisch: Die Heizung schaltet sich vor Ihrer Ankunft ein und bei Ihrer Abreise wieder aus.",
     s6Note: "Sie können die Temperatur über die Tasten + / – anpassen, wenn Ihnen zu warm oder zu kalt ist. Bitte berühren Sie die Heizkörper nicht direkt. Bei Bedarf kann ich sie aus der Ferne steuern — schreiben Sie mir gerne eine Nachricht.",
@@ -381,7 +389,7 @@ const T = {
       "Gelbe Tonne (Wertstoff) und Restmüll vor dem Haus",
       "Maximal 20 Gäste",
     ],
-    s7Teens: "Jugendliche von 10 bis 17 Jahren willkommen. Die Unterkunft ist nicht für Kleinkinder geeignet.",
+    s7Teens: "Jugendliche von 10 bis 17 Jahren willkommen. Für Kinder unter 10 Jahren ist das Haus nicht ausgelegt (Treppen); sie sind dennoch unter der Verantwortung ihrer Eltern willkommen.",
     knowMoreTitle: "Mehr über das Haus erfahren",
     knowMoreSub: "Um Ihren Aufenthalt vorzubereiten und die Zimmerverteilung vor der Ankunft zu organisieren.",
     knowMoreRoomsT: "Die 9 privaten Suiten",
@@ -418,7 +426,8 @@ const T = {
     s9Feedback: "Wir würden uns über Ihre Rückmeldung freuen: Schreiben Sie uns gerne eine Nachricht, um Ihre Eindrücke zu teilen und uns bei der Verbesserung zu helfen.",
     s9FeedbackCta: "Auf WhatsApp schreiben",
     s9ReviewT: "Ihre Bewertung zählt 🌟",
-    s9ReviewBody: "Wenn Ihnen Ihr Aufenthalt gefallen hat, hilft uns eine Google-Bewertung enorm dabei, an Sichtbarkeit zu gewinnen und weitere Reisende wie Sie willkommen zu heißen.",
+    s9ReviewBody: "Ihre Bewertung, wie auch immer sie ausfällt, hilft anderen Gruppen, uns zu finden, und hilft uns, besser zu werden.",
+    s9ReviewPlatform: "Über Airbnb oder Booking gebucht? Auch die Plattform lädt Sie ein, eine Bewertung abzugeben.",
     s9ReviewCta: "Hinterlassen Sie eine Google-Bewertung",
     s10Title: "Kontakt & Notfälle",
     s10HostT: "Ihr Gastgeber Alexandre",
@@ -472,6 +481,7 @@ const T = {
     s4OutStep2: "Pulsa la tecla de retorno (la tecla abajo a la derecha del teclado).",
     s5Title: "Wi-Fi",
     s5Sub: "Conecta a todo el grupo en un instante.",
+    s5Missing: "El código Wi-Fi se te da en la casa: escríbenos si lo necesitas.",
     s6Title: "Calefacción",
     s6Body: "Los radiadores están controlados por una pequeña centralita. Todo es automático: la calefacción se enciende antes de tu llegada y se apaga al irte.",
     s6Note: "Puedes ajustar la temperatura con los botones + / – si tienes demasiado calor o demasiado frío. Por favor, no toques directamente los radiadores. Si lo necesitas, puedo pilotarlos a distancia — no dudes en enviarme un mensaje.",
@@ -485,7 +495,7 @@ const T = {
       "Contenedor amarillo (reciclaje) y resto delante de la casa",
       "20 huéspedes máximo",
     ],
-    s7Teens: "Adolescentes de 10 a 17 años bienvenidos. El alojamiento no es apto para niños pequeños.",
+    s7Teens: "Adolescentes de 10 a 17 años bienvenidos. La casa no está pensada para menores de 10 años (escaleras), que siguen siendo aceptados bajo la responsabilidad de sus padres.",
     knowMoreTitle: "Saber más sobre la casa",
     knowMoreSub: "Para preparar tu estancia y organizar el reparto de las habitaciones antes de la llegada.",
     knowMoreRoomsT: "Las 9 suites privadas",
@@ -522,7 +532,8 @@ const T = {
     s9Feedback: "Nos encantaría tener tu opinión: no dudes en enviarnos un mensaje para compartir tus impresiones y ayudarnos a mejorar.",
     s9FeedbackCta: "Escríbenos por WhatsApp",
     s9ReviewT: "Tu reseña cuenta 🌟",
-    s9ReviewBody: "Si has disfrutado de tu estancia, una reseña en Google nos ayuda enormemente a ganar visibilidad y acoger a más viajeros como tú.",
+    s9ReviewBody: "Tu reseña, sea cual sea, ayuda a otros grupos a encontrarnos y nos ayuda a mejorar.",
+    s9ReviewPlatform: "¿Has reservado en Airbnb o Booking? La plataforma también te invitará a dejar un comentario.",
     s9ReviewCta: "Déjanos una reseña en Google",
     s10Title: "Contacto y emergencias",
     s10HostT: "Tu anfitrión Alexandre",
@@ -565,6 +576,7 @@ export default async function GuideArrivee({
   const { locale: rawLocale } = await params;
   const locale = (rawLocale as Lang) in T ? (rawLocale as Lang) : "fr";
   const t = T[locale];
+  const wifi = getWifi();
 
   const featuredPosts = FEATURED_BLOG_SLUGS
     .map((slug) => BLOG_POSTS.find((p) => p.slug === slug))
@@ -784,7 +796,16 @@ export default async function GuideArrivee({
         <h2 className="text-2xl font-bold text-foreground">📶 {t.s5Title}</h2>
         <p className="mt-2 text-sm text-secondary">{t.s5Sub}</p>
         <div className="mt-5">
-          <WifiQRCode locale={locale} />
+          {wifi ? (
+            <WifiQRCode
+              locale={locale}
+              ssid={wifi.ssid}
+              password={wifi.password}
+              qrPayload={wifiQrPayload(wifi)}
+            />
+          ) : (
+            <p className="text-sm text-secondary">{t.s5Missing}</p>
+          )}
         </div>
       </section>
 
@@ -1012,6 +1033,7 @@ export default async function GuideArrivee({
         <div className="mt-8 rounded-2xl bg-primary px-6 py-8 text-center text-white sm:px-10 sm:py-10">
           <h3 className="text-xl font-bold sm:text-2xl">{t.s9ReviewT}</h3>
           <p className="mx-auto mt-3 max-w-xl text-sm text-white/90">{t.s9ReviewBody}</p>
+          <p className="mx-auto mt-2 max-w-xl text-xs text-white/80">{t.s9ReviewPlatform}</p>
           <a
             href={PROPERTY_INFO.googleMaps.shortlink}
             target="_blank"

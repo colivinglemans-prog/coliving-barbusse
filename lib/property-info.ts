@@ -25,11 +25,7 @@ export const PROPERTY_INFO = {
   maxGuests: 20,
   /** Neuf chambres, chacune avec sa salle de douche. Lu par le JSON-LD (`numberOfRooms`). */
   bedrooms: 9,
-  wifi: {
-    ssid: "Freebox-C1A6F7",
-    password: "xccm4q2z33qz3t7wqbmvbh",
-    encryption: "WPA",
-  },
+  // Le Wi-Fi n'est plus ici (dépôt public) : `lib/wifi.ts`, variables WIFI_SSID / WIFI_PASSWORD.
   contact: {
     phone: "+33620921005",
     whatsapp: "https://wa.me/33620921005",
@@ -48,11 +44,6 @@ export const PROPERTY_INFO = {
     rooleMap: "https://www.roole.fr/application-roole-map",
   },
 } as const;
-
-export function wifiQrPayload(): string {
-  const { ssid, password, encryption } = PROPERTY_INFO.wifi;
-  return `WIFI:T:${encryption};S:${ssid};P:${password};;`;
-}
 
 /**
  * Politique d'annulation des réservations directes : **Ferme**, alignée sur celle d'Airbnb

@@ -127,7 +127,8 @@ const site = {
     "NUKI_PIN",
     // Nom de champ Beds24 : sa présence dans une page publique trahit un objet brut sérialisé.
     /\bbookid\b/,
-    PROPERTY_INFO.wifi.password,
+    // Le mot de passe Wi-Fi n'est plus dans le dépôt : contrôlé seulement si la CI le reçoit.
+    ...(process.env.WIFI_PASSWORD ? [process.env.WIFI_PASSWORD] : []),
   ],
 
   cancellation: CANCELLATION_POLICY,

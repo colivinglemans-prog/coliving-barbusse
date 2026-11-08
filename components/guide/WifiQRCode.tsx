@@ -1,11 +1,15 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
-import { PROPERTY_INFO, wifiQrPayload } from "@/lib/property-info";
 import type { Locale } from "@/lib/i18n";
 
 type Props = {
   locale: Locale;
+  /** Lu côté serveur par le guide (`lib/wifi.ts`) : jamais importé ici, le composant est client. */
+  ssid: string;
+  password: string;
+  /** `WIFI:T:WPA;S:…;P:…;;` */
+  qrPayload: string;
 };
 
 const TEXTS: Record<Locale, { aria: string; scan: string; network: string; password: string }> = {
@@ -41,16 +45,15 @@ const TEXTS: Record<Locale, { aria: string; scan: string; network: string; passw
   },
 };
 
-export default function WifiQRCode({ locale }: Props) {
+export default function WifiQRCode({ locale, ssid, password, qrPayload }: Props) {
   const t = TEXTS[locale] ?? TEXTS.fr;
-  const { ssid, password } = PROPERTY_INFO.wifi;
 
   return (
     <div className="rounded-2xl border border-border bg-light-bg p-6 sm:p-8">
       <div className="grid items-center gap-6 sm:grid-cols-[auto_1fr]">
         <div className="mx-auto flex items-center justify-center rounded-xl bg-white p-4 shadow-sm">
           <QRCodeSVG
-            value={wifiQrPayload()}
+            value={qrPayload}
             size={180}
             level="M"
             marginSize={1}
