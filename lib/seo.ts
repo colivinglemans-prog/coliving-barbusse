@@ -48,6 +48,38 @@ export const DEFAULT_OG_IMAGE = {
   alt: "Coliving Barbusse — maison de 9 chambres au Mans",
 };
 
+/**
+ * Le bloc `openGraph` **complet** d'une page, et son pendant `twitter`.
+ *
+ * La fusion en surface de Next fait qu'une page qui déclare son `openGraph` perd tout celui du
+ * layout — image, `siteName`, `type`. Une page qui n'en déclare pas hérite, elle, du titre et de
+ * l'URL **de l'accueil** : un lien partagé vers `/fr/chambres` s'annonçait comme la page d'accueil
+ * (relecture du chef de stand, 2026-11-08). Chaque page indexable passe donc par ici.
+ */
+export function pageOpenGraph(
+  locale: Locale,
+  { title, description, url }: { title: string; description: string; url: string },
+) {
+  return {
+    title,
+    description,
+    url,
+    siteName: "Coliving Barbusse",
+    type: "website" as const,
+    images: [DEFAULT_OG_IMAGE],
+    ...openGraphLocales(locale),
+  };
+}
+
+export function pageTwitter({ title, description }: { title: string; description: string }) {
+  return {
+    card: "summary_large_image" as const,
+    title,
+    description,
+    images: [DEFAULT_OG_IMAGE.url],
+  };
+}
+
 /** Les 9 suites. Slug commun aux cinq langues. */
 export const roomsPath = sectionPath("chambres");
 

@@ -3,9 +3,9 @@ import {
   alternatesFor,
   HOME_DESCRIPTIONS,
   HOME_TITLES,
-  DEFAULT_OG_IMAGE,
   homePath,
-  openGraphLocales,
+  pageOpenGraph,
+  pageTwitter,
 } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { PROPERTY_INFO } from "@/lib/property-info";
@@ -43,13 +43,8 @@ export async function generateMetadata({
   return {
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      url: `${SITE_URL}${homePath(locale)}`,
-      ...openGraphLocales(locale),
-      images: [DEFAULT_OG_IMAGE],
-    },
+    openGraph: pageOpenGraph(locale, { title, description, url: `${SITE_URL}${homePath(locale)}` }),
+    twitter: pageTwitter({ title, description }),
     alternates: alternatesFor(locale, homePath),
   };
 }

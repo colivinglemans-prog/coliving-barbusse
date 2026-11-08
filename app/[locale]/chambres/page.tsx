@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import SleepingArrangement from "@/components/public/SleepingArrangement";
 import Amenities from "@/components/public/Amenities";
 import ReservationCalendar from "@/components/public/ReservationCalendar";
-import { alternatesFor, roomsPath } from "@/lib/seo";
+import { alternatesFor, pageOpenGraph, pageTwitter, roomsPath } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 import type { Locale } from "@/lib/i18n";
 
 const T: Record<Locale, { title: string; sub: string; metaTitle: string; metaDesc: string }> = {
@@ -52,10 +53,11 @@ export async function generateMetadata({
     description: t.metaDesc,
     // La liste écrite à la main qui était ici déclarait quatre langues sur les cinq
     // servies : `/es/chambres` existait, se rendait, et n'était annoncée nulle part.
-    // Pas de bloc `openGraph` : celui du layout, désormais construit par langue, couvre
-    // cette page. En redéclarer un ici le **remplacerait** — la fusion de Next est en
-    // surface — et la page perdrait son `og:image` et son `og:site_name`.
     alternates: alternatesFor(locale, roomsPath),
+    // Bloc complet (`pageOpenGraph`) : sans lui la page héritait du titre et de l'URL de
+    // l'accueil ; avec un bloc partiel, elle perdait image et `siteName` (fusion en surface).
+    openGraph: pageOpenGraph(locale, { title: t.metaTitle, description: t.metaDesc, url: `${SITE_URL}${roomsPath(locale)}` }),
+    twitter: pageTwitter({ title: t.metaTitle, description: t.metaDesc }),
   };
 }
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { alternatesFor, DEFAULT_OG_IMAGE, openGraphLocales, seminarsPath } from "@/lib/seo";
+import { alternatesFor, pageOpenGraph, pageTwitter, seminarsPath } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { aggregateRatingJsonLd } from "@/lib/reviews";
@@ -345,14 +345,8 @@ export async function generateMetadata({
     title: t.titleTag,
     description: t.desc,
     alternates: alternatesFor(locale, seminarsPath),
-    openGraph: {
-      title: t.titleTag,
-      description: t.desc,
-      url,
-      ...openGraphLocales(locale),
-      type: "website",
-      images: [DEFAULT_OG_IMAGE],
-    },
+    openGraph: pageOpenGraph(locale, { title: t.titleTag, description: t.desc, url }),
+    twitter: pageTwitter({ title: t.titleTag, description: t.desc }),
   };
 }
 

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { cancellationText } from "@sejour/socle/lib/quote-labels";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { CANCELLATION_POLICY, PAYMENT_POLICY, PROPERTY_INFO } from "@/lib/property-info";
-import { alternatesFor, conditionsPath } from "@/lib/seo";
+import { alternatesFor, conditionsPath, pageOpenGraph, pageTwitter } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * Conditions de réservation : la page que citent `llms.txt`, la page de devis et le profil
@@ -164,7 +165,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale: raw } = await params;
   const locale = asLocale(raw);
   const c = content(locale);
-  return { title: `${c.title} — Coliving Barbusse`, description: c.metaDesc ?? c.intro, alternates: alternatesFor(locale, conditionsPath) };
+  const title = `${c.title} — Coliving Barbusse`;
+  const description = c.metaDesc ?? c.intro;
+  return {
+    title,
+    description,
+    alternates: alternatesFor(locale, conditionsPath),
+    openGraph: pageOpenGraph(locale, { title, description, url: `${SITE_URL}${conditionsPath(locale)}` }),
+    twitter: pageTwitter({ title, description }),
+  };
 }
 
 export default async function ConditionsPage({ params }: { params: Promise<{ locale: string }> }) {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BLOG_POSTS, getLocalizedPost } from "@/lib/blog/posts";
-import { alternatesFor, blogPath, DEFAULT_OG_IMAGE, openGraphLocales } from "@/lib/seo";
+import { alternatesFor, blogPath, pageOpenGraph, pageTwitter } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { isLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -10,8 +10,8 @@ const DESCRIPTIONS: Record<Locale, string> = {
   fr: "Conseils et guides pratiques pour séjourner en groupe au Mans : 24 Heures du Mans, MotoGP, Le Mans Classic, tourisme en Sarthe.",
   en: "Practical guides and tips for a group stay in Le Mans: 24 Hours of Le Mans, MotoGP, Le Mans Classic and tourism in the Sarthe.",
   it: "Consigli e guide pratiche per soggiornare in gruppo a Le Mans: 24 Ore di Le Mans, MotoGP, Le Mans Classic, turismo nella Sarthe.",
-  de: "Praktische Guides und Tipps für Ihren Aufenthalt in Le Mans: 24 Stunden von Le Mans, MotoGP, Le Mans Classic, Tourismus in der Sarthe.",
-  es: "Consejos y guías prácticas para tu estancia en Le Mans: 24 Horas de Le Mans, MotoGP, Le Mans Classic, turismo en la Sarthe.",
+  de: "Praktische Guides und Tipps für Ihren Gruppenaufenthalt in Le Mans: 24 Stunden von Le Mans, MotoGP, Le Mans Classic, Tourismus in der Sarthe.",
+  es: "Consejos y guías prácticas para tu estancia en grupo en Le Mans: 24 Horas de Le Mans, MotoGP, Le Mans Classic, turismo en la Sarthe.",
 };
 
 const SUBHEADINGS: Record<Locale, string> = {
@@ -38,8 +38,8 @@ const TITLES: Record<Locale, string> = {
   fr: "Blog — séjourner au Mans en groupe | Coliving Barbusse",
   en: "Blog — staying in Le Mans as a group | Coliving Barbusse",
   it: "Blog — soggiornare a Le Mans in gruppo | Coliving Barbusse",
-  de: "Blog — mit der Gruppe in Le Mans | Coliving Barbusse",
-  es: "Blog — alojarse en Le Mans en grupo | Coliving Barbusse",
+  de: "Blog — Gruppenaufenthalt in Le Mans | Coliving Barbusse",
+  es: "Blog — estancias en grupo en Le Mans | Coliving Barbusse",
 };
 
 const DATE_LOCALE: Record<Locale, string> = {
@@ -66,14 +66,8 @@ export async function generateMetadata({
     alternates: alternatesFor(locale, blogPath),
     // Sans ce bloc, l'index héritait de l'`og:title` de l'accueil : un lien partagé vers le blog
     // s'annonçait comme la page d'accueil.
-    openGraph: {
-      title,
-      description,
-      url: `${SITE_URL}${blogPath(locale)}`,
-      ...openGraphLocales(locale),
-      type: "website",
-      images: [DEFAULT_OG_IMAGE],
-    },
+    openGraph: pageOpenGraph(locale, { title, description, url: `${SITE_URL}${blogPath(locale)}` }),
+    twitter: pageTwitter({ title, description }),
   };
 }
 

@@ -316,7 +316,9 @@ export async function generateMetadata({
       url,
       type: "article",
       publishedTime: post.date,
-      images: [{ url: image, width: 1200, height: 630, alt: loc.title }],
+      // Sans dimensions : elles étaient déclarées 1200 × 630 pour toutes les images, quelle que
+      // soit leur taille réelle ; mieux vaut laisser les réseaux les lire que d'en annoncer de fausses.
+      images: [{ url: image, alt: loc.title }],
       ...openGraphLocales(locale),
     },
     twitter: {
