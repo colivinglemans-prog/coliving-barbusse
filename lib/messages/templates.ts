@@ -30,7 +30,7 @@ import type { MessageTemplate } from "@sejour/socle/lib/guest-messaging/types";
 const arrivee: MessageTemplate = {
   id: "arrivee-code",
   label: "Arrivée + code de la porte",
-  version: 1,
+  version: 2,
   trigger: { anchor: "arrival", offsetDays: -5, at: "16:00" },
   // Réservation tardive : le message part dès que le code est sur la serrure, jusqu'au soir de l'arrivée.
   late: { mode: "send", until: { anchor: "arrival", offsetDays: 0, at: "23:00" } },
@@ -138,23 +138,34 @@ Password: {{wifiMotDePasse}}
 Buon soggiorno!
 Alexandre`,
   },
+  /*
+   * **Seulement les libellés du code** (chef-de-stand) : « Bienvenue au Coliving Henri Barbusse »
+   * se retrouve dans un message écrit à la main, et une reconnaissance à tort signifie un voyageur
+   * qui ne reçoit jamais son code. Même piège que l'URL du guide (lib/guest-messages.ts).
+   */
   fingerprints: [
-    // L'auto-action Beds24 568440 et ce modèle commencent pareil.
-    "bienvenue au coliving henri barbusse",
-    "welcome to coliving henri barbusse",
-    "willkommen im coliving henri barbusse",
-    "bienvenido al coliving henri barbusse",
-    "benvenuto al coliving henri barbusse",
-    // Les anciens boutons du dashboard (lib/guest-messages.ts).
+    // Ce modèle (FR) et l'auto-action Beds24 568440 (« …pour la duree de votre sejour »).
+    "votre code personnel pour la",
+    // Ce modèle, dans les quatre autres langues.
+    "your personal code for the front door",
+    "ihr personlicher code fur die haustur",
+    "tu codigo personal para la puerta de entrada",
+    "il tuo codice personale per la porta d'ingresso",
+    // L'auto-action Beds24 568440 en anglais.
+    "your personal access code for the main entrance",
+    // Les anciens boutons du dashboard (lib/guest-messages.ts), cinq langues.
     "votre code d'acces a la porte",
     "your door access code",
+    "il tuo codice di accesso alla porta",
+    "ihr turzugangscode",
+    "tu codigo de acceso a la puerta",
   ],
 };
 
 const installe: MessageTemplate = {
   id: "bien-installe",
   label: "Lendemain de l'arrivée",
-  version: 1,
+  version: 2,
   trigger: { anchor: "arrival", offsetDays: 1, at: "09:00" },
   late: { mode: "skip", graceHours: 6 },
   // Sur une nuit, le lendemain de l'arrivée est le jour du départ.
@@ -167,7 +178,7 @@ const installe: MessageTemplate = {
     fr: "Bien installés ?",
     en: "All settled in?",
     de: "Gut angekommen?",
-    es: "¿Todo bien instalados?",
+    es: "¿Bien instalados?",
     it: "Tutto bene con la sistemazione?",
   },
   body: {
@@ -188,12 +199,12 @@ ich hoffe, Sie haben sich gut eingelebt und finden sich im Haus zurecht. Wenn Ih
 Alexandre`,
     es: `Hola{{#prenom}} {{prenom}}{{/prenom}},
 
-Espero que estéis bien instalados y que ya os sintáis como en casa. Si os falta cualquier cosa, responde simplemente a este mensaje.
+Espero que estéis bien instalados y que ya os sintáis como en casa. Si os falta cualquier cosa, respondedme simplemente a este mensaje.
 
 Alexandre`,
     it: `Ciao{{#prenom}} {{prenom}}{{/prenom}},
 
-spero che vi siate sistemati bene e che vi troviate a vostro agio. Se vi manca qualcosa, rispondi semplicemente a questo messaggio.
+spero che vi siate sistemati bene e che vi troviate a vostro agio. Se vi manca qualcosa, rispondete semplicemente a questo messaggio.
 
 Alexandre`,
   },

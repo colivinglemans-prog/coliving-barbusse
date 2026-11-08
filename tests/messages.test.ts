@@ -58,12 +58,27 @@ describe("messages voyageurs de Barbusse", () => {
 
   it("le moteur reconnaît les auto-actions Beds24 telles qu'elles sont parties (fils relevés le 2026-11-08)", () => {
     const thread = [
-      { source: "host", time: "2026-11-02T15:23:26Z", message: "Bonjour Test,\n\nBienvenue au Coliving Henri Barbusse !\n\n---\nVotre code personnel" },
+      { source: "host", time: "2026-11-02T15:23:26Z", message: "Bonjour Test,\n\nBienvenue au Coliving Henri Barbusse !\n\n---\nVotre code personnel pour la duree de votre sejour" },
       { source: "host", time: "2026-11-08T08:02:30Z", message: "Bonjour Test,\n\nJ'espère que vous êtes bien installé et que vous avez trouvé vos marques.\n\nAlexandre" },
       { source: "host", time: "2026-10-30T16:19:41Z", message: "Bonjour ,\n\nLe depart approche ! Nous esperons que vous avez passe un tres bon\nsejour au Coliving Henri Barbusse." },
       { source: "host", time: "2026-11-01T09:18:24Z", message: "Bonjour ,\n\nNous esperons que vous avez passe un excellent sejour au Coliving\nHenri Barbusse et que vous etes rentres en toute securite !" },
       { source: "host", time: "2026-10-03T15:03:48Z", message: "Hello ,\n\nYour departure is approaching! We hope you had a wonderful stay\nat Coliving Henri Barbusse." },
+      { source: "host", time: "2026-10-05T08:17:22Z", message: "Hello ,\n\nWe hope you had a wonderful stay at Coliving Henri Barbusse\nand that you arrived home safely!" },
+      { source: "host", time: "2026-09-25T14:08:17Z", message: "Hello Test,\n\nWelcome to Coliving Henri Barbusse!\n\n---\nYour personal access code for the main entrance:\n0000" },
     ];
-    expect(ledgerFromThread(thread, TEMPLATES).map((e) => e.templateId)).toEqual(["arrivee-code", "bien-installe", "depart", "avis", "depart"]);
+    expect(ledgerFromThread(thread, TEMPLATES).map((e) => e.templateId)).toEqual(["arrivee-code", "bien-installe", "depart", "avis", "depart", "avis", "arrivee-code"]);
+  });
+
+  it("un message de bienvenue sans code n'est PAS une arrivée envoyée (sinon le code ne partirait jamais)", () => {
+    const thread = [{ source: "host", time: "2026-11-01T10:00:00Z", message: "Bonjour, bienvenue au Coliving Henri Barbusse ! Je vous enverrai le code avant votre arrivée." }];
+    expect(ledgerFromThread(thread, TEMPLATES)).toEqual([]);
+  });
+
+  it("le moteur voit les envois des anciens boutons, dans les cinq langues", async () => {
+    const { buildGuestMessage } = await import("@/lib/guest-messages");
+    for (const locale of LOCALES) {
+      const text = buildGuestMessage(locale, { firstName: "Test", url: "https://exemple.fr", code: "0000" });
+      expect(ledgerFromThread([{ source: "host", time: "2026-11-01T10:00:00Z", message: text }], TEMPLATES).map((e) => e.templateId), locale).toEqual(["arrivee-code"]);
+    }
   });
 });

@@ -690,16 +690,25 @@ réservation reste dans Beds24** (décision de l'hôte). Moteur : section v3.17.
   posées au 2026-11-08 : une directe est alors « bloquée ») ; HomeToGo et autres → rien, visible.
 - **Registre** : `infoItems` `MSG_*` (jeton d'écriture) + messages de l'hôte reconnus dans les fils
   — l'écran reprend donc tout l'historique des auto-actions. ⚠️ Chaque écriture déclenche le
-  webhook Beds24 : la synchro Nuki repasse une fois par message (inoffensif).
+  webhook Beds24 : deux écritures par envoi (`pending`, `sent`), donc la synchro Nuki repasse deux
+  fois par message (inoffensif : son verrou absorbe, le cron horaire rattrape).
 - **Modes** : `MESSAGES_MODES=arrivee-code:live,depart:shadow,…`, **ombre par défaut** ;
   `MESSAGES_KILL_SWITCH=1` coupe tout. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
   10 min, verrou Redis `barbusse:messages:cron:lock`, plafond 5 envois par passage, alertes ntfy
   (échec, blocage, orphelin). Pas encore dans `EXPECTED_CRONS` : à ajouter au passage en réel.
 - **Écran** : [/dashboard/messages](app/(dashboard)/dashboard/messages/page.tsx) et le panneau
   « Messages au voyageur » de la fiche du calendrier (admin seulement).
-- **Bascule, un message à la fois** : passer le modèle en `live`, puis désactiver l'auto-action
-  Beds24 correspondante ; la relecture du fil absorbe un envoi concurrent. Les anciens boutons
-  (ci-dessous) restent jusqu'à la bascule de l'arrivée et du départ.
+- **Bascule, un message à la fois, dans cet ordre : avis, départ, bien-installé, arrivée**
+  (chef-de-stand). Pour chacun, à une heure creuse sans échéance dans les 2 h : **d'abord désactiver
+  l'auto-action Beds24, puis** passer le modèle en `live` — l'inverse fait une course entre les deux
+  envois, et un e-mail Beds24 (réservation directe) n'apparaît pas dans le fil, donc le doublon est
+  certain. Les rattrapages couvrent l'écart (arrivée jusqu'au soir de J, départ 6 h, avis 8 h).
+  Vérifier le registre `MSG_*` et le fil au premier envoi réel. Les anciens boutons (ci-dessous)
+  restent jusqu'à une semaine d'arrivée en `live`. Directes : tant que `SMTP_*` n'est pas posé,
+  les laisser à Beds24.
+- **Changement de dates** : le code est renvoyé (`onAnchorChange: "resend"`) ; `isPinOnLock` vérifie
+  le code, pas encore sa plage horaire — le message peut précéder de moins d'une heure le recalage
+  par la synchro.
 - ⚠️ Le Wi-Fi est lu dans `PROPERTY_INFO.wifi`, **en clair dans le dépôt public** (remarque de
   chef-de-stand) : à passer en variable d'environnement et à changer sur la box.
 

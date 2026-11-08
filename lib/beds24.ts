@@ -681,16 +681,17 @@ export async function reservationMessagerie(id: number): Promise<Beds24Booking |
 /** Messages de l'hôte des `jours` derniers jours, toutes réservations, en une requête paginée. */
 export async function messagesHote(jours: number): Promise<Beds24Message[]> {
   const out: Beds24Message[] = [];
-  for (let page = 1; page <= 5; page++) {
+  for (let page = 1; page <= 20; page++) {
     const r = await client.get<{ data?: Beds24Message[]; pages?: { nextPageExists?: boolean } }>("/bookings/messages", {
       params: { maxAge: String(jours), source: "host", page: String(page) },
       route: "messagerie",
       fresh: true,
     });
     out.push(...(r.data ?? []));
-    if (!r.pages?.nextPageExists) break;
+    if (!r.pages?.nextPageExists) return out;
   }
-  return out;
+  // Un historique tronqué ferait renvoyer des messages déjà partis (chef-de-stand) : on s'arrête.
+  throw new Error("Historique des messages tronqué (plus de 20 pages)");
 }
 
 /** Écrit une trace du registre (`MSG_*`) sur la réservation. */

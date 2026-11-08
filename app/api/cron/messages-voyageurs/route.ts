@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { modes, runCron } from "@/lib/messages/engine";
+import { getRedis, hasRedis, redisKey } from "@/lib/redis";
+
+/**
+ * Une alerte par réservation, modèle et motif toutes les 6 h au plus (chef-de-stand) : un code pas
+ * encore sur la serrure resterait sinon « bloqué » à chaque passage, de J-5 16h au soir de l'arrivée.
+ */
+async function firstTime(key: string): Promise<boolean> {
+  if (!hasRedis()) return true;
+  return Boolean(await getRedis().set(redisKey("messages", "alert", key), 1, { nx: true, ex: 6 * 3600 }));
+}
 
 /**
  * Messages automatiques aux voyageurs — appelé par cron-job.org **toutes les 10 minutes**
@@ -44,12 +54,14 @@ export async function GET(request: NextRequest) {
         tags: ["warning"],
       });
     } else if (failed.length || blocked.length || result.orphans.length) {
-      const lines = [
-        ...[...failed, ...blocked].map((r) => `#${r.bookingId} ${r.templateId} : ${r.outcome} (${r.reason ?? "?"})`),
+      const candidates = [
+        ...[...failed, ...blocked].map((r) => ({ key: `${r.bookingId}:${r.templateId}:${r.reason ?? "?"}`, line: `#${r.bookingId} ${r.templateId} : ${r.outcome} (${r.reason ?? "?"})` })),
         // Un envoi commencé et jamais confirmé : à vérifier dans le fil, il ne sera pas renvoyé.
-        ...result.orphans.map((o) => `#${o.bookingId} ${o.templateId} : envoi à vérifier (jamais confirmé)`),
+        ...result.orphans.map((o) => ({ key: `${o.bookingId}:${o.templateId}:orphan`, line: `#${o.bookingId} ${o.templateId} : envoi à vérifier (jamais confirmé)` })),
       ];
-      await sendNtfy(lines.join("\n"), { title: "Barbusse — message voyageur non envoyé", priority: 4, tags: ["warning"] });
+      const lines: string[] = [];
+      for (const c of candidates) if (await firstTime(c.key)) lines.push(c.line);
+      if (lines.length) await sendNtfy(lines.join("\n"), { title: "Barbusse — message voyageur non envoyé", priority: 4, tags: ["warning"] });
     }
     return NextResponse.json({
       ok: !result.aborted && failed.length === 0,
