@@ -29,6 +29,12 @@ export async function recordWebhookCall(trace: WebhookTrace): Promise<void> {
   if (!hasRedis()) return;
   try {
     await setJson(KEY(), trace, 30 * 86_400);
+    // Les 20 derniers appels : Beds24 peut appeler deux fois (deux réglages de webhook), et le
+    // dernier seul masquerait l'autre.
+    const list = redisKey("webhook", "beds24", "recent");
+    await getRedis().lpush(list, JSON.stringify(trace));
+    await getRedis().ltrim(list, 0, 19);
+    await getRedis().expire(list, 30 * 86_400);
   } catch {
     // Jamais fatal : c'est un témoin, pas une fonction.
   }
