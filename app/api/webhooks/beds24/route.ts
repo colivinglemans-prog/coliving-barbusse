@@ -25,13 +25,22 @@ import { firstRefusalAlert, recordWebhookCall, type WebhookResult } from "@/lib/
  */
 export const maxDuration = 60;
 
+/**
+ * Le secret peut arriver par l'en-tête `x-webhook-secret` **ou** par le paramètre `key` de l'URL
+ * (2026-11-08) : chez Barbusse, Beds24 n'envoyait pas l'en-tête saisi dans « Custom Header »
+ * (appels relevés sans en-tête, ou avec une autre valeur). Le paramètre est saisi dans le même
+ * champ URL que l'adresse : l'appel qui en vient est reconnu quoi qu'il arrive à l'en-tête.
+ */
 const fingerprint = (v: string) => ({ length: v.length, hash: createHash("sha256").update(v).digest("hex").slice(0, 6) });
 
 function check(request: NextRequest): { result: WebhookResult; bracketed: boolean; got?: string; expected?: string } {
   // `trim()` : une valeur collée dans Vercel avec un retour à la ligne refuserait tout, l'en-tête
   // HTTP arrivant, lui, sans blancs de bord. Même comparaison que la route d'Albiez.
   const secret = process.env.BEDS24_WEBHOOK_SECRET?.trim();
-  const given = request.headers.get("x-webhook-secret");
+  const header = request.headers.get("x-webhook-secret");
+  const query = request.nextUrl.searchParams.get("key");
+  // L'URL d'abord : c'est la voie qui marche quand Beds24 ignore l'en-tête.
+  const given = query && secret && constantTimeEqual(query, secret) ? query : header;
   const bracketed = Boolean(given && given.startsWith("<") && given.endsWith(">"));
   if (!secret) return { result: "no-config", bracketed };
   if (!given) return { result: "no-header", bracketed };
