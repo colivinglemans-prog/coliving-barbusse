@@ -12,7 +12,7 @@ import { modes, runCron } from "@/lib/messages/engine";
  * `NUKI_PIN`). **Le corps envoyé par Beds24 n'est pas lu** : on relit tout depuis l'API, si
  * bien qu'un appel forgé ne peut rien injecter, au pire déclencher un passage de plus.
  *
- * Il lance aussi un passage de la messagerie voyageur (si un modèle est en `test` ou en `live`) :
+ * Il lance aussi un passage de la messagerie voyageur (si la confirmation est en `test` ou en `live`) :
  * la confirmation part dans la minute qui suit la réservation, sans attendre le cron de 10 min.
  * Le passage est sous verrou Redis ; nos propres écritures de registre rappellent ce webhook,
  * et le passage suivant ne trouve plus rien à envoyer.
@@ -48,10 +48,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/** Passage de la messagerie, jamais fatal pour le webhook : le cron de 10 min rattrape. */
+/**
+ * Passage de la messagerie, jamais fatal pour le webhook : le cron de 10 min rattrape.
+ * Seule la confirmation a besoin de partir dans la minute ; les autres modèles sont à heure fixe
+ * et le cron suffit. Confirmation `off` ou `shadow` ⇒ pas de passage, pas de crédits Beds24
+ * dépensés à chaque webhook (dont ceux que provoquent nos propres écritures `MSG_*` et `NUKI_PIN`).
+ */
 async function messagingPass(): Promise<unknown> {
   const { killSwitch, modes: m } = modes();
-  if (killSwitch || !Object.values(m).some((x) => x === "live" || x === "test")) return null;
+  if (killSwitch || (m.confirmation !== "live" && m.confirmation !== "test")) return null;
   try {
     const r = await runCron();
     if ("locked" in r) return { locked: true };

@@ -213,8 +213,14 @@ Domande? Rispondi a questo messaggio o scrivici su WhatsApp: {{whatsapp}}
 A presto,
 Alexandre`,
   },
-  // L'auto-action Beds24 (« Merci pour votre reservation au Coliving… ») et la nôtre.
-  fingerprints: ["merci pour votre reservation au coliving", "thank you for booking coliving henri barbusse"],
+  // L'auto-action Beds24 (« Merci pour votre reservation au Coliving… ») et la nôtre, dans les 5 langues.
+  fingerprints: [
+    "merci pour votre reservation au coliving",
+    "thank you for booking coliving henri barbusse",
+    "vielen dank fur ihre buchung im coliving",
+    "gracias por tu reserva en el coliving",
+    "grazie per la tua prenotazione al coliving",
+  ],
 };
 
 const arrivee: MessageTemplate = {
