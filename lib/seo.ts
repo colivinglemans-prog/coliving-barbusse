@@ -116,11 +116,11 @@ export const blogPostPath = (slug: string) => itemPath("blog", slug);
  * l'hôte ; les autres langues en sont la traduction.
  */
 export const HOME_TITLES: Record<Locale, string> = {
-  fr: "Coliving Barbusse — maison 20 personnes au Mans, gare TGV",
-  en: "Coliving Barbusse — house for 20 people in Le Mans, TGV station",
-  de: "Coliving Barbusse — Haus für 20 Personen in Le Mans, TGV-Bahnhof",
-  es: "Coliving Barbusse — casa de 20 plazas en Le Mans, estación TGV",
-  it: "Coliving Barbusse — casa per 20 persone a Le Mans, stazione TGV",
+  fr: "Location maison 20 personnes au Mans — Coliving Barbusse",
+  en: "Group house for 20 in Le Mans — Coliving Barbusse",
+  de: "Ferienhaus für 20 Personen in Le Mans — Coliving Barbusse",
+  es: "Casa de alquiler para 20 en Le Mans — Coliving Barbusse",
+  it: "Casa per 20 persone in affitto a Le Mans — Coliving Barbusse",
 };
 
 export const HOME_DESCRIPTIONS: Record<Locale, string> = {
