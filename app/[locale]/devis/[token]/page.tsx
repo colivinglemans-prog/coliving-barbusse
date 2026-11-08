@@ -27,6 +27,15 @@ const INCLUDED: Record<string, string> = {
 };
 
 /** L'accueil des jeunes enfants, rappelé sous le prix (décision de l'hôte du 2026-11-07). */
+/** Rappel du paiement sur le devis (relevé par le test voyageur : le devis ne le disait pas). */
+const PAYMENT_NOTE: Record<string, string> = {
+  fr: "Paiement : 100 % à la réservation, par carte, sur la page sécurisée Beds24.",
+  en: "Payment: 100% at booking, by card, on the secure Beds24 page.",
+  de: "Zahlung: 100 % bei der Buchung, per Karte, auf der sicheren Beds24-Seite.",
+  es: "Pago: 100 % al reservar, con tarjeta, en la página segura de Beds24.",
+  it: "Pagamento: 100% alla prenotazione, con carta, sulla pagina sicura di Beds24.",
+};
+
 const CHILDREN_NOTE: Record<string, string> = {
   fr: "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents.",
   en: "A house designed for teenagers and adults: nothing is set up for young children (unprotected stairs, high stools, gym). Children under 10 are welcome under their parents' responsibility.",
@@ -56,7 +65,7 @@ export default async function QuotePage({ params }: { params: Promise<{ locale: 
         calendarUrl={calendarUrl}
         conditionsUrl={conditionsPath(locale)}
         cancellation={cancellationText(CANCELLATION_POLICY, locale)}
-        notes={[CHILDREN_NOTE[locale] ?? CHILDREN_NOTE.fr]}
+        notes={[PAYMENT_NOTE[locale] ?? PAYMENT_NOTE.fr, CHILDREN_NOTE[locale] ?? CHILDREN_NOTE.fr]}
         header={<p className="text-sm uppercase tracking-wide text-secondary">{STAY_AGENT.facts(locale).name}</p>}
       />
     </div>

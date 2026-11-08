@@ -138,7 +138,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     circuitTitle: "Vicino al Circuito Bugatti",
     circuitDesc: "Situata a soli 4,7 km dal leggendario Circuito Bugatti, la nostra casa è la base ideale per la 24 Ore di Le Mans, il MotoGP, Le Mans Classic e tutti gli eventi del circuito. Accesso diretto tramite Tram T1 dalla stazione TGV.",
     nearby: [
-      { name: "Stazione TGV di Le Mans", distance: "10 min a piedi", detail: "Parigi in 54 min, collegamenti per Rennes, Nantes, Angers" },
+      { name: "Stazione TGV di Le Mans", distance: "10 min a piedi", detail: "Parigi in circa 55 min, Nantes in 1 h 10 - 1 h 20 (TGV diretto), collegamenti per Rennes e Angers" },
       { name: "Circuito Bugatti", distance: "4,7 km", detail: "24 Ore di Le Mans, MotoGP, Le Mans Classic. Accessibile tramite Tram T1" },
       { name: "Zone economiche Sud Le Mans", distance: "< 10 min in auto", detail: "Technopole Université, zona Sud, centri di ricerca" },
       { name: "Parc Gué de Maulny", distance: "5 min a piedi", detail: "Spazio verde di 10 ettari per rilassarsi" },

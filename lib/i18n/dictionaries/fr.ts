@@ -138,7 +138,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     circuitTitle: "À proximité du Circuit Bugatti",
     circuitDesc: "Situé à seulement 4.7 km du mythique Circuit Bugatti, notre maison est le point de chute idéal pour les 24 Heures du Mans, le MotoGP, Le Mans Classic et tous les événements du circuit. Accès direct via le Tramway T1 depuis la gare TGV.",
     nearby: [
-      { name: "Gare TGV du Mans", distance: "10 min à pied", detail: "Paris en 54 min, connexions vers Rennes, Nantes, Angers" },
+      { name: "Gare TGV du Mans", distance: "10 min à pied", detail: "Paris en 55 min environ, Nantes en 1 h 10 à 1 h 20 (TGV direct), connexions vers Rennes et Angers" },
       { name: "Circuit Bugatti", distance: "4.7 km", detail: "24 Heures du Mans, MotoGP, Le Mans Classic. Accessible via Tramway T1" },
       { name: "Zones d'emploi Sud du Mans", distance: "< 10 min en voiture", detail: "Technopole Université, ZA Sud, centres de recherche" },
       { name: "Parc Gué de Maulny", distance: "5 min à pied", detail: "Espace vert de 10 hectares pour se détendre" },

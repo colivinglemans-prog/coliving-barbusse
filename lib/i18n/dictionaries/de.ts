@@ -138,7 +138,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     circuitTitle: "In der Nähe der Bugatti-Rennstrecke",
     circuitDesc: "Nur 4,7 km von der legendären Bugatti-Rennstrecke entfernt, ist unser Haus die ideale Basis für die 24 Stunden von Le Mans, MotoGP, Le Mans Classic und alle Events der Rennstrecke. Direkter Zugang über die Straßenbahn T1 vom TGV-Bahnhof.",
     nearby: [
-      { name: "TGV-Bahnhof Le Mans", distance: "10 Min. zu Fuß", detail: "Paris in 54 Min., Verbindungen nach Rennes, Nantes, Angers" },
+      { name: "TGV-Bahnhof Le Mans", distance: "10 Min. zu Fuß", detail: "Paris in etwa 55 Min., Nantes in 1 Std. 10 bis 1 Std. 20 (direkter TGV), Verbindungen nach Rennes und Angers" },
       { name: "Bugatti-Rennstrecke", distance: "4,7 km", detail: "24 Stunden von Le Mans, MotoGP, Le Mans Classic. Erreichbar über Straßenbahn T1" },
       { name: "Gewerbegebiete Süd-Le Mans", distance: "< 10 Min. mit dem Auto", detail: "Technopole Universität, Gewerbezone Süd, Forschungszentren" },
       { name: "Parc Gué de Maulny", distance: "5 Min. zu Fuß", detail: "10 Hektar Grünfläche zum Entspannen" },
