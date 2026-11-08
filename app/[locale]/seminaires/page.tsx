@@ -69,7 +69,7 @@ const T: Record<Lang, Record<string, string>> = {
     day2T: "Jour 2 — Ateliers & clôture",
     day2Body: "8h-9h petit-déjeuner · 9h-12h ateliers (design thinking, OKR) · 12h30 déjeuner en ville · 14h-16h baptême de piste ou Musée des 24h · 16h-17h debrief final au salon · 17h départ TGV",
     pricingTitle: "Tarif indicatif",
-    pricingBody: "~150-250 €/nuit/personne pour une équipe de 10 à 12, selon la saison, hors activités et restauration. À comparer à 10 chambres d'hôtel 3-4★, auxquelles il faut encore ajouter la location d'une salle de réunion.",
+    pricingBody: "En semaine hors événements du circuit : environ 65 €/nuit/personne à 10, 55 € à 12, 40 € à 20, tout compris (draps, ménage, taxe de séjour), hors activités et restauration. Prix exact en ligne selon les dates. Arrivée anticipée ou départ tardif sur demande, selon disponibilité et avec supplément. À comparer à 10 chambres d'hôtel 3-4★, auxquelles il faut encore ajouter la location d'une salle de réunion.",
     faqTitle: "Questions fréquentes",
     faqItems:
       "Combien de personnes pour un séminaire ?|De 10 à 20 participants. Jusqu'à 9, chacun a sa chambre et sa salle de douche privative ; jusqu'à 11, personne ne partage un lit ; la maison couche jusqu'à 20 personnes. Pour travailler, 16 personnes s'assoient autour de la grande table de la cuisine et 20 en y rapprochant les deux mini-tables hautes de la véranda, en intérieur chauffé, toute l'année.·" +
@@ -90,7 +90,7 @@ const T: Record<Lang, Record<string, string>> = {
     guideLink: "Lire le guide détaillé",
   },
   en: {
-    titleTag: "Team seminar in Le Mans — 10 to 20 people | Coliving Barbusse",
+    titleTag: "Business seminar in Le Mans — 10 to 20 people | Coliving Barbusse",
     desc: "Seminar for 10 to 20 people in Le Mans in a whole house: 9 bedrooms with en-suite shower room, 16-seat table, 10 min on foot from the TGV station.",
     heroKicker: "Corporate retreats",
     heroTitle: "Your seminar in Le Mans, for 10 to 20 people",
@@ -129,7 +129,7 @@ const T: Record<Lang, Record<string, string>> = {
     day2T: "Day 2 — Workshops & close",
     day2Body: "8-9 am breakfast · 9 am-12 workshops (design thinking, OKRs) · 12.30 pm lunch in town · 2-4 pm track baptism or 24 Hours Museum · 4-5 pm final debrief in the living room · 5 pm TGV departure",
     pricingTitle: "Indicative rate",
-    pricingBody: "~€150-250/night/person for a team of 10 to 12, depending on season, excluding activities and catering. Compare that with 10 3-4★ hotel rooms, on top of which you still have to rent a meeting room.",
+    pricingBody: "Midweek outside circuit events: about €65/night/person for 10, €55 for 12, €40 for 20, all included (linen, cleaning, tourist tax), excluding activities and catering. Exact price online for your dates. Early arrival or late departure on request, subject to availability and at extra cost. Compare that with 10 3-4★ hotel rooms, on top of which you still have to rent a meeting room.",
     faqTitle: "Frequently asked questions",
     faqItems:
       "How many people for a seminar?|10 to 20 participants. Up to 9, everyone has their own bedroom and en-suite shower room; up to 11, nobody shares a bed; the house sleeps up to 20. For work, 16 people sit around the big kitchen table and 20 once the two high bistro tables from the veranda are pulled up to it, indoors and heated, all year round.·" +
@@ -189,7 +189,7 @@ const T: Record<Lang, Record<string, string>> = {
     day2T: "Giorno 2 — Workshop e chiusura",
     day2Body: "8-9 colazione · 9-12 workshop (design thinking, OKR) · 12:30 pranzo in città · 14-16 battesimo della pista o Museo 24 Ore · 16-17 debrief finale in soggiorno · 17 partenza TGV",
     pricingTitle: "Tariffa indicativa",
-    pricingBody: "~150-250 €/notte/persona per un team da 10 a 12, a seconda della stagione, escluse attività e ristorazione. Da confrontare con 10 camere d'hotel 3-4★, a cui va ancora aggiunto l'affitto di una sala riunioni.",
+    pricingBody: "In settimana fuori dagli eventi del circuito: circa 65 €/notte/persona per 10, 55 € per 12, 40 € per 20, tutto incluso (biancheria, pulizie, tassa di soggiorno), escluse attività e ristorazione. Prezzo esatto online per le vostre date. Arrivo anticipato o partenza posticipata su richiesta, secondo disponibilità e con supplemento. Da confrontare con 10 camere d'hotel 3-4★, a cui va ancora aggiunto l'affitto di una sala riunioni.",
     faqTitle: "Domande frequenti",
     faqItems:
       "Quante persone per un seminario?|Da 10 a 20 partecipanti. Fino a 9, ognuno ha la sua camera e la sua doccia privata; fino a 11, nessuno condivide il letto; la casa ospita fino a 20 persone. Per lavorare, 16 persone siedono attorno al grande tavolo della cucina e 20 avvicinando i due tavolini alti della veranda, al chiuso e al caldo, tutto l'anno.·" +
@@ -249,7 +249,7 @@ const T: Record<Lang, Record<string, string>> = {
     day2T: "Tag 2 — Workshops & Abschluss",
     day2Body: "8-9 Uhr Frühstück · 9-12 Uhr Workshops (Design Thinking, OKRs) · 12:30 Uhr Mittagessen in der Stadt · 14-16 Uhr Streckenfahrt oder 24-Stunden-Museum · 16-17 Uhr Abschluss-Debriefing im Wohnzimmer · 17 Uhr TGV-Abreise",
     pricingTitle: "Richtpreis",
-    pricingBody: "~150-250 €/Nacht/Person für ein Team von 10 bis 12, je nach Saison, ohne Aktivitäten und Verpflegung. Zum Vergleich: 10 Hotelzimmer der Kategorie 3-4★, zu denen noch die Miete eines Konferenzraums kommt.",
+    pricingBody: "Unter der Woche außerhalb der Rennstrecken-Events: etwa 65 €/Nacht/Person bei 10, 55 € bei 12, 40 € bei 20, alles inklusive (Wäsche, Reinigung, Kurtaxe), ohne Aktivitäten und Verpflegung. Genauer Preis online für Ihre Daten. Frühere Anreise oder spätere Abreise auf Anfrage, je nach Verfügbarkeit und gegen Aufpreis. Zum Vergleich: 10 Hotelzimmer der Kategorie 3-4★, zu denen noch die Miete eines Konferenzraums kommt.",
     faqTitle: "Häufige Fragen",
     faqItems:
       "Für wie viele Personen eignet sich ein Seminar?|Für 10 bis 20 Teilnehmende. Bis 9 hat jede Person ihr eigenes Zimmer und ihr eigenes Duschbad; bis 11 teilt sich niemand ein Bett; das Haus bietet bis zu 20 Schlafplätze. Zum Arbeiten sitzen 16 Personen am großen Küchentisch und 20, wenn man die zwei Stehtische der Veranda heranrückt — drinnen und beheizt, das ganze Jahr.·" +
@@ -309,7 +309,7 @@ const T: Record<Lang, Record<string, string>> = {
     day2T: "Día 2 — Talleres y cierre",
     day2Body: "8:00-9:00 desayuno · 9:00-12:00 talleres (design thinking, OKR) · 12:30 almuerzo en la ciudad · 14:00-16:00 bautismo de pista o Museo 24 Horas · 16:00-17:00 debrief final en el salón · 17:00 salida TGV",
     pricingTitle: "Tarifa orientativa",
-    pricingBody: "~150-250 €/noche/persona para un equipo de 10 a 12, según temporada, sin actividades ni restauración. Compáralo con 10 habitaciones de hotel 3-4★, a las que hay que sumar el alquiler de una sala de reuniones.",
+    pricingBody: "Entre semana fuera de los eventos del circuito: unos 65 €/noche/persona para 10, 55 € para 12, 40 € para 20, todo incluido (ropa de cama, limpieza, tasa turística), sin actividades ni restauración. Precio exacto en línea para sus fechas. Llegada anticipada o salida tardía bajo petición, según disponibilidad y con suplemento. Compáralo con 10 habitaciones de hotel 3-4★, a las que hay que sumar el alquiler de una sala de reuniones.",
     faqTitle: "Preguntas frecuentes",
     faqItems:
       "¿Cuántas personas para un seminario?|De 10 a 20 participantes. Hasta 9, cada uno tiene su habitación y su ducha privada; hasta 11, nadie comparte cama; la casa aloja hasta 20 personas. Para trabajar, 16 personas se sientan en torno a la gran mesa de la cocina y 20 acercando las dos mesitas altas de la veranda, bajo techo y con calefacción, todo el año.·" +

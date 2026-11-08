@@ -78,6 +78,7 @@ export default function Footer() {
           <span>&copy; {new Date().getFullYear()} {t.footer.copyright}</span>
           <Link
             href="/dashboard"
+            rel="nofollow"
             className="ml-3 rounded-md px-2 py-1 text-secondary/40 transition-colors hover:text-secondary"
             aria-label="Dashboard"
           >

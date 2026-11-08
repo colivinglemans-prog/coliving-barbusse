@@ -71,7 +71,7 @@ export const HOME_TITLES: Record<Locale, string> = {
   fr: "Coliving Barbusse — maison 20 personnes au Mans, gare TGV",
   en: "Coliving Barbusse — house for 20 people in Le Mans, TGV station",
   de: "Coliving Barbusse — Haus für 20 Personen in Le Mans, TGV-Bahnhof",
-  es: "Coliving Barbusse — casa de 20 personas en Le Mans, estación TGV",
+  es: "Coliving Barbusse — casa de 20 plazas en Le Mans, estación TGV",
   it: "Coliving Barbusse — casa per 20 persone a Le Mans, stazione TGV",
 };
 
