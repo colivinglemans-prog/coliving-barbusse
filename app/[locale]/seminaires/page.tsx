@@ -34,7 +34,7 @@ const T: Record<Lang, Record<string, string>> = {
     desc: "Séminaire de 10 à 20 personnes au Mans dans une maison entière : 9 personnes sans partager leur chambre ni leur salle de douche privative, 11 couchages sans partager de lit, grande table de 16 places (20 avec la véranda), écran HDMI. À 10 min à pied de la gare TGV, Paris en 55 min.",
     heroKicker: "Séjours d'entreprise",
     heroTitle: "Votre séminaire au Mans, de 10 à 20 personnes",
-    heroSub: "Une maison entière plutôt que dix chambres d'hôtel : 9 personnes sans partager leur chambre ni leur salle de douche privative, 11 couchages sans partager de lit, 16 places assises autour d'une grande table — 20 avec la véranda. Gare TGV à 10 min à pied, Paris en 55 min.",
+    heroSub: "Une maison entière plutôt que dix chambres d'hôtel : 9 personnes sans partager leur chambre ni leur salle de douche privative, 11 couchages sans partager de lit, 16 places assises autour d'une grande table — 20 avec la véranda. Gare TGV à 10 min à pied : Paris en 55 min, Nantes en 1 h 10 à 1 h 20. Seule la maison entière se loue.",
     heroCta: "Demander un devis",
     heroCta2: "Voir le guide complet",
     reasonsTitle: "Pourquoi une maison entière plutôt qu'un hôtel",
@@ -78,7 +78,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Où se garer ?|Stationnement libre et gratuit rue Henri Barbusse et dans les rues adjacentes, sans disque ni horodateur. Aucune place n'est réservée ni garantie : les jours d'événement la rue se remplit, privilégiez le train ou le covoiturage.·" +
       "Comment venir depuis Paris ?|Gare TGV du Mans à 55 min de Paris-Montparnasse, puis 10 minutes à pied jusqu'à la maison. Aucun transfert à organiser, aucun taxi à réserver.·" +
       "La restauration est-elle incluse ?|Non, mais la cuisine est entièrement équipée et des traiteurs locaux livrent petits-déjeuners, déjeuners et dîners sur place. Les restaurants du centre-ville sont accessibles à pied.·" +
-      "Peut-on avoir une facture au nom de l'entreprise ?|Oui : facture professionnelle et paiement par virement ou carte. La réservation se fait en direct, sans commission de plateforme.",
+      "Peut-on avoir une facture au nom de l'entreprise ?|Oui : facture professionnelle et paiement par virement ou carte. TVA non applicable (art. 293 B du CGI). La réservation se fait en direct, sans commission de plateforme.",
     testimonialTitle: "Ils sont déjà venus",
     testimonialQuote: "Hôte super, logement au top tout était parfait pour une équipe de 9 personnes ! Je recommande à 200%. Merci pour votre accueil.",
     testimonialAuthor: "Loic",
@@ -94,7 +94,7 @@ const T: Record<Lang, Record<string, string>> = {
     desc: "Seminar for 10 to 20 people in Le Mans in a whole house: 9 people without sharing their bedroom or en-suite shower room, 11 guests without sharing a bed, a 16-seat table (20 with the veranda), HDMI screen. 10 min on foot from the TGV station, Paris in 55 min.",
     heroKicker: "Corporate retreats",
     heroTitle: "Your seminar in Le Mans, for 10 to 20 people",
-    heroSub: "A whole house rather than ten hotel rooms: 9 people without sharing their bedroom or en-suite shower room, 11 guests without sharing a bed, 16 seats around one big table — 20 with the veranda. TGV station 10 min on foot, Paris in 55 min.",
+    heroSub: "A whole house rather than ten hotel rooms: 9 people without sharing their bedroom or en-suite shower room, 11 guests without sharing a bed, 16 seats around one big table — 20 with the veranda. TGV station 10 min on foot: Paris in 55 min, Nantes in 1 h 10 to 1 h 20. Only the whole house is rented.",
     heroCta: "Request a quote",
     heroCta2: "Read the full guide",
     reasonsTitle: "Why a whole house beats a hotel",
@@ -138,7 +138,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Where can we park?|Free street parking on Rue Henri Barbusse and adjacent streets, with no permit and no parking meter. No space is reserved or guaranteed: on event days the street fills up, so the train or car-sharing is the safer choice.·" +
       "How do we get there from Paris?|Le Mans TGV station is 55 min from Paris-Montparnasse, then 10 minutes on foot to the house. No transfer to arrange, no taxi to book.·" +
       "Are meals included?|No, but the kitchen is fully equipped and local caterers deliver breakfast, lunch and dinner on site. City-centre restaurants are within walking distance.·" +
-      "Can we get an invoice in the company's name?|Yes: professional invoice and payment by bank transfer or card. Booking is direct, with no platform commission.",
+      "Can we get an invoice in the company's name?|Yes: professional invoice and payment by bank transfer or card. VAT not applicable (art. 293 B of the French tax code). Booking is direct, with no platform commission.",
     testimonialTitle: "They've already stayed with us",
     testimonialQuote: "Great host, top-notch accommodation, everything was perfect for our team of 9! Highly recommend. Thank you for the warm welcome.",
     testimonialAuthor: "Loic",
@@ -154,7 +154,7 @@ const T: Record<Lang, Record<string, string>> = {
     desc: "Seminario per 10-20 persone a Le Mans in una casa intera: 9 persone senza condividere camera né doccia privata, 11 posti letto senza condividere il letto, grande tavolo da 16 posti (20 con la veranda), schermo HDMI. A 10 min a piedi dalla stazione TGV, Parigi in 55 min.",
     heroKicker: "Soggiorni aziendali",
     heroTitle: "Il tuo seminario a Le Mans, da 10 a 20 persone",
-    heroSub: "Una casa intera invece di dieci camere d'albergo: 9 persone senza condividere camera né doccia privata, 11 senza condividere il letto, 16 posti a sedere attorno a un grande tavolo — 20 con la veranda. Stazione TGV a 10 min a piedi, Parigi in 55 min.",
+    heroSub: "Una casa intera invece di dieci camere d'albergo: 9 persone senza condividere camera né doccia privata, 11 senza condividere il letto, 16 posti a sedere attorno a un grande tavolo — 20 con la veranda. Stazione TGV a 10 min a piedi: Parigi in 55 min, Nantes in 1 h 10 - 1 h 20. Si affitta solo la casa intera.",
     heroCta: "Richiedi un preventivo",
     heroCta2: "Leggi la guida completa",
     reasonsTitle: "Perché una casa intera batte l'albergo",
@@ -198,7 +198,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Dove si parcheggia?|Parcheggio libero e gratuito in rue Henri Barbusse e nelle vie adiacenti, senza disco né parchimetro. Nessun posto è riservato né garantito: nei giorni di evento la via si riempie, meglio il treno o il car pooling.·" +
       "Come si arriva da Parigi?|La stazione TGV di Le Mans è a 55 min da Paris-Montparnasse, poi 10 minuti a piedi fino alla casa. Nessun trasferimento da organizzare, nessun taxi da prenotare.·" +
       "La ristorazione è inclusa?|No, ma la cucina è completamente attrezzata e i catering locali consegnano colazioni, pranzi e cene sul posto. I ristoranti del centro sono raggiungibili a piedi.·" +
-      "Si può avere una fattura intestata all'azienda?|Sì: fattura professionale e pagamento con bonifico o carta. La prenotazione è diretta, senza commissioni di piattaforma.",
+      "Si può avere una fattura intestata all'azienda?|Sì: fattura professionale e pagamento con bonifico o carta. IVA non applicabile (art. 293 B del codice tributario francese). La prenotazione è diretta, senza commissioni di piattaforma.",
     testimonialTitle: "Sono già stati con noi",
     testimonialQuote: "Host fantastico, alloggio al top, tutto perfetto per un team di 9 persone! Lo consiglio al 200%. Grazie per l'accoglienza.",
     testimonialAuthor: "Loic",
@@ -214,7 +214,7 @@ const T: Record<Lang, Record<string, string>> = {
     desc: "Seminar für 10 bis 20 Personen in Le Mans in einem ganzen Haus: 9 Personen ohne geteiltes Zimmer und mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, großer Tisch mit 16 Plätzen (20 mit der Veranda), HDMI-Bildschirm. 10 Min. zu Fuß vom TGV-Bahnhof, Paris in 55 Min.",
     heroKicker: "Firmenaufenthalte",
     heroTitle: "Ihr Seminar in Le Mans, für 10 bis 20 Personen",
-    heroSub: "Ein ganzes Haus statt zehn Hotelzimmer: 9 Personen ohne geteiltes Zimmer und mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, 16 Sitzplätze an einem großen Tisch — 20 mit der Veranda. TGV-Bahnhof 10 Min. zu Fuß, Paris in 55 Min.",
+    heroSub: "Ein ganzes Haus statt zehn Hotelzimmer: 9 Personen ohne geteiltes Zimmer und mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, 16 Sitzplätze an einem großen Tisch — 20 mit der Veranda. TGV-Bahnhof 10 Min. zu Fuß: Paris in 55 Min., Nantes in 1 Std. 10 bis 1 Std. 20. Vermietet wird nur das ganze Haus.",
     heroCta: "Angebot anfragen",
     heroCta2: "Den ausführlichen Guide lesen",
     reasonsTitle: "Warum ein ganzes Haus besser ist als ein Hotel",
@@ -258,7 +258,7 @@ const T: Record<Lang, Record<string, string>> = {
       "Wo kann man parken?|Kostenloses Parken in der Rue Henri Barbusse und den Nebenstraßen, ohne Parkscheibe und ohne Parkuhr. Kein Platz ist reserviert oder garantiert: an Veranstaltungstagen füllt sich die Straße, besser mit dem Zug oder in Fahrgemeinschaften anreisen.·" +
       "Wie kommt man von Paris aus hin?|Der TGV-Bahnhof Le Mans liegt 55 Min. von Paris-Montparnasse entfernt, dann sind es 10 Minuten zu Fuß bis zum Haus. Kein Transfer, kein Taxi nötig.·" +
       "Ist die Verpflegung inbegriffen?|Nein, aber die Küche ist voll ausgestattet und lokale Caterer liefern Frühstück, Mittag- und Abendessen ins Haus. Die Restaurants der Innenstadt sind zu Fuß erreichbar.·" +
-      "Ist eine Rechnung auf die Firma möglich?|Ja: professionelle Rechnung und Zahlung per Überweisung oder Karte. Die Buchung erfolgt direkt, ohne Plattformprovision.",
+      "Ist eine Rechnung auf die Firma möglich?|Ja: professionelle Rechnung und Zahlung per Überweisung oder Karte. Keine Mehrwertsteuer (Art. 293 B des französischen Steuergesetzbuchs). Die Buchung erfolgt direkt, ohne Plattformprovision.",
     testimonialTitle: "Sie waren schon bei uns",
     testimonialQuote: "Großartiger Gastgeber, top Unterkunft, alles perfekt für ein Team von 9 Personen! Absolute Empfehlung. Danke für den herzlichen Empfang.",
     testimonialAuthor: "Loic",
@@ -274,7 +274,7 @@ const T: Record<Lang, Record<string, string>> = {
     desc: "Seminario para 10 a 20 personas en Le Mans en una casa entera: 9 personas sin compartir habitación ni ducha privada, 11 plazas sin compartir cama, gran mesa de 16 plazas (20 con la veranda), pantalla HDMI. A 10 min a pie de la estación TGV, París en 55 min.",
     heroKicker: "Estancias de empresa",
     heroTitle: "Tu seminario en Le Mans, de 10 a 20 personas",
-    heroSub: "Una casa entera en lugar de diez habitaciones de hotel: 9 personas sin compartir habitación ni ducha privada, 11 sin compartir cama, 16 plazas sentadas en torno a una gran mesa — 20 con la veranda. Estación TGV a 10 min a pie, París en 55 min.",
+    heroSub: "Una casa entera en lugar de diez habitaciones de hotel: 9 personas sin compartir habitación ni ducha privada, 11 sin compartir cama, 16 plazas sentadas en torno a una gran mesa — 20 con la veranda. Estación TGV a 10 min a pie: París en 55 min, Nantes en 1 h 10 a 1 h 20. Solo se alquila la casa entera.",
     heroCta: "Solicitar presupuesto",
     heroCta2: "Leer la guía completa",
     reasonsTitle: "Por qué una casa entera gana al hotel",
@@ -318,7 +318,7 @@ const T: Record<Lang, Record<string, string>> = {
       "¿Dónde aparcar?|Aparcamiento libre y gratuito en la rue Henri Barbusse y calles adyacentes, sin disco ni parquímetro. Ninguna plaza está reservada ni garantizada: los días de evento la calle se llena, mejor el tren o compartir coche.·" +
       "¿Cómo llegar desde París?|La estación TGV de Le Mans está a 55 min de Paris-Montparnasse, y luego 10 minutos a pie hasta la casa. Ningún traslado que organizar, ningún taxi que reservar.·" +
       "¿La restauración está incluida?|No, pero la cocina está totalmente equipada y los caterings locales entregan desayunos, almuerzos y cenas en la casa. Los restaurantes del centro están a poca distancia a pie.·" +
-      "¿Se puede emitir factura a nombre de la empresa?|Sí: factura profesional y pago por transferencia o tarjeta. La reserva es directa, sin comisión de plataforma.",
+      "¿Se puede emitir factura a nombre de la empresa?|Sí: factura profesional y pago por transferencia o tarjeta. IVA no aplicable (art. 293 B del código tributario francés). La reserva es directa, sin comisión de plataforma.",
     testimonialTitle: "Ya han estado con nosotros",
     testimonialQuote: "Anfitrión genial, alojamiento de primera, ¡todo perfecto para un equipo de 9 personas! Lo recomiendo al 200 %. Gracias por la acogida.",
     testimonialAuthor: "Loic",
