@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { constantTimeEqual } from "@sejour/socle/lib/cron-auth";
 import { runAccessSync } from "@/lib/access-sync";
+import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { modes, runCron } from "@/lib/messages/engine";
+import { firstRefusalAlert, recordWebhookCall, type WebhookResult } from "@/lib/webhook-trace";
 
 /**
  * Webhook « Booking » de Beds24 : appelé à chaque réservation créée, modifiée ou annulée.
@@ -22,16 +24,28 @@ import { modes, runCron } from "@/lib/messages/engine";
  */
 export const maxDuration = 60;
 
-function authorized(request: NextRequest): boolean {
+function check(request: NextRequest): { result: WebhookResult; bracketed: boolean } {
   // `trim()` : une valeur collée dans Vercel avec un retour à la ligne refuserait tout, l'en-tête
   // HTTP arrivant, lui, sans blancs de bord. Même comparaison que la route d'Albiez.
   const secret = process.env.BEDS24_WEBHOOK_SECRET?.trim();
   const given = request.headers.get("x-webhook-secret");
-  return Boolean(secret && given && constantTimeEqual(given, secret));
+  const bracketed = Boolean(given && given.startsWith("<") && given.endsWith(">"));
+  if (!secret) return { result: "no-config", bracketed };
+  if (!given) return { result: "no-header", bracketed };
+  return { result: constantTimeEqual(given, secret) ? "accepted" : "bad-secret", bracketed };
 }
 
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) {
+  const { result, bracketed } = check(request);
+  // Témoin du dernier appel, lu par l'écran Messages : la preuve que Beds24 envoie le bon secret.
+  await recordWebhookCall({ at: new Date().toISOString(), result, ...(bracketed ? { bracketed } : {}) });
+  if (result !== "accepted") {
+    if (await firstRefusalAlert()) {
+      await sendNtfy(
+        `Webhook Beds24 refusé (${result}${bracketed ? ", valeur entre chevrons" : ""}) : vérifier le « Custom Header » dans Beds24.`,
+        { title: "Barbusse — webhook Beds24", priority: 3, tags: ["warning"] },
+      ).catch(() => {});
+    }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   let messages: unknown = null;
