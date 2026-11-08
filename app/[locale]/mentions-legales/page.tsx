@@ -117,7 +117,7 @@ const T: Record<Locale, Content> = {
       vat: "MwSt.",
     },
     activity: "Vermietung möblierter Ferienunterkünfte",
-    vat: "Keine Mehrwertsteuer ausgewiesen (Art. 293 B des französischen Steuergesetzbuchs, CGI)",
+    vat: "Mehrwertsteuer nicht anwendbar (Art. 293 B des französischen Steuergesetzbuchs, CGI)",
     directorTitle: "Verantwortlich für den Inhalt",
     hostTitle: "Hosting-Anbieter",
     dataTitle: "Personenbezogene Daten",

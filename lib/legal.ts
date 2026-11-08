@@ -11,7 +11,7 @@ export const LEGAL_ENTITY = {
   /** Statut juridique, par langue. */
   legalForm: {
     fr: "Entrepreneur individuel (EI)",
-    en: "Sole proprietorship (French \"entrepreneur individuel\", EI)",
+    en: "Sole proprietor (French \"entrepreneur individuel\", EI)",
     de: "Einzelunternehmer (französisch „entrepreneur individuel“, EI)",
     es: "Empresario individual (en francés « entrepreneur individuel », EI)",
     it: "Imprenditore individuale (in francese « entrepreneur individuel », EI)",
