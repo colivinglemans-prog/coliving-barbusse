@@ -196,7 +196,7 @@ describe("heating-reset — un jour d'arrivée compte comme occupé dès 12 h", 
   });
 });
 
-describe("échelonnement par étage (2026-11-09) : dernier −15 min, RDC à l'heure, 1er +15 min", () => {
+describe("échelonnement des montées par étage (2026-11-09) : dernier −15 min, RDC à l'heure, 1er +15 min", () => {
   const dernier = { staggerMinutes: -15 };
   const rdc = { nightMode: "presence" as HeatzyMode, staggerMinutes: 0 };
   const premier = { staggerMinutes: 15 };
@@ -232,6 +232,19 @@ describe("échelonnement par étage (2026-11-09) : dernier −15 min, RDC à l'h
     for (const h of HOURS) for (const m of [0, 15, 30, 45]) {
       expect(at(rdc, stay, h, m), `${h} h ${m}`).toBe(expectedHeatingMode(BOOKINGS, stay, h, rdc).mode);
     }
+  });
+
+  it("les descentes restent à l'heure : départ à 10 h, présence à 7 h, arrivée à 17 h", () => {
+    const departure = "2026-11-12"; // départ du séjour B, sans arrivée
+    for (const z of [dernier, rdc, premier]) {
+      expect(at(z, departure, 9, 45), "9 h 45").toBe(at({}, departure, 9, 0));
+      expect(at(z, departure, 10, 0), "10 h").toBe("fro");
+      expect(at(z, departure, 10, 0), "10 h").toBe(at({}, departure, 10, 0));
+      expect(at(z, stay, 6, 45), "6 h 45").toBe("cft");
+      expect(at(z, stay, 7, 0), "7 h").toBe("presence");
+      expect(at(z, arrival, 16, 45), "16 h 45").toBe("cft");
+    }
+    expect(at(premier, stay, 7, 0)).toBe("presence");
   });
 
   it("le reset suit le même décalage", () => {

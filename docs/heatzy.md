@@ -53,7 +53,9 @@ ces fonctions pour les anciens imports.
   `zoneHour(hour, minute, stagger)` donne l'heure à laquelle la zone lit la règle. **Dernier étage
   −15 min** (zone la plus froide, d'abord), **RDC et chambre RDC à l'heure**, **1er +15 min** :
   préchauffage éco 11 h 45 / 12 h / 12 h 15, confort 14 h 45 / 15 h / 15 h 15, confort du soir
-  19 h 45 / 20 h / 20 h 15. Toutes les bascules sont décalées (descentes comprises). Les appelants
+  19 h 45 / 20 h / 20 h 15. **Seules les montées en chauffe sont décalées** (`staggered` : la zone en
+  avance prend le mode décalé s'il chauffe plus, la zone en retard garde l'ancien s'il chauffe moins) ;
+  les descentes (7 h, 10 h départ, 17 h arrivée, minuit) restent à l'heure partout. Les appelants
   passent la minute de Paris (`heating-automation`, `heating-reset`, dashboard, sonde d'arrivée).
 - **Charge estimée** (`lib/radiator-load.ts`) : par radiateur, consigne du mode (`cft`, `cft1`/`cft2`
   = confort −1/−2 du mode présence, `eco`, hors-gel 7 °C), écart à la température : ≥ 1 °C ou
@@ -80,9 +82,8 @@ ces fonctions pour les anciens imports.
   nouvelle chute pendant une coupure ouverte relance l'alerte. **Tous** les radiateurs hors ligne :
   titre « Coupure de courant ou box Internet » (box ou cloud Heatzy en panne, indiscernables).
   Pendant une coupure, l'alerte « n'ont pas pris leur mode » est tue.
-- **Effets du décalage à connaître** : le jour du départ, le dernier étage passe en hors-gel à
-  9 h 45 (voyageurs encore là) et le 1er reste en présence jusqu'à 10 h 15. La situation globale
-  (libellés, consignes ramenées, délestage) n'est pas décalée : écarts d'un quart d'heure, cosmétiques.
+- La situation globale (libellés, consignes ramenées, délestage) n'est pas décalée : écarts d'un
+  quart d'heure sur les montées, cosmétiques.
 - **Avant de passer le délestage en actif** : `expectedMode` du dashboard et la sonde d'arrivée
   ignorent les zones délestées (une zone en éco y paraîtrait en écart).
 - **Dashboard** : charge estimée, plafond et zones délestées sous la règle active

@@ -58,7 +58,7 @@ export type ZoneSchedule = Pick<HeatzyZone, "nightMode" | "staggerMinutes">;
  * `staggerMinutes` : le dernier étage (−15) bascule un quart d'heure plus tôt, le RDC à l'heure,
  * le 1er étage (+15) un quart d'heure plus tard. La zone évalue la règle à
  * `heure·60 + minute − staggerMinutes`, borné à la journée (pas de passage au jour voisin).
- * Toutes ses bascules sont décalées, les descentes comme les montées.
+ * Seules les montées en chauffe utilisent ce décalage (`staggered`).
  */
 export function zoneHour(hour: number, minute: number, staggerMinutes = 0): number {
   const t = Math.min(23 * 60 + 59, Math.max(0, hour * 60 + minute - staggerMinutes));
@@ -135,10 +135,42 @@ export interface ExpectedHeating {
   mode: HeatzyMode | null;
 }
 
+/** Du moins chauffant au plus chauffant : sert à ne décaler que les montées en chauffe. */
+const WARMTH: Record<string, number> = { stop: 0, fro: 1, eco: 2, presence: 3, cft: 4 };
+
 /**
- * **La** fonction : mode attendu d'une zone, à `hour`:`minute` du jour `today`, décalage de la
- * zone compris (`zoneHour`). `minute` vaut 0 par défaut : à décalage nul, la règle est celle
- * d'avant le 2026-11-09.
+ * Mode d'une zone, décalage compris, **seulement pour les montées en chauffe** (décision de
+ * l'hôte, 2026-11-09) : la zone en avance (dernier étage, −15) prend le mode de l'heure décalée
+ * s'il chauffe **plus** ; la zone en retard (1er, +15) garde l'ancien s'il chauffe **moins**. Les
+ * descentes (7 h présence, 10 h départ, 17 h arrivée, minuit au RDC) restent à l'heure pour
+ * toutes les zones : pas de hors-gel à 9 h 45 au dernier étage le jour du départ.
+ */
+function staggered(
+  bookings: readonly StayDates[],
+  today: string,
+  hour: number,
+  zone: ZoneSchedule,
+  minute: number,
+): ExpectedHeating & { hour: number } {
+  const evaluate = (h: number) => {
+    const situation = heatingSituation(bookings, today, h);
+    return { situation, mode: modeForSituation(situation, zone, h), hour: h };
+  };
+  const now = evaluate(hour);
+  const stagger = zone.staggerMinutes ?? 0;
+  if (stagger === 0) return now;
+  const shifted = evaluate(zoneHour(hour, minute, stagger));
+  if (now.mode === null || shifted.mode === null) return now;
+  const warmer = WARMTH[shifted.mode] > WARMTH[now.mode];
+  const cooler = WARMTH[shifted.mode] < WARMTH[now.mode];
+  if ((stagger < 0 && warmer) || (stagger > 0 && cooler)) return shifted;
+  return now;
+}
+
+/**
+ * **La** fonction : mode attendu d'une zone, à `hour`:`minute` du jour `today`, décalage des
+ * montées en chauffe compris (`staggered`). `minute` vaut 0 par défaut : à décalage nul, la règle
+ * est celle d'avant le 2026-11-09.
  */
 export function expectedHeatingMode(
   bookings: readonly StayDates[],
@@ -147,9 +179,8 @@ export function expectedHeatingMode(
   zone: ZoneSchedule,
   minute = 0,
 ): ExpectedHeating {
-  const h = zoneHour(hour, minute, zone.staggerMinutes);
-  const situation = heatingSituation(bookings, today, h);
-  return { situation, mode: modeForSituation(situation, zone, h) };
+  const { situation, mode } = staggered(bookings, today, hour, zone, minute);
+  return { situation, mode };
 }
 
 /**
@@ -172,10 +203,10 @@ export function resetTarget(
   device: { defaultMode: HeatzyMode },
   minute = 0,
 ): { mode: HeatzyMode; occupied: boolean } {
-  const { situation, mode } = expectedHeatingMode(bookings, today, hour, zone, minute);
+  const { situation, mode, hour: h } = staggered(bookings, today, hour, zone, minute);
   if (situation === "occupied") return { mode: mode!, occupied: true };
   const arrivalDayAfternoon =
-    zoneHour(hour, minute, zone.staggerMinutes) >= HEATING_HOURS.preheatEco &&
+    h >= HEATING_HOURS.preheatEco &&
     (situation === "preheat-eco" || situation === "preheat-cft" || situation === "turnaround");
   if (arrivalDayAfternoon && mode) return { mode, occupied: true };
   return { mode: device.defaultMode, occupied: false };
