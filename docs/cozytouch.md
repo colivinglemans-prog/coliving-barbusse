@@ -88,14 +88,15 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
 | `vacant` | 0 | Éco | 50°C | off |
 | `low` | 1–4 | Auto | 55°C | off |
 | `normal` | 5–8 | Auto | 58°C | off |
-| `high` | 9–12 | Performance | 60°C | on 12h–15h |
-| `xl` | 13+ | Performance | 60°C | on 11h–16h |
+| `high` | 9–12 | Performance 12h–15h, Éco (PAC seule) sinon | 60°C | on 12h–15h |
+| `xl` | 13+ | Performance 11h–16h, Éco (PAC seule) sinon | 60°C | on 11h–16h |
 
 **Logique** :
 - Ballon dans un garage non chauffé → COP meilleur en journée (air ambiant chaud), mauvais la nuit. Le Boost est volontairement programmé en milieu de journée uniquement.
 - Plafond 60°C → reste en PAC pure (au-delà, la résistance électrique prend le relais : coût ×3).
 - Pré-chauffe check-in : à partir de 11h (heure du check-out), le profil cible est appliqué pour que le ballon soit chargé à l'arrivée (17h). Deux réservations enchaînées le même jour ne repassent jamais en éco.
-- Boost de rattrapage (9 personnes ou plus, 6h–9h et 17h–22h, sonde du milieu < 40 °C, maintenu jusqu’à 50 °C) : voir CLAUDE.md, section Cozytouch.
+- **Délestage (2026-11-09)** : trois coupures en trois soirs à 9 kVA avec 14 voyageurs. L'appoint de 1 800 W du thermo (mode Performance, boost) n'est permis que dans la fenêtre de midi (`BOOSTER_WINDOW`) ; ailleurs, PAC seule. Le ballon classique 300 L (résistance, sans heures creuses) couvre les pics du soir.
+- Boost de rattrapage : **désactivé le 2026-11-09** (`CATCH_UP_BOOST.hours = []`, étaient 6h–9h et 17h–22h) — il enclenchait l'appoint en plein pic du soir.
 - Statuts `cancelled` et `black` exclus du comptage (helper partagé `lib/bookings.ts`).
 
 **Cron de santé** `water-heater-health` (toutes les 2h) : alerte ntfy si dérive mode/consigne/boost, ballon hors ligne, ou sous-chauffe (sonde du milieu < 40 °C sans boost, aux heures de douche, 9 personnes ou plus ; repli sur `bottomTemp < consigne - 8°C` si la sonde du milieu manque). Un constat n’alerte que s’il était déjà là au contrôle précédent (`lib/water-heater-health.ts`).

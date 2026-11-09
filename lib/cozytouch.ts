@@ -355,6 +355,24 @@ export function getWaterHeaterProfile(guests: number): WaterHeaterProfile {
   return "xl";
 }
 
+/**
+ * Fenêtre où l'appoint électrique du thermo (1 800 W) est permis, pour les grands groupes.
+ *
+ * Coupures de courant des 7, 8 et 9 novembre 2026 (abonnement 9 kVA, 14 voyageurs) : l'appoint
+ * chauffait le soir et la nuit, en même temps que la cuisine, les radiateurs en confort et le
+ * ballon classique de 300 L (résistance, en série, sans contacteur heures creuses). **Hors de
+ * cette fenêtre, PAC seule** (`manualEcoActive`) : l'appoint ne tourne qu'en milieu de
+ * journée, quand la maison consomme le moins. Le classique couvre les pics du soir.
+ */
+export const BOOSTER_WINDOW = {
+  high: { from: 12, to: 15 },
+  xl: { from: 11, to: 16 },
+} as const;
+
+function inWindow(hour: number, w: { from: number; to: number }): boolean {
+  return hour >= w.from && hour < w.to;
+}
+
 // Boost only runs in the warm-ambient window to maximise heat-pump COP.
 // Garage is unheated: air follows outdoor temp, peaks 11h-16h.
 export function getProfileSettings(
@@ -368,18 +386,22 @@ export function getProfileSettings(
       return { mode: "autoMode", targetTemperature: 55, boost: false };
     case "normal":
       return { mode: "autoMode", targetTemperature: 58, boost: false };
-    case "high":
+    case "high": {
+      const window = inWindow(hour, BOOSTER_WINDOW.high);
       return {
-        mode: "manualEcoInactive",
+        mode: window ? "manualEcoInactive" : "manualEcoActive",
         targetTemperature: 60,
-        boost: hour >= 12 && hour < 15,
+        boost: window,
       };
-    case "xl":
+    }
+    case "xl": {
+      const window = inWindow(hour, BOOSTER_WINDOW.xl);
       return {
-        mode: "manualEcoInactive",
+        mode: window ? "manualEcoInactive" : "manualEcoActive",
         targetTemperature: 60,
-        boost: hour >= 11 && hour < 16,
+        boost: window,
       };
+    }
   }
 }
 
@@ -405,10 +427,9 @@ export const CATCH_UP_BOOST = {
   start: 40,
   stop: 50,
   minGuests: 9,
-  hours: [
-    { from: 6, to: 9 },
-    { from: 17, to: 22 },
-  ],
+  // Désactivé le 2026-11-09 (étaient 6 h–9 h et 17 h–22 h) : le boost du soir ajoutait 1 800 W
+  // au pic de consommation et a fait sauter le compteur (9 kVA). Voir `BOOSTER_WINDOW`.
+  hours: [] as ReadonlyArray<{ from: number; to: number }>,
   // Une sonde décrochée remonte 0 : sans ce filtre, boost à chaque plage, tous les jours.
   plausible: { min: 5, max: 85 },
 } as const;

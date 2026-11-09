@@ -3,11 +3,11 @@ import { confirmedIssues, waterHeaterIssues, type HealthStatus } from "@/lib/wat
 
 const GROUP = 14;
 
-/** Ballon conforme au profil xl hors fenêtre de boost, bien chaud. */
+/** Ballon conforme au profil xl hors fenêtre de boost (PAC seule), bien chaud. */
 function xl(over: Partial<HealthStatus> = {}): HealthStatus {
   return {
     isAvailable: true,
-    mode: "manualEcoInactive",
+    mode: "manualEcoActive",
     targetTemperature: 60,
     boostActive: false,
     middleTemperature: 55,
@@ -27,18 +27,18 @@ describe("waterHeaterIssues", () => {
     expect(ids(GROUP, 19, xl({ isAvailable: false }))).toEqual(["offline"]);
   });
 
-  it("rattrapage : entre 40 et 50 °C, boost on ou off sont tous deux admis", () => {
-    expect(ids(GROUP, 19, xl({ middleTemperature: 45, boostActive: true }))).toEqual([]);
-    expect(ids(GROUP, 19, xl({ middleTemperature: 45, boostActive: false }))).toEqual([]);
-  });
-
-  it("sous 40 °C sans boost à l'heure des douches : sous-chauffe", () => {
-    expect(ids(GROUP, 19, xl({ middleTemperature: 30 }))).toEqual(["underheat"]);
-  });
-
-  it("sous 40 °C hors heures de douche : rien (pas de boost voulu)", () => {
+  it("rattrapage désactivé : ballon vide le soir sans boost, rien à signaler", () => {
+    expect(ids(GROUP, 19, xl({ middleTemperature: 19 }))).toEqual([]);
+    expect(ids(GROUP, 7, xl({ middleTemperature: 30 }))).toEqual([]);
     expect(ids(GROUP, 23, xl({ middleTemperature: 15 }))).toEqual([]);
-    expect(ids(GROUP, 10, xl({ middleTemperature: 15 }))).toEqual([]);
+  });
+
+  it("boost du soir (ancien rattrapage) : signalé", () => {
+    expect(ids(GROUP, 19, xl({ middleTemperature: 45, boostActive: true }))).toEqual(["boost-on"]);
+  });
+
+  it("appoint autorisé le soir (mode Performance) : signalé", () => {
+    expect(ids(GROUP, 20, xl({ mode: "manualEcoInactive" }))).toEqual(["mode"]);
   });
 
   it("boost allumé sans raison : signalé", () => {
@@ -47,15 +47,13 @@ describe("waterHeaterIssues", () => {
   });
 
   it("fenêtre de boost du profil non appliquée : signalé", () => {
-    expect(ids(GROUP, 12, xl())).toEqual(["boost-off"]);
+    expect(ids(GROUP, 12, xl({ mode: "manualEcoInactive" }))).toEqual(["boost-off"]);
+    expect(ids(GROUP, 12, xl({ mode: "manualEcoInactive", boostActive: true }))).toEqual([]);
   });
 
   it("sonde du milieu à 0 : signalée, et pas de rattrapage exigé", () => {
     expect(ids(GROUP, 19, xl({ middleTemperature: 0, bottomTemperature: 55 }))).toEqual(["middle-missing"]);
-    expect(ids(GROUP, 19, xl({ middleTemperature: undefined, bottomTemperature: 20 }))).toEqual([
-      "middle-missing",
-      "underheat-bottom",
-    ]);
+    expect(ids(GROUP, 19, xl({ middleTemperature: undefined, bottomTemperature: 20 }))).toEqual(["middle-missing"]);
   });
 });
 
