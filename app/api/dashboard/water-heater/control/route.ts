@@ -7,27 +7,25 @@ import {
 } from "@/lib/cozytouch";
 import type { CozytouchDHWMode } from "@/lib/types";
 import { auth, guard } from "@/lib/auth";
-import { readBoosterMemo } from "@/lib/water-heater-log";
-import { BOOSTER_REASON_LABEL, type BoosterReason } from "@/lib/cozytouch";
+import { isPeak } from "@/lib/cozytouch";
+import { nowParis } from "@sejour/socle/lib/time";
 
 /** Modes qui laissent tourner l'appoint électrique de 1 800 W. */
 const BOOSTER_MODES: ReadonlySet<CozytouchDHWMode> = new Set(["autoMode", "manualEcoInactive"]);
 
 /**
- * Commande manuelle qui rallumerait l'appoint (boost, Éco+, Performance) : refusée quand
- * l'automation ne le permet pas (coupures des 7-9/11/2026 à 9 kVA). L'admin peut passer outre
- * avec `force: true`. Renvoie la réponse de refus, ou `null` si la commande peut partir.
+ * Commande manuelle qui rallumerait l'appoint (boost, Éco+, Performance) : refusée aux heures
+ * de pic (`PEAK_WINDOWS`), où le thermo doit être en Absence (coupures des 7-9/11/2026 à 9 kVA).
+ * L'admin peut passer outre avec `force: true` ; l'automation reprend la main à son passage suivant.
  */
 async function boosterRefusal(request: NextRequest, force: boolean): Promise<NextResponse | null> {
-  const memo = await readBoosterMemo();
-  if (memo?.allowed) return null;
+  const paris = nowParis();
+  if (!isPeak(paris.getHours(), paris.getMinutes())) return null;
   if (force && (await guard.role(request)) === auth.adminRole) return null;
-  const why = memo
-    ? `${BOOSTER_REASON_LABEL[memo.reason as BoosterReason] ?? memo.reason} (radiateurs ${memo.radiatorLoadW ?? "?"} W, budget ${memo.budgetW} W)`
-    : "aucune décision récente de l'automation";
   return NextResponse.json(
     {
-      error: `Appoint électrique non permis en ce moment : ${why}. Risque de dépasser la puissance souscrite.`,
+      error:
+        "Heure de pic (4 h 45-7 h, 16 h 45-22 h) : le thermo est en Absence pour ne pas dépasser la puissance souscrite. Le ballon classique fournit l'eau chaude.",
       refused: "booster",
     },
     { status: 409 },

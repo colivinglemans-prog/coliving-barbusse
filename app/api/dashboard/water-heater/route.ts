@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWaterHeaterStatus, getDeviceURLs, getRawStates } from "@/lib/cozytouch";
 import { guard } from "@/lib/auth";
-import { readBoosterMemo } from "@/lib/water-heater-log";
-import { BOOSTER_REASON_LABEL, type BoosterReason } from "@/lib/cozytouch";
+import { isPeak } from "@/lib/cozytouch";
+import { nowParis } from "@sejour/socle/lib/time";
 
 export async function GET(request: NextRequest) {
   const refus = await guard.deny(request, ["admin", "viewer"]);
@@ -22,21 +22,13 @@ export async function GET(request: NextRequest) {
       }));
     } catch { /* ignore */ }
 
-    // Décision d'appoint du dernier passage de l'automation (délestage, 2026-11-09).
-    const memo = await readBoosterMemo();
-    const booster = memo
-      ? {
-          allowed: memo.allowed,
-          reason: BOOSTER_REASON_LABEL[memo.reason as BoosterReason] ?? memo.reason,
-          radiatorLoadW: memo.radiatorLoadW,
-          budgetW: memo.budgetW,
-          at: memo.at,
-        }
-      : null;
+    // Heure de pic : le thermo doit être en Absence (délestage, 2026-11-09).
+    const paris = nowParis();
+    const peak = isPeak(paris.getHours(), paris.getMinutes());
 
     return NextResponse.json({
       status,
-      booster,
+      peak,
       debug,
       seriesNote:
         "Le ballon thermodynamique préchauffe l'eau en amont du ballon classique. La température affichée est celle du ballon thermo.",

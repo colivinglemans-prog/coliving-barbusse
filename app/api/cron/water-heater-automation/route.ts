@@ -3,10 +3,9 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import {
   getWaterHeaterStatus,
   getExpectedSettings,
-  decideBooster,
   heatPumpStalled,
-  BOOSTER_RULE,
-  BOOSTER_REASON_LABEL,
+  PAC_STALL,
+  setAbsenceMode,
   setDHWMode,
   setBoostMode,
   setTargetTemperature,
@@ -14,45 +13,25 @@ import {
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
-import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
+import { todayParis, nowParis } from "@sejour/socle/lib/time";
 import {
+  absenceSince,
   appendWaterHeaterLog,
   claimHourlyLogSlot,
   entryOlderThan,
   logEntry,
-  readBoosterMemo,
   readWaterHeaterLog,
-  saveBoosterMemo,
 } from "@/lib/water-heater-log";
-import { freshLoad, readHeatingLoad } from "@/lib/heating-state";
-import { readRadiators } from "@/lib/heatzy";
-import { estimateRadiatorLoad } from "@/lib/radiator-load";
-import { ELECTRICAL_BUDGET } from "@/lib/electrical-budget";
-
-/**
- * Charge des radiateurs : celle que `heating-automation` vient de mémoriser (même quart
- * d'heure), sinon une lecture directe. `null` si rien n'est lisible : l'appoint est alors refusé.
- */
-async function radiatorLoadW(now: Date): Promise<number | null> {
-  const memo = freshLoad(await readHeatingLoad(), now);
-  if (memo) return memo.totalW;
-  try {
-    return estimateRadiatorLoad(await readRadiators()).totalW;
-  } catch (e) {
-    console.error("[water-heater-automation] lecture des radiateurs:", e instanceof Error ? e.message : e);
-    return null;
-  }
-}
 
 /**
  * Pilotage du ballon thermo, toutes les 15 min (cron-job.org).
  *
- * PAC seule par défaut ; appoint électrique (1 800 W) seulement de 10 h à 16 h, si la charge
- * estimée des radiateurs le permet et si la PAC ne suffit pas (`decideBooster`,
- * `lib/cozytouch.ts`). Quand l'appoint est retiré, le boost est coupé **en premier** : un échec
- * des commandes suivantes ne le laisse pas tourner un quart d'heure de plus.
+ * Éco 55 °C (50 °C maison vide), jamais de boost automatique ; **Absence aux heures de pic**
+ * (`PEAK_WINDOWS`, `lib/cozytouch.ts` : 4 h 45-7 h et 16 h 45-22 h) quand des voyageurs sont
+ * là — seul moyen mesuré de couper l'appoint de 1 800 W (coupures des 7-9/11/2026 à 9 kVA).
  *
- * La décision est mémorisée (`barbusse:water-heater:booster`) pour le contrôle et le dashboard.
+ * Ordre des commandes : ce qui **coupe** d'abord (boost off, Absence on), ce qui **rallume** en
+ * dernier (Absence off) — un échec en route ne laisse pas l'appoint tourner au pic.
  */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -61,76 +40,55 @@ export async function GET(request: NextRequest) {
 
   try {
     const now = new Date();
+    const paris = nowParis();
     const today = todayParis();
-    const currentHour = currentHourParis();
+    const hour = paris.getHours();
 
-    const [bookings, status, log, loadW, previous] = await Promise.all([
+    const [bookings, status, log] = await Promise.all([
       getActiveBookings(),
       getWaterHeaterStatus(),
       readWaterHeaterLog(24),
-      radiatorLoadW(now),
-      readBoosterMemo(now),
     ]);
-    const guests = countGuests(bookings, today, currentHour);
-    const stalled = heatPumpStalled(status, entryOlderThan(log, now, BOOSTER_RULE.stalledAfterMs), now);
-    const decision = decideBooster({
-      guests,
-      hour: currentHour,
-      radiatorLoadW: loadW,
-      budgetW: ELECTRICAL_BUDGET.boosterRadiatorBudgetW,
-      status,
-      stalled,
-      wasAllowed: previous?.allowed ?? false,
-    });
-    const { profile, ...settings } = getExpectedSettings(guests, decision.allowed);
+    const guests = countGuests(bookings, today, hour);
+    const { profile, peak, ...settings } = getExpectedSettings(guests, hour, paris.getMinutes());
+    const earlier = entryOlderThan(log, now, PAC_STALL.afterMs);
+    const stalled = heatPumpStalled(status, earlier, now, absenceSince(log, earlier?.at));
 
     const applied: string[] = [];
+    const absenceNow = status.absenceActive ?? false;
 
-    // Boost coupé d'abord : c'est lui qui tire l'appoint.
     if (status.boostActive && !settings.boost) {
       await setBoostMode(false);
       applied.push("boost on → off");
     }
-
+    if (settings.absence && !absenceNow) {
+      await setAbsenceMode(true);
+      applied.push("absence off → on (heure de pic)");
+    }
     if (status.mode !== settings.mode) {
       await setDHWMode(settings.mode);
       applied.push(`mode ${status.mode} → ${settings.mode}`);
     }
-
     if (status.targetTemperature !== settings.targetTemperature) {
       await setTargetTemperature(settings.targetTemperature);
       applied.push(`consigne ${status.targetTemperature}°C → ${settings.targetTemperature}°C`);
     }
-
-    if (!status.boostActive && settings.boost) {
-      await setBoostMode(true);
-      applied.push("boost off → on");
+    if (!settings.absence && absenceNow) {
+      await setAbsenceMode(false);
+      applied.push("absence on → off");
     }
 
-    const booster = { ...decision, radiatorLoadW: loadW };
-    await saveBoosterMemo({
-      allowed: decision.allowed,
-      reason: decision.reason,
-      radiatorLoadW: loadW,
-      budgetW: ELECTRICAL_BUDGET.boosterRadiatorBudgetW,
-      at: now.toISOString(),
-    });
     if (applied.length > 0 || (await claimHourlyLogSlot())) {
-      await appendWaterHeaterLog(logEntry(now, guests, profile, booster, status, applied));
+      await appendWaterHeaterLog(logEntry(now, guests, profile, peak, status, applied));
     }
     await beat("water-heater-automation", "ok");
     return NextResponse.json({
       success: true,
       profile,
       guests,
+      peak,
       settings,
-      booster: {
-        allowed: decision.allowed,
-        reason: BOOSTER_REASON_LABEL[decision.reason],
-        radiatorLoadW: loadW,
-        budgetW: ELECTRICAL_BUDGET.boosterRadiatorBudgetW,
-        heatPumpStalled: stalled,
-      },
+      heatPumpStalled: stalled,
       middleTemperature: status.middleTemperature,
       applied,
       timestamp: now.toISOString(),

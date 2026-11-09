@@ -83,15 +83,15 @@ Depuis le 2026-11-07, `water-heater-automation` ajoute à chaque passage réel u
 
 Profil calculé à partir du nombre de personnes présentes (somme `numAdult + numChild` sur les bookings actifs + arrivants du jour dès 11h + partants du jour jusqu’à 11h, cf. `countGuests`) :
 
-| Profil | Personnes | Sans appoint (par défaut) | Appoint permis |
+| Profil | Personnes | Hors pic | Heures de pic (4 h 45-7 h, 16 h 45-22 h) |
 |---|---|---|---|
-| `vacant` | 0 | Éco (PAC seule) 50 °C | — |
-| `low` | 1–4 | Éco (PAC seule) 55 °C | Performance 55 °C |
-| `normal` | 5–8 | Éco (PAC seule) 55 °C | Performance 55 °C |
-| `high` | 9–12 | Éco (PAC seule) 55 °C | Performance 60 °C + boost |
-| `xl` | 13+ | Éco (PAC seule) 55 °C | Performance 60 °C + boost |
+| `vacant` | 0 | Éco 50 °C | Éco 50 °C |
+| `low` | 1–4 | Éco 55 °C | **Absence** |
+| `normal` | 5–8 | Éco 55 °C | **Absence** |
+| `high` | 9–12 | Éco 55 °C | **Absence** |
+| `xl` | 13+ | Éco 55 °C | **Absence** |
 
-**Appoint permis** (`decideBooster`, 2026-11-09) si les trois conditions sont réunies : **10 h ≤ heure < 16 h** ; **charge estimée des radiateurs ≤ budget** (`ELECTRICAL_BUDGET.boosterRadiatorBudgetW`, 2,7 kW à 9 kVA ; charge mémorisée par `heating-automation`, sinon lue directement ; inconnue = refus) ; **la PAC ne suffit pas** (sonde du milieu < 45 °C, ou PAC à l'arrêt : compteur `heatPumpHours` immobile depuis une entrée du journal vieille d'au moins 1 h, eau à plus de 5 °C sous la consigne). Le jour d'arrivée, la remise en chauffe des radiateurs fait monter la charge : l'appoint est refusé de lui-même.
+Jamais de boost automatique. **Pourquoi l'Absence** (mesures du 9/11 au soir, compteur `core:ElectricEnergyConsumptionState`) : en **Éco** (`manualEcoActive`), le thermo consommait ≈ 2,1 kW toute la soirée — **l'appoint tourne aussi en Éco** ; PAC seule ≈ 300 W ; appoint seul 1 800 W. En **Absence** (`setAbsenceMode on`), compteur figé 10 à 15 min après la commande : **seul interrupteur qui coupe la chauffe**. Les états de puissance (`PowerHeatPumpState` ≈ 1 000 W, c'est la chaleur produite ; `PowerHeatElectricalState` = 1 800 W) et `HeatingStatusState` restent figés : ne pas s'y fier. L'Absence est posée à 16 h 45 et 4 h 45 pour agir aux pics de 17 h et 5 h.
 
 **Logique** :
 - Ballon dans un garage non chauffé → COP meilleur en journée (air ambiant chaud), mauvais la nuit (≈ 1 mesuré la nuit du 8 au 9/11). L'appoint ne remplace jamais une PAC qui tourne : le 9/11, il a chauffé seul 7 h pendant que la PAC était bloquée (≈ 8 kWh de plus qu'à la PAC).
@@ -99,7 +99,7 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
 - Pré-chauffe check-in : à partir de 11h (heure du check-out), le profil cible est appliqué pour que le ballon soit chargé à l'arrivée (17h). Deux réservations enchaînées le même jour ne repassent jamais en éco.
 - **Délestage (2026-11-09)** : trois coupures en trois soirs à 9 kVA avec 14 voyageurs ; l'appoint tournait le soir et la nuit avec la cuisine, les radiateurs en confort et le ballon classique 300 L (résistance, sans heures creuses), qui couvre désormais seul les pics du soir.
 - Boost de rattrapage (6h–9h, 17h–22h, ajouté le 7/11) : **supprimé le 9/11** — il enclenchait l'appoint en plein pic du soir.
-- Cron toutes les 15 min ; quand l'appoint est retiré, **boost coupé en premier**. Décision mémorisée dans `barbusse:water-heater:booster` (`{ allowed, reason, radiatorLoadW, budgetW, at }`), affichée sur `/dashboard/water-heater`. Boost, Éco+ et Performance manuels refusés (409) quand l'appoint n'est pas permis, sauf admin qui force.
+- Cron toutes les 15 min ; ordre : boost off et Absence on d'abord, mode et consigne, Absence off en dernier. Le journal note `peak` et `absence`. Boost, Éco+ et Performance manuels refusés (409) aux heures de pic, sauf admin qui force (l'automation reprend la main au passage suivant).
 - Statuts `cancelled` et `black` exclus du comptage (helper partagé `lib/bookings.ts`).
 
-**Cron de santé** `water-heater-health` (toutes les 2h) : juge contre la décision mémorisée. Alerte ntfy si ballon hors ligne, appoint possible alors que non permis (mode autre que `manualEcoActive`, ou boost actif), consigne divergente, **PAC à l'arrêt** (tous groupes), sonde du milieu absente. Un constat n’alerte que s’il était déjà là au contrôle précédent (`lib/water-heater-health.ts`).
+**Cron de santé** `water-heater-health` (toutes les 2h) : Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **PAC à l'arrêt** (compteur immobile 2 h, eau 5 °C sous la consigne, aucune Absence dans l'intervalle), sonde du milieu absente, ballon hors ligne. Un constat n’alerte que s’il était déjà là au contrôle précédent (`lib/water-heater-health.ts`).

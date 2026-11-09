@@ -4,18 +4,14 @@ import type { CozytouchWaterHeaterStatus } from "./types";
 /**
  * Contrôle du ballon : ce qui cloche **maintenant**, chaque constat avec un identifiant stable.
  *
- * Depuis le 2026-11-09 (coupures à 9 kVA), le contrôle juge contre **la décision mémorisée** par
- * l'automation (`barbusse:water-heater:booster`) au lieu de la recalculer : une seconde lecture
- * des radiateurs pourrait conclure autrement. Sans décision récente, l'appoint compte comme
- * non permis.
+ * Depuis le 2026-11-09 (coupures à 9 kVA) : Éco 55 °C, jamais de boost, **Absence aux heures de
+ * pic** (`PEAK_WINDOWS`) quand des voyageurs sont là. Le contrôle compare à ces réglages,
+ * recalculés à la même heure que l'automation.
  *
- * - **Appoint non permis** : le ballon doit être en PAC seule (`manualEcoActive`), boost coupé.
- *   Un autre mode ou un boost actif, c'est l'appoint de 1 800 W qui peut tourner : alerte.
- * - **Appoint permis** : l'automation l'autorise, elle ne l'exige pas ; rien n'est signalé sur le
- *   mode ou le boost.
- * - **PAC à l'arrêt** (`heatPumpStalled`) : compteur immobile depuis une heure, eau sous la
- *   consigne. En PAC seule, plus rien ne chauffe le thermo : c'est le ballon classique qui porte
- *   tout.
+ * - **Absence manquante au pic** : l'appoint peut tourner en plein pic → alerte.
+ * - **Absence restée hors pic** : le thermo ne chauffe plus du tout → alerte (douches froides).
+ * - **Boost actif**, **mode** autre qu'Éco, **consigne** divergente : alerte.
+ * - **PAC à l'arrêt** (`heatPumpStalled`) : le thermo compense par l'appoint, au triple du prix.
  *
  * `confirmedIssues` : un constat n'est signalé que s'il était déjà là au contrôle précédent. Une
  * bascule que l'automation applique dans le quart d'heure ne survit pas ; une panne, si.
@@ -27,13 +23,20 @@ export interface HealthIssue {
 
 export type HealthStatus = Pick<
   CozytouchWaterHeaterStatus,
-  "isAvailable" | "mode" | "targetTemperature" | "boostActive" | "middleTemperature" | "bottomTemperature"
+  | "isAvailable"
+  | "mode"
+  | "targetTemperature"
+  | "boostActive"
+  | "absenceActive"
+  | "middleTemperature"
+  | "bottomTemperature"
 >;
 
 export function waterHeaterIssues(
   guests: number,
+  hour: number,
+  minute: number,
   status: HealthStatus,
-  boosterAllowed: boolean,
   stalled: boolean,
 ): HealthIssue[] {
   if (!status.isAvailable) {
@@ -41,18 +44,26 @@ export function waterHeaterIssues(
   }
 
   const issues: HealthIssue[] = [];
-  const expected = getExpectedSettings(guests, boosterAllowed);
+  const expected = getExpectedSettings(guests, hour, minute);
+  const absence = status.absenceActive ?? false;
 
-  if (!boosterAllowed) {
-    if (status.mode !== "manualEcoActive") {
-      issues.push({
-        id: "booster-mode",
-        message: `Appoint électrique possible alors qu'il n'est pas permis : mode ${status.mode} au lieu de manualEcoActive (PAC seule).`,
-      });
-    }
-    if (status.boostActive) {
-      issues.push({ id: "boost-on", message: "Boost actif alors que l'appoint n'est pas permis (1 800 W en plus)." });
-    }
+  if (expected.absence && !absence) {
+    issues.push({
+      id: "absence-missing",
+      message: "Heure de pic sans mode Absence : l'appoint de 1 800 W peut tourner en même temps que la maison.",
+    });
+  }
+  if (!expected.absence && absence) {
+    issues.push({
+      id: "absence-stuck",
+      message: "Mode Absence actif hors des heures de pic : le thermo ne chauffe plus du tout.",
+    });
+  }
+  if (status.boostActive) {
+    issues.push({ id: "boost-on", message: "Boost actif : 1 800 W d'appoint en plus, jamais demandé par l'automation." });
+  }
+  if (status.mode !== expected.mode) {
+    issues.push({ id: "mode", message: `Mode divergent : attendu ${expected.mode}, constaté ${status.mode}.` });
   }
   if (status.targetTemperature !== expected.targetTemperature) {
     issues.push({
@@ -64,13 +75,13 @@ export function waterHeaterIssues(
     const water = plausibleMiddle(status) ?? status.bottomTemperature;
     issues.push({
       id: "pac-stalled",
-      message: `PAC à l'arrêt depuis au moins une heure : eau à ${water}°C pour une consigne de ${status.targetTemperature}°C. Le ballon classique fournit seul l'eau chaude.`,
+      message: `PAC à l'arrêt depuis au moins deux heures : eau à ${water}°C pour une consigne de ${status.targetTemperature}°C. Le thermo chauffe à l'appoint (coût ×3).`,
     });
   }
   if (plausibleMiddle(status) == null) {
     issues.push({
       id: "middle-missing",
-      message: `Sonde du milieu absente ou aberrante (${status.middleTemperature ?? "—"}) : l'appoint ne peut être décidé que sur une PAC à l'arrêt.`,
+      message: `Sonde du milieu absente ou aberrante (${status.middleTemperature ?? "—"}).`,
     });
   }
 

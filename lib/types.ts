@@ -97,6 +97,8 @@ export interface CozytouchWaterHeaterStatus {
   mode: CozytouchDHWMode;
   isHeating: boolean;
   boostActive: boolean;
+  /** Mode Absence (`modbuslink:DHWAbsenceModeState`) : plus aucune chauffe. */
+  absenceActive?: boolean;
   remainingHotWater?: number;
   showersRemaining?: number;
   capacity?: number;

@@ -23,7 +23,10 @@ export interface WaterHeaterLogEntry {
   boost: boolean;
   /** Ancien boost de rattrapage (entrées du 7 au 9/11/2026). */
   catchUp?: boolean;
-  /** Charge estimée des radiateurs, appoint permis, et pourquoi (depuis le 2026-11-09). */
+  /** Heure de pic (Absence attendue) et état Absence constaté (depuis le 2026-11-09). */
+  peak?: boolean;
+  absence?: boolean;
+  /** Version du 9/11 au soir, retirée : charge des radiateurs et appoint permis. */
   radiatorLoadW?: number | null;
   boosterAllowed?: boolean;
   boosterReason?: string;
@@ -44,7 +47,7 @@ export function logEntry(
   at: Date,
   guests: number,
   profile: string,
-  booster: { allowed: boolean; reason: string; radiatorLoadW: number | null },
+  peak: boolean,
   status: CozytouchWaterHeaterStatus,
   applied: string[],
 ): WaterHeaterLogEntry {
@@ -55,9 +58,8 @@ export function logEntry(
     mode: status.mode,
     target: status.targetTemperature,
     boost: status.boostActive,
-    radiatorLoadW: booster.radiatorLoadW,
-    boosterAllowed: booster.allowed,
-    boosterReason: booster.reason,
+    peak,
+    absence: status.absenceActive ?? false,
     bottom: status.bottomTemperature,
     middle: status.middleTemperature,
     remaining: status.remainingHotWater,
@@ -113,37 +115,8 @@ export async function claimHourlyLogSlot(): Promise<boolean> {
   }
 }
 
-// ─── Décision d'appoint mémorisée (lue par le contrôle et le dashboard) ───
-
-export const WATER_HEATER_BOOSTER_KEY = redisKey("water-heater", "booster");
-
-export interface BoosterMemo {
-  allowed: boolean;
-  reason: string;
-  radiatorLoadW: number | null;
-  budgetW: number;
-  at: string;
-}
-
-export async function saveBoosterMemo(memo: BoosterMemo): Promise<void> {
-  try {
-    await getRedis().set(WATER_HEATER_BOOSTER_KEY, JSON.stringify(memo), { ex: 3600 });
-  } catch (e) {
-    console.error("[water-heater-log] décision:", e instanceof Error ? e.message : e);
-  }
-}
-
-/**
- * La décision du dernier passage, si elle a moins de 75 min ; sinon `null` (= appoint non permis).
- * 75 min et non 25 : tant que le cron est encore horaire, la décision doit couvrir l'heure entière.
- */
-export async function readBoosterMemo(now: Date = new Date()): Promise<BoosterMemo | null> {
-  try {
-    const v = await getRedis().get<unknown>(WATER_HEATER_BOOSTER_KEY);
-    if (!v) return null;
-    const memo = (typeof v === "string" ? JSON.parse(v) : v) as BoosterMemo;
-    return now.getTime() - new Date(memo.at).getTime() < 75 * 60 * 1000 ? memo : null;
-  } catch {
-    return null;
-  }
+/** Une Absence journalisée depuis `since` : la PAC a pu s'arrêter normalement. */
+export function absenceSince(entries: readonly WaterHeaterLogEntry[], since: string | undefined): boolean {
+  if (!since) return false;
+  return entries.some((e) => e.at >= since && e.absence === true);
 }

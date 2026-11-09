@@ -3,75 +3,63 @@ import { confirmedIssues, waterHeaterIssues, type HealthStatus } from "@/lib/wat
 
 const GROUP = 14;
 
-/** Ballon conforme à « appoint non permis » : PAC seule, 55 °C, bien chaud. */
-function pacOnly(over: Partial<HealthStatus> = {}): HealthStatus {
+/** Ballon conforme hors pic : Éco 55 °C, pas d'Absence, bien chaud. */
+function eco(over: Partial<HealthStatus> = {}): HealthStatus {
   return {
     isAvailable: true,
     mode: "manualEcoActive",
     targetTemperature: 55,
     boostActive: false,
+    absenceActive: false,
     middleTemperature: 52,
     bottomTemperature: 48,
     ...over,
   };
 }
 
-const ids = (s: HealthStatus, allowed = false, stalled = false, guests = GROUP) =>
-  waterHeaterIssues(guests, s, allowed, stalled).map((i) => i.id);
+const ids = (s: HealthStatus, hour = 12, minute = 0, stalled = false, guests = GROUP) =>
+  waterHeaterIssues(guests, hour, minute, s, stalled).map((i) => i.id);
 
 describe("waterHeaterIssues", () => {
-  it("ballon conforme : rien", () => {
-    expect(ids(pacOnly())).toEqual([]);
+  it("conforme hors pic, et en Absence au pic : rien", () => {
+    expect(ids(eco())).toEqual([]);
+    expect(ids(eco({ absenceActive: true }), 19)).toEqual([]);
   });
 
   it("hors ligne : un seul constat", () => {
-    expect(ids(pacOnly({ isAvailable: false }))).toEqual(["offline"]);
+    expect(ids(eco({ isAvailable: false }))).toEqual(["offline"]);
   });
 
-  it("appoint non permis mais mode qui le laisse tourner : signalé", () => {
-    expect(ids(pacOnly({ mode: "manualEcoInactive" }))).toEqual(["booster-mode"]);
-    expect(ids(pacOnly({ mode: "autoMode" }))).toEqual(["booster-mode"]);
+  it("pic sans Absence : signalé ; Absence restée hors pic : signalée", () => {
+    expect(ids(eco(), 19)).toEqual(["absence-missing"]);
+    expect(ids(eco({ absenceActive: true }), 12)).toEqual(["absence-stuck"]);
   });
 
-  it("boost actif alors que non permis : signalé", () => {
-    expect(ids(pacOnly({ boostActive: true }))).toEqual(["boost-on"]);
+  it("maison vide au pic : pas d'Absence attendue", () => {
+    expect(ids(eco({ targetTemperature: 50 }), 19, 0, false, 0)).toEqual([]);
   });
 
-  it("appoint permis : ni le mode ni le boost ne sont exigés", () => {
-    expect(ids(pacOnly({ targetTemperature: 60 }), true)).toEqual([]);
-    expect(ids(pacOnly({ mode: "manualEcoInactive", boostActive: true, targetTemperature: 60 }), true)).toEqual([]);
+  it("boost, mode ou consigne divergents : signalés", () => {
+    expect(ids(eco({ boostActive: true }))).toEqual(["boost-on"]);
+    expect(ids(eco({ mode: "manualEcoInactive" }))).toEqual(["mode"]);
+    expect(ids(eco({ targetTemperature: 60 }))).toEqual(["target"]);
   });
 
-  it("consigne divergente : signalée", () => {
-    expect(ids(pacOnly({ targetTemperature: 60 }))).toEqual(["target"]);
-  });
-
-  it("PAC à l'arrêt : signalée, quel que soit le groupe", () => {
-    expect(ids(pacOnly({ middleTemperature: 25 }), false, true)).toEqual(["pac-stalled"]);
-    expect(ids(pacOnly({ middleTemperature: 25 }), false, true, 3)).toEqual(["pac-stalled"]);
-  });
-
-  it("ballon vide le soir, PAC qui tourne : rien (le classique prend le relais)", () => {
-    expect(ids(pacOnly({ middleTemperature: 19, bottomTemperature: 14 }))).toEqual([]);
-  });
-
-  it("sonde du milieu à 0 ou absente : signalée", () => {
-    expect(ids(pacOnly({ middleTemperature: 0 }))).toEqual(["middle-missing"]);
-    expect(ids(pacOnly({ middleTemperature: undefined }))).toEqual(["middle-missing"]);
+  it("PAC à l'arrêt et sonde du milieu absente : signalées", () => {
+    expect(ids(eco({ middleTemperature: 25 }), 12, 0, true)).toEqual(["pac-stalled"]);
+    expect(ids(eco({ middleTemperature: 0 }))).toEqual(["middle-missing"]);
   });
 });
 
 describe("confirmedIssues", () => {
   const issues = [
-    { id: "pac-stalled", message: "a" },
+    { id: "absence-missing", message: "a" },
     { id: "boost-on", message: "b" },
   ];
-
   it("seuls les constats déjà là au contrôle précédent partent", () => {
     expect(confirmedIssues(issues, ["boost-on", "mode"]).map((i) => i.id)).toEqual(["boost-on"]);
   });
-
-  it("premier contrôle, ou Redis injoignable : rien ne part", () => {
+  it("premier contrôle : rien ne part", () => {
     expect(confirmedIssues(issues, [])).toEqual([]);
   });
 });

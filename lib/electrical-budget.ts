@@ -10,16 +10,16 @@
  * - `radiatorCapW` : au-delà, des étages passent en éco un quart d'heure (`lib/load-shedding.ts`).
  *   Le reste de l'abonnement est laissé au ballon classique de 300 L (~3 kW, permanent) et à
  *   la cuisine.
- * - `boosterRadiatorBudgetW` : l'appoint de 1 800 W du thermo n'est permis que sous cette charge
- *   = abonnement − appoint 1,8 kW − ballon classique 3 kW − fond de maison 1,5 kW.
+ * - L'appoint du ballon ne dépend plus de ce budget : le thermo passe en Absence aux heures de
+ *   pic (`PEAK_WINDOWS`, `lib/cozytouch.ts`), seul moyen mesuré de couper son appoint.
  *
  * À remplacer par une mesure dès qu'un module TIC lira le Linky (voir TODO).
  */
 export const SUBSCRIBED_KVA: 9 | 12 = 9;
 
 const BY_KVA = {
-  9: { radiatorCapW: 6000, boosterRadiatorBudgetW: 2700 },
-  12: { radiatorCapW: 9000, boosterRadiatorBudgetW: 5700 },
+  9: { radiatorCapW: 6000 },
+  12: { radiatorCapW: 9000 },
 } as const;
 
 export const ELECTRICAL_BUDGET = { kva: SUBSCRIBED_KVA, ...BY_KVA[SUBSCRIBED_KVA] };

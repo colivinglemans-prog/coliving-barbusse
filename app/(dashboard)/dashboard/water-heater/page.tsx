@@ -8,8 +8,8 @@ import WaterHeaterCard from "@/components/dashboard/WaterHeaterCard";
 interface WaterHeaterData {
   status: CozytouchWaterHeaterStatus;
   seriesNote: string;
-  /** Décision d'appoint électrique du dernier passage de l'automation. */
-  booster?: { allowed: boolean; reason: string; radiatorLoadW: number | null; budgetW: number; at: string } | null;
+  /** Heure de pic (4 h 45-7 h, 16 h 45-22 h) : le thermo doit être en Absence. */
+  peak?: boolean;
 }
 
 export default function WaterHeaterPage() {
@@ -109,20 +109,16 @@ export default function WaterHeaterPage() {
           <div className="rounded-2xl bg-red-50 p-6 text-red-600">{error}</div>
         )}
 
-        {data?.booster && (
+        {data && (
           <div
             className={`mb-4 rounded-2xl border p-4 text-sm ${
-              data.booster.allowed ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-200 bg-sky-50 text-sky-900"
+              data.peak ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-200 bg-sky-50 text-sky-900"
             }`}
           >
-            {data.booster.allowed ? "Appoint électrique permis" : "PAC seule"} — {data.booster.reason}
-            {data.booster.radiatorLoadW !== null && (
-              <>
-                {" "}
-                (radiateurs {(data.booster.radiatorLoadW / 1000).toFixed(1)} kW, budget{" "}
-                {(data.booster.budgetW / 1000).toFixed(1)} kW)
-              </>
-            )}
+            {data.peak
+              ? "Heure de pic (4 h 45-7 h, 16 h 45-22 h) : thermo en Absence, le ballon classique fournit l'eau chaude."
+              : "Hors pic : thermo en Éco 55 °C, il gère seul PAC et appoint."}
+            {" "}Absence constatée : {data.status.absenceActive ? "oui" : "non"}.
           </div>
         )}
 

@@ -7,8 +7,7 @@ import type { PowerCut } from "./power-cut";
  *
  * - `shed` : le délestage du quart d'heure (`lib/load-shedding.ts`), lu par `heating-reset` pour
  *   ne pas rallumer une zone délestée, et par le dashboard ;
- * - `load` : la charge estimée des radiateurs après ce passage, lue par l'automation du ballon
- *   pour décider de l'appoint (une seule lecture des radiateurs pour les deux) ;
+ * - `load` : la charge estimée des radiateurs après ce passage, affichée par le dashboard ;
  * - `online` / `power-cut` : la détection de coupure (`lib/power-cut.ts`).
  *
  * Lecture et écriture ne lèvent jamais : un Redis injoignable ne doit pas arrêter le chauffage.
