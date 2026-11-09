@@ -64,7 +64,7 @@ export function createWaterHeaterProbe(deps: WaterHeaterProbeDeps): ReadinessPro
               id: "waterHeater:level",
               severity: 4,
               blocking: false,
-              action: `Eau chaude insuffisante (${temp} °C${pct}) : lancer le Boost depuis le dashboard`,
+              action: `Eau chaude insuffisante dans le thermo (${temp} °C${pct}) : le ballon classique de 300 L prend le relais ; ne pas lancer le boost à la main (risque de coupure)`,
               status: "ko",
             },
       );

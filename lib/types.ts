@@ -53,6 +53,8 @@ export interface HeatzyDeviceConfig {
    * continue de lui envoyer son mode.
    */
   unpaired?: boolean;
+  /** Puissance du radiateur en watts, pour l'estimation de charge (`lib/radiator-load.ts`). Défaut : 1 000 W (ACOVA Atoll LCD 1000). */
+  powerW?: number;
 }
 
 export interface HeatzyZone {
@@ -62,6 +64,11 @@ export interface HeatzyZone {
   nightMode?: HeatzyMode; // mode applied 0h-5h during reservation (e.g. "presence" for common areas)
   cftTemp?: number; // comfort temp in tenths (e.g. 210 = 21.0°C)
   ecoTemp?: number; // eco temp in tenths (e.g. 170 = 17.0°C)
+  /**
+   * Décalage signé des bascules de la zone, en minutes (`zoneHour`, `lib/heating-schedule.ts`) :
+   * −15 = un quart d'heure plus tôt. Évite que toute la maison monte en chauffe à la même minute.
+   */
+  staggerMinutes?: number;
   devices: HeatzyDeviceConfig[];
 }
 

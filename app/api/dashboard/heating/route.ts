@@ -3,9 +3,11 @@ import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getSu
 import { expectedHeatingMode, getHeatingRules, heatingSituation } from "@/lib/heating-schedule";
 import { getBookingsWithArchive } from "@/lib/bookings";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
-import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
+import { todayParis, nowParis } from "@sejour/socle/lib/time";
 import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
 import { guard } from "@/lib/auth";
+import { freshLoad, readHeatingLoad } from "@/lib/heating-state";
+import { ELECTRICAL_BUDGET } from "@/lib/electrical-budget";
 
 /** Returns the target temperature (°C) for the current mode */
 function getTargetTemp(
@@ -42,7 +44,9 @@ export async function GET(request: NextRequest) {
     const activeBookings = fetchedBookings.filter((b) => !isExcludedStatus(b.status));
 
     const rawDeviceMap = new Map(rawDevices.map((d) => [d.did, d]));
-    const currentHour = currentHourParis();
+    const paris = nowParis();
+    const currentHour = paris.getHours();
+    const minute = paris.getMinutes();
     const today = todayParis();
 
     // Le mode attendu et la règle affichée viennent de la même fonction que l'automatisation.
@@ -130,7 +134,7 @@ export async function GET(request: NextRequest) {
           ecoTemp: deviceEcoTemp,
           expectedMode: isLocked
             ? "fro"
-            : (expectedHeatingMode(activeBookings, today, currentHour, deviceConfig.zone).mode ??
+            : (expectedHeatingMode(activeBookings, today, currentHour, deviceConfig.zone, minute).mode ??
               deviceConfig.defaultMode),
           targetTemp,
           alerts,
@@ -188,7 +192,20 @@ export async function GET(request: NextRequest) {
         }
       : rules;
 
-    return NextResponse.json({ zones, alertCount, occupied, summerMode, ...finalRules, serverTime: `${todayParis()} ${currentHour}h (Paris)` });
+    // Charge estimée et délestage du dernier passage de l'automatisation (15 min au plus).
+    const memo = freshLoad(await readHeatingLoad(), new Date());
+    const load = memo
+      ? {
+          totalW: memo.totalW,
+          capW: memo.capW,
+          shedZones: memo.shedZones,
+          observedShedZones: memo.observedShedZones ?? [],
+          at: memo.at,
+          kva: ELECTRICAL_BUDGET.kva,
+        }
+      : null;
+
+    return NextResponse.json({ zones, alertCount, occupied, summerMode, load, ...finalRules, serverTime: `${todayParis()} ${currentHour}h (Paris)` });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

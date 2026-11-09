@@ -115,7 +115,7 @@ export function createHeatingProbe(deps: HeatingProbeDeps): ReadinessProbe {
         findings.push(ok(offlineId, `${d.name} en ligne`));
         if (!withStatus || d.status === null) continue;
 
-        const expected = expectedHeatingMode(stays, date, hour, d.zone).mode;
+        const expected = expectedHeatingMode(stays, date, hour, d.zone, minutes % 60).mode;
         if (expected !== null) {
           const modeId = `heating:mode:${d.did}`;
           findings.push(

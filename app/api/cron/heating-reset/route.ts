@@ -11,7 +11,9 @@ import {
 import { resetTarget } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
-import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
+import { todayParis, nowParis } from "@sejour/socle/lib/time";
+import { readShedState } from "@/lib/heating-state";
+import { activeShedZones } from "@/lib/load-shedding";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,12 +37,17 @@ export async function GET(request: NextRequest) {
 
     const config = await getFullZoneConfig();
     const today = todayParis();
-    const currentHour = currentHourParis();
+    const paris = nowParis();
+    const currentHour = paris.getHours();
+    const minute = paris.getMinutes();
 
-    const [activeBookings, lockedDevices] = await Promise.all([
+    const [activeBookings, lockedDevices, shedState] = await Promise.all([
       getActiveBookings(),
       getLockedDevices(),
+      readShedState(),
     ]);
+    // Zones délestées par `heating-automation` ce quart d'heure : le reset ne les rallume pas.
+    const shedZones = new Set(activeShedZones(shedState, new Date()));
 
     // Le mode et le statut « occupé » de chaque radiateur viennent de `resetTarget` : un jour
     // d'arrivée compte comme occupé dès 12 h, pour ne plus couper le préchauffage aux passages
@@ -59,13 +66,10 @@ export async function GET(request: NextRequest) {
         }
 
         try {
-          const { mode: targetMode, occupied: isOccupied } = resetTarget(
-            activeBookings,
-            today,
-            currentHour,
-            zone,
-            device,
-          );
+          const target = resetTarget(activeBookings, today, currentHour, zone, device, minute);
+          const isOccupied = target.occupied;
+          const targetMode =
+            shedZones.has(zone.id) && (target.mode === "cft" || target.mode === "presence") ? "eco" : target.mode;
 
           // Set mode
           await setDeviceMode(device.did, targetMode);

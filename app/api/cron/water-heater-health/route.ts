@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { getWaterHeaterStatus, getWaterHeaterProfile } from "@/lib/cozytouch";
+import { getWaterHeaterStatus, getWaterHeaterProfile, heatPumpStalled, BOOSTER_RULE } from "@/lib/cozytouch";
+import { entryOlderThan, readBoosterMemo, readWaterHeaterLog } from "@/lib/water-heater-log";
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { getJson, redisKey, setJson } from "@/lib/redis";
@@ -28,14 +29,19 @@ export async function GET(request: NextRequest) {
     const today = todayParis();
     const currentHour = currentHourParis();
 
-    const [bookings, status] = await Promise.all([
+    const now = new Date();
+    const [bookings, status, booster, log] = await Promise.all([
       getActiveBookings(),
       getWaterHeaterStatus(),
+      readBoosterMemo(now),
+      readWaterHeaterLog(24),
     ]);
 
     const guests = countGuests(bookings, today, currentHour);
     const profile = getWaterHeaterProfile(guests);
-    const issues = waterHeaterIssues(guests, currentHour, status);
+    const stalled = heatPumpStalled(status, entryOlderThan(log, now, BOOSTER_RULE.stalledAfterMs), now);
+    // Sans décision récente de l'automation, l'appoint compte comme non permis.
+    const issues = waterHeaterIssues(guests, status, booster?.allowed ?? false, stalled);
 
     let previousIds: string[] = [];
     try {
@@ -50,7 +56,7 @@ export async function GET(request: NextRequest) {
       const lines = [
         ...confirmed.map((i) => i.message),
         "",
-        `Profil attendu : ${profile} (${guests} personne(s))`,
+        `Profil attendu : ${profile} (${guests} personne(s)), appoint ${booster?.allowed ? "permis" : "non permis"}`,
         `Constaté à deux contrôles de suite, le dernier le ${today} à ${nowParis().toLocaleTimeString("fr-FR")}`,
       ];
       await sendWaterHeaterAlert(

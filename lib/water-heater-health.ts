@@ -1,24 +1,24 @@
-import {
-  CATCH_UP_BOOST,
-  getProfileSettings,
-  getWaterHeaterProfile,
-  isCatchUpHour,
-  plausibleMiddle,
-} from "./cozytouch";
+import { getExpectedSettings, plausibleMiddle } from "./cozytouch";
 import type { CozytouchWaterHeaterStatus } from "./types";
 
 /**
  * Contrôle du ballon : ce qui cloche **maintenant**, chaque constat avec un identifiant stable.
  *
- * L'automation et le contrôle lisent le ballon à la même minute, et Overkiz met du temps à
- * refléter une commande : comparer à l'état attendu à l'instant produisait une fausse alerte à
- * chaque bascule (boost de rattrapage, fenêtres de profil, 11 h). D'où deux règles :
+ * Depuis le 2026-11-09 (coupures à 9 kVA), le contrôle juge contre **la décision mémorisée** par
+ * l'automation (`barbusse:water-heater:booster`) au lieu de la recalculer : une seconde lecture
+ * des radiateurs pourrait conclure autrement. Sans décision récente, l'appoint compte comme
+ * non permis.
  *
- * - le boost est jugé contre un état **autorisé** (le profil le prévoit, ou un rattrapage est
- *   en cours) et un état **exigé** (le profil le prévoit, ou le milieu est sous le seuil bas),
- *   pas contre une valeur exacte — l'hystérésis laisse les deux possibles entre 40 et 50 °C ;
- * - `confirmedIssues` : un constat n'est signalé que s'il était déjà là au contrôle précédent.
- *   Une bascule que l'automation applique dans l'heure ne survit pas ; une panne, si.
+ * - **Appoint non permis** : le ballon doit être en PAC seule (`manualEcoActive`), boost coupé.
+ *   Un autre mode ou un boost actif, c'est l'appoint de 1 800 W qui peut tourner : alerte.
+ * - **Appoint permis** : l'automation l'autorise, elle ne l'exige pas ; rien n'est signalé sur le
+ *   mode ou le boost.
+ * - **PAC à l'arrêt** (`heatPumpStalled`) : compteur immobile depuis une heure, eau sous la
+ *   consigne. En PAC seule, plus rien ne chauffe le thermo : c'est le ballon classique qui porte
+ *   tout.
+ *
+ * `confirmedIssues` : un constat n'est signalé que s'il était déjà là au contrôle précédent. Une
+ * bascule que l'automation applique dans le quart d'heure ne survit pas ; une panne, si.
  */
 export interface HealthIssue {
   id: string;
@@ -30,57 +30,48 @@ export type HealthStatus = Pick<
   "isAvailable" | "mode" | "targetTemperature" | "boostActive" | "middleTemperature" | "bottomTemperature"
 >;
 
-export function waterHeaterIssues(guests: number, hour: number, status: HealthStatus): HealthIssue[] {
+export function waterHeaterIssues(
+  guests: number,
+  status: HealthStatus,
+  boosterAllowed: boolean,
+  stalled: boolean,
+): HealthIssue[] {
   if (!status.isAvailable) {
     return [{ id: "offline", message: "Ballon thermodynamique hors ligne (aucun état remonté)." }];
   }
 
   const issues: HealthIssue[] = [];
-  const base = getProfileSettings(getWaterHeaterProfile(guests), hour);
-  const middle = plausibleMiddle(status);
-  // La sonde du milieu, quand un rattrapage est possible (grand groupe, heure de douche).
-  const catchUpMiddle = guests >= CATCH_UP_BOOST.minGuests && isCatchUpHour(hour) ? middle : undefined;
+  const expected = getExpectedSettings(guests, boosterAllowed);
 
-  if (status.mode !== base.mode) {
-    issues.push({ id: "mode", message: `Mode divergent : attendu ${base.mode}, constaté ${status.mode}.` });
-  }
-  if (status.targetTemperature !== base.targetTemperature) {
-    issues.push({
-      id: "target",
-      message: `Consigne divergente : attendue ${base.targetTemperature}°C, constatée ${status.targetTemperature}°C.`,
-    });
-  }
-
-  const boostRequired = base.boost || (catchUpMiddle != null && catchUpMiddle < CATCH_UP_BOOST.start);
-  const boostAllowed = base.boost || (catchUpMiddle != null && catchUpMiddle < CATCH_UP_BOOST.stop);
-
-  if (boostRequired && !status.boostActive) {
-    issues.push(
-      base.boost
-        ? { id: "boost-off", message: "Boost divergent : attendu on (fenêtre du profil), constaté off." }
-        : {
-            id: "underheat",
-            message: `Ballon en sous-chauffe sans boost : milieu à ${middle}°C (seuil ${CATCH_UP_BOOST.start}°C, bas ${status.bottomTemperature}°C) avec ${guests} personne(s) présente(s).`,
-          },
-    );
-  }
-  if (status.boostActive && !boostAllowed) {
-    issues.push({ id: "boost-on", message: "Boost divergent : attendu off, constaté on (résistance du thermo pour rien)." });
-  }
-
-  // Mode dégradé, sonde du milieu absente ou aberrante : l'ancienne règle sur la sonde du bas,
-  // qui chute à chaque série de douches — d'où la confirmation sur deux contrôles.
-  if (middle == null) {
-    issues.push({
-      id: "middle-missing",
-      message: `Sonde du milieu absente ou aberrante (${status.middleTemperature ?? "—"}) : boost de rattrapage désactivé.`,
-    });
-    if (guests > 0 && isCatchUpHour(hour) && status.bottomTemperature > 0 && status.bottomTemperature < status.targetTemperature - 8) {
+  if (!boosterAllowed) {
+    if (status.mode !== "manualEcoActive") {
       issues.push({
-        id: "underheat-bottom",
-        message: `Ballon en sous-chauffe : bas à ${status.bottomTemperature}°C (consigne ${status.targetTemperature}°C) avec ${guests} personne(s) présente(s).`,
+        id: "booster-mode",
+        message: `Appoint électrique possible alors qu'il n'est pas permis : mode ${status.mode} au lieu de manualEcoActive (PAC seule).`,
       });
     }
+    if (status.boostActive) {
+      issues.push({ id: "boost-on", message: "Boost actif alors que l'appoint n'est pas permis (1 800 W en plus)." });
+    }
+  }
+  if (status.targetTemperature !== expected.targetTemperature) {
+    issues.push({
+      id: "target",
+      message: `Consigne divergente : attendue ${expected.targetTemperature}°C, constatée ${status.targetTemperature}°C.`,
+    });
+  }
+  if (stalled) {
+    const water = plausibleMiddle(status) ?? status.bottomTemperature;
+    issues.push({
+      id: "pac-stalled",
+      message: `PAC à l'arrêt depuis au moins une heure : eau à ${water}°C pour une consigne de ${status.targetTemperature}°C. Le ballon classique fournit seul l'eau chaude.`,
+    });
+  }
+  if (plausibleMiddle(status) == null) {
+    issues.push({
+      id: "middle-missing",
+      message: `Sonde du milieu absente ou aberrante (${status.middleTemperature ?? "—"}) : l'appoint ne peut être décidé que sur une PAC à l'arrêt.`,
+    });
   }
 
   return issues;

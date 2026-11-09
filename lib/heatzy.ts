@@ -2,6 +2,7 @@ import type { HeatzyMode, HeatzyZoneConfig } from "./types";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { getRedis } from "./redis";
+import type { RadiatorReading } from "./radiator-load";
 
 const LOCKS_KEY = "heatzy:locked-devices";
 const EXTRAS_KEY = "heatzy:extra-devices";
@@ -360,4 +361,34 @@ export async function setAllDevicesMode(mode: HeatzyMode | string) {
     }
   }
   return updated;
+}
+
+// ─── Lecture de tous les radiateurs (charge, délestage, coupure) ───
+
+/**
+ * L'état de chaque radiateur configuré (hors `excludedDevices`), lu en parallèle. Un radiateur
+ * illisible garde `attrs: null` (compté à 100 % par `estimateRadiatorLoad`). Lève seulement si
+ * la liste des appareils est inaccessible (API Heatzy en panne) : l'appelant décide alors.
+ */
+export async function readRadiators(config?: HeatzyZoneConfig): Promise<RadiatorReading[]> {
+  const cfg = config ?? (await getFullZoneConfig());
+  const excluded = new Set(cfg.excludedDevices ?? []);
+  const online = new Map((await getDevices()).map((d) => [d.did, d.is_online]));
+  const devices = cfg.zones.flatMap((zone) =>
+    zone.devices.filter((d) => !excluded.has(d.did)).map((d) => ({ zone, d })),
+  );
+  return Promise.all(
+    devices.map(async ({ zone, d }) => {
+      const isOnline = online.get(d.did) ?? false;
+      let attrs: Record<string, unknown> | null = null;
+      if (isOnline) {
+        try {
+          attrs = await getDeviceStatus(d.did);
+        } catch {
+          attrs = null;
+        }
+      }
+      return { did: d.did, name: d.name, zoneId: zone.id, online: isOnline, attrs, powerW: d.powerW };
+    }),
+  );
 }

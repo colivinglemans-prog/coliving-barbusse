@@ -195,3 +195,48 @@ describe("heating-reset — un jour d'arrivée compte comme occupé dès 12 h", 
     expect(resetTarget(BOOKINGS, "2026-11-14", 8, zone, device)).toEqual({ mode: "fro", occupied: false });
   });
 });
+
+describe("échelonnement par étage (2026-11-09) : dernier −15 min, RDC à l'heure, 1er +15 min", () => {
+  const dernier = { staggerMinutes: -15 };
+  const rdc = { nightMode: "presence" as HeatzyMode, staggerMinutes: 0 };
+  const premier = { staggerMinutes: 15 };
+  const arrival = "2026-11-14"; // arrivée sur maison vide (séjour C)
+  const stay = "2026-11-11"; // séjour B en cours
+  const at = (zone: object, day: string, h: number, m: number) => expectedHeatingMode(BOOKINGS, day, h, zone, m).mode;
+
+  it("préchauffage éco : dernier à 11 h 45, RDC à 12 h, 1er à 12 h 15", () => {
+    expect([at(dernier, arrival, 11, 30), at(rdc, arrival, 11, 30), at(premier, arrival, 11, 30)]).toEqual(["fro", "fro", "fro"]);
+    expect([at(dernier, arrival, 11, 45), at(rdc, arrival, 11, 45), at(premier, arrival, 11, 45)]).toEqual(["eco", "fro", "fro"]);
+    expect([at(dernier, arrival, 12, 0), at(rdc, arrival, 12, 0), at(premier, arrival, 12, 0)]).toEqual(["eco", "eco", "fro"]);
+    expect(at(premier, arrival, 12, 15)).toBe("eco");
+  });
+
+  it("préchauffage confort : 14 h 45 / 15 h / 15 h 15", () => {
+    expect([at(dernier, arrival, 14, 45), at(rdc, arrival, 14, 45), at(premier, arrival, 14, 45)]).toEqual(["cft", "eco", "eco"]);
+    expect([at(dernier, arrival, 15, 0), at(rdc, arrival, 15, 0), at(premier, arrival, 15, 0)]).toEqual(["cft", "cft", "eco"]);
+    expect(at(premier, arrival, 15, 15)).toBe("cft");
+  });
+
+  it("confort du soir : 19 h 45 / 20 h / 20 h 15", () => {
+    expect([at(dernier, stay, 19, 45), at(rdc, stay, 19, 45), at(premier, stay, 19, 45)]).toEqual(["cft", "presence", "presence"]);
+    expect([at(dernier, stay, 20, 0), at(rdc, stay, 20, 0), at(premier, stay, 20, 0)]).toEqual(["cft", "cft", "presence"]);
+    expect(at(premier, stay, 20, 15)).toBe("cft");
+  });
+
+  it("bornes de la journée : pas de passage au jour voisin", () => {
+    expect(at(premier, stay, 0, 0)).toBe(at({}, stay, 0, 0));
+    expect(at(dernier, stay, 23, 50)).toBe(at({}, stay, 23, 0));
+  });
+
+  it("décalage nul : la règle d'avant, à la minute près", () => {
+    for (const h of HOURS) for (const m of [0, 15, 30, 45]) {
+      expect(at(rdc, stay, h, m), `${h} h ${m}`).toBe(expectedHeatingMode(BOOKINGS, stay, h, rdc).mode);
+    }
+  });
+
+  it("le reset suit le même décalage", () => {
+    const device = { defaultMode: "fro" as HeatzyMode };
+    expect(resetTarget(BOOKINGS, arrival, 11, dernier, device, 45)).toEqual({ mode: "eco", occupied: true });
+    expect(resetTarget(BOOKINGS, arrival, 12, premier, device, 0)).toEqual({ mode: "fro", occupied: false });
+  });
+});

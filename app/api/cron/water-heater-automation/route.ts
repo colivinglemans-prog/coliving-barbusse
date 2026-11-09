@@ -3,7 +3,10 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import {
   getWaterHeaterStatus,
   getExpectedSettings,
-  CATCH_UP_BOOST,
+  decideBooster,
+  heatPumpStalled,
+  BOOSTER_RULE,
+  BOOSTER_REASON_LABEL,
   setDHWMode,
   setBoostMode,
   setTargetTemperature,
@@ -12,41 +15,82 @@ import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
 import { todayParis, currentHourParis } from "@sejour/socle/lib/time";
-import { getRedis, redisKey } from "@/lib/redis";
-import { appendWaterHeaterLog, logEntry } from "@/lib/water-heater-log";
+import {
+  appendWaterHeaterLog,
+  claimHourlyLogSlot,
+  entryOlderThan,
+  logEntry,
+  readBoosterMemo,
+  readWaterHeaterLog,
+  saveBoosterMemo,
+} from "@/lib/water-heater-log";
+import { freshLoad, readHeatingLoad } from "@/lib/heating-state";
+import { readRadiators } from "@/lib/heatzy";
+import { estimateRadiatorLoad } from "@/lib/radiator-load";
+import { ELECTRICAL_BUDGET } from "@/lib/electrical-budget";
 
-const CATCH_UP_NOTICE_KEY = redisKey("water-heater", "catchup-notified");
-const CATCH_UP_NOTICE_TTL_SECONDS = 6 * 3600;
-
-/** `true` si la notification de rattrapage peut partir (verrou posé). Redis injoignable : elle part. */
-async function claimCatchUpNotice(): Promise<boolean> {
+/**
+ * Charge des radiateurs : celle que `heating-automation` vient de mémoriser (même quart
+ * d'heure), sinon une lecture directe. `null` si rien n'est lisible : l'appoint est alors refusé.
+ */
+async function radiatorLoadW(now: Date): Promise<number | null> {
+  const memo = freshLoad(await readHeatingLoad(), now);
+  if (memo) return memo.totalW;
   try {
-    const res = await getRedis().set(CATCH_UP_NOTICE_KEY, new Date().toISOString(), {
-      nx: true,
-      ex: CATCH_UP_NOTICE_TTL_SECONDS,
-    });
-    return res === "OK";
+    return estimateRadiatorLoad(await readRadiators()).totalW;
   } catch (e) {
-    console.error("[water-heater-automation] verrou de notification:", e instanceof Error ? e.message : e);
-    return true;
+    console.error("[water-heater-automation] lecture des radiateurs:", e instanceof Error ? e.message : e);
+    return null;
   }
 }
 
+/**
+ * Pilotage du ballon thermo, toutes les 15 min (cron-job.org).
+ *
+ * PAC seule par défaut ; appoint électrique (1 800 W) seulement de 10 h à 16 h, si la charge
+ * estimée des radiateurs le permet et si la PAC ne suffit pas (`decideBooster`,
+ * `lib/cozytouch.ts`). Quand l'appoint est retiré, le boost est coupé **en premier** : un échec
+ * des commandes suivantes ne le laisse pas tourner un quart d'heure de plus.
+ *
+ * La décision est mémorisée (`barbusse:water-heater:booster`) pour le contrôle et le dashboard.
+ */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const now = new Date();
     const today = todayParis();
     const currentHour = currentHourParis();
 
-    const bookings = await getActiveBookings();
+    const [bookings, status, log, loadW, previous] = await Promise.all([
+      getActiveBookings(),
+      getWaterHeaterStatus(),
+      readWaterHeaterLog(24),
+      radiatorLoadW(now),
+      readBoosterMemo(now),
+    ]);
     const guests = countGuests(bookings, today, currentHour);
-    const status = await getWaterHeaterStatus();
-    const { profile, catchUp, ...settings } = getExpectedSettings(guests, currentHour, status);
+    const stalled = heatPumpStalled(status, entryOlderThan(log, now, BOOSTER_RULE.stalledAfterMs), now);
+    const decision = decideBooster({
+      guests,
+      hour: currentHour,
+      radiatorLoadW: loadW,
+      budgetW: ELECTRICAL_BUDGET.boosterRadiatorBudgetW,
+      status,
+      stalled,
+      wasAllowed: previous?.allowed ?? false,
+    });
+    const { profile, ...settings } = getExpectedSettings(guests, decision.allowed);
 
     const applied: string[] = [];
+
+    // Boost coupé d'abord : c'est lui qui tire l'appoint.
+    if (status.boostActive && !settings.boost) {
+      await setBoostMode(false);
+      applied.push("boost on → off");
+    }
 
     if (status.mode !== settings.mode) {
       await setDHWMode(settings.mode);
@@ -55,37 +99,41 @@ export async function GET(request: NextRequest) {
 
     if (status.targetTemperature !== settings.targetTemperature) {
       await setTargetTemperature(settings.targetTemperature);
-      applied.push(
-        `consigne ${status.targetTemperature}°C → ${settings.targetTemperature}°C`,
-      );
+      applied.push(`consigne ${status.targetTemperature}°C → ${settings.targetTemperature}°C`);
     }
 
-    if (status.boostActive !== settings.boost) {
-      await setBoostMode(settings.boost);
-      applied.push(`boost ${status.boostActive ? "on" : "off"} → ${settings.boost ? "on" : "off"}`);
-      // Une notification à l'enclenchement seulement : l'hystérésis le maintient ensuite sans
-      // bruit. Et une par tranche de 6 h au plus : un ballon qui ignore la commande (ou un état
-      // Overkiz figé) la ferait repartir à chaque passage horaire.
-      if (catchUp && settings.boost && (await claimCatchUpNotice())) {
-        await sendWaterHeaterAlert(
-          "Boost de rattrapage enclenché",
-          `Milieu du ballon à ${status.middleTemperature}°C (seuil ${CATCH_UP_BOOST.start}°C) avec ${guests} personne(s) présente(s).\nBoost maintenu jusqu'à ${CATCH_UP_BOOST.stop}°C au milieu.`,
-          3,
-        ).catch(() => {});
-      }
+    if (!status.boostActive && settings.boost) {
+      await setBoostMode(true);
+      applied.push("boost off → on");
     }
 
-    await appendWaterHeaterLog(logEntry(new Date(), guests, profile, catchUp, status, applied));
+    const booster = { ...decision, radiatorLoadW: loadW };
+    await saveBoosterMemo({
+      allowed: decision.allowed,
+      reason: decision.reason,
+      radiatorLoadW: loadW,
+      budgetW: ELECTRICAL_BUDGET.boosterRadiatorBudgetW,
+      at: now.toISOString(),
+    });
+    if (applied.length > 0 || (await claimHourlyLogSlot())) {
+      await appendWaterHeaterLog(logEntry(now, guests, profile, booster, status, applied));
+    }
     await beat("water-heater-automation", "ok");
     return NextResponse.json({
       success: true,
       profile,
       guests,
       settings,
-      catchUp,
+      booster: {
+        allowed: decision.allowed,
+        reason: BOOSTER_REASON_LABEL[decision.reason],
+        radiatorLoadW: loadW,
+        budgetW: ELECTRICAL_BUDGET.boosterRadiatorBudgetW,
+        heatPumpStalled: stalled,
+      },
       middleTemperature: status.middleTemperature,
       applied,
-      timestamp: new Date().toISOString(),
+      timestamp: now.toISOString(),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWaterHeaterStatus, getDeviceURLs, getRawStates } from "@/lib/cozytouch";
 import { guard } from "@/lib/auth";
+import { readBoosterMemo } from "@/lib/water-heater-log";
+import { BOOSTER_REASON_LABEL, type BoosterReason } from "@/lib/cozytouch";
 
 export async function GET(request: NextRequest) {
   const refus = await guard.deny(request, ["admin", "viewer"]);
@@ -20,8 +22,21 @@ export async function GET(request: NextRequest) {
       }));
     } catch { /* ignore */ }
 
+    // Décision d'appoint du dernier passage de l'automation (délestage, 2026-11-09).
+    const memo = await readBoosterMemo();
+    const booster = memo
+      ? {
+          allowed: memo.allowed,
+          reason: BOOSTER_REASON_LABEL[memo.reason as BoosterReason] ?? memo.reason,
+          radiatorLoadW: memo.radiatorLoadW,
+          budgetW: memo.budgetW,
+          at: memo.at,
+        }
+      : null;
+
     return NextResponse.json({
       status,
+      booster,
       debug,
       seriesNote:
         "Le ballon thermodynamique préchauffe l'eau en amont du ballon classique. La température affichée est celle du ballon thermo.",

@@ -3,63 +3,67 @@ import { confirmedIssues, waterHeaterIssues, type HealthStatus } from "@/lib/wat
 
 const GROUP = 14;
 
-/** Ballon conforme au profil xl hors fenêtre de boost (PAC seule), bien chaud. */
-function xl(over: Partial<HealthStatus> = {}): HealthStatus {
+/** Ballon conforme à « appoint non permis » : PAC seule, 55 °C, bien chaud. */
+function pacOnly(over: Partial<HealthStatus> = {}): HealthStatus {
   return {
     isAvailable: true,
     mode: "manualEcoActive",
-    targetTemperature: 60,
+    targetTemperature: 55,
     boostActive: false,
-    middleTemperature: 55,
-    bottomTemperature: 50,
+    middleTemperature: 52,
+    bottomTemperature: 48,
     ...over,
   };
 }
 
-const ids = (guests: number, hour: number, s: HealthStatus) => waterHeaterIssues(guests, hour, s).map((i) => i.id);
+const ids = (s: HealthStatus, allowed = false, stalled = false, guests = GROUP) =>
+  waterHeaterIssues(guests, s, allowed, stalled).map((i) => i.id);
 
 describe("waterHeaterIssues", () => {
   it("ballon conforme : rien", () => {
-    expect(ids(GROUP, 19, xl())).toEqual([]);
+    expect(ids(pacOnly())).toEqual([]);
   });
 
   it("hors ligne : un seul constat", () => {
-    expect(ids(GROUP, 19, xl({ isAvailable: false }))).toEqual(["offline"]);
+    expect(ids(pacOnly({ isAvailable: false }))).toEqual(["offline"]);
   });
 
-  it("rattrapage désactivé : ballon vide le soir sans boost, rien à signaler", () => {
-    expect(ids(GROUP, 19, xl({ middleTemperature: 19 }))).toEqual([]);
-    expect(ids(GROUP, 7, xl({ middleTemperature: 30 }))).toEqual([]);
-    expect(ids(GROUP, 23, xl({ middleTemperature: 15 }))).toEqual([]);
+  it("appoint non permis mais mode qui le laisse tourner : signalé", () => {
+    expect(ids(pacOnly({ mode: "manualEcoInactive" }))).toEqual(["booster-mode"]);
+    expect(ids(pacOnly({ mode: "autoMode" }))).toEqual(["booster-mode"]);
   });
 
-  it("boost du soir (ancien rattrapage) : signalé", () => {
-    expect(ids(GROUP, 19, xl({ middleTemperature: 45, boostActive: true }))).toEqual(["boost-on"]);
+  it("boost actif alors que non permis : signalé", () => {
+    expect(ids(pacOnly({ boostActive: true }))).toEqual(["boost-on"]);
   });
 
-  it("appoint autorisé le soir (mode Performance) : signalé", () => {
-    expect(ids(GROUP, 20, xl({ mode: "manualEcoInactive" }))).toEqual(["mode"]);
+  it("appoint permis : ni le mode ni le boost ne sont exigés", () => {
+    expect(ids(pacOnly({ targetTemperature: 60 }), true)).toEqual([]);
+    expect(ids(pacOnly({ mode: "manualEcoInactive", boostActive: true, targetTemperature: 60 }), true)).toEqual([]);
   });
 
-  it("boost allumé sans raison : signalé", () => {
-    expect(ids(GROUP, 23, xl({ boostActive: true }))).toEqual(["boost-on"]);
-    expect(ids(GROUP, 19, xl({ boostActive: true, middleTemperature: 55 }))).toEqual(["boost-on"]);
+  it("consigne divergente : signalée", () => {
+    expect(ids(pacOnly({ targetTemperature: 60 }))).toEqual(["target"]);
   });
 
-  it("fenêtre de boost du profil non appliquée : signalé", () => {
-    expect(ids(GROUP, 12, xl({ mode: "manualEcoInactive" }))).toEqual(["boost-off"]);
-    expect(ids(GROUP, 12, xl({ mode: "manualEcoInactive", boostActive: true }))).toEqual([]);
+  it("PAC à l'arrêt : signalée, quel que soit le groupe", () => {
+    expect(ids(pacOnly({ middleTemperature: 25 }), false, true)).toEqual(["pac-stalled"]);
+    expect(ids(pacOnly({ middleTemperature: 25 }), false, true, 3)).toEqual(["pac-stalled"]);
   });
 
-  it("sonde du milieu à 0 : signalée, et pas de rattrapage exigé", () => {
-    expect(ids(GROUP, 19, xl({ middleTemperature: 0, bottomTemperature: 55 }))).toEqual(["middle-missing"]);
-    expect(ids(GROUP, 19, xl({ middleTemperature: undefined, bottomTemperature: 20 }))).toEqual(["middle-missing"]);
+  it("ballon vide le soir, PAC qui tourne : rien (le classique prend le relais)", () => {
+    expect(ids(pacOnly({ middleTemperature: 19, bottomTemperature: 14 }))).toEqual([]);
+  });
+
+  it("sonde du milieu à 0 ou absente : signalée", () => {
+    expect(ids(pacOnly({ middleTemperature: 0 }))).toEqual(["middle-missing"]);
+    expect(ids(pacOnly({ middleTemperature: undefined }))).toEqual(["middle-missing"]);
   });
 });
 
 describe("confirmedIssues", () => {
   const issues = [
-    { id: "underheat", message: "a" },
+    { id: "pac-stalled", message: "a" },
     { id: "boost-on", message: "b" },
   ];
 

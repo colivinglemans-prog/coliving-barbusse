@@ -47,6 +47,24 @@ export const HEATING_HOURS = {
   turnaroundEcoFrom: 9,
 } as const;
 
+/** Ce qu'une zone doit connaître de sa configuration pour calculer son mode. */
+export type ZoneSchedule = Pick<HeatzyZone, "nightMode" | "staggerMinutes">;
+
+/**
+ * L'heure à laquelle une zone **lit** la règle, décalage compris (2026-11-09, coupures à 9 kVA).
+ *
+ * Les bascules qui font monter la consommation (préchauffage 12 h et 15 h, confort à 20 h)
+ * passaient à la même minute dans toute la maison. Chaque zone a désormais un décalage signé
+ * `staggerMinutes` : le dernier étage (−15) bascule un quart d'heure plus tôt, le RDC à l'heure,
+ * le 1er étage (+15) un quart d'heure plus tard. La zone évalue la règle à
+ * `heure·60 + minute − staggerMinutes`, borné à la journée (pas de passage au jour voisin).
+ * Toutes ses bascules sont décalées, les descentes comme les montées.
+ */
+export function zoneHour(hour: number, minute: number, staggerMinutes = 0): number {
+  const t = Math.min(23 * 60 + 59, Math.max(0, hour * 60 + minute - staggerMinutes));
+  return Math.floor(t / 60);
+}
+
 /** La condition historique `isCurrentlyOccupied`, inchangée. */
 export function isOccupiedAt(bookings: readonly StayDates[], today: string, hour: number): boolean {
   return bookings.some(
@@ -75,7 +93,7 @@ export function heatingSituation(bookings: readonly StayDates[], today: string, 
 /**
  * Chambres : présence 7 h-20 h, confort sinon. Zones à `nightMode` (RDC) : ce mode 0 h-5 h.
  */
-export function getOccupiedMode(zone: Pick<HeatzyZone, "nightMode">, hour: number): HeatzyMode {
+export function getOccupiedMode(zone: ZoneSchedule, hour: number): HeatzyMode {
   if (zone.nightMode && hour >= 0 && hour < 5) return zone.nightMode;
   if (hour >= 7 && hour < 20) return "presence";
   return "cft";
@@ -90,7 +108,7 @@ export function getBetweenReservationsMode(hour: number): HeatzyMode {
 /** Le mode d'une zone pour une situation. `null` : l'automatisation ne touche à rien. */
 export function modeForSituation(
   situation: HeatingSituation,
-  zone: Pick<HeatzyZone, "nightMode">,
+  zone: ZoneSchedule,
   hour: number,
 ): HeatzyMode | null {
   switch (situation) {
@@ -117,15 +135,21 @@ export interface ExpectedHeating {
   mode: HeatzyMode | null;
 }
 
-/** **La** fonction : mode attendu d'une zone, à l'heure `hour` du jour `today`. */
+/**
+ * **La** fonction : mode attendu d'une zone, à `hour`:`minute` du jour `today`, décalage de la
+ * zone compris (`zoneHour`). `minute` vaut 0 par défaut : à décalage nul, la règle est celle
+ * d'avant le 2026-11-09.
+ */
 export function expectedHeatingMode(
   bookings: readonly StayDates[],
   today: string,
   hour: number,
-  zone: Pick<HeatzyZone, "nightMode">,
+  zone: ZoneSchedule,
+  minute = 0,
 ): ExpectedHeating {
-  const situation = heatingSituation(bookings, today, hour);
-  return { situation, mode: modeForSituation(situation, zone, hour) };
+  const h = zoneHour(hour, minute, zone.staggerMinutes);
+  const situation = heatingSituation(bookings, today, h);
+  return { situation, mode: modeForSituation(situation, zone, h) };
 }
 
 /**
@@ -144,13 +168,14 @@ export function resetTarget(
   bookings: readonly StayDates[],
   today: string,
   hour: number,
-  zone: Pick<HeatzyZone, "nightMode">,
+  zone: ZoneSchedule,
   device: { defaultMode: HeatzyMode },
+  minute = 0,
 ): { mode: HeatzyMode; occupied: boolean } {
-  const { situation, mode } = expectedHeatingMode(bookings, today, hour, zone);
+  const { situation, mode } = expectedHeatingMode(bookings, today, hour, zone, minute);
   if (situation === "occupied") return { mode: mode!, occupied: true };
   const arrivalDayAfternoon =
-    hour >= HEATING_HOURS.preheatEco &&
+    zoneHour(hour, minute, zone.staggerMinutes) >= HEATING_HOURS.preheatEco &&
     (situation === "preheat-eco" || situation === "preheat-cft" || situation === "turnaround");
   if (arrivalDayAfternoon && mode) return { mode, occupied: true };
   return { mode: device.defaultMode, occupied: false };

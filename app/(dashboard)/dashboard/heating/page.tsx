@@ -22,6 +22,15 @@ interface HeatingData {
   summerMode: boolean;
   currentRule?: string;
   nextRule?: string;
+  /** Charge estimée des radiateurs au dernier passage de l'automatisation (délestage). */
+  load?: {
+    totalW: number;
+    capW: number;
+    shedZones: string[];
+    observedShedZones: string[];
+    at: string;
+    kva: number;
+  } | null;
 }
 
 const GLOBAL_MODE_BUTTONS = [
@@ -379,6 +388,21 @@ export default function HeatingPage() {
             {data.nextRule && (
               <div className="text-sm text-blue-600 mt-1">
                 Prochain : {data.nextRule}
+              </div>
+            )}
+            {data.load && (
+              <div className="text-sm text-blue-600 mt-1">
+                Charge estimée des radiateurs : {(data.load.totalW / 1000).toFixed(1)} kW (plafond{" "}
+                {(data.load.capW / 1000).toFixed(1)} kW, abonnement {data.load.kva} kVA)
+                {data.load.shedZones.length > 0 && (
+                  <span className="font-medium text-orange-700"> — délesté en éco : {data.load.shedZones.join(", ")}</span>
+                )}
+                {data.load.observedShedZones.length > 0 && (
+                  <span className="text-blue-500">
+                    {" "}
+                    — délestage en observation, mettrait en éco : {data.load.observedShedZones.join(", ")}
+                  </span>
+                )}
               </div>
             )}
           </div>

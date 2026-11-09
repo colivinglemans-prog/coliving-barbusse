@@ -337,7 +337,7 @@ export async function refreshState() {
   await executeCommand(deviceURL, "refreshNumberOfShowerRemaining", []);
 }
 
-// ─── Occupancy-based profile ────────────────────────────────
+// ─── Profil d'occupation et appoint électrique ────────────────
 
 export type WaterHeaterProfile = "vacant" | "low" | "normal" | "high" | "xl";
 
@@ -356,117 +356,118 @@ export function getWaterHeaterProfile(guests: number): WaterHeaterProfile {
 }
 
 /**
- * Fenêtre où l'appoint électrique du thermo (1 800 W) est permis, pour les grands groupes.
+ * Règle de l'appoint électrique du thermo (1 800 W), depuis les coupures des 7, 8 et 9 novembre
+ * 2026 (9 kVA, 14 voyageurs) : il chauffait le soir et la nuit, en même temps que la cuisine,
+ * les radiateurs en confort et le ballon classique de 300 L.
  *
- * Coupures de courant des 7, 8 et 9 novembre 2026 (abonnement 9 kVA, 14 voyageurs) : l'appoint
- * chauffait le soir et la nuit, en même temps que la cuisine, les radiateurs en confort et le
- * ballon classique de 300 L (résistance, en série, sans contacteur heures creuses). **Hors de
- * cette fenêtre, PAC seule** (`manualEcoActive`) : l'appoint ne tourne qu'en milieu de
- * journée, quand la maison consomme le moins. Le classique couvre les pics du soir.
+ * **Par défaut, PAC seule** (`manualEcoActive`). L'appoint n'est permis que si les trois
+ * conditions sont réunies :
+ *
+ * 1. **10 h ≤ heure < 16 h** (`hours`) ;
+ * 2. **la charge estimée des radiateurs** (`lib/radiator-load.ts`) est connue et sous
+ *    `ELECTRICAL_BUDGET.boosterRadiatorBudgetW` — le jour d'arrivée, la remise en chauffe la
+ *    fait monter et l'appoint est refusé de lui-même ;
+ * 3. **la PAC ne suffit pas** : milieu du ballon sous `pacSufficientMiddle`, ou PAC à l'arrêt
+ *    (`heatPumpStalled`). Sinon l'appoint remplace de la PAC, trois fois moins chère (le 9/11,
+ *    7 h d'appoint seul pendant que la PAC était bloquée).
  */
-export const BOOSTER_WINDOW = {
-  high: { from: 12, to: 15 },
-  xl: { from: 11, to: 16 },
-} as const;
-
-function inWindow(hour: number, w: { from: number; to: number }): boolean {
-  return hour >= w.from && hour < w.to;
-}
-
-// Boost only runs in the warm-ambient window to maximise heat-pump COP.
-// Garage is unheated: air follows outdoor temp, peaks 11h-16h.
-export function getProfileSettings(
-  profile: WaterHeaterProfile,
-  hour: number,
-): WaterHeaterProfileSettings {
-  switch (profile) {
-    case "vacant":
-      return { mode: "manualEcoActive", targetTemperature: 50, boost: false };
-    case "low":
-      return { mode: "autoMode", targetTemperature: 55, boost: false };
-    case "normal":
-      return { mode: "autoMode", targetTemperature: 58, boost: false };
-    case "high": {
-      const window = inWindow(hour, BOOSTER_WINDOW.high);
-      return {
-        mode: window ? "manualEcoInactive" : "manualEcoActive",
-        targetTemperature: 60,
-        boost: window,
-      };
-    }
-    case "xl": {
-      const window = inWindow(hour, BOOSTER_WINDOW.xl);
-      return {
-        mode: window ? "manualEcoInactive" : "manualEcoActive",
-        targetTemperature: 60,
-        boost: window,
-      };
-    }
-  }
-}
-
-/**
- * Boost de rattrapage : thermo vidé alors qu'un grand groupe tire de l'eau.
- *
- * Le boost n'ajoute **que de la résistance** : la PAC chauffe dans tous les modes tant que
- * l'eau est sous la consigne. Chaque kWh de résistance dans le thermo prend la place d'un kWh
- * que la PAC aurait produit plus tard, trois fois moins cher. Le thermo alimente un ballon
- * classique (résistance seule) : le boost n'est neutre que **pendant les tirages**, quand la
- * chaleur ajoutée passe directement dans le classique, qui l'aurait payée au même prix. En
- * dehors, il est perdant. D'où :
- *
- * - **Heures de douche seulement** (`hours`, 6 h–9 h et 17 h–22 h), coupé à la fin de la
- *   plage. Entre les deux, la PAC seule a 8 h devant elle.
- * - **Grand groupe seulement** (`minGuests`) : en dessous, le classique couvre seul le pic.
- * - **Sonde du milieu** : celle du bas s'effondre à chaque série de douches (l'eau froide entre
- *   par le bas) alors que le haut du ballon est encore chaud. Sans sonde du milieu plausible,
- *   pas de rattrapage.
- * - **Hystérésis** dans la plage : déclenché sous `start`, maintenu jusqu'à `stop`.
- */
-export const CATCH_UP_BOOST = {
-  start: 40,
-  stop: 50,
-  minGuests: 9,
-  // Désactivé le 2026-11-09 (étaient 6 h–9 h et 17 h–22 h) : le boost du soir ajoutait 1 800 W
-  // au pic de consommation et a fait sauter le compteur (9 kVA). Voir `BOOSTER_WINDOW`.
-  hours: [] as ReadonlyArray<{ from: number; to: number }>,
-  // Une sonde décrochée remonte 0 : sans ce filtre, boost à chaque plage, tous les jours.
+export const BOOSTER_RULE = {
+  hours: { from: 10, to: 16 },
+  pacSufficientMiddle: 45,
+  /** Appoint déjà permis : il le reste jusqu'à ce milieu (hystérésis, pas de bascule à chaque quart d'heure). */
+  pacSufficientMiddleWhileBoosting: 50,
+  /**
+   * Une PAC dont le compteur d'heures n'a pas bougé depuis ce délai est à l'arrêt. Deux heures et
+   * non une : le compteur remonte des **heures entières** ; une PAC qui tourne depuis 45 min peut
+   * ne pas avoir changé d'heure.
+   */
+  stalledAfterMs: 2 * 60 * 60 * 1000,
+  /** Eau « sous la consigne » : plus de `stalledGapC` degrés en dessous. */
+  stalledGapC: 5,
+  // Une sonde décrochée remonte 0 : hors de cette plage, la sonde du milieu est ignorée.
   plausible: { min: 5, max: 85 },
 } as const;
-
-/** Heure de douche, où le rattrapage est permis. Partagé par l'automation et le contrôle. */
-export function isCatchUpHour(hour: number): boolean {
-  return CATCH_UP_BOOST.hours.some((h) => hour >= h.from && hour < h.to);
-}
 
 /** La sonde du milieu, ou `undefined` si absente ou hors plage (liaison modbus décrochée). */
 export function plausibleMiddle(
   status: Pick<CozytouchWaterHeaterStatus, "middleTemperature">,
 ): number | undefined {
   const t = status.middleTemperature;
-  const { min, max } = CATCH_UP_BOOST.plausible;
+  const { min, max } = BOOSTER_RULE.plausible;
   return t != null && t >= min && t <= max ? t : undefined;
 }
 
-export function needsCatchUpBoost(
-  guests: number,
-  hour: number,
-  status: Pick<CozytouchWaterHeaterStatus, "middleTemperature" | "boostActive">,
+/**
+ * PAC à l'arrêt : son compteur d'heures n'a pas bougé depuis une mesure vieille d'au moins une
+ * heure, alors que l'eau est nettement sous la consigne (elle devrait chauffer).
+ */
+export function heatPumpStalled(
+  status: Pick<CozytouchWaterHeaterStatus, "heatPumpHours" | "middleTemperature" | "bottomTemperature" | "targetTemperature">,
+  earlier: { at: string; heatPumpHours?: number } | null,
+  now: Date,
 ): boolean {
-  const middle = plausibleMiddle(status);
-  if (guests < CATCH_UP_BOOST.minGuests || middle == null || !isCatchUpHour(hour)) return false;
-  const threshold = status.boostActive ? CATCH_UP_BOOST.stop : CATCH_UP_BOOST.start;
-  return middle < threshold;
+  if (!earlier || earlier.heatPumpHours == null || status.heatPumpHours == null) return false;
+  if (now.getTime() - new Date(earlier.at).getTime() < BOOSTER_RULE.stalledAfterMs) return false;
+  const bottom = status.bottomTemperature >= BOOSTER_RULE.plausible.min ? status.bottomTemperature : undefined;
+  const water = plausibleMiddle(status) ?? bottom;
+  if (water === undefined) return false;
+  return status.heatPumpHours === earlier.heatPumpHours && water < status.targetTemperature - BOOSTER_RULE.stalledGapC;
 }
 
-/** Réglages attendus, boost de rattrapage compris : la même fonction pour l'automation et le contrôle. */
+export type BoosterReason = "allowed" | "vacant" | "hours" | "load-unknown" | "load" | "pac-ok";
+
+export interface BoosterInput {
+  guests: number;
+  hour: number;
+  /** Charge estimée des radiateurs, `null` si inconnue. */
+  radiatorLoadW: number | null;
+  budgetW: number;
+  status: Pick<CozytouchWaterHeaterStatus, "middleTemperature">;
+  stalled: boolean;
+  /** L'appoint était permis au passage précédent (hystérésis sur le milieu du ballon). */
+  wasAllowed?: boolean;
+}
+
+export function decideBooster(input: BoosterInput): { allowed: boolean; reason: BoosterReason } {
+  const { from, to } = BOOSTER_RULE.hours;
+  if (input.guests <= 0) return { allowed: false, reason: "vacant" };
+  if (input.hour < from || input.hour >= to) return { allowed: false, reason: "hours" };
+  if (input.radiatorLoadW === null) return { allowed: false, reason: "load-unknown" };
+  if (input.radiatorLoadW > input.budgetW) return { allowed: false, reason: "load" };
+  const middle = plausibleMiddle(input.status);
+  const threshold = input.wasAllowed ? BOOSTER_RULE.pacSufficientMiddleWhileBoosting : BOOSTER_RULE.pacSufficientMiddle;
+  const needed = input.stalled || (middle !== undefined && middle < threshold);
+  if (!needed) return { allowed: false, reason: "pac-ok" };
+  return { allowed: true, reason: "allowed" };
+}
+
+/** En clair, pour les journaux, les alertes et le dashboard. */
+export const BOOSTER_REASON_LABEL: Record<BoosterReason, string> = {
+  allowed: "appoint permis",
+  vacant: "maison vide",
+  hours: "hors de 10 h-16 h",
+  "load-unknown": "charge des radiateurs inconnue",
+  load: "radiateurs trop chargés",
+  "pac-ok": "la PAC suffit",
+};
+
+/**
+ * Réglages par profil. Sans appoint : PAC seule, 55 °C (le point où le COP de 2,66 est mesuré),
+ * 50 °C maison vide. Avec appoint : `manualEcoInactive`, plus le boost et 60 °C à partir de
+ * 9 personnes.
+ */
+export function getProfileSettings(profile: WaterHeaterProfile, boosterAllowed: boolean): WaterHeaterProfileSettings {
+  if (profile === "vacant") return { mode: "manualEcoActive", targetTemperature: 50, boost: false };
+  const big = profile === "high" || profile === "xl";
+  if (!boosterAllowed) return { mode: "manualEcoActive", targetTemperature: 55, boost: false };
+  return { mode: "manualEcoInactive", targetTemperature: big ? 60 : 55, boost: big };
+}
+
+/** Réglages attendus : la même fonction pour l'automation, le contrôle et le dashboard. */
 export function getExpectedSettings(
   guests: number,
-  hour: number,
-  status: Pick<CozytouchWaterHeaterStatus, "middleTemperature" | "boostActive">,
-): WaterHeaterProfileSettings & { profile: WaterHeaterProfile; catchUp: boolean } {
+  boosterAllowed: boolean,
+): WaterHeaterProfileSettings & { profile: WaterHeaterProfile } {
   const profile = getWaterHeaterProfile(guests);
-  const base = getProfileSettings(profile, hour);
-  const catchUp = !base.boost && needsCatchUpBoost(guests, hour, status);
-  return { ...base, boost: base.boost || catchUp, profile, catchUp };
+  return { ...getProfileSettings(profile, boosterAllowed), profile };
 }

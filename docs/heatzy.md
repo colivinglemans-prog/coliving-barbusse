@@ -45,6 +45,49 @@ ces fonctions pour les anciens imports.
 
 **Pré-chauffage** (jour du check-in) : éco à 12h, confort à 15h (montée progressive pour éviter de faire sauter les plombs)
 
+### Délestage (2026-11-09 — coupures à 9 kVA, 14 voyageurs)
+
+15 radiateurs **ACOVA Atoll LCD 1 000 W** (fluide caloporteur), 15 kW installés pour un abonnement de 9 kVA.
+
+- **Échelonnement** : chaque zone a un décalage signé `staggerMinutes` (`data/heatzy-zones.json`) ;
+  `zoneHour(hour, minute, stagger)` donne l'heure à laquelle la zone lit la règle. **Dernier étage
+  −15 min** (zone la plus froide, d'abord), **RDC et chambre RDC à l'heure**, **1er +15 min** :
+  préchauffage éco 11 h 45 / 12 h / 12 h 15, confort 14 h 45 / 15 h / 15 h 15, confort du soir
+  19 h 45 / 20 h / 20 h 15. Toutes les bascules sont décalées (descentes comprises). Les appelants
+  passent la minute de Paris (`heating-automation`, `heating-reset`, dashboard, sonde d'arrivée).
+- **Charge estimée** (`lib/radiator-load.ts`) : par radiateur, consigne du mode (`cft`, `cft1`/`cft2`
+  = confort −1/−2 du mode présence, `eco`, hors-gel 7 °C), écart à la température : ≥ 1 °C ou
+  `Heating_state = 1` → 100 %, régulation → 1/3, au-dessus → 0 ; **hors ligne ou illisible → 100 %**.
+  Puissance `powerW` (défaut 1 000 W). Pour décider d'un délestage, la consigne retenue est celle
+  que le radiateur **aura** après le passage (`expectedSetpoint`).
+- **Délestage tournant** (`lib/load-shedding.ts`, `heating-automation`, situations occupé /
+  préchauffage / rotation) : au-delà de `ELECTRICAL_BUDGET.radiatorCapW` (6 kW à 9 kVA, 9 kW à
+  12 kVA), des zones qui visent le confort passent en **éco pour le quart d'heure**, ordre
+  **dernier → 1er → chambre RDC**, jamais le RDC ; une zone délestée au quart d'heure précédent passe
+  après les autres ; une zone devenue superflue est rendue. État Redis `barbusse:heating:shed`,
+  respecté par `heating-reset`. ntfy priorité 3 au premier délestage du jour.
+  ⚠️ **En observation** depuis sa mise en service (`LOAD_SHEDDING_MODE = "observe"`,
+  `lib/electrical-budget.ts`) : le passage calcule et affiche les zones qu'il délesterait
+  (`observedShedZones`), sans rien appliquer. Le 9/11 à 21 h 54, 13 radiateurs sur 15 en demande
+  de chauffe donnaient 13,3 kW estimés alors que le compteur de 9 kVA tenait : l'estimation est
+  pessimiste (`Heating_state` = demande du Heatzy, pas pleine puissance ; l'ACOVA régule aussi).
+  À activer après calibrage (puissance max du Linky, courbe Enedis, module TIC).
+- **Consignes** : celles montées au-dessus de la zone (boutons du Heatzy, laissés libres) sont
+  ramenées à chaque passage de `heating-automation` (15 min) pendant un séjour.
+- **Coupure de courant** (`lib/power-cut.ts`) : 3 radiateurs ou plus en ligne au passage précédent
+  et hors ligne à celui-ci → ntfy **priorité 5** « Coupure de courant probable » ; tous revenus →
+  « Courant revenu ». Une coupure non résolue est oubliée après 6 h (circuit resté coupé) ; une
+  nouvelle chute pendant une coupure ouverte relance l'alerte. **Tous** les radiateurs hors ligne :
+  titre « Coupure de courant ou box Internet » (box ou cloud Heatzy en panne, indiscernables).
+  Pendant une coupure, l'alerte « n'ont pas pris leur mode » est tue.
+- **Effets du décalage à connaître** : le jour du départ, le dernier étage passe en hors-gel à
+  9 h 45 (voyageurs encore là) et le 1er reste en présence jusqu'à 10 h 15. La situation globale
+  (libellés, consignes ramenées, délestage) n'est pas décalée : écarts d'un quart d'heure, cosmétiques.
+- **Avant de passer le délestage en actif** : `expectedMode` du dashboard et la sonde d'arrivée
+  ignorent les zones délestées (une zone en éco y paraîtrait en écart).
+- **Dashboard** : charge estimée, plafond et zones délestées sous la règle active
+  (`barbusse:heating:load`, lue aussi par l'automation du ballon pour l'appoint).
+
 **Reset (`heating-reset`, toutes les 4 h)** : un **jour d'arrivée compte comme occupé dès 12 h**
 (`resetTarget`) — mode du préchauffage (ou éco en rotation), consignes remises seulement si
 elles ont été montées. Avant le 2026-11-07, les passages de 12 h et 16 h remettaient le

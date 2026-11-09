@@ -94,11 +94,11 @@ app/
       bookings/[id]/messages/   # GET état des 2 boutons / POST envoi arrivée|départ (admin only)
       bookings/[id]/event-link/ # POST/DELETE délier/rétablir un événement (admin only)
     cron/
-      heating-automation/  # Check-in/check-out → mode présence/hors-gel
+      heating-automation/  # Modes par zone (décalés), consignes ramenées, délestage (observation), alerte de coupure
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
       heating-health/      # Check connectivité + alertes ntfy
       water-heater-automation/ # Profil eau chaude selon le nombre de personnes présentes
-      water-heater-health/     # Dérive mode/consigne/boost, hors ligne, sous-chauffe → ntfy
+      water-heater-health/     # Appoint non permis mais actif, consigne, PAC à l'arrêt, hors ligne → ntfy
       checkin-notifications/   # Première ouverture au clavier → ntfy
       nuki-sync/               # Horaire : codes du clavier ← réservations Beds24
       beds24-keepalive/        # Lundi : échange des 4 refresh tokens Beds24
@@ -530,6 +530,13 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
 `lib/heatzy.ts` pilote 15 radiateurs sur 4 zones (API Gizwits, `data/heatzy-zones.json` avec le mapping Beds24) : crons `heating-automation`, `heating-reset`, `heating-health`, page `/dashboard/heating` (contrôle ouvert au `viewer`).
 - **Une seule règle** : `expectedHeatingMode` (`lib/heating-schedule.ts`), utilisée par l'automatisation, le reset, le dashboard et la préparation d'arrivée ; **la référence est l'automatisation**. `heating-reset` compte le jour d'arrivée comme occupé dès 12 h (il coupait le préchauffage avant le 2026-11-07).
 - **Occupation** (`isOccupiedAt`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). Heure toujours via `@sejour/socle/lib/time`.
+- ⚠️ **Délestage (2026-11-09, coupures à 9 kVA ; 15 radiateurs ACOVA Atoll LCD 1 000 W)** :
+  - **Bascules échelonnées** par zone (`staggerMinutes`, `zoneHour`) : **dernier étage −15 min, RDC et chambre RDC à l'heure, 1er +15 min** (confort du soir 19 h 45 / 20 h / 20 h 15). Toujours passer la **minute** de Paris à `expectedHeatingMode` / `resetTarget`.
+  - **Charge estimée** (`lib/radiator-load.ts`) : à fond si écart ≥ 1 °C ou `Heating_state = 1`, un tiers en régulation, **hors ligne = 100 %**. Plafond et budgets dans `lib/electrical-budget.ts` (**un chiffre à changer au passage à 12 kVA**).
+  - **Délestage tournant** (`lib/load-shedding.ts`) : au-delà du plafond (6 kW à 9 kVA), des étages passent en éco un quart d'heure, ordre **dernier → 1er → chambre RDC, jamais le RDC** ; `heating-reset` respecte les zones délestées (Redis `barbusse:heating:shed`). ⚠️ **En observation** (`LOAD_SHEDDING_MODE = "observe"`) : calculé et affiché, **non appliqué** — le 9/11 à 21 h 54 l'estimation donnait 13,3 kW alors que le compteur tenait ; actif, il aurait mis les 9 chambres en éco toute la nuit. Passer en `"active"` seulement après calibrage (Linky).
+  - **Consignes montées par les voyageurs ramenées toutes les 15 min** par `heating-automation` (boutons des Heatzy laissés libres, choix de l'hôte).
+  - **Alerte de coupure** (`lib/power-cut.ts`) : 3 radiateurs ou plus hors ligne au même passage → ntfy priorité 5, puis « courant revenu ».
+  - La charge du passage est mémorisée (`barbusse:heating:load`) pour l'appoint du ballon.
 - Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. `LOCKED_DEVICES` : devices tenus en hors-gel, ignorés par les crons.
 - **Préparation d'arrivée** (`/api/cron/arrival-readiness`, lecture seule) : serrure, radiateurs et ballon contrôlés la veille 19 h et le jour J (12h30, 15h30, 16h30), non-arrivée signalée le lendemain 9 h, pile de la serrure chaque matin ; silence 22 h–8 h. Détail : [docs/surveillance.md](docs/surveillance.md).
 - Détail (modes, scheduling, alertes, présence, dashboard, transitions, reset) : [docs/heatzy.md](docs/heatzy.md).
@@ -923,12 +930,13 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 ## Eau chaude Cozytouch (ne monte jamais au socle)
 
 `lib/cozytouch.ts` pilote le ballon thermodynamique **Atlantic ÉGÉO 250 L** (PAC sur air ambiant, 8–35 °C d’air, appoint 1 800 W ; fiche dans `docs/cozytouch.md`), en série avec un ballon classique (API Overkiz, session cachée en Redis 8 h, device URL `modbuslink://…` en dur). Le cron `water-heater-automation` choisit un profil selon le nombre de personnes présentes ; `water-heater-health` alerte par ntfy.
-- ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Fenêtres de boost des profils `high`/`xl` en milieu de journée (garage non chauffé). Statuts `cancelled` / `black` exclus du comptage.
+- ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Statuts `cancelled` / `black` exclus du comptage.
 - ⚠️ Le thermo **alimente un ballon classique** (résistance seule) : de l'eau tiède en sortie du thermo, c'est le classique qui paie l'écart au prix fort. À 14 personnes, le classique seul ne suffit pas au pic du soir.
 - ⚠️ **Le boost n'ajoute que de la résistance** : la PAC chauffe dans tous les modes tant que l'eau est sous la consigne. Un boost hors des tirages remplace de la PAC par de la résistance.
-- ⚠️ **Délestage (2026-11-09, coupures à 9 kVA)** : profils `high`/`xl` en **PAC seule** (`manualEcoActive`) hors de `BOOSTER_WINDOW` (11 h–16 h xl, 12 h–15 h high) ; l'appoint de 1 800 W (`manualEcoInactive` + boost) n'est permis que dans cette fenêtre. Le soir et la nuit, il s'ajoutait à la cuisine, aux radiateurs en confort et au ballon classique 300 L (résistance permanente) et faisait sauter le compteur. **Le boost de rattrapage est désactivé** (`CATCH_UP_BOOST.hours = []`), code conservé.
-- **Boost de rattrapage — DÉSACTIVÉ le 2026-11-09** (`needsCatchUpBoost`, `getExpectedSettings`) : 9 personnes ou plus, **heures de douche** (6 h–9 h, 17 h–22 h, `isCatchUpHour`), **sonde du milieu** sous 40 °C (plausible entre 5 et 85 °C) → boost, maintenu jusqu'à 50 °C dans la plage, coupé à sa fin. ntfy priorité 3 à l'enclenchement, une fois par 6 h au plus (Redis `barbusse:water-heater:catchup-notified`). Jamais sur la sonde du bas, qui chute à chaque série de douches.
-- **Contrôle** (`lib/water-heater-health.ts`) : boost jugé contre un état **autorisé** / **exigé**, pas une valeur exacte ; un constat n'alerte que s'il était déjà là au contrôle précédent (Redis `barbusse:water-heater:health-pending`) — l'automation tourne à la même minute et Overkiz met du temps à refléter une commande.
+- ⚠️ **Appoint de 1 800 W (2026-11-09, coupures à 9 kVA)** : **PAC seule par défaut** (`manualEcoActive`, 55 °C occupé, 50 °C vide). L'appoint (`manualEcoInactive`, + boost et 60 °C à partir de 9 personnes) n'est permis (`decideBooster`) que si **10 h ≤ heure < 16 h**, **charge estimée des radiateurs ≤ budget** (2,7 kW à 9 kVA, `lib/electrical-budget.ts`) **et la PAC ne suffit pas** (milieu < 45 °C ou PAC à l'arrêt : compteur `heatPumpHours` immobile depuis 1 h, `heatPumpStalled`). Le boost de rattrapage du soir est **supprimé**. Boost coupé **en premier** quand l'appoint est retiré. Décision mémorisée (`barbusse:water-heater:booster`).
+- **Contrôle** (`lib/water-heater-health.ts`) : juge contre la décision mémorisée ; appoint ou boost constatés alors que non permis → alerte ; **« PAC à l'arrêt »** pour tous les groupes ; un constat n'alerte que s'il était déjà là au contrôle précédent (Redis `barbusse:water-heater:health-pending`).
+- **Dashboard** : boost, Éco+ et Performance manuels **refusés (409)** quand l'appoint n'est pas permis ; l'admin peut forcer après confirmation, mais **l'automation reprend la main au passage suivant (15 min)**.
+- ⚠️ La charge qui décide de l'appoint est **l'estimation pessimiste** du délestage (en observation pour cette raison) : pendant un séjour, l'appoint sera rarement permis. PAC bloquée : seul le ballon classique assure l'eau chaude, l'alerte « PAC à l'arrêt » arrive après 3 à 5 h (2 h de compteur immobile + 2 contrôles).
 - **Voyageurs comptés** (`countGuests`) : bascule à **11 h** (check-out) — arrivants dès 11 h, partants jusqu'à 11 h, jamais d'éco entre deux réservations enchaînées.
 - Session Overkiz : après un 401, le second essai ouvre une session **neuve** (`getSession(true)`) — relire Redis rendait la session expirée, d'où un 401 une heure sur deux.
 - Détail (configuration physique, modes, commandes, states, profils) : [docs/cozytouch.md](docs/cozytouch.md).
@@ -953,7 +961,7 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 | Automation chauffage | `/api/cron/heating-automation` | `*/15 * * * *` |
 | Reset chauffage | `/api/cron/heating-reset` | `0 */4 * * *` |
 | Health chauffage | `/api/cron/heating-health` | `*/30 * * * *` |
-| Automation ECS | `/api/cron/water-heater-automation` | `0 * * * *` |
+| Automation ECS | `/api/cron/water-heater-automation` | `*/15 * * * *` (depuis le 2026-11-09 ; journal : une entrée par heure ou par commande) |
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
 | Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |

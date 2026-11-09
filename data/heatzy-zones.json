@@ -7,6 +7,7 @@
       "nightMode": "presence",
       "cftTemp": 190,
       "ecoTemp": 150,
+      "staggerMinutes": 0,
       "devices": [
         { "did": "7sLDdAyoRXVsBcFnvcqHyt", "name": "Cuisine", "defaultMode": "fro" },
         { "did": "TCslYTUi8gdD2QqCNMhVpS", "name": "Salon", "defaultMode": "fro" },
@@ -21,6 +22,7 @@
       "defaultMode": "fro",
       "cftTemp": 190,
       "ecoTemp": 150,
+      "staggerMinutes": 0,
       "devices": [
         { "did": "qa0uutQPIUTdwqyHeKjFD0", "name": "Chambre 1", "defaultMode": "fro" }
       ]
@@ -31,6 +33,7 @@
       "defaultMode": "fro",
       "cftTemp": 190,
       "ecoTemp": 150,
+      "staggerMinutes": 15,
       "devices": [
         { "did": "luuG0tlc1TvMoBf8LZdciS", "name": "Chambre 2", "defaultMode": "fro" },
         { "did": "lL8GSwKTtmCOtV97PIJXab", "name": "Chambre 3", "defaultMode": "fro" },
@@ -46,6 +49,7 @@
       "defaultMode": "fro",
       "cftTemp": 200,
       "ecoTemp": 150,
+      "staggerMinutes": -15,
       "devices": [
         { "did": "9haSs9xp64nwJDwZm91vRm", "name": "Chambre 7", "defaultMode": "fro" },
         { "did": "3rva2tiYKhRiut270ompxf", "name": "Chambre 8", "defaultMode": "fro" },
