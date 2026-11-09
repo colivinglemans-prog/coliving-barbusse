@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  setAbsenceMode,
   setDHWMode,
   setBoostMode,
   setTargetTemperature,
@@ -73,6 +74,17 @@ export async function POST(request: NextRequest) {
         }
         await setTargetTemperature(temp);
         return NextResponse.json({ success: true, action: "setTemperature", temp });
+      }
+
+      case "setAbsence": {
+        // Lever l'Absence au pic rallume la chauffe (et l'appoint) : même règle que le boost.
+        const on = body.on !== false && body.on !== 0;
+        if (!on) {
+          const refusal = await boosterRefusal(request, body.force === true);
+          if (refusal) return refusal;
+        }
+        await setAbsenceMode(on);
+        return NextResponse.json({ success: true, action: "setAbsence", on });
       }
 
       case "refresh": {

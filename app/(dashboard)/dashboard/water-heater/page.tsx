@@ -119,6 +119,17 @@ export default function WaterHeaterPage() {
               ? "Heure de pic (4 h 45-7 h, 16 h 45-22 h) : thermo en Absence, le ballon classique fournit l'eau chaude."
               : "Hors pic : thermo en Éco 55 °C, il gère seul PAC et appoint."}
             {" "}Absence constatée : {data.status.absenceActive ? "oui" : "non"}.
+            {effectiveRole === "admin" && (
+              <button
+                onClick={() => handleControl({ action: "setAbsence", on: !data.status.absenceActive })}
+                className="ml-3 rounded-lg bg-white/70 px-3 py-1 text-xs font-medium ring-1 ring-current hover:bg-white"
+              >
+                {data.status.absenceActive ? "Lever l'Absence" : "Passer en Absence"}
+              </button>
+            )}
+            <div className="mt-1 text-xs opacity-75">
+              L'automation repasse toutes les 15 min et réapplique la règle.
+            </div>
           </div>
         )}
 

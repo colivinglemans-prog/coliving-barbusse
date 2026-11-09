@@ -30,8 +30,9 @@ import {
  * (`PEAK_WINDOWS`, `lib/cozytouch.ts` : 4 h 45-7 h et 16 h 45-22 h) quand des voyageurs sont
  * là — seul moyen mesuré de couper l'appoint de 1 800 W (coupures des 7-9/11/2026 à 9 kVA).
  *
- * Ordre des commandes : ce qui **coupe** d'abord (boost off, Absence on), ce qui **rallume** en
- * dernier (Absence off) — un échec en route ne laisse pas l'appoint tourner au pic.
+ * Ordre des commandes : boost coupé d'abord ; mode et consigne ensuite ; **l'Absence en dernier**,
+ * qu'on la pose ou qu'on la lève — on ne sait pas si un changement de mode ou de consigne la fait
+ * sortir d'Absence sur l'ÉGÉO, elle doit donc être la dernière commande reçue.
  */
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -61,10 +62,6 @@ export async function GET(request: NextRequest) {
       await setBoostMode(false);
       applied.push("boost on → off");
     }
-    if (settings.absence && !absenceNow) {
-      await setAbsenceMode(true);
-      applied.push("absence off → on (heure de pic)");
-    }
     if (status.mode !== settings.mode) {
       await setDHWMode(settings.mode);
       applied.push(`mode ${status.mode} → ${settings.mode}`);
@@ -73,7 +70,10 @@ export async function GET(request: NextRequest) {
       await setTargetTemperature(settings.targetTemperature);
       applied.push(`consigne ${status.targetTemperature}°C → ${settings.targetTemperature}°C`);
     }
-    if (!settings.absence && absenceNow) {
+    if (settings.absence && !absenceNow) {
+      await setAbsenceMode(true);
+      applied.push("absence off → on (heure de pic)");
+    } else if (!settings.absence && absenceNow) {
       await setAbsenceMode(false);
       applied.push("absence on → off");
     }

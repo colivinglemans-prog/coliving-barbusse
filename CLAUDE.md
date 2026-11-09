@@ -97,8 +97,8 @@ app/
       heating-automation/  # Modes par zone (décalés), consignes ramenées, délestage (observation), alerte de coupure
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
       heating-health/      # Check connectivité + alertes ntfy
-      water-heater-automation/ # Profil eau chaude selon le nombre de personnes présentes
-      water-heater-health/     # Appoint non permis mais actif, consigne, PAC à l'arrêt, hors ligne → ntfy
+      water-heater-automation/ # Éco 55 °C, Absence aux heures de pic (4 h 45-7 h, 16 h 45-22 h)
+      water-heater-health/     # Absence manquante/restée, boost, mode, consigne, PAC à l'arrêt, hors ligne → ntfy
       checkin-notifications/   # Première ouverture au clavier → ntfy
       nuki-sync/               # Horaire : codes du clavier ← réservations Beds24
       beds24-keepalive/        # Lundi : échange des 4 refresh tokens Beds24
@@ -931,7 +931,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 
 `lib/cozytouch.ts` pilote le ballon thermodynamique **Atlantic ÉGÉO 250 L** (PAC sur air ambiant, 8–35 °C d’air, appoint 1 800 W ; fiche dans `docs/cozytouch.md`), en série avec un ballon classique (API Overkiz, session cachée en Redis 8 h, device URL `modbuslink://…` en dur). Le cron `water-heater-automation` choisit un profil selon le nombre de personnes présentes ; `water-heater-health` alerte par ntfy.
 - ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Statuts `cancelled` / `black` exclus du comptage.
-- ⚠️ Le thermo **alimente un ballon classique** (résistance seule) : de l'eau tiède en sortie du thermo, c'est le classique qui paie l'écart au prix fort. À 14 personnes, le classique seul ne suffit pas au pic du soir.
+- ⚠️ Le thermo **alimente un ballon classique** (résistance seule, ~3 kW, permanent) : de l'eau tiède en sortie du thermo, c'est le classique qui chauffe. Aux heures de pic, il porte **seul** l'eau chaude (thermo en Absence) ; à 14 personnes, il peut s'épuiser en fin de série de douches — surveiller les retours voyageurs.
 - ⚠️ **Le boost n'ajoute que de la résistance** : la PAC chauffe dans tous les modes tant que l'eau est sous la consigne. Un boost hors des tirages remplace de la PAC par de la résistance.
 - ⚠️ **Absence aux heures de pic (2026-11-09, coupures à 9 kVA)** : **mesuré le 9/11 au soir avec le compteur d'énergie du thermo, le mode Éco (`manualEcoActive`) ne coupe PAS l'appoint** (≈ 2,1 kW toute la soirée ; PAC seule ≈ 300 W). **Seul le mode Absence coupe toute la chauffe** (`setAbsenceMode`, effet en 10-15 min). Règle (`getExpectedSettings`, `PEAK_WINDOWS`) : **Éco 55 °C** (50 °C vide), **jamais de boost automatique**, **Absence de 4 h 45 à 7 h et de 16 h 45 à 22 h** quand des voyageurs sont là ; le ballon classique 300 L fournit l'eau chaude pendant ces plages. Hors pic, le thermo gère seul PAC et appoint. Ordre des commandes : boost off et Absence on d'abord, Absence off en dernier. Le boost de rattrapage est supprimé. Les puissances remontées (`PowerHeatPumpState` ≈ 1 000 W = chaleur produite, `PowerHeatElectricalState` = 1 800 W figé) ne mesurent rien : se fier au compteur `ElectricEnergyConsumptionState`.
 - **Contrôle** (`lib/water-heater-health.ts`) : recalcule les réglages attendus à la même heure ; Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **« PAC à l'arrêt »** (compteur immobile 2 h, hors Absence) ; un constat n'alerte que s'il était déjà là au contrôle précédent (Redis `barbusse:water-heater:health-pending`).
