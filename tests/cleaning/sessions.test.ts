@@ -103,3 +103,52 @@ describe("merge + maxArrivalMs", () => {
     expect(maxArrivalMs([], 42)).toBe(42);
   });
 });
+
+import { summarizePeople, monthlyBuckets, parisMonth, parseRates } from "@/lib/cleaning/sessions";
+import type { CleaningSession } from "@/lib/cleaning/sessions";
+
+const sess = (who: string, arrivalIso: string, minutes: number | null): CleaningSession => ({
+  who, arrival: new Date(arrivalIso), exitEstimate: minutes !== null ? new Date(Date.parse(arrivalIso) + minutes * 60000) : null,
+  exitBy: minutes !== null ? "camera" : "inconnu", arrivalSource: "garage", minutes,
+});
+
+describe("parseRates", () => {
+  it("parse nom:euros, ignore le non-numérique", () => {
+    expect(parseRates("Sophie:21, Eric:x, Bob:15")).toEqual({ Sophie: 21, Bob: 15 });
+  });
+});
+
+describe("parisMonth", () => {
+  it("rend YYYY-MM en fuseau Paris", () => {
+    expect(parisMonth(new Date("2026-11-04T15:11:00Z"))).toBe("2026-11");
+  });
+  it("gère un instant UTC proche du changement de jour/mois côté Paris", () => {
+    // 31/10 23:30 UTC = 01/11 00:30 Paris (hiver +1h) → novembre
+    expect(parisMonth(new Date("2026-10-31T23:30:00Z"))).toBe("2026-11");
+  });
+});
+
+describe("summarizePeople", () => {
+  const PEOPLE2 = [{ name: "Sophie", role: "ménage" }, { name: "Eric", role: "dépannage" }];
+  it("compte passages, heures et coût au taux (sessions sans durée exclues du coût)", () => {
+    const sessions = [sess("Sophie", "2026-11-04T09:00:00Z", 120), sess("Sophie", "2026-11-06T09:00:00Z", null), sess("Eric", "2026-11-05T09:00:00Z", 30)];
+    const sum = summarizePeople(sessions, PEOPLE2, { Sophie: 21 });
+    const sophie = sum.find((s) => s.who === "Sophie")!;
+    expect(sophie.count).toBe(2);
+    expect(sophie.withDuration).toBe(1);
+    expect(sophie.totalMinutes).toBe(120);
+    expect(sophie.estimatedCost).toBe(42); // 2 h × 21
+    const eric = sum.find((s) => s.who === "Eric")!;
+    expect(eric.ratePerHour).toBeNull();
+    expect(eric.estimatedCost).toBeNull();
+  });
+});
+
+describe("monthlyBuckets", () => {
+  it("regroupe par mois de Paris et par personne, trié croissant", () => {
+    const sessions = [sess("Sophie", "2026-10-28T09:00:00Z", 60), sess("Eric", "2026-11-05T09:00:00Z", 60), sess("Sophie", "2026-11-04T09:00:00Z", 60)];
+    const buckets = monthlyBuckets(sessions);
+    expect(buckets.map((b) => b.month)).toEqual(["2026-10", "2026-11"]);
+    expect(buckets[1].counts).toEqual({ Eric: 1, Sophie: 1 });
+  });
+});
