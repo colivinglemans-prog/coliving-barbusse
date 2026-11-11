@@ -47,12 +47,34 @@ function check(request: NextRequest): { result: WebhookResult; bracketed: boolea
   return constantTimeEqual(given, secret) ? { result: "accepted", bracketed } : { result: "bad-secret", bracketed, got: given, expected: secret };
 }
 
+/** En-têtes ajoutés par Vercel ou le transport : sans intérêt pour savoir qui appelle. */
+const NOISE = /^(x-vercel-|x-forwarded-|x-real-ip|forwarded|via|host|connection|accept|cdn-loop|cf-|traceparent|baggage|sentry-)/;
+
+/** La forme de l'appel, sans aucune valeur d'en-tête ni de paramètre (voir `WebhookTrace`). */
+function shape(request: NextRequest) {
+  const headerNames = [...request.headers.keys()].filter((n) => !NOISE.test(n)).sort();
+  const length = Number(request.headers.get("content-length") ?? "");
+  return {
+    method: request.method,
+    queryNames: [...new Set(request.nextUrl.searchParams.keys())].sort(),
+    headerNames,
+    ...(request.headers.get("content-type") ? { contentType: request.headers.get("content-type")!.slice(0, 60) } : {}),
+    ...(Number.isFinite(length) && length > 0 ? { contentLength: length } : {}),
+    ...(request.headers.get("user-agent") ? { userAgent: request.headers.get("user-agent")!.slice(0, 60) } : {}),
+  };
+}
+
 export async function POST(request: NextRequest) {
   const { result, bracketed, got, expected } = check(request);
+  const secret = process.env.BEDS24_WEBHOOK_SECRET?.trim();
+  const key = request.nextUrl.searchParams.get("key");
+  const via = result === "accepted" ? (key && secret && constantTimeEqual(key, secret) ? "query" : "header") : undefined;
   // Témoin du dernier appel, lu par l'écran Messages : la preuve que Beds24 envoie le bon secret.
   await recordWebhookCall({
     at: new Date().toISOString(),
     result,
+    ...shape(request),
+    ...(via ? { via } : {}),
     ...(bracketed ? { bracketed } : {}),
     // Diagnostic d'un refus : longueur et empreinte courte, jamais le secret.
     ...(got && expected ? { got: fingerprint(got), expected: fingerprint(expected) } : {}),

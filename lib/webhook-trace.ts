@@ -21,6 +21,22 @@ export interface WebhookTrace {
    */
   got?: { length: number; hash: string };
   expected?: { length: number; hash: string };
+  /**
+   * Forme de l'appel (2026-11-11), pour distinguer les réglages de webhook de Beds24 : deux
+   * expéditeurs arrivent sur la même route (l'un accepté, l'autre par paires « no-header » puis
+   * « bad-secret »). Aucune valeur d'en-tête ni de paramètre n'est gardée : leurs **noms**,
+   * la méthode, le type et la taille du corps (jamais lu), et un agent utilisateur raccourci.
+   */
+  method?: string;
+  /** Voie par laquelle le secret accepté est arrivé. */
+  via?: "query" | "header";
+  /** Noms des paramètres d'URL (`key` présent ou non, et ce qu'ajoute Beds24). */
+  queryNames?: string[];
+  /** Noms des en-têtes non standard (hors `x-vercel-*`, `x-forwarded-*`, etc.). */
+  headerNames?: string[];
+  contentType?: string;
+  contentLength?: number;
+  userAgent?: string;
 }
 
 const KEY = () => redisKey("webhook", "beds24", "last");
