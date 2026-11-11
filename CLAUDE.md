@@ -967,6 +967,7 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
 | Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
 | Veille caméra (mouvement) | `/api/cron/camera-watch` | `*/5 * * * *` |
+| Suivi ménage (Sophie) | `/api/cron/cleaning-watch` | `0 * * * *` |
 | Préparation d'arrivée | `/api/cron/arrival-readiness` | `35 * * * *` (jour et nuit) |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
 | Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
@@ -1063,6 +1064,36 @@ lit l'état, l'image instantanée et surtout les **événements de mouvement** (
 - Variables : `AJCLOUD_EMAIL`, `AJCLOUD_PASSWORD`, `NTFY_TOPIC`, `CRON_SECRET` ;
   `CAMERA_WATCH_ENABLED=false` coupe sans redéployer.
 
+## Suivi de la femme de ménage (Sophie)
+
+Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune facultative :
+
+| Source | Pièce | Rôle |
+|---|---|---|
+| **Garage** (Intratone) | [lib/cleaning/intratone.ts](lib/cleaning/intratone.ts) | Ouvertures par code clavier du digicode (le code dont le libellé contient `CLEANER_NAME`). |
+| **Porte** (Nuki) | journal de la serrure | Code manuel « # Sophie », lu via `listLog` du socle. |
+| **Caméra** (mouvement) | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Derniers mouvements, pour **estimer** l'heure de sortie. |
+
+| Pièce | Rôle |
+|---|---|
+| [lib/cleaning/sessions.ts](lib/cleaning/sessions.ts) | Logique pure : fusion des arrivées, dédoublonnage (<45 min), estimation de sortie, durée. Testée (`tests/cleaning/`). |
+| `/api/cron/cleaning-watch` | Horaire (cron-job.org). Ligne de base au 1er passage, puis ntfy par nouvelle arrivée + journal Redis `barbusse:cleaning:sessions`. `?dry=1` calcule sans envoyer. |
+
+- **Intratone** n'a pas d'API publique. Séquence (reconstituée) : `connexion.php` (FormData
+  identifiant/mdp/device) → `data/connect.php?SID=` (bootstrap legacy) → `data/events/evts.php` (sélection
+  de la centrale `INTRATONE_CENTRALE_ID`) → `data/events/evts_list.php` `evt=4` (code clavier). ⚠️ Les
+  événements récents n'apparaissent qu'après « récupération » depuis l'interphone (auto pour les modèles
+  connectés ; `evts_recup` est refusé hors UI) — d'où un cron **horaire**, pas temps réel.
+- **Les ouvertures ne tracent que les entrées** (sortie par bouton poussoir interne, sans nom). La fin de
+  visite est donc **estimée** (dernier mouvement caméra, sinon BP), pas mesurée. Les heures servent à
+  **recouper la facture de Sophie, pas à pointer** (statut auto-entrepreneur, risque de salariat déguisé).
+- Rien de sensible en clair ni dans les logs (identifiants, jwt, code). Le dépôt est public : l'id de
+  centrale et le code de Sophie restent **hors du dépôt** (variables d'environnement).
+- Variables : `INTRATONE_USER/PASS`, `INTRATONE_CENTRALE_ID`, `TRACKED_PEOPLE` (nom:rôle),
+  plus `NUKI_*`, `AJCLOUD_*`, `NTFY_TOPIC`. `CLEANING_WATCH_ENABLED=false` coupe.
+- **Reste à faire** : page dashboard (liste des passages + heures + coût au taux de
+  [[project_menage_prestation]], graphe) — non codée.
+
 ## Redis (client unique, `lib/redis.ts`)
 
 `getRedis()` est le seul client Upstash du site (les six copies ont été retirées le 2026-11-07). Les **nouvelles** clés passent par `redisKey(...)` → préfixe `barbusse:` ; les anciennes (`heatzy:*`, `cozytouch:*`, `nuki:*`, `checkin:notified:*`, `pricing:*`, `invoice:counter:*`) ne sont **pas** renommées : verrous, compteurs de factures et anti-doublons repartiraient de zéro.
@@ -1102,6 +1133,11 @@ NUKI_SYNC_MODE           # "live" pour écrire ; toute autre valeur = à blanc
 AJCLOUD_EMAIL            # Compte Wansview/AJCloud (veille caméra). Absentes → le cron se tait.
 AJCLOUD_PASSWORD         # Mot de passe du compte Wansview. API cloud seulement (pas le P2P vidéo).
 CAMERA_WATCH_ENABLED     # Optionnel : "false" pour couper la veille caméra sans redéployer
+INTRATONE_USER           # Portail Intratone (digicode garage) — suivi ménage
+INTRATONE_PASS           # Mot de passe Intratone
+INTRATONE_CENTRALE_ID    # Id de la centrale digicode du garage (hors dépôt : dépôt public)
+TRACKED_PEOPLE           # Optionnel : "Sophie:ménage,Eric:dépannage" — personnes suivies (nom:rôle)
+CLEANING_WATCH_ENABLED   # Optionnel : "false" pour couper le suivi ménage sans redéployer
 BEDS24_WEBHOOK_SECRET    # En-tête x-webhook-secret du webhook Beds24
 DEEPL_API_KEY            # Local seulement (scripts/translate-reviews.mjs), pas sur Vercel
 BLOB_READ_WRITE_TOKEN    # Store Vercel Blob PRIVÉ de la sauvegarde Beds24 (posé par Vercel à la liaison du store)
