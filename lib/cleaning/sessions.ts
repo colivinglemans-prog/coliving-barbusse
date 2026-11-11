@@ -121,6 +121,85 @@ export function buildSessions(
   });
 }
 
+/** Bilan d'une personne sur l'ensemble des sessions. */
+export interface PersonSummary {
+  who: string;
+  role: string;
+  count: number;
+  totalMinutes: number;
+  /** Nombre de sessions dont la sortie a pu être estimée (donc à durée connue). */
+  withDuration: number;
+  /** €/h si un taux est défini pour cette personne, sinon null. */
+  ratePerHour: number | null;
+  /** Coût estimé (taux × heures à durée connue), null si pas de taux. */
+  estimatedCost: number | null;
+}
+
+/** Totaux par personne. `rates` associe un nom à un €/h (ex. `{Sophie: 21}`). */
+export function summarizePeople(
+  sessions: CleaningSession[],
+  people: TrackedPerson[],
+  rates: Record<string, number>,
+): PersonSummary[] {
+  return people.map((p) => {
+    const mine = sessions.filter((s) => s.who === p.name);
+    const totalMinutes = mine.reduce((sum, s) => sum + (s.minutes ?? 0), 0);
+    const withDuration = mine.filter((s) => s.minutes !== null).length;
+    const rate = rates[p.name] ?? null;
+    return {
+      who: p.name,
+      role: p.role,
+      count: mine.length,
+      totalMinutes,
+      withDuration,
+      ratePerHour: rate,
+      estimatedCost: rate !== null ? Math.round((totalMinutes / 60) * rate * 100) / 100 : null,
+    };
+  });
+}
+
+export interface MonthBucket {
+  /** `YYYY-MM` (mois de Paris). */
+  month: string;
+  /** Nombre de passages par personne. */
+  counts: Record<string, number>;
+}
+
+/** Passages par mois (de Paris) et par personne, du plus ancien au plus récent. */
+export function monthlyBuckets(sessions: CleaningSession[]): MonthBucket[] {
+  const byMonth = new Map<string, Record<string, number>>();
+  for (const s of sessions) {
+    const month = parisMonth(s.arrival);
+    const row = byMonth.get(month) ?? {};
+    row[s.who] = (row[s.who] ?? 0) + 1;
+    byMonth.set(month, row);
+  }
+  return [...byMonth.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([month, counts]) => ({ month, counts }));
+}
+
+/** `YYYY-MM` dans le fuseau de Paris. */
+export function parisMonth(date: Date): string {
+  const parts = new Intl.DateTimeFormat("fr-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+  }).format(date);
+  return parts.slice(0, 7); // "YYYY-MM"
+}
+
+/** Parse `"Sophie:21,Eric:0"` en table nom→€/h (ignore les entrées sans nombre valide). */
+export function parseRates(spec: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const part of spec.split(",")) {
+    const [name, value] = part.split(":").map((s) => s.trim());
+    const rate = Number(value);
+    if (name && Number.isFinite(rate)) out[name] = rate;
+  }
+  return out;
+}
+
 /** Parse `"Sophie:ménage,Eric:dépannage"` (ou juste `"Sophie,Eric"`) en liste de personnes. */
 export function parsePeople(spec: string): TrackedPerson[] {
   return spec

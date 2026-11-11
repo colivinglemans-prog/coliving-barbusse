@@ -1078,6 +1078,7 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
 |---|---|
 | [lib/cleaning/sessions.ts](lib/cleaning/sessions.ts) | Logique pure : fusion des arrivées, dédoublonnage (<45 min), estimation de sortie, durée. Testée (`tests/cleaning/`). |
 | `/api/cron/cleaning-watch` | Horaire (cron-job.org). Ligne de base au 1er passage, puis ntfy par nouvelle arrivée + journal Redis `barbusse:cleaning:sessions`. `?dry=1` calcule sans envoyer. |
+| `/api/dashboard/suivi` + `/dashboard/suivi` | **Page admin « Suivi »** : passages reconstitués en direct (garage + porte), totaux par personne (heures/coût), graphe mensuel, journal. `lib/cleaning/sources.ts` fournit les 4 sources au cron **et** à la page. |
 
 - **Intratone** n'a pas d'API publique. Séquence (reconstituée) : `connexion.php` (FormData
   identifiant/mdp/device) → `data/connect.php?SID=` (bootstrap legacy) → `data/events/evts.php` (sélection
@@ -1090,9 +1091,11 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
 - Rien de sensible en clair ni dans les logs (identifiants, jwt, code). Le dépôt est public : l'id de
   centrale et le code de Sophie restent **hors du dépôt** (variables d'environnement).
 - Variables : `INTRATONE_USER/PASS`, `INTRATONE_CENTRALE_ID`, `TRACKED_PEOPLE` (nom:rôle),
-  plus `NUKI_*`, `AJCLOUD_*`, `NTFY_TOPIC`. `CLEANING_WATCH_ENABLED=false` coupe.
-- **Reste à faire** : page dashboard (liste des passages + heures + coût au taux de
-  [[project_menage_prestation]], graphe) — non codée.
+  `CLEANING_RATES` (« Sophie:21 » en €/h, pour le coût de la page Suivi), plus `NUKI_*`,
+  `AJCLOUD_*`, `NTFY_TOPIC`. `CLEANING_WATCH_ENABLED=false` coupe.
+- **Page admin `/dashboard/suivi`** : cartes par personne (passages, heures estimées, coût),
+  graphe mensuel, journal des passages. Les heures/sorties ne couvrent que les visites récentes
+  (historique caméra limité) — assumé, affiché « estimé ». Admin seulement (hors liste blanche viewer).
 
 ## Redis (client unique, `lib/redis.ts`)
 
@@ -1138,6 +1141,7 @@ INTRATONE_PASS           # Mot de passe Intratone
 INTRATONE_CENTRALE_ID    # Id de la centrale digicode du garage (hors dépôt : dépôt public)
 TRACKED_PEOPLE           # Optionnel : "Sophie:ménage,Eric:dépannage" — personnes suivies (nom:rôle)
 CLEANING_WATCH_ENABLED   # Optionnel : "false" pour couper le suivi ménage sans redéployer
+CLEANING_RATES           # Optionnel : "Sophie:21" (€/h) — coût estimé sur la page /dashboard/suivi
 BEDS24_WEBHOOK_SECRET    # En-tête x-webhook-secret du webhook Beds24
 DEEPL_API_KEY            # Local seulement (scripts/translate-reviews.mjs), pas sur Vercel
 BLOB_READ_WRITE_TOKEN    # Store Vercel Blob PRIVÉ de la sauvegarde Beds24 (posé par Vercel à la liaison du store)
