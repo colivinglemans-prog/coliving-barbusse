@@ -45,8 +45,10 @@ export async function recordWebhookCall(trace: WebhookTrace): Promise<void> {
   if (!hasRedis()) return;
   try {
     await setJson(KEY(), trace, 30 * 86_400);
-    // Les 20 derniers appels : Beds24 peut appeler deux fois (deux réglages de webhook), et le
-    // dernier seul masquerait l'autre.
+    // Les 20 derniers appels. Les paires « no-header » puis « bad-secret » (POST, corps `{}`, agent
+    // `node`, faux secret de 29 caractères) ne viennent PAS de Beds24 : c'est le contrôle
+    // `security.webhooks` du socle (post-déploiement et surveillance), qui vérifie le refus
+    // (établi le 2026-11-11). Beds24, lui, est accepté.
     const list = redisKey("webhook", "beds24", "recent");
     await getRedis().lpush(list, JSON.stringify(trace));
     await getRedis().ltrim(list, 0, 19);
