@@ -428,7 +428,7 @@ Alexandre`,
 const depart: MessageTemplate = {
   id: "depart",
   label: "Veille du départ",
-  version: 2,
+  version: 3,
   trigger: { anchor: "departure", offsetDays: -1, at: "17:00" },
   late: { mode: "skip", graceHours: 6 },
   // Sur une nuit, la veille du départ est le jour de l'arrivée : le guide suffit.
@@ -447,126 +447,171 @@ const depart: MessageTemplate = {
   body: {
     fr: `Bonjour{{#prenom}} {{prenom}}{{/prenom}},
 
-Le départ approche ! Nous espérons que vous avez passé un très bon séjour au Coliving Henri Barbusse.
+Votre séjour se termine demain : merci de libérer la maison avant 11h (sauf accord avec nous).
 
-Sauf accord préalable, merci de libérer la maison avant 11h.
+Le ménage est inclus. Il vous reste seulement quelques gestes avant de partir :
 
-AVANT VOTRE DÉPART
-Le ménage est inclus, nous vous remercions simplement de :
-- mettre la vaisselle sale dans le lave-vaisselle
-- vider et ranger la vaisselle propre du lave-vaisselle
-- utiliser les poubelles de la cuisine
-- retirer vos denrées du réfrigérateur
-- remettre les espaces communs (salon, cuisine, jardin, salle de sport) dans l'état où vous les avez trouvés
+1. LA VAISSELLE ET LES PROVISIONS
+- videz le lave-vaisselle et rangez la vaisselle propre
+- mettez la vaisselle du petit-déjeuner dans le lave-vaisselle et lancez-le avant de partir
+- retirez vos aliments du réfrigérateur
+- vos produits non périssables, bien refermés, peuvent rester dans le tiroir sous la machine à café : les prochains voyageurs seront contents de les trouver
 
-REMISE DES CLÉS
-- remettre les clés dans la boîte à clés (si vous les avez utilisées)
-- verrouiller la serrure connectée en partant
-- nous envoyer un message pour confirmer votre départ
+2. LES POUBELLES
+Sortez les sacs dans les poubelles devant la porte du garage :
+- poubelle jaune : emballages recyclables
+- poubelle à verre : bouteilles et bocaux
+- poubelle tout-venant : le reste
+
+3. LES ESPACES COMMUNS
+Remettez le salon, la cuisine, le jardin et la salle de sport comme vous les avez trouvés.
+
+4. EN PARTANT
+- laissez les clés sur les portes des chambres
+- verrouillez la porte d'entrée avec la serrure connectée
+- envoyez-nous un petit message pour nous dire que vous êtes partis
+
+Facultatif, mais très apprécié : retirez les draps et les serviettes utilisés et déposez-les dans le couloir. Cela nous aide beaucoup à préparer la maison pour les voyageurs suivants.
 
 Une remarque, une suggestion ? Dites-le-nous directement : {{whatsapp}}
 
-Au plaisir de vous accueillir à nouveau,
+Merci, et bonne route !
 Alexandre
 {{telephone}}`,
     en: `Hello{{#prenom}} {{prenom}}{{/prenom}},
 
-Your departure is approaching! We hope you had a great stay at Coliving Henri Barbusse.
+Your stay ends tomorrow: please leave the house by 11 am (unless agreed otherwise with us).
 
-Unless agreed otherwise, please leave the house before 11 am.
+Cleaning is included. There are just a few things left to do before you go:
 
-BEFORE YOU LEAVE
-Cleaning is included; we simply ask you to:
-- put dirty dishes in the dishwasher
-- empty and put away the clean dishes from the dishwasher
-- use the kitchen bins
+1. DISHES AND FOOD
+- empty the dishwasher and put the clean dishes away
+- put the breakfast dishes in the dishwasher and start it before you leave
 - take your food out of the fridge
-- leave the common areas (living room, kitchen, garden, gym) as you found them
+- non-perishable food, properly closed, can stay in the drawer under the coffee machine: the next guests will be glad to find it
 
-KEYS
-- put the keys back in the key box (if you used them)
-- lock the connected door lock when you leave
-- send us a message to confirm your departure
+2. BINS
+Take the bags out to the bins in front of the garage door:
+- yellow bin: recyclable packaging
+- glass bin: bottles and jars
+- general waste bin: everything else
+
+3. COMMON AREAS
+Leave the living room, kitchen, garden and gym as you found them.
+
+4. WHEN YOU LEAVE
+- leave the keys in the bedroom doors
+- lock the front door with the connected lock
+- send us a quick message to let us know you have left
+
+Optional, but much appreciated: strip the used sheets and towels and leave them in the hallway. It really helps us get the house ready for the next guests.
 
 Any comment or suggestion? Tell us directly: {{whatsapp}}
 
-We hope to welcome you again soon,
+Thank you, and safe travels!
 Alexandre
 {{telephone}}`,
     de: `Hallo{{#prenom}} {{prenom}}{{/prenom}},
 
-die Abreise naht! Wir hoffen, Sie hatten einen sehr schönen Aufenthalt im Coliving Henri Barbusse.
+Ihr Aufenthalt endet morgen: Bitte verlassen Sie das Haus bis 11 Uhr (sofern nicht anders mit uns vereinbart).
 
-Sofern nicht anders vereinbart, bitten wir Sie, das Haus bis 11 Uhr zu verlassen.
+Die Endreinigung ist inbegriffen. Vor der Abreise bleiben nur noch ein paar Handgriffe:
 
-VOR IHRER ABREISE
-Die Reinigung ist inbegriffen, wir bitten Sie lediglich:
-- schmutziges Geschirr in die Spülmaschine zu stellen
-- sauberes Geschirr aus der Spülmaschine auszuräumen und wegzuräumen
-- die Mülleimer in der Küche zu benutzen
-- Ihre Lebensmittel aus dem Kühlschrank zu nehmen
-- die Gemeinschaftsräume (Wohnzimmer, Küche, Garten, Fitnessraum) so zu hinterlassen, wie Sie sie vorgefunden haben
+1. GESCHIRR UND VORRÄTE
+- räumen Sie die Spülmaschine aus und stellen Sie das saubere Geschirr weg
+- stellen Sie das Frühstücksgeschirr in die Spülmaschine und schalten Sie sie vor der Abreise ein
+- nehmen Sie Ihre Lebensmittel aus dem Kühlschrank
+- haltbare Lebensmittel dürfen gut verschlossen in der Schublade unter der Kaffeemaschine bleiben: Die nächsten Gäste freuen sich darüber
 
-SCHLÜSSEL
-- die Schlüssel in den Schlüsselkasten zurücklegen (falls Sie sie benutzt haben)
-- das elektronische Türschloss beim Gehen verriegeln
-- uns eine Nachricht zur Bestätigung Ihrer Abreise senden
+2. MÜLL
+Bringen Sie die Müllbeutel zu den Tonnen vor dem Garagentor:
+- gelbe Tonne: recycelbare Verpackungen
+- Glastonne: Flaschen und Gläser
+- Restmülltonne: alles andere
+
+3. GEMEINSCHAFTSRÄUME
+Hinterlassen Sie Wohnzimmer, Küche, Garten und Fitnessraum so, wie Sie sie vorgefunden haben.
+
+4. BEIM GEHEN
+- lassen Sie die Schlüssel in den Zimmertüren stecken
+- verriegeln Sie die Haustür mit dem elektronischen Schloss
+- schicken Sie uns eine kurze Nachricht, dass Sie abgereist sind
+
+Freiwillig, aber sehr willkommen: Ziehen Sie die benutzte Bettwäsche ab und legen Sie sie mit den Handtüchern in den Flur. Das hilft uns sehr, das Haus für die nächsten Gäste vorzubereiten.
 
 Eine Anmerkung, ein Vorschlag? Sagen Sie es uns direkt: {{whatsapp}}
 
-Wir freuen uns, Sie wieder begrüßen zu dürfen,
+Vielen Dank und gute Heimreise!
 Alexandre
 {{telephone}}`,
     es: `Hola{{#prenom}} {{prenom}}{{/prenom}},
 
-¡La salida se acerca! Esperamos que hayas pasado una estancia estupenda en el Coliving Henri Barbusse.
+Tu estancia termina mañana: te pedimos que dejes la casa antes de las 11:00 (salvo acuerdo con nosotros).
 
-Salvo acuerdo previo, te pedimos que dejes la casa antes de las 11:00.
+La limpieza está incluida. Solo quedan unos pocos gestos antes de irte:
 
-ANTES DE IRTE
-La limpieza está incluida; solo te pedimos que:
-- pongas los platos sucios en el lavavajillas
-- vacíes y guardes los platos limpios del lavavajillas
-- uses los cubos de basura de la cocina
-- retires tus alimentos del frigorífico
-- dejes los espacios comunes (salón, cocina, jardín, gimnasio) como los encontraste
+1. VAJILLA Y COMIDA
+- vacía el lavavajillas y guarda la vajilla limpia
+- pon la vajilla del desayuno en el lavavajillas y ponlo en marcha antes de irte
+- saca tus alimentos del frigorífico
+- los productos no perecederos, bien cerrados, pueden quedarse en el cajón debajo de la cafetera: a los próximos viajeros les encantará encontrarlos
 
-LLAVES
-- devuelve las llaves a la caja de llaves (si las has usado)
-- cierra la cerradura conectada al salir
-- envíanos un mensaje para confirmar tu salida
+2. BASURA
+Saca las bolsas a los cubos que hay delante de la puerta del garaje:
+- cubo amarillo: envases reciclables
+- cubo del vidrio: botellas y tarros
+- cubo de resto: todo lo demás
+
+3. ZONAS COMUNES
+Deja el salón, la cocina, el jardín y el gimnasio como los encontraste.
+
+4. AL SALIR
+- deja las llaves puestas en las puertas de las habitaciones
+- cierra la puerta de entrada con la cerradura conectada
+- envíanos un mensaje rápido para avisarnos de tu salida
+
+Opcional, pero muy de agradecer: quita las sábanas y toallas usadas y déjalas en el pasillo. Nos ayuda mucho a preparar la casa para los próximos viajeros.
 
 ¿Algún comentario o sugerencia? Dínoslo directamente: {{whatsapp}}
 
-¡Esperamos volver a recibirte pronto!
+¡Gracias y buen viaje!
 Alexandre
 {{telephone}}`,
     it: `Ciao{{#prenom}} {{prenom}}{{/prenom}},
 
-la partenza si avvicina! Speriamo che tu abbia trascorso un ottimo soggiorno al Coliving Henri Barbusse.
+il tuo soggiorno termina domani: ti chiediamo di lasciare la casa entro le 11:00 (salvo accordi diversi con noi).
 
-Salvo accordi diversi, ti chiediamo di lasciare la casa entro le 11:00.
+Le pulizie sono incluse. Restano solo pochi gesti prima di partire:
 
-PRIMA DI PARTIRE
-Le pulizie sono incluse; ti chiediamo solo di:
-- mettere i piatti sporchi in lavastoviglie
-- svuotare e riporre i piatti puliti della lavastoviglie
-- usare i bidoni della cucina
-- togliere i tuoi alimenti dal frigorifero
-- lasciare gli spazi comuni (salotto, cucina, giardino, palestra) come li hai trovati
+1. STOVIGLIE E PROVVISTE
+- svuota la lavastoviglie e riponi le stoviglie pulite
+- metti le stoviglie della colazione in lavastoviglie e avviala prima di partire
+- togli i tuoi alimenti dal frigorifero
+- i prodotti non deperibili, ben chiusi, possono restare nel cassetto sotto la macchina del caffè: i prossimi ospiti saranno contenti di trovarli
 
-CHIAVI
-- rimetti le chiavi nella cassetta (se le hai usate)
-- chiudi la serratura connessa quando esci
-- mandaci un messaggio per confermare la partenza
+2. RIFIUTI
+Porta i sacchetti nei bidoni davanti alla porta del garage:
+- bidone giallo: imballaggi riciclabili
+- bidone del vetro: bottiglie e barattoli
+- bidone dell'indifferenziato: tutto il resto
+
+3. SPAZI COMUNI
+Lascia il salotto, la cucina, il giardino e la palestra come li hai trovati.
+
+4. QUANDO PARTI
+- lascia le chiavi sulle porte delle camere
+- chiudi la porta d'ingresso con la serratura connessa
+- mandaci un breve messaggio per avvisarci della partenza
+
+Facoltativo, ma molto apprezzato: togli lenzuola e asciugamani usati e lasciali nel corridoio. Ci aiuta molto a preparare la casa per i prossimi ospiti.
 
 Un commento, un suggerimento? Diccelo direttamente: {{whatsapp}}
 
-Speriamo di riaccoglierti presto!
+Grazie e buon viaggio!
 Alexandre
 {{telephone}}`,
   },
-  fingerprints: ["le depart approche", "departure is approaching", "die abreise naht", "la salida se acerca", "la partenza si avvicina"],
+  fingerprints: ["le depart approche", "departure is approaching", "die abreise naht", "la salida se acerca", "la partenza si avvicina", "votre sejour se termine demain", "your stay ends tomorrow", "ihr aufenthalt endet morgen", "tu estancia termina manana", "il tuo soggiorno termina domani"],
 };
 
 const avis: MessageTemplate = {
