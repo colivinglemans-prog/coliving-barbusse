@@ -128,7 +128,7 @@ export default function WaterHeaterPage() {
               </button>
             )}
             <div className="mt-1 text-xs opacity-75">
-              L'automation repasse toutes les 15 min et réapplique la règle.
+              L’automation repasse toutes les 15 min et réapplique la règle.
             </div>
           </div>
         )}

@@ -2,27 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { getDevices, getFullZoneConfig } from "@/lib/heatzy";
 import { sendHeatingAlert } from "@/lib/alerts";
-import { alertTransition, failingInputs } from "@/lib/alert-memory";
+import { reportAlerts, reportCronRun, type TrackedAlert } from "@/lib/alert-memory";
+import { readPowerCut } from "@/lib/heating-state";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
 
 /**
  * Connectivité des radiateurs, toutes les 30 min (cron-job.org) et à 8 h (Vercel).
  *
- * Jusqu'au 2026-11-07, la même alerte repartait à chaque passage tant qu'un radiateur restait
- * hors ligne : 48 notifications par jour. Elle passe désormais par `nextAlertState`, état dans
- * Redis (`barbusse:alert:heating-health`) : une alerte à l'ouverture, une quand un nouveau
- * radiateur tombe, une (priorité 2) quand tout est revenu — rien entre les deux.
+ * Règle commune des alertes (`reportAlerts`, état `barbusse:alert:heating-health`) :
+ * - un radiateur ne compte qu'**hors ligne deux contrôles de suite** (un Heatzy au Wi-Fi capricieux
+ *   qui décroche une minute ne mérite pas une alerte) ;
+ * - une alerte à l'ouverture, une quand un nouveau radiateur tombe, rien entre les deux ;
+ * - « Radiateurs rétablis » en priorité 1 quand tout est revenu.
+ *
+ * Les radiateurs d'une coupure de courant soupçonnée ou signalée (`lib/power-cut.ts`) sont
+ * ignorés : l'alerte de coupure les nomme déjà.
  */
+const LABEL = "Contrôle des radiateurs";
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const config = await getFullZoneConfig();
-    const rawDevices = await getDevices();
+    const [config, rawDevices, cut] = await Promise.all([getFullZoneConfig(), getDevices(), readPowerCut()]);
+    const inCut = new Set(cut?.devices ?? []);
 
-    // Build a map of configured device IDs to names
+    // Radiateurs configurés : identifiant → nom
     const configuredDevices = new Map<string, string>();
     for (const zone of config.zones) {
       for (const device of zone.devices) {
@@ -31,77 +38,47 @@ export async function GET(request: NextRequest) {
     }
 
     const offlineDevices: string[] = [];
-
     for (const raw of rawDevices) {
       const name = configuredDevices.get(raw.did);
-      if (!name) continue; // Device not in our config
-      if (!raw.is_online) {
-        offlineDevices.push(name);
-      }
+      if (!name) continue; // Hors configuration
+      if (!raw.is_online) offlineDevices.push(name);
     }
 
-    // Check for configured devices not found in API response
+    // Radiateurs configurés absents de la réponse de l'API
     const apiDeviceIds = new Set(rawDevices.map((d) => d.did));
     const missingDevices: string[] = [];
     for (const [did, name] of configuredDevices) {
-      if (!apiDeviceIds.has(did)) {
-        missingDevices.push(name);
-      }
+      if (!apiDeviceIds.has(did)) missingDevices.push(name);
     }
 
-    const transition = await alertTransition(
-      "heating-health",
-      failingInputs([...offlineDevices.map((n) => `offline:${n}`), ...missingDevices.map((n) => `missing:${n}`)]),
-    );
+    const tracked: TrackedAlert[] = [
+      ...offlineDevices
+        .filter((n) => !inCut.has(n))
+        .map((n) => ({ id: `offline:${n}`, priority: 4 as const, line: `Hors ligne : ${n}` })),
+      ...missingDevices.map((n) => ({ id: `missing:${n}`, priority: 4 as const, line: `Introuvable dans l'API Heatzy : ${n}` })),
+    ];
 
-    if (transition.action === "recover") {
-      await sendHeatingAlert("Radiateurs rétablis", "Tous les radiateurs sont de nouveau en ligne.", 2);
-    }
-
-    // Alerte à l'ouverture et à l'aggravation seulement.
-    if (transition.action === "open" || transition.action === "escalate") {
-      const today = todayParis();
-      const lines: string[] = [];
-
-      if (offlineDevices.length > 0) {
-        lines.push(
-          `Radiateurs hors ligne (${offlineDevices.length}) :`,
-          ...offlineDevices.map((n) => `  - ${n}`),
-          "",
-        );
-      }
-
-      if (missingDevices.length > 0) {
-        lines.push(
-          `Radiateurs introuvables dans l'API Heatzy (${missingDevices.length}) :`,
-          ...missingDevices.map((n) => `  - ${n}`),
-          "",
-        );
-      }
-
-      lines.push(`Vérification effectuée le ${today} à ${nowParis().toLocaleTimeString("fr-FR")}`);
-
-      await sendHeatingAlert(
-        `${offlineDevices.length + missingDevices.length} radiateur(s) en alerte`,
-        lines.join("\n"),
-      );
-    }
+    const alert = await reportAlerts("heating-health", tracked, sendHeatingAlert, {
+      title: (c) => `${c.length} radiateur(s) en alerte`,
+      intro: `Constaté à deux contrôles de suite, le dernier le ${todayParis()} à ${nowParis().toLocaleTimeString("fr-FR")}.`,
+      recoveredTitle: "Radiateurs rétablis",
+      recoveredBody: "Tous les radiateurs sont de nouveau en ligne.",
+    });
+    await reportCronRun("heating-health", LABEL, sendHeatingAlert, null).catch(() => {});
 
     return NextResponse.json({
       success: true,
       total: configuredDevices.size,
       online: configuredDevices.size - offlineDevices.length - missingDevices.length,
-      alert: transition.action,
+      alert,
       offline: offlineDevices.length,
       missing: missingDevices.length,
+      inPowerCut: offlineDevices.filter((n) => inCut.has(n)).length,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    await sendHeatingAlert(
-      "Erreur health check chauffage",
-      `Le health check du chauffage a rencontré une erreur :\n\n${message}`,
-    ).catch(() => {});
+    await reportCronRun("heating-health", LABEL, sendHeatingAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

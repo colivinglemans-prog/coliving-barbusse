@@ -71,7 +71,7 @@ jobs:
       contents: read
       issues: write
       actions: read
-    uses: colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml@f1cfe57cd27dc809c911988c47f11623e3b5b4d1 # v3.10.2
+    uses: colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml@02bda70088b2e0beffd5a0293702cefe6d7957d4 # v3.21.0
     with:
       site_name: Coliving Barbusse
       level: ${{ needs.niveau.outputs.level }}

@@ -9,8 +9,8 @@ import { sendNtfy, type NtfyOptions } from "@sejour/socle/lib/ntfy";
  * (`RESEND_API_KEY`, `ALERT_EMAIL`) pour six crons. Les signatures sont restées les mêmes.
  *
  * Priorité 4 (haute) par défaut : ce sont des pannes ou des radiateurs injoignables, pas des
- * comptes rendus. Un troisième argument facultatif la change — un rétablissement part en 2,
- * sans réveiller personne. Sans `NTFY_TOPIC`, `sendNtfy` journalise et n'envoie rien, comme
+ * comptes rendus. Un troisième argument facultatif la change — un rétablissement part en 1
+ * (règle commune, `lib/alert-memory.ts`), sans son ni vibration. Sans `NTFY_TOPIC`, `sendNtfy` journalise et n'envoie rien, comme
  * l'ancien code sans `ALERT_EMAIL`.
  */
 export type AlertPriority = NonNullable<NtfyOptions["priority"]>;

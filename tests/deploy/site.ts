@@ -209,7 +209,10 @@ const site = {
    * et `arrival-readiness` ont tous battu en production (job cron-job.org `arrival-readiness`
    * créé le 2026-11-07). Appeler la route réévalue aussi l'alerte ntfy `barbusse:alert:heartbeat`.
    */
-  heartbeat: { path: "/api/health/heartbeat" },
+  // `warning` (socle v3.21.0) : la route envoie elle-même l'alerte `[Crons]` qui nomme les tâches
+  // en retard ; la surveillance ne la double plus. Une route illisible reste bloquante
+  // (`heartbeat.reachable`).
+  heartbeat: { path: "/api/health/heartbeat", severity: "warning" },
 } satisfies DeploySite;
 
 export default site;

@@ -116,10 +116,38 @@ describe("détection de coupure", () => {
   const now = new Date("2026-11-09T17:45:00Z");
   const all = ["Chambre 7", "Chambre 8", "Chambre 9", "Salon", "Cuisine"];
 
-  it("3 radiateurs ou plus tombés au même passage : coupure", () => {
+  it("3 radiateurs ou plus tombés au même passage : coupure soupçonnée, sans alerte", () => {
     const t = powerCutTransition(all, ["Salon", "Cuisine"], null, now);
+    expect(t.action).toBe("suspected");
+    expect(t.cut).toMatchObject({ devices: ["Chambre 7", "Chambre 8", "Chambre 9"], confirmed: false });
+  });
+
+  it("toujours hors ligne au passage suivant : coupure confirmée", () => {
+    const s = powerCutTransition(all, ["Salon", "Cuisine"], null, now);
+    const later = new Date(now.getTime() + 15 * 60 * 1000);
+    const t = powerCutTransition(["Salon", "Cuisine"], ["Salon", "Cuisine"], s.cut, later);
     expect(t.action).toBe("cut");
-    expect(t.cut?.devices).toEqual(["Chambre 7", "Chambre 8", "Chambre 9"]);
+    expect(t.cut).toMatchObject({ since: now.toISOString(), confirmed: true });
+    expect(t.newlyOffline).toEqual(["Chambre 7", "Chambre 8", "Chambre 9"]);
+  });
+
+  it("autres radiateurs tombés au 2e passage : nouveau soupçon, pas de confirmation", () => {
+    const six = ["A", "B", "C", "D", "E", "F", "Salon"];
+    const s = powerCutTransition(six, ["D", "E", "F", "Salon"], null, now);
+    expect(s.action).toBe("suspected");
+    const later = new Date(now.getTime() + 15 * 60 * 1000);
+    const t = powerCutTransition(["D", "E", "F", "Salon"], ["A", "B", "C", "Salon"], s.cut, later);
+    expect(t.action).toBe("suspected");
+    expect(t.cut).toMatchObject({ devices: ["D", "E", "F"], confirmed: false });
+  });
+
+  it("revenus au passage suivant : coupure soupçonnée oubliée sans bruit", () => {
+    const s = powerCutTransition(all, ["Salon", "Cuisine"], null, now);
+    const later = new Date(now.getTime() + 15 * 60 * 1000);
+    expect(powerCutTransition(["Salon", "Cuisine"], ["Chambre 7", "Chambre 8", "Salon", "Cuisine"], s.cut, later)).toMatchObject({
+      action: "none",
+      cut: null,
+    });
   });
 
   it("1 ou 2 radiateurs : pas de coupure (Wi-Fi capricieux)", () => {

@@ -13,8 +13,9 @@ import type { CozytouchWaterHeaterStatus } from "./types";
  * - **Boost actif**, **mode** autre qu'Éco, **consigne** divergente : alerte.
  * - **PAC à l'arrêt** (`heatPumpStalled`) : le thermo compense par l'appoint, au triple du prix.
  *
- * `confirmedIssues` : un constat n'est signalé que s'il était déjà là au contrôle précédent. Une
- * bascule que l'automation applique dans le quart d'heure ne survit pas ; une panne, si.
+ * La confirmation sur deux contrôles (une bascule que l'automation applique dans le quart d'heure
+ * ne survit pas ; une panne, si) est faite par la route, avec la règle commune des alertes
+ * (`reportAlerts`, `lib/alert-memory.ts`).
  */
 export interface HealthIssue {
   id: string;
@@ -86,10 +87,4 @@ export function waterHeaterIssues(
   }
 
   return issues;
-}
-
-/** Les constats déjà présents au contrôle précédent : seuls ceux-là partent en alerte. */
-export function confirmedIssues(current: readonly HealthIssue[], previousIds: readonly string[]): HealthIssue[] {
-  const previous = new Set(previousIds);
-  return current.filter((i) => previous.has(i.id));
 }

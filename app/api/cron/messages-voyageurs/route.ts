@@ -3,6 +3,7 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
 import { modes, runCron } from "@/lib/messages/engine";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
+import { reportAlerts } from "@/lib/alert-memory";
 
 /**
  * Une alerte par réservation, modèle et motif toutes les 6 h au plus (chef-de-stand) : un code pas
@@ -47,13 +48,22 @@ export async function GET(request: NextRequest) {
     if ("locked" in result) return NextResponse.json({ ok: true, locked: true });
     const failed = result.results.filter((r) => r.outcome === "failed");
     const blocked = result.results.filter((r) => r.outcome === "blocked");
-    if (result.aborted) {
-      await sendNtfy(`${result.aborted.due} messages dus pour un plafond de ${result.aborted.cap} : rien n'est parti. À vérifier dans le dashboard.`, {
-        title: "Barbusse — messages voyageurs bloqués",
-        priority: 4,
-        tags: ["warning"],
-      });
-    } else if (failed.length || blocked.length || result.orphans.length) {
+    // Plafond dépassé : une alerte à l'ouverture, pas une toutes les 10 min (2026-11-10). Pas de
+    // confirmation sur deux passages : un plafond dépassé n'est pas un état passager.
+    await reportAlerts(
+      "messages-cap",
+      result.aborted
+        ? [{ id: "cap", priority: 4, line: `${result.aborted.due} messages dus pour un plafond de ${result.aborted.cap} : rien n'est parti. À vérifier dans le dashboard.` }]
+        : [],
+      (subject, body, priority) => sendNtfy(body, { title: subject, priority, tags: ["warning"] }),
+      {
+        title: () => "Barbusse — messages voyageurs bloqués",
+        recoveredTitle: "Barbusse — messages voyageurs débloqués",
+        recoveredBody: "Le plafond par passage n'est plus dépassé.",
+        confirmAfter: 1,
+      },
+    ).catch((e) => console.error("[messages-voyageurs] alerte plafond:", e instanceof Error ? e.message : e));
+    if (!result.aborted && (failed.length || blocked.length || result.orphans.length)) {
       const candidates = [
         ...[...failed, ...blocked].map((r) => ({ key: `${r.bookingId}:${r.templateId}:${r.reason ?? "?"}`, line: `#${r.bookingId} ${r.templateId} : ${r.outcome} (${r.reason ?? "?"})` })),
         // Un envoi commencé et jamais confirmé : à vérifier dans le fil, il ne sera pas renvoyé.

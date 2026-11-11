@@ -34,7 +34,7 @@ export async function GET() {
         `Dernier passage réussi trop ancien :\n${result.names.map((n) => `  - ${n}`).join("\n")}\n\nVérifier cron-job.org et les journaux Vercel.`,
       );
     } else if (transition.action === "recover") {
-      await sendCronAlert("Crons rétablis", "Tous les crons surveillés sont de nouveau à l'heure.", 2);
+      await sendCronAlert("Crons rétablis", "Tous les crons surveillés sont de nouveau à l'heure.", 1);
     }
   } catch (e) {
     // L'alerte privée ne doit pas changer la réponse publique.

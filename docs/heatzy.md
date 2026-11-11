@@ -77,8 +77,10 @@ ces fonctions pour les anciens imports.
 - **Consignes** : celles montées au-dessus de la zone (boutons du Heatzy, laissés libres) sont
   ramenées à chaque passage de `heating-automation` (15 min) pendant un séjour.
 - **Coupure de courant** (`lib/power-cut.ts`) : 3 radiateurs ou plus en ligne au passage précédent
-  et hors ligne à celui-ci → ntfy **priorité 5** « Coupure de courant probable » ; tous revenus →
-  « Courant revenu ». Une coupure non résolue est oubliée après 6 h (circuit resté coupé) ; une
+  et hors ligne à celui-ci → coupure **soupçonnée**, sans alerte ; toujours 3 ou plus hors ligne au
+  passage suivant (15 min) → ntfy **priorité 5** « Coupure de courant probable » (depuis le
+  2026-11-10 : un cloud Heatzy ou une box qui décroche une minute ne réveille plus personne) ; tous
+  revenus → « Courant revenu » en **priorité 1**, seulement si l'alerte était partie. Une coupure non résolue est oubliée après 6 h (circuit resté coupé) ; une
   nouvelle chute pendant une coupure ouverte relance l'alerte. **Tous** les radiateurs hors ligne :
   titre « Coupure de courant ou box Internet » (box ou cloud Heatzy en panne, indiscernables).
   Pendant une coupure, l'alerte « n'ont pas pris leur mode » est tue.
@@ -110,9 +112,15 @@ hors-gel par défaut et coupaient le préchauffage jusqu'au quart d'heure suivan
 `heating-health` (connectivité) et `heating-automation` (radiateurs qui refusent leur mode,
 `failures[]`) passent par `nextAlertState` du socle, état dans Redis
 `barbusse:alert:heating-health` / `barbusse:alert:heating-automation` (`lib/alert-memory.ts`) :
-une notification à l'ouverture, une quand un nouveau radiateur tombe, une en priorité 2 au
+une notification à l'ouverture, une quand un nouveau radiateur tombe, une en **priorité 1** au
 rétablissement — **jamais deux fois à gravité égale** (`heating-health` renvoyait la même alerte
 toutes les 30 min). `sendHeatingAlert(subject, body, priority = 4)` (`lib/alerts.ts`).
+
+Depuis le 2026-11-10 (règle commune, voir `docs/surveillance.md`) : `heating-health` ne compte un
+radiateur qu'**hors ligne deux contrôles de suite** (`reportAlerts`, `confirmAfter: 2`) et ignore
+ceux d'une coupure soupçonnée ou signalée ; les erreurs des crons `heating-health`,
+`heating-automation` et `heating-reset` passent par `reportCronRun` (deux passages en erreur
+avant l'alerte, une seule tant que l'erreur dure, retour en priorité 1 au premier succès).
 
 ### Alertes (basées sur température + comportement)
 

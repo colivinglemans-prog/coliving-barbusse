@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   }
   const dryRun = request.nextUrl.searchParams.get("dry") === "1";
   try {
-    const report = await runAccessSync({ dryRun });
+    const report = await runAccessSync({ dryRun, trigger: "cron" });
     if (!dryRun) await beat("nuki-sync", "ok");
     return NextResponse.json(report);
   } catch (err) {

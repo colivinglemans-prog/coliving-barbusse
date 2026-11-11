@@ -111,7 +111,8 @@ export async function GET(request: NextRequest) {
       try {
         await sendNtfy(lines.join("\n"), {
           title,
-          priority: 4,
+          // 3 : une information, pas une panne (2026-11-10).
+          priority: 3,
           tags: ["key"],
         });
         // SET seulement après succès de l'envoi pour pouvoir retry au prochain tick si ntfy down

@@ -5,10 +5,13 @@
  * maison tomber. Un Heatzy sans courant passe hors ligne ; plusieurs qui tombent **au même
  * passage** (15 min), c'est une coupure, pas un Wi-Fi capricieux.
  *
- * - `cut` : au moins `POWER_CUT_MIN_DEVICES` radiateurs en ligne au passage précédent sont hors
- *   ligne à celui-ci → alerte prioritaire.
- * - `restored` : tous les radiateurs de la coupure sont revenus → « courant revenu » (l'automatisation
- *   réapplique modes et consignes au même passage).
+ * - `suspected` : au moins `POWER_CUT_MIN_DEVICES` radiateurs en ligne au passage précédent sont
+ *   hors ligne à celui-ci → coupure **soupçonnée**, mémorisée, sans alerte (2026-11-10 : un cloud
+ *   Heatzy ou une box qui décroche une minute ne mérite pas une priorité 5).
+ * - `cut` : au passage suivant, au moins `POWER_CUT_MIN_DEVICES` de ces radiateurs sont toujours
+ *   hors ligne → alerte prioritaire. Sinon la coupure soupçonnée est oubliée sans bruit.
+ * - `restored` : tous les radiateurs d'une coupure **signalée** sont revenus → « courant revenu »,
+ *   en priorité 1 (l'automatisation réapplique modes et consignes au même passage).
  *
  * Fonction pure ; l'état vit dans Redis.
  */
@@ -18,10 +21,12 @@ const CUT_EXPIRY_MS = 6 * 3600 * 1000;
 export interface PowerCut {
   since: string;
   devices: string[];
+  /** `false` tant que la coupure n'est vue qu'à un passage. Absent (état d'avant) = signalée. */
+  confirmed?: boolean;
 }
 
 export interface PowerCutTransition {
-  action: "cut" | "restored" | "none";
+  action: "suspected" | "cut" | "restored" | "none";
   newlyOffline: string[];
   cut: PowerCut | null;
   /** Plus aucun radiateur en ligne : coupure générale, ou box Internet / cloud Heatzy en panne. */
@@ -38,6 +43,19 @@ export function powerCutTransition(
   const newlyOffline = (previousOnline ?? []).filter((d) => !nowOnline.has(d));
   const allOffline = online.length === 0;
   const newCut = newlyOffline.length >= POWER_CUT_MIN_DEVICES;
+  if (cut && cut.confirmed === false) {
+    // Deuxième passage d'une coupure soupçonnée : confirmée si assez de radiateurs manquent encore.
+    // Seuls les radiateurs vus aux deux passages confirment ; une chute toute neuve repart en soupçon.
+    const stillOffline = cut.devices.filter((d) => !nowOnline.has(d));
+    if (stillOffline.length >= POWER_CUT_MIN_DEVICES) {
+      const devices = [...new Set([...stillOffline, ...newlyOffline])];
+      return { action: "cut", newlyOffline: devices, cut: { since: cut.since, devices, confirmed: true }, allOffline };
+    }
+    if (newCut) {
+      return { action: "suspected", newlyOffline, cut: { since: now.toISOString(), devices: newlyOffline, confirmed: false }, allOffline };
+    }
+    return { action: "none", newlyOffline, cut: null, allOffline };
+  }
   if (cut) {
     // Nouvelle chute pendant une coupure encore ouverte (un radiateur au Wi-Fi capricieux n'est
     // pas revenu, puis le compteur re-disjoncte) : nouvelle alerte, appareils fusionnés.
@@ -54,7 +72,12 @@ export function powerCutTransition(
     return { action: "none", newlyOffline, cut, allOffline };
   }
   if (newCut) {
-    return { action: "cut", newlyOffline, cut: { since: now.toISOString(), devices: newlyOffline }, allOffline };
+    return {
+      action: "suspected",
+      newlyOffline,
+      cut: { since: now.toISOString(), devices: newlyOffline, confirmed: false },
+      allOffline,
+    };
   }
   return { action: "none", newlyOffline, cut: null, allOffline };
 }

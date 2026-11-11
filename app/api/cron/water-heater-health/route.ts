@@ -4,21 +4,19 @@ import { getWaterHeaterStatus, getWaterHeaterProfile, heatPumpStalled, PAC_STALL
 import { absenceSince, entryOlderThan, readWaterHeaterLog } from "@/lib/water-heater-log";
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
-import { getJson, redisKey, setJson } from "@/lib/redis";
-import { confirmedIssues, waterHeaterIssues } from "@/lib/water-heater-health";
+import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
+import { waterHeaterIssues } from "@/lib/water-heater-health";
 import { todayParis, currentHourParis, nowParis } from "@sejour/socle/lib/time";
 
 /**
- * Contrôle du ballon. Les constats viennent de `waterHeaterIssues` ; seuls ceux déjà présents
- * au passage précédent partent en alerte (`confirmedIssues`), pour ne pas signaler une bascule
- * que l'automation, lancée à la même minute, est en train d'appliquer.
- *
- * Redis injoignable : le passage précédent est lu comme vide, rien ne part ce tour-ci, et le
- * suivant alerte normalement si Redis est revenu.
+ * Contrôle du ballon, toutes les 2 h. Les constats viennent de `waterHeaterIssues` et passent par
+ * la règle commune des alertes (`reportAlerts`, état `barbusse:alert:water-heater-health`) :
+ * - un constat ne part que s'il était déjà là au contrôle précédent — une bascule que
+ *   l'automation, lancée à la même minute, est en train d'appliquer ne survit pas ;
+ * - une seule fois tant qu'il dure (il repartait toutes les 2 h jusqu'au 2026-11-10) ;
+ * - le retour à la normale part en priorité 1.
  */
-const PENDING_KEY = redisKey("water-heater", "health-pending");
-// Deux passages de contrôle d'écart au plus (cron toutes les 2 h), plus une marge.
-const PENDING_TTL_SECONDS = 5 * 3600;
+const LABEL = "Contrôle du ballon";
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -42,27 +40,18 @@ export async function GET(request: NextRequest) {
     const stalled = heatPumpStalled(status, earlier, now, absenceSince(log, earlier?.at));
     const issues = waterHeaterIssues(guests, currentHour, nowParis().getMinutes(), status, stalled);
 
-    let previousIds: string[] = [];
-    try {
-      previousIds = (await getJson<string[]>(PENDING_KEY)) ?? [];
-      await setJson(PENDING_KEY, issues.map((i) => i.id), PENDING_TTL_SECONDS);
-    } catch (e) {
-      console.error("[water-heater-health] Redis:", e instanceof Error ? e.message : e);
-    }
-    const confirmed = confirmedIssues(issues, previousIds);
-
-    if (confirmed.length > 0) {
-      const lines = [
-        ...confirmed.map((i) => i.message),
-        "",
-        `Profil attendu : ${profile} (${guests} personne(s))`,
-        `Constaté à deux contrôles de suite, le dernier le ${today} à ${nowParis().toLocaleTimeString("fr-FR")}`,
-      ];
-      await sendWaterHeaterAlert(
-        `${confirmed.length} alerte(s) ballon thermodynamique`,
-        lines.join("\n"),
-      );
-    }
+    const alert = await reportAlerts(
+      "water-heater-health",
+      issues.map((i) => ({ id: i.id, priority: 4, line: i.message })),
+      sendWaterHeaterAlert,
+      {
+        title: (c) => `${c.length} alerte(s) ballon thermodynamique`,
+        intro: `Constaté à deux contrôles de suite, le dernier le ${today} à ${nowParis().toLocaleTimeString("fr-FR")}. Profil attendu : ${profile} (${guests} personne(s)).`,
+        recoveredTitle: "Ballon thermodynamique : retour à la normale",
+        recoveredBody: "Plus aucun écart constaté sur le ballon.",
+      },
+    );
+    await reportCronRun("water-heater-health", LABEL, sendWaterHeaterAlert, null).catch(() => {});
 
     return NextResponse.json({
       success: true,
@@ -77,15 +66,12 @@ export async function GET(request: NextRequest) {
         isAvailable: status.isAvailable,
       },
       issues: issues.map((i) => i.id),
-      alerted: confirmed.map((i) => i.id),
+      alert,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    await sendWaterHeaterAlert(
-      "Erreur health check eau chaude",
-      `Le health check du ballon thermodynamique a rencontré une erreur :\n\n${message}`,
-    ).catch(() => {});
+    await reportCronRun("water-heater-health", LABEL, sendWaterHeaterAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -11,6 +11,7 @@ import {
 import { resetTarget } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
+import { reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
 import { readShedState } from "@/lib/heating-state";
 import { activeShedZones } from "@/lib/load-shedding";
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
 
   try {
     if (await getSummerMode()) {
+      await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, null).catch(() => {});
       return NextResponse.json({
         success: true,
         skipped: "summer-mode",
@@ -113,6 +115,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, null).catch(() => {});
     return NextResponse.json({
       success: true,
       actions,
@@ -121,10 +124,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    await sendHeatingAlert(
-      "Erreur reset chauffage",
-      `Le reset périodique du chauffage a rencontré une erreur :\n\n${message}`,
-    ).catch(() => {});
+    await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

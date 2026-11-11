@@ -12,7 +12,7 @@ import {
 import { expectedHeatingMode, type HeatingSituation } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
-import { alertTransition, failingInputs } from "@/lib/alert-memory";
+import { alertTransition, failingInputs, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
 import { getRedis, redisKey } from "@/lib/redis";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
   try {
     if (await getSummerMode()) {
       await beat("heating-automation", "ok");
+      await reportCronRun("heating-automation", "Automation du chauffage", sendHeatingAlert, null).catch(() => {});
       return NextResponse.json({
         success: true,
         skipped: "summer-mode",
@@ -138,7 +139,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ─── Coupure de courant ───
-    let powerCut: "cut" | "restored" | null = null;
+    let powerCut: "suspected" | "cut" | "restored" | null = null;
     let cutOngoing = false;
     if (readings) {
       const online = readings.filter((r) => r.online).map((r) => r.name);
@@ -146,14 +147,17 @@ export async function GET(request: NextRequest) {
       const t = powerCutTransition(previousOnline, online, cut, now);
       await Promise.all([saveOnlineRadiators(online), savePowerCut(t.cut)]);
       cutOngoing = t.cut !== null;
-      if (t.action === "cut") {
+      if (t.action === "suspected") {
+        // Vue à un seul passage : on attend le suivant avant d'alerter (box ou cloud qui décroche).
+        powerCut = "suspected";
+      } else if (t.action === "cut") {
         powerCut = "cut";
         // Tout est tombé : coupure générale, mais aussi box Internet ou cloud Heatzy en panne
         // (indiscernables d'ici). Une partie encore en ligne : disjoncteur divisionnaire.
         await sendHeatingAlert(
           t.allOffline ? "Coupure de courant ou box Internet" : "Coupure de courant probable",
           [
-            `${t.newlyOffline.length} radiateurs sont tombés hors ligne en même temps (${paris.toLocaleTimeString("fr-FR")}) :`,
+            `${t.newlyOffline.length} radiateurs hors ligne, constaté depuis ${new Date(t.cut!.since).toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" })} :`,
             ...t.newlyOffline.map((n) => `  - ${n}`),
             "",
             t.allOffline
@@ -167,7 +171,7 @@ export async function GET(request: NextRequest) {
         await sendHeatingAlert(
           "Courant revenu",
           "Tous les radiateurs de la coupure sont de nouveau en ligne. Modes et consignes réappliqués.",
-          3,
+          1,
         ).catch(() => {});
       }
     }
@@ -283,7 +287,9 @@ export async function GET(request: NextRequest) {
         } catch (e) {
           const msg = e instanceof Error ? e.message : "Unknown error";
           failures.push(`${device.name}: ${msg}`);
-          failedDevices.push(device.name);
+          // Un radiateur vu hors ligne à ce passage refuse forcément son mode : c'est
+          // `heating-health` qui le signale (2 contrôles de suite), pas cette alerte.
+          if (readingByDid.get(did)?.online !== false) failedDevices.push(device.name);
           console.error(`Heating automation error for ${device.name}:`, e);
         }
         // Consignes montées par un voyageur : ramenées à celles de la zone. Un échec ici n'est
@@ -307,19 +313,20 @@ export async function GET(request: NextRequest) {
     // Pendant une coupure, ils sont hors ligne par force : l'alerte de coupure suffit.
     const transition = cutOngoing
       ? { action: "none" as const }
-      : await alertTransition("heating-automation", failingInputs(failedDevices));
+      : await alertTransition("heating-automation", failingInputs(failedDevices), now, { confirmAfter: 2 });
     if (transition.action === "open" || transition.action === "escalate") {
       await sendHeatingAlert(
         `${failedDevices.length} radiateur(s) n'ont pas pris leur mode`,
         [`Situation : ${situation}`, "", ...failures.map((f) => `  - ${f}`)].join("\n"),
       ).catch(() => {});
     } else if (transition.action === "recover") {
-      await sendHeatingAlert("Tous les radiateurs ont repris leur mode", "Plus aucun échec de commande.", 2).catch(
+      await sendHeatingAlert("Tous les radiateurs ont repris leur mode", "Plus aucun échec de commande.", 1).catch(
         () => {},
       );
     }
 
     await beat("heating-automation", "ok");
+    await reportCronRun("heating-automation", "Automation du chauffage", sendHeatingAlert, null).catch(() => {});
     return NextResponse.json({
       success: true,
       situation,
@@ -336,10 +343,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     await beat("heating-automation", "error");
-    await sendHeatingAlert(
-      "Erreur automation chauffage",
-      `L'automation du chauffage a rencontré une erreur :\n\n${message}`,
-    ).catch(() => {});
+    await reportCronRun("heating-automation", "Automation du chauffage", sendHeatingAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

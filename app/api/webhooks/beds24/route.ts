@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
   }
   let messages: unknown = null;
   try {
-    const report = await runAccessSync({ dryRun: false });
+    const report = await runAccessSync({ dryRun: false, trigger: "webhook" });
     messages = await messagingPass();
     return NextResponse.json({ mode: report.mode, actions: report.actions.length, skipped: report.skipped, messages });
   } catch (err) {

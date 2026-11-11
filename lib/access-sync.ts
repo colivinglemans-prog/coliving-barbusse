@@ -47,12 +47,24 @@ import {
 } from "@sejour/socle/lib/nuki";
 import { addDays } from "@sejour/socle/lib/dates";
 import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { reportAlerts, type TrackedAlert } from "./alert-memory";
 import { todayParis } from "@sejour/socle/lib/time";
 import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";
 import type { Beds24Booking } from "./types";
 
 /** Les alertes du planificateur, plus celles de la serrure et de l'exécution. */
-export type SyncAlert = Omit<AccessAlert, "kind"> & { kind: AccessAlert["kind"] | "lock" | "execution" };
+export type SyncAlert = Omit<AccessAlert, "kind"> & {
+  kind: AccessAlert["kind"] | "lock" | "execution";
+  /** Ce qui a échoué (`create`, `confirm`…) pour une alerte d'exécution : fait partie de l'identifiant. */
+  step?: string;
+};
+
+/**
+ * Qui a lancé le passage. Seul le passage horaire du cron évalue et envoie les alertes : le
+ * webhook Beds24 se déclenche aussi sur nos propres écritures (`NUKI_PIN`, `MSG_*`), et une
+ * serrure vue hors ligne entre deux passages horaires suffisait à envoyer une priorité 5.
+ */
+export type SyncTrigger = "cron" | "webhook";
 
 export const ACCESS_POLICY: AccessCodePolicy = {
   validFromHour: 14,
@@ -163,7 +175,7 @@ async function loadState(cfg: NukiConfig) {
   return { today, health, auths, house, stays, plan };
 }
 
-export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<SyncReport> {
+export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trigger: SyncTrigger }): Promise<SyncReport> {
   const mode = dryRun || !syncIsLive() ? "dry" : "live";
   const cfg = nukiConfig();
 
@@ -174,25 +186,20 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
     const { health, house, stays, plan } = await loadState(cfg);
     const alerts: SyncAlert[] = [...plan.alerts];
 
+    // La pile faible n'est plus signalée ici : le passage de 9 h de la préparation d'arrivée
+    // (`/api/cron/arrival-readiness`) la signale déjà, une fois par jour (2026-11-10).
     if (!health.online || !health.keypadPaired) {
       alerts.push({
         kind: "lock",
         bookingId: 0,
-        severity: "urgent",
+        // Priorité 4 et non plus 5 : le jour d'une arrivée, la préparation d'arrivée relève la
+        // serrure à 12h30, 15h30 et 16h30 avec ses propres priorités (jusqu'à 5).
+        severity: "high",
         message: !health.online
           ? "La serrure est hors ligne pour Nuki : aucun code ne peut lui être envoyé."
           : "Aucun clavier n'est appairé à la serrure : les codes ne servent à rien.",
       });
     }
-    if (health.batteryCritical || health.keypadBatteryCritical) {
-      alerts.push({
-        kind: "lock",
-        bookingId: 0,
-        severity: "high",
-        message: `Pile faible : ${health.batteryCritical ? "serrure" : "clavier"}.`,
-      });
-    }
-
     const actions: SyncReport["actions"] = plan.actions.map(describe);
 
     // « new » → « confirmed », une fois le PIN dans Beds24 et le code sur la serrure : soit
@@ -225,6 +232,7 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
         if (action.kind === "assign-pin") blocked.add(action.bookingId);
         alerts.push({
           kind: "execution",
+          step: action.kind,
           bookingId: action.bookingId,
           severity: "high",
           message: `Réservation ${action.bookingId} : échec de « ${action.kind} » — ${error}`,
@@ -241,11 +249,12 @@ export async function runAccessSync({ dryRun }: { dryRun: boolean }): Promise<Sy
       } catch (err) {
         const error = err instanceof Error ? err.message : String(err);
         actions.push({ kind: "confirm", bookingId: id, ok: false, error });
-        alerts.push({ kind: "execution", bookingId: id, severity: "normal", message: `Réservation ${id} : passage en « confirmé » impossible — ${error}` });
+        alerts.push({ kind: "execution", step: "confirm", bookingId: id, severity: "normal", message: `Réservation ${id} : passage en « confirmé » impossible — ${error}` });
       }
     }
 
-    const notified = await notify(alerts);
+    // `dryRun` a déjà rendu plus haut : seul un vrai passage du cron fait avancer l'état d'alerte.
+    const notified = trigger === "cron" && !dryRun ? await notify(alerts) : 0;
     return { mode, health, stays: stays.length, actions, alerts, notified };
   } finally {
     if (mode === "live") await redis().del(LOCK_KEY).catch(() => {});
@@ -274,31 +283,51 @@ async function execute(cfg: NukiConfig, action: AccessAction): Promise<void> {
   }
 }
 
-/**
- * Délai avant de répéter la même alerte : une fois par jour quand l'arrivée est loin, toutes
- * les 3 h à moins de 48 h, à chaque passage horaire le jour même.
- */
-const REPEAT_SECONDS: Record<AccessSeverity, number> = { normal: 24 * 3600, high: 3 * 3600, urgent: 50 * 60 };
 const NTFY_PRIORITY: Record<AccessSeverity, 3 | 4 | 5> = { normal: 3, high: 4, urgent: 5 };
 
-async function notify(alerts: SyncAlert[]): Promise<number> {
-  if (alerts.length === 0) return 0;
-  if (!process.env.NTFY_TOPIC) throw new Error("NTFY_TOPIC manquant : les alertes de serrure seraient perdues");
-  let sent = 0;
-  for (const alert of alerts) {
-    const key = `nuki:alert:${alert.kind}:${alert.bookingId}:${alert.severity}:${hash(alert.message)}`;
-    const fresh = await redis().set(key, 1, { nx: true, ex: REPEAT_SECONDS[alert.severity] });
-    if (!fresh) continue;
-    await sendNtfy(alert.message, { title: "Serrure Barbusse", priority: NTFY_PRIORITY[alert.severity], tags: ["lock"] });
-    sent++;
-  }
-  return sent;
+const sendLockAlert = (subject: string, body: string, priority: 1 | 2 | 3 | 4 | 5) =>
+  sendNtfy(body, { title: subject, priority, tags: ["lock"] });
+
+/**
+ * Deux alertes suivies séparément (`barbusse:alert:nuki-lock`, `…:nuki-codes`), chacune selon
+ * la règle commune de `lib/alert-memory.ts` : deux passages horaires de suite avant d'alerter,
+ * pas de répétition à gravité égale, rétablissement en priorité 1. Séparées pour que le retour
+ * de la serrure se dise même quand un code reste en défaut.
+ *
+ * Un PIN qui manque à J-3 puis à J-2 puis le jour même monte de gravité : l'alerte repart à
+ * chaque palier, une fois.
+ */
+export function trackSyncAlerts(alerts: readonly SyncAlert[]): { lock: TrackedAlert[]; codes: TrackedAlert[] } {
+  const tracked = (a: SyncAlert): TrackedAlert => ({
+    // Stable d'un passage à l'autre : jamais le message (qui porte une erreur, un nombre de jours).
+    id: [a.kind, a.bookingId, a.step].filter((x) => x !== undefined).join(":"),
+    priority: NTFY_PRIORITY[a.severity],
+    line: a.message,
+  });
+  return {
+    lock: alerts.filter((a) => a.kind === "lock").map(tracked),
+    codes: alerts.filter((a) => a.kind !== "lock").map(tracked),
+  };
 }
 
-function hash(s: string): string {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return (h >>> 0).toString(36);
+async function notify(alerts: SyncAlert[]): Promise<number> {
+  if (alerts.length > 0 && !process.env.NTFY_TOPIC) {
+    throw new Error("NTFY_TOPIC manquant : les alertes de serrure seraient perdues");
+  }
+  const { lock, codes } = trackSyncAlerts(alerts);
+  const [lockAction, codesAction] = await Promise.all([
+    reportAlerts("nuki-lock", lock, sendLockAlert, {
+      title: () => "Serrure Barbusse",
+      recoveredTitle: "Serrure Barbusse — de nouveau en ligne",
+      recoveredBody: "La serrure répond de nouveau à Nuki.",
+    }),
+    reportAlerts("nuki-codes", codes, sendLockAlert, {
+      title: (c) => `Serrure Barbusse — ${c.length} code(s) en défaut`,
+      recoveredTitle: "Serrure Barbusse — codes en ordre",
+      recoveredBody: "Plus aucun défaut sur les codes du clavier.",
+    }),
+  ]);
+  return [lockAction, codesAction].filter((a) => a === "open" || a === "escalate" || a === "recover").length;
 }
 
 /** Première ouverture au clavier par réservation, lue dans le journal de la serrure. */

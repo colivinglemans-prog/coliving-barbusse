@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { confirmedIssues, waterHeaterIssues, type HealthStatus } from "@/lib/water-heater-health";
+import { waterHeaterIssues, type HealthStatus } from "@/lib/water-heater-health";
 
 const GROUP = 14;
 
@@ -48,18 +48,5 @@ describe("waterHeaterIssues", () => {
   it("PAC à l'arrêt et sonde du milieu absente : signalées", () => {
     expect(ids(eco({ middleTemperature: 25 }), 12, 0, true)).toEqual(["pac-stalled"]);
     expect(ids(eco({ middleTemperature: 0 }))).toEqual(["middle-missing"]);
-  });
-});
-
-describe("confirmedIssues", () => {
-  const issues = [
-    { id: "absence-missing", message: "a" },
-    { id: "boost-on", message: "b" },
-  ];
-  it("seuls les constats déjà là au contrôle précédent partent", () => {
-    expect(confirmedIssues(issues, ["boost-on", "mode"]).map((i) => i.id)).toEqual(["boost-on"]);
-  });
-  it("premier contrôle : rien ne part", () => {
-    expect(confirmedIssues(issues, [])).toEqual([]);
   });
 });

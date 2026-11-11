@@ -30,7 +30,7 @@ ses **attendus**, importés de son propre code, jamais recopiés.
   déploiement, qui sauterait les contrôles réservés au domaine) et dans le groupe
   `surveillance` (même issue d'alerte) ; une preview est contrôlée sans alerte.
 - Les deux appellent `colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml`
-  **par SHA** (v3.10.2), `permissions: {}` au niveau du workflow, secrets passés un par un.
+  **par SHA** (v3.21.0 : « rétabli » en priorité 1), `permissions: {}` au niveau du workflow, secrets passés un par un.
   `environment:` est interdit par GitHub sur un job qui appelle un workflow réutilisable : les
   secrets sont des secrets de **dépôt**.
 
@@ -130,3 +130,39 @@ Retards acceptés (dernier passage **réussi**) : `heating-automation` 45 min, l
 la serrure est en retard » renseignerait un cambrioleur). Les noms partent par ntfy
 (`sendCronAlert`) une fois par changement d'état (`barbusse:alert:heartbeat`). L'appeler écrit
 donc dans Redis : ne pas la viser en local avec les variables de production.
+
+## Règle commune des alertes (2026-11-10)
+
+L'hôte recevait trop d'alertes ntfy — dont une « serrure hors ligne » alors que Nuki était déjà
+revenu — et risquait de ne plus les lire. Toute alerte de **problème** suit désormais la même
+règle, dans [lib/alert-memory.ts](../lib/alert-memory.ts) (`reportAlerts`, `reportCronRun`, sur
+`nextAlertState` du socle v3.21.0, option `confirmAfter`) :
+
+1. **Deux passages KO de suite** avant d'alerter. Un relevé raté isolé ne produit rien, ni
+   alerte ni rétablissement.
+2. **Jamais répétée à gravité égale** ; elle repart si un nouvel élément tombe ou si la gravité
+   monte (un PIN manquant à J-3, puis le jour même).
+3. **Rétablissement en priorité 1** (sans son), seulement si une alerte était partie.
+4. **Redis injoignable** : la confirmation est levée (`confirmAfter: 1`) et l'alerte repart à
+   chaque passage — sans quoi le compteur ne survivrait jamais.
+5. **Envoi raté** (ntfy en panne) : l'état est remis tel qu'avant le passage et l'erreur remonte ;
+   le passage suivant renvoie l'alerte (une alerte jamais répétée ne doit pas se perdre).
+6. **Mode été** : les crons du chauffage le traitent comme un passage réussi (compteurs d'erreur
+   remis à zéro).
+
+| Alerte | État Redis (`barbusse:alert:…`) | Particularités |
+|---|---|---|
+| Serrure hors ligne / clavier non appairé | `nuki-lock` | Évaluée au **cron horaire seulement**, jamais au passage lancé par le webhook Beds24 (nos propres écritures le déclenchent). Priorité 4. La pile faible n'est plus signalée par la synchro : le passage `daily` de 9 h de la préparation d'arrivée la signale. |
+| Codes du clavier (planificateur, échecs d'écriture, confirmation) | `nuki-codes` | Identifiant = type + réservation (+ étape) ; priorité 3 / 4 / 5 selon la proximité de l'arrivée. |
+| Radiateurs hors ligne | `heating-health` | Ignorés pendant une coupure soupçonnée ou signalée. |
+| Radiateurs qui refusent leur mode | `heating-automation` | Deux passages de suite ; un radiateur vu hors ligne au même passage n'y compte pas (c'est `heating-health` qui le signale). |
+| Coupure de courant | (`barbusse:heating:power-cut`, `lib/power-cut.ts`) | Soupçonnée au 1er passage, signalée en priorité 5 au 2e (15 min) si au moins 3 des **mêmes** radiateurs manquent encore (une chute toute neuve repart en soupçon) ; « courant revenu » en priorité 1. |
+| Ballon thermodynamique | `water-heater-health` | Remplace `barbusse:water-heater:health-pending` (expire seule). |
+| Erreur d'un cron (`catch`) | `error:<cron>` | `heating-health`, `heating-automation`, `heating-reset`, `water-heater-health`, `water-heater-automation`. Identifiant fixe : un message d'erreur qui change ne relance pas l'alerte. |
+| Plafond des messages voyageurs | `messages-cap` | `confirmAfter: 1` (pas un état passager). |
+| Crons en retard | `heartbeat` | Rétabli en priorité 1. La surveillance déclare `heartbeat.severity: "warning"` : plus de doublon `[Crons]` + `[Surveillance]` ; une route de heartbeat illisible reste bloquante (`heartbeat.reachable`). |
+
+Inchangées : la préparation d'arrivée (déjà deux lectures, anti-répétition et silence 22 h–8 h),
+le keepalive et la sauvegarde Beds24 (hebdomadaires), le webhook refusé (6 h), le devis IA. Les
+notifications d'information restent : check-in (priorité 3 depuis le 2026-11-10), rapport
+pricing, veille des événements, sauvegarde réussie.

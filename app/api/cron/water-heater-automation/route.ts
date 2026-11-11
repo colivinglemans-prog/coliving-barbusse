@@ -13,6 +13,7 @@ import {
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
+import { reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
 import {
   absenceSince,
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest) {
       await appendWaterHeaterLog(logEntry(now, guests, profile, peak, status, applied));
     }
     await beat("water-heater-automation", "ok");
+    await reportCronRun("water-heater-automation", "Automation de l'eau chaude", sendWaterHeaterAlert, null).catch(() => {});
     return NextResponse.json({
       success: true,
       profile,
@@ -96,10 +98,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     await beat("water-heater-automation", "error");
-    await sendWaterHeaterAlert(
-      "Erreur automation eau chaude",
-      `L'automation du ballon thermodynamique a rencontré une erreur :\n\n${message}`,
-    ).catch(() => {});
+    await reportCronRun("water-heater-automation", "Automation de l'eau chaude", sendWaterHeaterAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -142,6 +142,7 @@ lib/
   redis.ts            # Client Upstash (KV_REST_API_URL / KV_REST_API_TOKEN)
   seo.ts, site.ts     # Chemins SEO ; SITE_URL, guideUrl(), guestLocaleFromCountry()
   alerts.ts           # Alertes d'exploitation des crons → ntfy (priorité 4)
+  alert-memory.ts     # Règle commune des alertes : 2 passages de suite, pas de répétition, retour en priorité 1
   invoice-config.ts   # INVOICE_TEMPLATE (branding + mentions) et le préfixe du compteur.
                       # Le reste est dans @sejour/socle/lib/invoice-config (Lot 4).
   invoice-number.ts   # Le client Upstash, branché sur createInvoiceNumbering du socle.
@@ -493,7 +494,7 @@ remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki We
 |---|---|
 | `@sejour/socle/lib/access-codes` (v3.8.0) | Planificateur pur : quoi créer, recaler, reprendre, supprimer. |
 | `@sejour/socle/lib/nuki` | Client Nuki Web, erreurs expurgées des PIN. |
-| [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, dédoublonné Redis `nuki:alert:*`). Verrou Redis `nuki:sync:lock`. |
+| [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, **au passage horaire du cron seulement**, règle commune : `barbusse:alert:nuki-lock` et `…:nuki-codes`, deux passages de suite). Verrou Redis `nuki:sync:lock`. |
 | `/api/cron/nuki-sync` | Passage horaire (cron-job.org). `?dry=1` = plan sans écriture. |
 | `/api/dashboard/nuki-status` | **Admin seulement.** État du code par réservation (`ok` / `pending` / `error`), calculé à blanc par le planificateur, sans PIN. Alimente la pastille des barres du calendrier (vert / ambre / rouge) et une ligne dans la fiche. |
 | `/api/webhooks/beds24` | Webhook « Booking » de Beds24, en-tête `x-webhook-secret`. Déclenche un passage : PIN posé en quelques secondes pour une réservation de dernière minute. Le corps n'est pas lu. |
@@ -535,7 +536,7 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
   - **Charge estimée** (`lib/radiator-load.ts`) : à fond si écart ≥ 1 °C ou `Heating_state = 1`, un tiers en régulation, **hors ligne = 100 %**. Plafond et budgets dans `lib/electrical-budget.ts` (**un chiffre à changer au passage à 12 kVA**).
   - **Délestage tournant** (`lib/load-shedding.ts`) : au-delà du plafond (6 kW à 9 kVA), des étages passent en éco un quart d'heure, ordre **dernier → 1er → chambre RDC, jamais le RDC** ; `heating-reset` respecte les zones délestées (Redis `barbusse:heating:shed`). ⚠️ **En observation** (`LOAD_SHEDDING_MODE = "observe"`) : calculé et affiché, **non appliqué** — le 9/11 à 21 h 54 l'estimation donnait 13,3 kW alors que le compteur tenait ; actif, il aurait mis les 9 chambres en éco toute la nuit. Passer en `"active"` seulement après calibrage (Linky).
   - **Consignes montées par les voyageurs ramenées toutes les 15 min** par `heating-automation` (boutons des Heatzy laissés libres, choix de l'hôte).
-  - **Alerte de coupure** (`lib/power-cut.ts`) : 3 radiateurs ou plus hors ligne au même passage → ntfy priorité 5, puis « courant revenu ».
+  - **Alerte de coupure** (`lib/power-cut.ts`) : 3 radiateurs ou plus hors ligne au même passage → coupure soupçonnée ; **toujours hors ligne au passage suivant** → ntfy priorité 5, puis « courant revenu » en priorité 1.
   - La charge du passage est mémorisée (`barbusse:heating:load`) pour le dashboard.
 - Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. `LOCKED_DEVICES` : devices tenus en hors-gel, ignorés par les crons.
 - **Préparation d'arrivée** (`/api/cron/arrival-readiness`, lecture seule) : serrure, radiateurs et ballon contrôlés la veille 19 h et le jour J (12h30, 15h30, 16h30), non-arrivée signalée le lendemain 9 h, pile de la serrure chaque matin ; silence 22 h–8 h. Détail : [docs/surveillance.md](docs/surveillance.md).
@@ -934,7 +935,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 - ⚠️ Le thermo **alimente un ballon classique** (résistance seule, ~3 kW, permanent) : de l'eau tiède en sortie du thermo, c'est le classique qui chauffe. Aux heures de pic, il porte **seul** l'eau chaude (thermo en Absence) ; à 14 personnes, il peut s'épuiser en fin de série de douches — surveiller les retours voyageurs.
 - ⚠️ **Le boost n'ajoute que de la résistance** : la PAC chauffe dans tous les modes tant que l'eau est sous la consigne. Un boost hors des tirages remplace de la PAC par de la résistance.
 - ⚠️ **Absence aux heures de pic (2026-11-09, coupures à 9 kVA)** : **mesuré le 9/11 au soir avec le compteur d'énergie du thermo, le mode Éco (`manualEcoActive`) ne coupe PAS l'appoint** (≈ 2,1 kW toute la soirée ; PAC seule ≈ 300 W). **Seul le mode Absence coupe toute la chauffe** (`setAbsenceMode`, effet en 10-15 min). Règle (`getExpectedSettings`, `PEAK_WINDOWS`) : **Éco 55 °C** (50 °C vide), **jamais de boost automatique**, **Absence de 4 h 45 à 7 h et de 16 h 45 à 22 h** quand des voyageurs sont là ; le ballon classique 300 L fournit l'eau chaude pendant ces plages. Hors pic, le thermo gère seul PAC et appoint. Ordre des commandes : boost off et Absence on d'abord, Absence off en dernier. Le boost de rattrapage est supprimé. Les puissances remontées (`PowerHeatPumpState` ≈ 1 000 W = chaleur produite, `PowerHeatElectricalState` = 1 800 W figé) ne mesurent rien : se fier au compteur `ElectricEnergyConsumptionState`.
-- **Contrôle** (`lib/water-heater-health.ts`) : recalcule les réglages attendus à la même heure ; Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **« PAC à l'arrêt »** (compteur immobile 2 h, hors Absence) ; un constat n'alerte que s'il était déjà là au contrôle précédent (Redis `barbusse:water-heater:health-pending`).
+- **Contrôle** (`lib/water-heater-health.ts`) : recalcule les réglages attendus à la même heure ; Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **« PAC à l'arrêt »** (compteur immobile 2 h, hors Absence) ; un constat n'alerte que s'il était déjà là au contrôle précédent, une seule fois tant qu'il dure (règle commune, `barbusse:alert:water-heater-health`).
 - **Dashboard** : boost, Éco+ et Performance manuels **refusés (409) aux heures de pic** ; l'admin peut forcer après confirmation, mais **l'automation reprend la main au passage suivant (15 min)**.
 - **Voyageurs comptés** (`countGuests`) : bascule à **11 h** (check-out) — arrivants dès 11 h, partants jusqu'à 11 h, jamais d'éco entre deux réservations enchaînées.
 - Session Overkiz : après un 401, le second essai ouvre une session **neuve** (`getSession(true)`) — relire Redis rendait la session expirée, d'où un 401 une heure sur deux.
@@ -1011,6 +1012,7 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 - **Cron** : `/api/cron/checkin-notifications` toutes les 10 min, fenêtre arrivées J-3 → J+1.
 - **Contenu** : le **prénom seul** (`firstNameOnly` du socle), jamais le nom de famille — le sujet ntfy n'a pour secret que son nom.
 - **Anti-doublon** : Redis `checkin:notified:{bookingId}` (TTL 60 jours) — une seule notif par résa, même si le code est retapé.
+- **Priorité 3** (4 jusqu'au 2026-11-10) : une information, pas une panne.
 - **Service push** : ntfy.sh (gratuit, topic privé non-devinable). Variable `NTFY_TOPIC` = URL complète (ex `https://ntfy.sh/coliving-barbusse-xxxxx`). Subscribe au topic depuis l'app ntfy mobile.
 - **Helper** : `sendNtfy(message, { title, priority, tags, click })` de `@sejour/socle/lib/ntfy`. Encode automatiquement le titre en RFC 2047 pour les emojis/accents (les headers ntfy doivent être ASCII).
 - **Kill switch** : `CHECKIN_NOTIFICATIONS_ENABLED=false` désactive sans redéployer (le cron retourne `{ skipped: "disabled" }`).
