@@ -242,6 +242,58 @@ function toNumber(v: unknown): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+interface OverkizGateway {
+  gatewayId?: string;
+  alive?: boolean;
+  connectivity?: { status?: string };
+}
+
+export interface WaterHeaterConnectivity {
+  /** `available` de l'appareil chez Overkiz, `null` si l'appareil n'est pas listé. */
+  deviceAvailable: boolean | null;
+  /** Passerelle du thermo (identifiant tiré de son `deviceURL`), `null` si introuvable. */
+  gatewayAlive: boolean | null;
+  gatewayStatus: string | null;
+}
+
+/** L'identifiant de passerelle d'un `deviceURL` Overkiz (`modbuslink://1908-1459-2296/1#1`). */
+export function gatewayIdOf(deviceURL: string): string | null {
+  const m = /^[a-z]+:\/\/([^/]+)\//.exec(deviceURL);
+  return m ? m[1] : null;
+}
+
+/**
+ * Le thermo est-il vraiment joignable ? Les états (`getRawStates`) restent servis en cache quand
+ * il n'a plus de courant : le 10/11 au soir, circuit du garage coupé, Cozytouch a renvoyé les
+ * mêmes valeurs toute la nuit et l'alerte « hors ligne » n'est jamais partie. On juge sur
+ * `available` de l'appareil et sur l'état de sa passerelle. Une valeur inconnue (`null`) ne
+ * compte pas comme une coupure.
+ */
+export function isUnreachable(c: WaterHeaterConnectivity): boolean {
+  if (c.deviceAvailable === false) return true;
+  if (c.gatewayAlive === false) return true;
+  return c.gatewayStatus !== null && c.gatewayStatus !== "OK";
+}
+
+export async function getConnectivity(): Promise<WaterHeaterConnectivity> {
+  const { deviceURL } = await getDeviceURLs();
+  const devices = await cozytouchFetch<OverkizDevice[]>("GET", "/setup/devices");
+  const dhw = devices.find((d) => d.deviceURL === deviceURL);
+  let gateway: OverkizGateway | undefined;
+  try {
+    const gateways = await cozytouchFetch<OverkizGateway[]>("GET", "/setup/gateways");
+    const id = gatewayIdOf(deviceURL);
+    gateway = gateways.find((g) => g.gatewayId === id) ?? (gateways.length === 1 ? gateways[0] : undefined);
+  } catch {
+    gateway = undefined;
+  }
+  return {
+    deviceAvailable: dhw ? dhw.available : null,
+    gatewayAlive: typeof gateway?.alive === "boolean" ? gateway.alive : null,
+    gatewayStatus: gateway?.connectivity?.status ?? null,
+  };
+}
+
 export async function getRawStates(deviceURL: string): Promise<OverkizState[]> {
   const encodedURL = encodeURIComponent(deviceURL);
   return cozytouchFetch<OverkizState[]>("GET", `/setup/devices/${encodedURL}/states`);

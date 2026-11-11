@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import {
+  getConnectivity,
+  isUnreachable,
   getWaterHeaterStatus,
   getExpectedSettings,
   heatPumpStalled,
@@ -13,7 +15,7 @@ import {
 import { getActiveBookings, countGuests } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
-import { reportCronRun } from "@/lib/alert-memory";
+import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
 import {
   absenceSince,
@@ -46,11 +48,39 @@ export async function GET(request: NextRequest) {
     const today = todayParis();
     const hour = paris.getHours();
 
-    const [bookings, status, log] = await Promise.all([
+    const [bookings, status, log, connectivity] = await Promise.all([
       getActiveBookings(),
       getWaterHeaterStatus(),
       readWaterHeaterLog(24),
+      getConnectivity().catch(() => null),
     ]);
+
+    // Thermo injoignable (circuit du garage coupé le 10/11 au soir, maison vide) : alerte après
+    // deux passages de suite, règle commune ; aucune commande envoyée dans le vide.
+    const unreachable = connectivity !== null && isUnreachable(connectivity);
+    await reportAlerts(
+      "water-heater-reach",
+      unreachable
+        ? [
+            {
+              id: "unreachable",
+              priority: 5,
+              line: `Le thermo ne répond plus à Cozytouch (appareil ${connectivity!.deviceAvailable === false ? "indisponible" : "?"}, passerelle ${connectivity!.gatewayStatus ?? "?"}). Les ballons sont dans le garage : circuit du garage coupé ? Il faut réarmer, sinon plus d'eau chaude.`,
+            },
+          ]
+        : [],
+      sendWaterHeaterAlert,
+      {
+        title: () => "Thermo injoignable — circuit du garage coupé ?",
+        recoveredTitle: "Thermo de nouveau joignable",
+        recoveredBody: "Cozytouch voit de nouveau le thermo.",
+      },
+    ).catch(() => {});
+    if (unreachable) {
+      await beat("water-heater-automation", "ok");
+      await reportCronRun("water-heater-automation", "Automation de l'eau chaude", sendWaterHeaterAlert, null).catch(() => {});
+      return NextResponse.json({ success: true, unreachable: true, connectivity, timestamp: now.toISOString() });
+    }
     const guests = countGuests(bookings, today, hour);
     const { profile, peak, ...settings } = getExpectedSettings(guests, hour, paris.getMinutes());
     const earlier = entryOlderThan(log, now, PAC_STALL.afterMs);
@@ -88,6 +118,7 @@ export async function GET(request: NextRequest) {
       success: true,
       profile,
       guests,
+      connectivity,
       peak,
       settings,
       heatPumpStalled: stalled,

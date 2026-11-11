@@ -41,7 +41,8 @@ export function waterHeaterIssues(
   stalled: boolean,
 ): HealthIssue[] {
   if (!status.isAvailable) {
-    return [{ id: "offline", message: "Ballon thermodynamique hors ligne (aucun état remonté)." }];
+    // Aucun état remonté : l'automation (15 min) porte déjà l'alerte « thermo injoignable ».
+    return [];
   }
 
   const issues: HealthIssue[] = [];

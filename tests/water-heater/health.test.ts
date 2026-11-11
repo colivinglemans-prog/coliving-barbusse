@@ -26,8 +26,8 @@ describe("waterHeaterIssues", () => {
     expect(ids(eco({ absenceActive: true }), 19)).toEqual([]);
   });
 
-  it("hors ligne : un seul constat", () => {
-    expect(ids(eco({ isAvailable: false }))).toEqual(["offline"]);
+  it("hors ligne : rien ici, l'automation porte l'alerte « thermo injoignable »", () => {
+    expect(ids(eco({ isAvailable: false }))).toEqual([]);
   });
 
   it("pic sans Absence : signalé ; Absence restée hors pic : signalée", () => {
