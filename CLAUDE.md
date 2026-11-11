@@ -966,6 +966,7 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
 | Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
+| Veille caméra (mouvement) | `/api/cron/camera-watch` | `*/5 * * * *` |
 | Préparation d'arrivée | `/api/cron/arrival-readiness` | `35 * * * *` (jour et nuit) |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
 | Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
@@ -1038,6 +1039,30 @@ Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et
 - **Envoi** : même `NTFY_TOPIC` que le check-in, priorité 2 (basse), titre « Veille
   événements — Coliving Barbusse ». `NTFY_TOPIC` absent → **500**, jamais un envoi ignoré.
 
+## Veille caméra (Wansview / AJCloud, mouvement → ntfy)
+
+Les caméras de la maison (Wansview / Cinnado, plateforme **AJCloud**) n'exposent ni RTSP ni
+ONVIF dans l'appli, et leur flux vidéo passe par un **P2P propriétaire** (DLL `SE_P2PSDK`,
+non réimplémenté). Mais leur **API cloud** se laisse interroger avec le compte Wansview : on y
+lit l'état, l'image instantanée et surtout les **événements de mouvement** (image + clip vidéo).
+
+| Pièce | Rôle |
+|---|---|
+| [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Client API cloud AJCloud : login (défi NaCl Box + signature HMAC-SHA256 `X-UAC-Signature`), `device-list`, `fetch-infos` (snapshot, RTSP local, en ligne), `alarms-survey` (mouvement). `tweetnacl` pour le chiffrement. |
+| [lib/camera/watch.ts](lib/camera/watch.ts) | Logique pure : nouveaux événements depuis le dernier `cts`, mise en forme. Testée (`tests/camera/`). |
+| `/api/cron/camera-watch` | Toutes les 5 min (cron-job.org). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. |
+
+- **Anti-inondation** : au premier passage d'une caméra, aucune notification — on pose seulement
+  la ligne de base `barbusse:camera:last-cts:<did>` (Redis). Les passages suivants ne notifient
+  que ce qui est postérieur. Plafond de 6 alertes par passage.
+- **Dépôt public** : les URLs d'image et de vidéo sont **signées** (jetons temporaires) ; jamais
+  dans la réponse du cron ni dans les logs, seulement dans la notification.
+- **Vidéo en direct dans le dashboard** : non faite. Le flux `rtsp://<IP locale>:554/...` (donné
+  par `fetch-infos`) n'est joignable que depuis le réseau de la maison — il faudra un relais sur
+  place (VM Freebox + go2rtc). Le P2P reste non réimplémenté (repli possible : caméra ONVIF).
+- Variables : `AJCLOUD_EMAIL`, `AJCLOUD_PASSWORD`, `NTFY_TOPIC`, `CRON_SECRET` ;
+  `CAMERA_WATCH_ENABLED=false` coupe sans redéployer.
+
 ## Redis (client unique, `lib/redis.ts`)
 
 `getRedis()` est le seul client Upstash du site (les six copies ont été retirées le 2026-11-07). Les **nouvelles** clés passent par `redisKey(...)` → préfixe `barbusse:` ; les anciennes (`heatzy:*`, `cozytouch:*`, `nuki:*`, `checkin:notified:*`, `pricing:*`, `invoice:counter:*`) ne sont **pas** renommées : verrous, compteurs de factures et anti-doublons repartiraient de zéro.
@@ -1074,6 +1099,9 @@ HISTORIQUE_BARBUSSE      # Archive 310268 : JSON gzippé + base64, sans infoItem
 NUKI_API_TOKEN           # Nuki Web
 NUKI_SMARTLOCK_ID        # Id de la serrure (toujours viser l'id, jamais le nom)
 NUKI_SYNC_MODE           # "live" pour écrire ; toute autre valeur = à blanc
+AJCLOUD_EMAIL            # Compte Wansview/AJCloud (veille caméra). Absentes → le cron se tait.
+AJCLOUD_PASSWORD         # Mot de passe du compte Wansview. API cloud seulement (pas le P2P vidéo).
+CAMERA_WATCH_ENABLED     # Optionnel : "false" pour couper la veille caméra sans redéployer
 BEDS24_WEBHOOK_SECRET    # En-tête x-webhook-secret du webhook Beds24
 DEEPL_API_KEY            # Local seulement (scripts/translate-reviews.mjs), pas sur Vercel
 BLOB_READ_WRITE_TOKEN    # Store Vercel Blob PRIVÉ de la sauvegarde Beds24 (posé par Vercel à la liaison du store)
