@@ -81,7 +81,11 @@ export async function POST(request: NextRequest) {
   });
   if (result !== "accepted") {
     // Pas d'alerte sans en-tête : ce sont des robots, pas Beds24 (la trace, elle, est gardée).
-    if (result !== "no-header" && (await firstRefusalAlert())) {
+    // Seul un refus venant de Beds24 (agent « Booking Notifier ») alerte : le contrôle
+    // `security.webhooks` du socle envoie exprès un faux secret après chaque déploiement et
+    // donnait une fausse alerte toutes les 6 h (constaté le 2026-11-13).
+    const fromBeds24 = (request.headers.get("user-agent") ?? "").includes("Booking Notifier");
+    if (result !== "no-header" && fromBeds24 && (await firstRefusalAlert())) {
       await sendNtfy(
         `Webhook Beds24 refusé (${result}${bracketed ? ", valeur entre chevrons" : ""}) : vérifier le « Custom Header » dans Beds24.`,
         { title: "Barbusse — webhook Beds24", priority: 3, tags: ["warning"] },
