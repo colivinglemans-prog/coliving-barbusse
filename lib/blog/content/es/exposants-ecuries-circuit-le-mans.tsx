@@ -154,7 +154,7 @@ export default function Article() {
         <li>
           <strong>Tranvía T1 a la altura de la estación, a 15 minutos a pie</strong>, hasta el
           final de línea Antarès / MMArena, del lado del circuito: práctico para quienes no
-          cogen el vehículo del equipo.
+          cogen el vehículo del equipo. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
         <li>
           <strong>Estación de TGV de Le Mans a 15 minutos a pie</strong> (París-Montparnasse en

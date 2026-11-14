@@ -95,7 +95,7 @@ export default function Article() {
       </p>
       <ul>
         <li>Kostenfreies Parken in einer ruhigen Wohnstraße</li>
-        <li>15 Min. zu Fuß zum Bahnhof Le Mans + direkte Straßenbahn T1 zur Rennstrecke (~35 Min. von Tür zu Tür, ideal um an Tagen mit Andrang das Sammlerauto sicher abzustellen)</li>
+        <li>15 Min. zu Fuß zum Bahnhof Le Mans + direkte Straßenbahn T1 zur Rennstrecke (~35 Min. von Tür zu Tür, ideal um an Tagen mit Andrang das Sammlerauto sicher abzustellen) — Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a></li>
         <li>Voll ausgestattete Küche für ein gemeinsames Abendessen im „Team-Mahl'-Modus</li>
         <li>215 m² insgesamt (Gemeinschaftsräume, Zimmer und Sport/Zen-Bereich) zum Zusammenkommen</li>
         <li>Breitband-WLAN, Fitnessraum, Zen-Bereich</li>

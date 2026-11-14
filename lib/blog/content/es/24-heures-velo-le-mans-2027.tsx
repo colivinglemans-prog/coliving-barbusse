@@ -174,7 +174,7 @@ export default function Article() {
           de antemano quién conduce de noche. Los accesos de vehículos al circuito dependen de
           la fórmula de inscripción. El tranvía T1 se coge a la altura de la estación, a 15
           minutos a pie, y llega hasta el circuito (final de línea Antarès / MMArena):
-          compruebe sus horarios nocturnos si cuenta con él.
+          compruebe sus horarios nocturnos si cuenta con él. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
         <li>
           <strong>En tren</strong>: la estación de TGV de Le Mans está a 15 minutos a pie de la

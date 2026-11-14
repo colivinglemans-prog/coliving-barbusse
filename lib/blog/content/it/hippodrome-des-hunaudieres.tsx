@@ -84,7 +84,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Tram + camminata</strong>: possibile con il T1 fino alla
-          fermata Antarès, poi pochi minuti a piedi.
+          fermata Antarès, poi pochi minuti a piedi. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
         <li>
           <strong>Taxi / NCC</strong>: molto pratico la sera all'uscita di

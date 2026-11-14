@@ -71,8 +71,8 @@ export default function Article() {
       <p>
         A major asset from central Le Mans: the <strong>T1 tram</strong> goes directly to
         the Circuit (stop <em>Antarès / MMArena</em>, southern terminus of the line). The
-        ride takes <strong>~30 min</strong> from the TGV station, with service every{" "}
-        <strong>4-5 min</strong> on race weekend.
+        ride takes <strong>~20 min</strong> from the TGV station, with service every{" "}
+        <strong>4-5 min</strong> on race weekend. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
       </p>
       <ul>
         <li>

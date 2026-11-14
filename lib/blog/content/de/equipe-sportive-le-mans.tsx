@@ -134,7 +134,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Mit der Straßenbahn</strong>: Die Linie T1 am Bahnhof (15 Gehminuten) fährt
-          direkt zu Antarès und zum Stadion (Endhaltestelle Antarès / MMArena).
+          direkt zu Antarès und zum Stadion (Endhaltestelle Antarès / MMArena). Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
       </ul>
 

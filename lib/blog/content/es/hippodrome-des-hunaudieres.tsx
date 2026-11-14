@@ -84,7 +84,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Tranvía + caminata</strong>: posible vía el T1 hasta la
-          parada Antarès, luego unos minutos a pie.
+          parada Antarès, luego unos minutos a pie. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
         <li>
           <strong>Taxi / VTC</strong>: muy práctico por la noche al salir de

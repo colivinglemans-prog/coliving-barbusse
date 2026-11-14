@@ -109,7 +109,7 @@ export default function Article() {
           <Link href="/en/blog/entreprises-proches-le-mans">nearby companies</Link>).
         </li>
         <li>
-          <strong>T1 tram</strong> at the station, a 15-minute walk away.
+          <strong>T1 tram</strong> at the station, a 15-minute walk away. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
         <li>
           <strong>Parking</strong>: free on the street, no parking disc or meter, but no

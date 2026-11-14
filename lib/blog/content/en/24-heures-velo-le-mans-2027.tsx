@@ -166,7 +166,7 @@ export default function Article() {
           Decide in advance who drives at night. Vehicle passes for the circuit are limited
           according to your entry format. The T1 tram leaves from the station, a 15-minute
           walk away, and runs to the circuit (Antarès / MMArena terminus): check its
-          night-time timetable if you are counting on it.
+          night-time timetable if you are counting on it. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
         <li>
           <strong>By train</strong>: Le Mans TGV station is a 15-minute walk from the house.

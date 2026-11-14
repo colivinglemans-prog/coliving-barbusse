@@ -97,7 +97,7 @@ export default function Article() {
           <strong>Verkehrsmittel</strong>: Vermeiden Sie das Auto am Sonntagmorgen. Die{" "}
           <strong>Straßenbahn T1</strong> ab dem Bahnhof Le Mans erreicht den Osteingang
           der Strecke in ~20 Minuten (Taktung alle 4-5 Minuten am Renntag). Das ist
-          mit Abstand die schnellste und stressärmste Lösung.
+          mit Abstand die schnellste und stressärmste Lösung. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
         <li>
           <strong>Rechnen Sie mit der Rückfahrt</strong>: Sonntagabend nach dem Rennen

@@ -96,7 +96,7 @@ export default function Article() {
           <strong>Trasporto</strong>: evita l'auto la domenica mattina. Il{" "}
           <strong>tram T1</strong> dalla stazione di Le Mans raggiunge l'ingresso Est del
           circuito in ~20 min (frequenza ogni 4-5 minuti il giorno della gara). È di gran
-          lunga la soluzione più rapida e meno stressante.
+          lunga la soluzione più rapida e meno stressante. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
         <li>
           <strong>Anticipa il ritorno</strong>: la domenica sera dopo la gara, le strade

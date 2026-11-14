@@ -129,7 +129,7 @@ export default function Article() {
         </li>
         <li>
           <strong>By tram</strong>: the T1 tram, at the station (a 15-minute walk), runs
-          straight to Antarès and the stadium (Antarès / MMArena terminus).
+          straight to Antarès and the stadium (Antarès / MMArena terminus). Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
       </ul>
 

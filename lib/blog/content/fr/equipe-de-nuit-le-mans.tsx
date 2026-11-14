@@ -111,7 +111,7 @@ export default function Article() {
           <Link href="/fr/blog/entreprises-proches-le-mans">les entreprises proches</Link>).
         </li>
         <li>
-          <strong>Tramway T1</strong> au niveau de la gare, à 15 minutes à pied.
+          <strong>Tramway T1</strong> au niveau de la gare, à 15 minutes à pied. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
         <li>
           <strong>Stationnement</strong> gratuit dans la rue, sans disque ni horodateur, mais

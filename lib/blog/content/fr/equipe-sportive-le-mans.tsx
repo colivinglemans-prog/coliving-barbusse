@@ -134,7 +134,7 @@ export default function Article() {
         </li>
         <li>
           <strong>En tram</strong> : le tramway T1, au niveau de la gare (15 minutes à pied),
-          dessert directement Antarès et le stade (terminus Antarès / MMArena).
+          dessert directement Antarès et le stade (terminus Antarès / MMArena). Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
       </ul>
 

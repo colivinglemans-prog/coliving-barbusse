@@ -108,7 +108,7 @@ export default function Article() {
           <strong>Plan for traffic</strong>: leave 2 hours before the race start on
           Saturday, or even better: take the <strong>T1 tram</strong> from Le Mans
           station (~20 min to the East entrance of the circuit, trams every 4-5 min on
-          race day). The most reliable option.
+          race day). The most reliable option. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
       </ol>
 

@@ -89,7 +89,7 @@ export default function Article() {
           <strong>Sal pronto hacia el circuito</strong> el sábado por la mañana (antes
           de las 10 h), o coge el <strong>tranvía T1</strong> desde la estación de Le
           Mans (~20 min hasta la entrada Este del circuito) para evitar los atascos y
-          el estrés del aparcamiento.
+          el estrés del aparcamiento. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
         <li>
           <strong>Reserva un día de turismo</strong>: Cité Plantagenêt, catedral

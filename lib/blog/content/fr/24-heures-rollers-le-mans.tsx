@@ -72,8 +72,8 @@ export default function Article() {
         Un atout majeur depuis le centre du Mans : le{" "}
         <strong>tramway T1</strong> dessert directement le Circuit (arrêt{" "}
         <em>Antarès / MMArena</em>, terminus sud de la ligne). Le trajet dure{" "}
-        <strong>~30 min</strong> depuis la gare TGV, avec une cadence renforcée{" "}
-        <strong>toutes les 4-5 min</strong> le week-end de course.
+        <strong>~20 min</strong> depuis la gare TGV, avec une cadence renforcée{" "}
+        <strong>toutes les 4-5 min</strong> le week-end de course. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
       </p>
       <ul>
         <li>

@@ -84,7 +84,7 @@ export default function Article() {
         <li>
           <strong>Leave early for the circuit</strong> Saturday morning (before 10 am),
           or take the <strong>T1 tram</strong> from Le Mans station (~20 min to the
-          East entrance) to avoid the jams and parking stress.
+          East entrance) to avoid the jams and parking stress. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
         <li>
           <strong>Keep one day for sightseeing</strong>: Plantagenet City, Saint-Julien

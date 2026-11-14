@@ -40,7 +40,7 @@ export default function Article() {
       <p>
         La casa está a 4,7 km del circuito de las 24 Horas, frente al cual se encuentra el
         Centre des expositions, y a <strong>15 minutos a pie de la estación</strong>: el
-        tranvía T1, a la altura de la estación, lleva directamente a Antarès.
+        tranvía T1, a la altura de la estación, lleva directamente a Antarès. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
       </p>
 
       <h2>Los Hair Artist Awards, la gran cita de los aprendices de peluquería</h2>

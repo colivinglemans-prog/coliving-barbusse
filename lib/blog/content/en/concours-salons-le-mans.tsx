@@ -38,7 +38,7 @@ export default function Article() {
       <p>
         The house is 4.7 km from the 24 Hours circuit, opposite which stands the Centre des
         expositions, and <strong>a 15-minute walk from the station</strong>: the T1 tram, at
-        the station, takes you straight to Antarès.
+        the station, takes you straight to Antarès. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
       </p>
 
       <h2>The Hair Artist Awards, the big event for apprentice hairdressers</h2>

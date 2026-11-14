@@ -173,7 +173,7 @@ export default function Article() {
           Legen Sie im Voraus fest, wer nachts fährt. Die Fahrzeugzugänge zur Strecke sind je
           nach Anmeldeformel begrenzt. Die Straßenbahnlinie T1 hält am Bahnhof, 15 Gehminuten
           entfernt, und fährt bis zur Strecke (Endhaltestelle Antarès / MMArena): Prüfen Sie
-          die Nachtfahrzeiten, wenn Sie auf sie setzen.
+          die Nachtfahrzeiten, wenn Sie auf sie setzen. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
         <li>
           <strong>Mit dem Zug</strong>: Der TGV-Bahnhof Le Mans liegt 15 Gehminuten vom Haus

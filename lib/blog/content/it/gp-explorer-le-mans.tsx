@@ -89,7 +89,7 @@ export default function Article() {
       </p>
       <ul>
         <li>20 min dal Circuit Bugatti fuori evento (45-60 min nei giorni di gara)</li>
-        <li>15 min a piedi dalla stazione TGV + tram T1 diretto verso il circuito (~35 min porta a porta, senza traffico né problemi di parcheggio)</li>
+        <li>15 min a piedi dalla stazione TGV + tram T1 diretto verso il circuito (~35 min porta a porta, senza traffico né problemi di parcheggio) — Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a></li>
         <li>Parcheggio gratuito in una via residenziale tranquilla</li>
         <li>215 m² totali (spazi comuni, camere e annesso sport/zen) per stare insieme</li>
         <li>Wi-Fi ad alta velocità per seguire le sessioni in diretta</li>

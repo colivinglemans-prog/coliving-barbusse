@@ -93,7 +93,7 @@ export default function Article() {
           <strong>Transport</strong> : évitez la voiture le dimanche matin. Le{" "}
           <strong>tramway T1</strong> depuis la gare du Mans rejoint l'entrée Est du circuit
           en ~20 min (cadence toutes les 4-5 min le jour de course). C'est de loin la solution
-          la plus rapide et la moins stressante.
+          la plus rapide et la moins stressante. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
         <li>
           <strong>Anticipez le retour</strong> : le dimanche soir après la course, les axes sont

@@ -89,7 +89,7 @@ export default function Article() {
       </p>
       <ul>
         <li>Free street parking in a quiet residential area</li>
-        <li>15 min walk from Le Mans station + direct tram T1 to the circuit (~35 min door-to-door, ideal to leave the collection car safe on busy days)</li>
+        <li>15 min walk from Le Mans station + direct tram T1 to the circuit (~35 min door-to-door, ideal to leave the collection car safe on busy days) — Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a></li>
         <li>Fully equipped kitchen for team dinners</li>
         <li>215 m² total (common areas, bedrooms and gym/zen annex) to regroup</li>
         <li>High-speed Wi-Fi, gym, zen space</li>

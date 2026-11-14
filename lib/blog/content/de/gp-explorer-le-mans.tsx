@@ -91,7 +91,7 @@ export default function Article() {
       </p>
       <ul>
         <li>20 Minuten zum Circuit Bugatti außerhalb der Veranstaltung (45-60 Minuten an Renntagen)</li>
-        <li>15 Gehminuten zum TGV-Bahnhof + Straßenbahn T1 direkt zur Rennstrecke (~35 Minuten von Tür zu Tür, ohne Staus und Parkplatzsorgen)</li>
+        <li>15 Gehminuten zum TGV-Bahnhof + Straßenbahn T1 direkt zur Rennstrecke (~35 Minuten von Tür zu Tür, ohne Staus und Parkplatzsorgen) — Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a></li>
         <li>Kostenlose Parkplätze in der ruhigen Wohnstraße</li>
         <li>Insgesamt 215 m² (Gemeinschaftsbereiche, Zimmer und Sport-/Zen-Anbau), um zusammenzukommen</li>
         <li>Highspeed-WLAN, um die Sessions live zu verfolgen</li>

@@ -132,7 +132,7 @@ export default function Article() {
         </li>
         <li>
           <strong>In tram</strong>: il tram T1, all&apos;altezza della stazione (15 minuti a
-          piedi), porta direttamente ad Antarès e allo stadio (capolinea Antarès / MMArena).
+          piedi), porta direttamente ad Antarès e allo stadio (capolinea Antarès / MMArena). Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
       </ul>
 

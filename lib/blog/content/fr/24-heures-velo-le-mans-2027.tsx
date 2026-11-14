@@ -168,7 +168,7 @@ export default function Article() {
           l'avance qui conduit la nuit. Les accès véhicules au circuit sont comptés selon la
           formule d'inscription. Le tramway T1 se prend au niveau de la gare, à 15 minutes à
           pied, et va jusqu'au circuit (terminus Antarès / MMArena) : vérifiez ses horaires de
-          nuit si vous comptez sur lui.
+          nuit si vous comptez sur lui. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
         <li>
           <strong>En train</strong> : la gare TGV du Mans est à 15 minutes à pied de la maison.

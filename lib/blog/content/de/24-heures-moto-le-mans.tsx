@@ -87,7 +87,7 @@ export default function Article() {
           <strong>Brechen Sie früh zur Rennstrecke auf</strong> am Samstagmorgen (vor
           10 Uhr) oder nehmen Sie die <strong>Straßenbahn T1</strong> ab dem Bahnhof
           Le Mans (~20 Minuten zum Osteingang der Strecke), um Staus und Parkplatzstress
-          zu vermeiden.
+          zu vermeiden. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
         <li>
           <strong>Reservieren Sie einen Tag für Sightseeing</strong>: Cité Plantagenêt,

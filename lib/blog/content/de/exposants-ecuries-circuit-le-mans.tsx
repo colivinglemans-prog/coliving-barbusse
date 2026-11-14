@@ -152,7 +152,7 @@ export default function Article() {
         <li>
           <strong>Straßenbahnlinie T1 am Bahnhof, 15 Gehminuten entfernt</strong>, bis zur
           Endhaltestelle Antarès / MMArena auf der Seite der Rennstrecke: praktisch für alle,
-          die nicht mit dem Teamfahrzeug fahren.
+          die nicht mit dem Teamfahrzeug fahren. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
         <li>
           <strong>TGV-Bahnhof Le Mans 15 Gehminuten entfernt</strong> (Paris-Montparnasse in

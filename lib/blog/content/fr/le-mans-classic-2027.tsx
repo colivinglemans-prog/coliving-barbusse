@@ -87,7 +87,7 @@ export default function Article() {
       </p>
       <ul>
         <li>Stationnement gratuit dans une rue résidentielle calme</li>
-        <li>15 min à pied de la gare du Mans + tram T1 direct vers le circuit (~35 min porte-à-porte, idéal pour laisser la voiture de collection à l'abri les jours d'affluence)</li>
+        <li>15 min à pied de la gare du Mans + tram T1 direct vers le circuit (~35 min porte-à-porte, idéal pour laisser la voiture de collection à l'abri les jours d'affluence) — Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a></li>
         <li>Cuisine équipée pour dîner ensemble en mode "repas d'équipe"</li>
         <li>215 m² au total (espaces communs, chambres et annexe sport/zen) pour se retrouver</li>
         <li>Wi-Fi haut débit, salle de sport, espace zen</li>

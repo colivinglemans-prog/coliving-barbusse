@@ -79,7 +79,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Tram + marche</strong> : possible via le T1 jusqu'à la station Antarès,
-          puis quelques minutes à pied.
+          puis quelques minutes à pied. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
         <li>
           <strong>Taxi / VTC</strong> : très pratique le soir en sortant d'une réunion

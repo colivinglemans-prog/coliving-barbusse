@@ -78,7 +78,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Tram + walk</strong>: possible via T1 to the Antarès station, then a few
-          minutes on foot.
+          minutes on foot. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
         <li>
           <strong>Taxi / rideshare</strong>: very handy after an evening meeting.

@@ -77,8 +77,8 @@ export default function Article() {
         Un vantaggio importante dal centro di Le Mans: il{" "}
         <strong>tram T1</strong> serve direttamente il Circuito (fermata{" "}
         <em>Antarès / MMArena</em>, capolinea sud della linea). Il tragitto
-        dura <strong>~30 min</strong> dalla stazione TGV, con una frequenza
-        rinforzata <strong>ogni 4-5 min</strong> nel weekend di gara.
+        dura <strong>~20 min</strong> dalla stazione TGV, con una frequenza
+        rinforzata <strong>ogni 4-5 min</strong> nel weekend di gara. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
       </p>
       <ul>
         <li>

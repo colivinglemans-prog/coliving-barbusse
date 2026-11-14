@@ -95,7 +95,7 @@ export default function Article() {
           <strong>Transport</strong>: avoid the car on Sunday morning. The{" "}
           <strong>T1 tram</strong> from Le Mans station reaches the East entrance in
           about 20 min (every 4-5 min on race day). By far the fastest and least
-          stressful option.
+          stressful option. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
         <li>
           <strong>Plan the return</strong>: Sunday evening after the race, roads are

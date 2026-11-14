@@ -75,9 +75,9 @@ export default function Article() {
         Una ventaja importante desde el centro de Le Mans: el{" "}
         <strong>Tranvía T1</strong> da servicio directo al Circuito (parada{" "}
         <em>Antarès / MMArena</em>, terminal sur de la línea). El trayecto
-        dura <strong>~30 min</strong> desde la estación TGV, con una
+        dura <strong>~20 min</strong> desde la estación TGV, con una
         frecuencia reforzada <strong>cada 4-5 min</strong> el fin de semana
-        de carrera.
+        de carrera. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
       </p>
       <ul>
         <li>

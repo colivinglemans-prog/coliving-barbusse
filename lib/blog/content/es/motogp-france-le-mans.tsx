@@ -96,7 +96,7 @@ export default function Article() {
           <strong>Transporte</strong>: evita el coche el domingo por la mañana. El{" "}
           <strong>tranvía T1</strong> desde la estación de Le Mans llega a la entrada
           Este del circuito en ~20 min (frecuencia de cada 4-5 min el día de carrera).
-          Es con diferencia la solución más rápida y menos estresante.
+          Es con diferencia la solución más rápida y menos estresante. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
         <li>
           <strong>Anticipa el regreso</strong>: el domingo por la noche tras la carrera,

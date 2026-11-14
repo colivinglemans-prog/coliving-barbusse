@@ -111,7 +111,7 @@ export default function Article() {
           <strong>Anticipa il traffico</strong>: parti 2 ore prima dell'inizio della gara
           il sabato, o meglio ancora: prendi il <strong>tram T1</strong> dalla stazione di
           Le Mans (~20 min fino all'ingresso Est del circuito, tram ogni 4-5 minuti il
-          giorno della gara). È la soluzione più affidabile.
+          giorno della gara). È la soluzione più affidabile. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
       </ol>
 

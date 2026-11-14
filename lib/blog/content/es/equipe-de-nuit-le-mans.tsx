@@ -114,7 +114,7 @@ export default function Article() {
           <Link href="/es/blog/entreprises-proches-le-mans">las empresas cercanas</Link>).
         </li>
         <li>
-          <strong>Tranvía T1</strong> a la altura de la estación, a 15 minutos a pie.
+          <strong>Tranvía T1</strong> a la altura de la estación, a 15 minutos a pie. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
         <li>
           <strong>Aparcamiento</strong> gratuito en la calle, sin disco ni parquímetro, pero

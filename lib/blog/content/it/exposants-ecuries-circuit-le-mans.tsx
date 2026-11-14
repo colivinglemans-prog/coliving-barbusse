@@ -156,7 +156,7 @@ export default function Article() {
         <li>
           <strong>Tram T1 all&apos;altezza della stazione, a 15 minuti a piedi</strong>, fino al
           capolinea Antarès / MMArena, lato circuito: comodo per chi non prende il veicolo della
-          squadra.
+          squadra. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
         <li>
           <strong>Stazione TGV di Le Mans a 15 minuti a piedi</strong> (Parigi-Montparnasse in

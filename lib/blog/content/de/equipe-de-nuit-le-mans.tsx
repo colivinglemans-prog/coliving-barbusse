@@ -111,7 +111,7 @@ export default function Article() {
           <Link href="/de/blog/entreprises-proches-le-mans">Unternehmen in der Nähe</Link>).
         </li>
         <li>
-          <strong>Straßenbahnlinie T1</strong> am Bahnhof, 15 Gehminuten entfernt.
+          <strong>Straßenbahnlinie T1</strong> am Bahnhof, 15 Gehminuten entfernt. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
         <li>
           <strong>Parken</strong> kostenlos auf der Straße, ohne Parkscheibe oder Parkuhr, aber

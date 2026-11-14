@@ -170,7 +170,7 @@ export default function Article() {
           anticipo chi guida di notte. Gli accessi veicoli al circuito sono contati in base alla
           formula d&apos;iscrizione. Il tram T1 si prende all&apos;altezza della stazione, a 15
           minuti a piedi, e arriva fino al circuito (capolinea Antarès / MMArena): verificate gli
-          orari notturni se contate su di lui.
+          orari notturni se contate su di lui. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
         <li>
           <strong>In treno</strong>: la stazione TGV di Le Mans è a 15 minuti a piedi dalla casa.

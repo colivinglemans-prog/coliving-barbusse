@@ -87,7 +87,7 @@ export default function Article() {
           <strong>Partite presto per il circuito</strong> il sabato mattina (prima delle
           10), oppure prendete il <strong>tram T1</strong> dalla stazione di Le Mans (~20
           min fino all'ingresso Est del circuito) per evitare il traffico e lo stress del
-          parcheggio.
+          parcheggio. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
         <li>
           <strong>Tenete una giornata per il turismo</strong>: Cité Plantagenêt,

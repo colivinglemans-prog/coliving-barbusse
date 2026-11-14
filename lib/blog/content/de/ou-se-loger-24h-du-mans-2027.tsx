@@ -113,7 +113,7 @@ export default function Article() {
           <strong>Rechnen Sie mit Staus</strong>: Brechen Sie samstags 2 Stunden vor
           Rennstart auf — oder besser: Nehmen Sie die <strong>Straßenbahn T1</strong>{" "}
           ab dem Bahnhof Le Mans (~20 Minuten bis zum Osteingang der Strecke,
-          Straßenbahnen alle 4-5 Minuten am Renntag). Das ist die zuverlässigste Lösung.
+          Straßenbahnen alle 4-5 Minuten am Renntag). Das ist die zuverlässigste Lösung. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
       </ol>
 

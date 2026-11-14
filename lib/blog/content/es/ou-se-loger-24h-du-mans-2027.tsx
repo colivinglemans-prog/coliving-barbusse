@@ -114,7 +114,7 @@ export default function Article() {
           <strong>Anticipa los atascos</strong>: sal 2 h antes del inicio de la carrera
           el sábado o, mejor aún, coge el <strong>tranvía T1</strong> desde la estación
           de Le Mans (~20 min hasta la entrada Este del circuito, tranvías cada 4-5 min
-          el día de carrera). Es la solución más fiable.
+          el día de carrera). Es la solución más fiable. Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
       </ol>
 

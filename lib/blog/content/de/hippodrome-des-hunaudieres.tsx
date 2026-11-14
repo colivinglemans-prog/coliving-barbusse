@@ -84,7 +84,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Straßenbahn + Fußweg</strong>: möglich über die T1 bis zur
-          Haltestelle Antarès, dann wenige Minuten zu Fuß.
+          Haltestelle Antarès, dann wenige Minuten zu Fuß. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
         </li>
         <li>
           <strong>Taxi / Fahrdienst</strong>: sehr praktisch am Abend nach

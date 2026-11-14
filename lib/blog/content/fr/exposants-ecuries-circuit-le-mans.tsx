@@ -153,7 +153,7 @@ export default function Article() {
         <li>
           <strong>Tramway T1 au niveau de la gare, à 15 minutes à pied</strong>, jusqu'au
           terminus Antarès / MMArena, côté circuit : pratique pour ceux qui ne prennent pas le
-          véhicule de l'équipe.
+          véhicule de l'équipe. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
         <li>
           <strong>Gare TGV du Mans à 15 minutes à pied</strong> (Paris-Montparnasse en 55

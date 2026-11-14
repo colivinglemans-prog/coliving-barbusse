@@ -110,7 +110,7 @@ export default function Article() {
           <strong>Anticipez les embouteillages</strong> : partez 2h avant le début de la course
           le samedi, ou mieux : prenez le <strong>tramway T1</strong> depuis la gare du
           Mans (~20 min jusqu'à l'entrée Est du circuit, trams toutes les 4-5 min le jour
-          de course). C'est la solution la plus fiable.
+          de course). C'est la solution la plus fiable. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
       </ol>
 

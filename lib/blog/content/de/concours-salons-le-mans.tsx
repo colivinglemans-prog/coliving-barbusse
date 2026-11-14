@@ -41,7 +41,7 @@ export default function Article() {
       <p>
         Das Haus liegt 4,7 km von der Rennstrecke der 24 Stunden entfernt, gegenüber der sich
         das Centre des expositions befindet, und <strong>15 Gehminuten vom Bahnhof</strong>:
-        Die Straßenbahnlinie T1 am Bahnhof fährt direkt zum Antarès.
+        Die Straßenbahnlinie T1 am Bahnhof fährt direkt zum Antarès. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
       </p>
 
       <h2>Die Hair Artist Awards, das große Treffen der Friseur-Azubis</h2>

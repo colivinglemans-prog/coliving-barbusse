@@ -90,7 +90,7 @@ export default function Article() {
       </p>
       <ul>
         <li>20 min from the Bugatti Circuit off-event (45-60 min on race days)</li>
-        <li>15 min walk from the TGV station + direct tram T1 to the circuit (~35 min door-to-door, no parking hassle)</li>
+        <li>15 min walk from the TGV station + direct tram T1 to the circuit (~35 min door-to-door, no parking hassle) — Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a></li>
         <li>Free street parking in a quiet residential area</li>
         <li>215 m² total (common areas, bedrooms and gym/zen annex) to gather</li>
         <li>High-speed Wi-Fi to follow the sessions live</li>

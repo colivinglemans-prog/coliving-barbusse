@@ -151,7 +151,7 @@ export default function Article() {
         </li>
         <li>
           <strong>T1 tram at the station, a 15-minute walk away</strong>, to the Antarès /
-          MMArena terminus on the circuit side: handy for anyone not taking the team vehicle.
+          MMArena terminus on the circuit side: handy for anyone not taking the team vehicle. Timetables and info: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">SETRAM website</a>.
         </li>
         <li>
           <strong>Le Mans TGV station a 15-minute walk away</strong> (Paris-Montparnasse in

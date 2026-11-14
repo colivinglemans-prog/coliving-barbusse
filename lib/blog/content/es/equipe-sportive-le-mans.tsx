@@ -133,7 +133,7 @@ export default function Article() {
         </li>
         <li>
           <strong>En tranvía</strong>: el tranvía T1, a la altura de la estación (15 minutos a
-          pie), llega directamente a Antarès y al estadio (final de línea Antarès / MMArena).
+          pie), llega directamente a Antarès y al estadio (final de línea Antarès / MMArena). Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a>.
         </li>
       </ul>
 

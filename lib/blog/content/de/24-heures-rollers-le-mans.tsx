@@ -74,8 +74,8 @@ export default function Article() {
         Ein großer Vorteil ab dem Zentrum von Le Mans: Die{" "}
         <strong>Straßenbahn T1</strong> fährt direkt zur Rennstrecke
         (Haltestelle <em>Antarès / MMArena</em>, südliche Endstation der
-        Linie). Die Fahrt dauert <strong>~30 Min.</strong> vom TGV-Bahnhof, mit
-        verstärktem Takt von <strong>alle 4-5 Min.</strong> am Renn-Wochenende.
+        Linie). Die Fahrt dauert <strong>~20 Min.</strong> vom TGV-Bahnhof, mit
+        verstärktem Takt von <strong>alle 4-5 Min.</strong> am Renn-Wochenende. Fahrpläne und Infos: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">Website der SETRAM</a>.
       </p>
       <ul>
         <li>

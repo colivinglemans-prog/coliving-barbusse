@@ -40,7 +40,7 @@ export default function Article() {
       <p>
         La maison est à 4,7 km du circuit des 24 Heures, en face duquel se trouve le Centre
         des expositions, et à <strong>15 minutes à pied de la gare</strong> : le tramway T1,
-        au niveau de la gare, mène directement à Antarès.
+        au niveau de la gare, mène directement à Antarès. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
       </p>
 
       <h2>Les Hair Artist Awards, le grand rendez-vous des apprentis coiffeurs</h2>

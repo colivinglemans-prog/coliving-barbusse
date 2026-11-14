@@ -84,7 +84,7 @@ export default function Article() {
         <li>
           <strong>Partez tôt pour le circuit</strong> le samedi matin (avant 10h), ou prenez
           le <strong>tramway T1</strong> depuis la gare du Mans (~20 min jusqu'à l'entrée
-          Est du circuit) pour éviter les bouchons et le stress parking.
+          Est du circuit) pour éviter les bouchons et le stress parking. Plus d'infos et horaires : <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">site de la SETRAM</a>.
         </li>
         <li>
           <strong>Gardez une journée tourisme</strong> : Cité Plantagenêt, cathédrale

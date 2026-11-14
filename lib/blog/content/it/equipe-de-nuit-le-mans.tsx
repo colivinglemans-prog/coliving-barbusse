@@ -110,7 +110,7 @@ export default function Article() {
           <Link href="/it/blog/entreprises-proches-le-mans">le aziende vicine</Link>).
         </li>
         <li>
-          <strong>Tram T1</strong> all'altezza della stazione, a 15 minuti a piedi.
+          <strong>Tram T1</strong> all'altezza della stazione, a 15 minuti a piedi. Orari e informazioni: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">sito SETRAM</a>.
         </li>
         <li>
           <strong>Parcheggio</strong> gratuito in strada, senza disco orario né parchimetro, ma

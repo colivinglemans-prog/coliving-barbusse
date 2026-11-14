@@ -97,7 +97,7 @@ export default function Article() {
       </p>
       <ul>
         <li>Aparcamiento gratuito en una calle residencial tranquila</li>
-        <li>15 min a pie de la estación de Le Mans + tranvía T1 directo al circuito (~35 min puerta a puerta, ideal para dejar el coche de colección a resguardo los días de afluencia)</li>
+        <li>15 min a pie de la estación de Le Mans + tranvía T1 directo al circuito (~35 min puerta a puerta, ideal para dejar el coche de colección a resguardo los días de afluencia) — Horarios e información: <a href="https://www.setram.fr/fr/oNzR-Horaires-et-plans-lignes-regulieres.html" target="_blank" rel="noopener noreferrer">web de la SETRAM</a></li>
         <li>Cocina equipada para cenar juntos en modo «comida de equipo»</li>
         <li>215 m² en total (espacios comunes, habitaciones y anexo deporte/zen) para reunirse</li>
         <li>Wi-Fi de alta velocidad, sala de deporte, espacio zen</li>
