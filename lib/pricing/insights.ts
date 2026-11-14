@@ -2,7 +2,7 @@ import { addDays, daysBetween } from "@sejour/socle/lib/dates";
 import type { LocalEvent } from "@sejour/socle/lib/events";
 import { eventNights } from "./engine";
 import type { EngineConfig } from "./engine-config";
-import type { PriceSnapshot, SnapshotDiff } from "./snapshot";
+import { diffSnapshots, type PriceSnapshot, type SnapshotDiff } from "./snapshot";
 
 /**
  * Alertes pour **affiner le pricing** — fonction pure, calculée chaque matin à partir de la photo
@@ -147,4 +147,22 @@ export function pricingInsights(input: {
   }
 
   return out;
+}
+
+/**
+ * Date de la dernière vente repérée : `today` si la différence du jour en contient une, sinon la
+ * photo la plus récente (parmi celles fournies, dans l'ordre chronologique) où une nuit est passée
+ * de vendable à vendue. `null` si aucune.
+ */
+export function lastSaleDate(
+  today: string,
+  todayDiff: SnapshotDiff | null,
+  recent: readonly { date: string; snapshot: PriceSnapshot | null }[],
+): string | null {
+  if (todayDiff?.sold.length) return today;
+  const present = recent.filter((s) => s.snapshot);
+  for (let i = present.length - 1; i > 0; i--) {
+    if (diffSnapshots(present[i - 1].snapshot!, present[i].snapshot!).sold.length) return present[i].date;
+  }
+  return null;
 }

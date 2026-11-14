@@ -106,6 +106,7 @@ app/
       events-watch/        # Hebdo : rappel des dates d'événements à confirmer / calendrier à remplir (ntfy)
       pricing-snapshot/    # Quotidien (Vercel 05:00 UTC) : photo prix/séjour min/dispo 365 j → Upstash
       pricing-report/      # Lundi (Vercel 06:00 UTC) : rapport d'évaluation du pricing (ntfy), ?dry=1
+      pricing-review-reminder/ # Mardi (Vercel 07:00 UTC) : rappel « évaluation des prix avec Claude » (ntfy), ?dry=1
 components/
   public/             # Composants du site vitrine
   dashboard/          # Composants du dashboard
@@ -978,7 +979,7 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
 
-Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `beds24-backup` dimanche 3 h (UTC).
+Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `pricing-review-reminder` mardi 7 h, `beds24-backup` dimanche 3 h (UTC).
 
 ### Sauvegarde Beds24 (cron Vercel, hebdomadaire)
 

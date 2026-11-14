@@ -1,9 +1,28 @@
 {
   "crons": [
-    { "path": "/api/cron/heating-automation", "schedule": "0 7 * * *" },
-    { "path": "/api/cron/heating-health", "schedule": "0 8 * * *" },
-    { "path": "/api/cron/pricing-snapshot", "schedule": "0 5 * * *" },
-    { "path": "/api/cron/pricing-report", "schedule": "0 6 * * 1" },
-    { "path": "/api/cron/beds24-backup", "schedule": "0 3 * * 0" }
+    {
+      "path": "/api/cron/heating-automation",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/heating-health",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/pricing-snapshot",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/pricing-report",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/beds24-backup",
+      "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/pricing-review-reminder",
+      "schedule": "0 7 * * 2"
+    }
   ]
 }

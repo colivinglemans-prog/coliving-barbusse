@@ -299,3 +299,21 @@ au prix affiché de 2 720 €, le cas exact qui a motivé cette alerte.
   ```
   npm run test:deploy -- tests/deploy/pricing.test.ts
   ```
+
+### Rendez-vous du mardi : « évaluation des prix avec Claude » (depuis le 2026-11-14)
+
+Le cron Vercel `pricing-review-reminder` (`0 7 * * 2`, vers 8 h à Paris en hiver et 9 h en été)
+envoie chaque mardi une notification ntfy de **priorité 3**. Un tap ouvre la page Pricing. C'est un
+**rappel, pas une alerte** : il part chaque semaine, sans mémoire d'état. Choix de l'exploitant : le
+mardi, chaque semaine, toute l'année. Le mardi parce que le rapport du lundi apporte la semaine
+complète, et que les réglages doivent être en place avant les réservations de week-end.
+
+Son ordre du jour (`lib/pricing/review-agenda.ts`, pur) :
+1. la **semaine écoulée** : nuits vendues, dernier passage de l'envoi, quarantaine, cibles changées ;
+2. les **points ouverts** : alertes « affiner le pricing » ;
+3. les **échéances des 21 jours** : J-60 des grands événements et `PRICING_MILESTONES` (fin de l'envoi
+   à blanc, bascule, critères au 31/01, essais au 01/04, Albiez en avril) ;
+4. **la phrase à copier dans Claude** : « Fais l'évaluation pricing de la semaine ».
+
+Le titre dit le nombre de points à voir, ou « semaine calme ». `?dry=1` rend le texte sans l'envoyer.
+Le rituel côté Claude est décrit dans le dossier pricing privé, hors Git.

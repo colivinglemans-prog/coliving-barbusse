@@ -5,7 +5,7 @@ import { todayParis } from "@sejour/socle/lib/time";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { computeEnginePrices } from "@/lib/pricing/engine";
 import { ENGINE_CONFIG } from "@/lib/pricing/engine-config";
-import { pricingInsights } from "@/lib/pricing/insights";
+import { lastSaleDate, pricingInsights } from "@/lib/pricing/insights";
 import { reportAlerts } from "@/lib/alert-memory";
 import { sendPricingAlert } from "@/lib/alerts";
 import {
@@ -56,11 +56,7 @@ export async function GET(request: NextRequest) {
 
     // Alertes pour affiner le pricing (vente précoce, nuits orphelines, J-60, creux à venir).
     // Dernière vente repérée dans les photos des 14 derniers jours, pour le « creux à venir ».
-    const recent = (await loadSnapshots(addDays(today, -1), 14)).filter((s) => s.snapshot);
-    let lastSaleSeen: string | null = diff?.sold.length ? today : null;
-    for (let i = recent.length - 1; i > 0 && !lastSaleSeen; i--) {
-      if (diffSnapshots(recent[i - 1].snapshot!, recent[i].snapshot!).sold.length) lastSaleSeen = recent[i].date;
-    }
+    const lastSaleSeen = lastSaleDate(today, diff, await loadSnapshots(addDays(today, -1), 14));
     const insights = pricingInsights({
       today,
       snapshot,
