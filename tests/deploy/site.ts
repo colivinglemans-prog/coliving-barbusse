@@ -161,6 +161,12 @@ const site = {
       { path: "/api/dashboard/invoices/stripe-payments", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/properties", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/pricing", anonymous: [401], viewer: [403] },
+      // Pricing (2026-11-14) : historique, état de l'envoi et coupe-circuit, admin seulement. Le POST
+      // du coupe-circuit est refusé par la garde avant toute lecture du corps : rien ne change.
+      { path: "/api/dashboard/pricing/history?from=2027-01-04&to=2027-01-05", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/pricing/halt", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/pricing/halt", method: "POST", anonymous: [401], viewer: [403] },
+      { path: "/dashboard/pricing", anonymous: [307], viewer: [307] },
       { path: "/api/dashboard/bookings/1/nuki-code", anonymous: [401], viewer: [403] },
       // Les portes ouvertes au viewer : projection sans montant, lecture seule.
       { path: `/api/dashboard/bookings?arrivalFrom=${thisYear() - 1}-01-01&arrivalTo=${thisYear() + 1}-06-30`, anonymous: [401], viewer: [200] },

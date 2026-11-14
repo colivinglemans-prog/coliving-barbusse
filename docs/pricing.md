@@ -264,3 +264,38 @@ en retard. Le keepalive entretient la voie `tarifs` dès que la variable existe.
 - **Non traité** : la lecture somme les rooms alors que l'écriture vise `ROOM_ID`. C'est sans effet,
   avec une seule room. Le décalage d'un jour sur `minStay` reste à vérifier en phase 0, par
   l'aller-retour réel.
+
+### Alertes pour affiner le pricing (`lib/pricing/insights.ts`)
+
+Calculées chaque matin par le relevé `pricing-snapshot` (photo du jour, différence avec la veille).
+Envoyées sur ntfy sous le préfixe « [Prix] », **jamais répétées** tant que le constat dure
+(`reportAlerts`, un identifiant stable par constat) :
+
+| Constat | Priorité | Seuil | Ce qu'il suggère |
+|---|---|---|---|
+| Vente précoce | 3 | nuit ordinaire vendue à ≥ 120 j, ou nuit de grand événement à ≥ 90 j | prix sans doute bas : regarder les nuits voisines et l'édition suivante |
+| Nuits orphelines | 3 | trou plus court que le séjour minimum, entre deux séjours | baisser le séjour minimum, vérifier le prix |
+| Grand événement à J-60 | 3 | pendant 7 jours à partir de J-60, s'il reste des nuits libres | trancher : baisser si le prix dépasse 1,5 fois le réalisé |
+| Creux à venir | 2 | moins de 20 % réservé sur 30 jours **et** aucune vente depuis 14 jours | comparer à l'occupation du voisinage (Beyond) avant de baisser ; une alerte par semaine au plus |
+
+Premier passage réel (2026-11-14, en simulation) : il a repéré la vente des 24 Heures 2027 à J-207,
+au prix affiché de 2 720 €, le cas exact qui a motivé cette alerte.
+
+### Contrôles après publication
+
+- **Portes** (`tests/deploy/site.ts`, en CI après chaque déploiement) :
+  - `/api/dashboard/pricing`, `/pricing/history` et `/pricing/halt` (GET et POST) : 401 en anonyme,
+    403 pour le viewer ;
+  - `/dashboard/pricing` : 307 ;
+  - tous les crons, dont `pricing-push` : 401 sans le secret.
+- **Fonctionnels** (`tests/deploy/pricing.test.ts`), **en local après chaque déploiement**, car la CI
+  n'a pas `CRON_SECRET` :
+  - relevé à blanc sur 365 jours ;
+  - envoi à blanc sans rejet de borne ni de plancher, et sans écart ;
+  - rapport du lundi calculé ;
+  - Bearer faux refusé.
+
+  Lancer avec `CRON_SECRET` exporté depuis `.env.local` :
+  ```
+  npm run test:deploy -- tests/deploy/pricing.test.ts
+  ```
