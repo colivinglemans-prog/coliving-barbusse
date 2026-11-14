@@ -18,7 +18,7 @@ export const de: Dictionary = {
     travelers: "20 Gäste",
     rooms: "9 Schlafzimmer",
     beds: "9 Doppelbetten + 2 Schlafsofas",
-    bathrooms: "9 private Bäder",
+    bathrooms: "9 eigene Duschbäder",
     area: "215 m²",
   },
   highlights: {
@@ -44,7 +44,7 @@ export const de: Dictionary = {
 
 9 Doppelzimmer, jedes mit eigenem Duschbad — niemand muss das Bad teilen, auch nicht in großen Gruppen!
 
-Hochwertige Bettwäsche, Stauraum und echte Privatsphäre in jedem Zimmer. Jede Suite verfügt über ein Doppelbett mit Stauraum, einen Schreibtisch, ein eigenes Bad, einen Smart-TV, schnelles WLAN, einen Kleiderbereich und einen individuellen Schlüssel.
+Hochwertige Bettwäsche, Stauraum und echte Privatsphäre in jedem Zimmer. Jede Suite verfügt über ein Doppelbett mit Stauraum, bei Anreise frisch bezogen (Bettdecke und 2 Kopfkissen), einen Nachttisch, einen Schreibtisch, ein eigenes Duschbad mit Handtuchheizkörper, einen Smart-TV, schnelles WLAN, einen Kleiderbereich und einen individuellen Schlüssel.
 
 Das Haus erstreckt sich über 3 Etagen mit einem großen Wohnzimmer, einer voll ausgestatteten Wohnküche mit einem großen Tisch für 16 Personen (20, wenn man die Stehtische der Veranda heranrückt), einem 90 m² großen, eingezäunten Garten und einem voll ausgestatteten Fitnessraum mit Zen-Bereich.
 
@@ -59,7 +59,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     room: "Zimmer",
     doubleBed: "1 Doppelbett",
     doubleBedSofa: "1 Doppelbett + 1 Schlafsofa (1 Person)",
-    features: "Privates Bad · Smart TV · Schreibtisch · Kleiderschrank · Eigener Schlüssel",
+    features: "Bett bei Anreise bezogen · Bettdecke und 2 Kopfkissen · Nachttisch · Eigenes Duschbad · Handtuchheizkörper · Smart TV · Schreibtisch · Kleiderschrank · Eigener Schlüssel",
     prevPhoto: "Vorheriges Foto",
     nextPhoto: "Nächstes Foto",
   },
@@ -93,7 +93,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
       "Smart-TV in jedem Zimmer",
       "Dedizierter Arbeitsplatz in jedem Zimmer",
       "Kaffeevollautomat",
-      "Voll ausgestattete Küche",
+      "Voll ausgestattete Küche, Geräte doppelt vorhanden",
       "Waschmaschine",
       "Trockner",
       "Privater Fitnessraum",
@@ -101,10 +101,12 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
       "Schloss an jedem Zimmer",
       "Privater Eingang",
       "Heizung",
-      "Geschirrspüler",
-      "Mikrowelle",
-      "Backofen",
-      "Kühlschrank / Gefrierschrank",
+      "2 Geschirrspüler",
+      "3 Mikrowellen",
+      "2 Backöfen",
+      "2 Kühl-Gefrier-Kombinationen",
+      "2 Kochfelder und 2 Dunstabzugshauben",
+      "4 separate Gemeinschafts-WCs + 1 eigenes WC (Zimmer 7)",
       "Rauchmelder",
       "Feuerlöscher",
     ],
@@ -138,11 +140,11 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     circuitTitle: "In der Nähe der Bugatti-Rennstrecke",
     circuitDesc: "Nur 4,7 km von der legendären Bugatti-Rennstrecke entfernt, ist unser Haus die ideale Basis für die 24 Stunden von Le Mans, MotoGP, Le Mans Classic und alle Events der Rennstrecke. Direkter Zugang über die Straßenbahn T1 vom TGV-Bahnhof.",
     nearby: [
-      { name: "TGV-Bahnhof Le Mans", distance: "10 Min. zu Fuß", detail: "Paris in etwa 55 Min., Nantes in 1 Std. 10 bis 1 Std. 20 (direkter TGV), Verbindungen nach Rennes und Angers" },
+      { name: "TGV-Bahnhof Le Mans", distance: "15 Min. zu Fuß", detail: "Paris in etwa 55 Min., Nantes in 1 Std. 10 bis 1 Std. 20 (direkter TGV), Verbindungen nach Rennes und Angers" },
       { name: "Bugatti-Rennstrecke", distance: "4,7 km", detail: "24 Stunden von Le Mans, MotoGP, Le Mans Classic. Erreichbar über Straßenbahn T1" },
       { name: "Gewerbegebiete Süd-Le Mans", distance: "< 10 Min. mit dem Auto", detail: "Technopole Universität, Gewerbezone Süd, Forschungszentren" },
       { name: "Parc Gué de Maulny", distance: "5 Min. zu Fuß", detail: "10 Hektar Grünfläche zum Entspannen" },
-      { name: "Straßenbahn T1", distance: "Am Bahnhof, 10 Min. zu Fuß", detail: "Bedient die Innenstadt, den Bahnhof und die Rennstrecke" },
+      { name: "Straßenbahn T1", distance: "Am Bahnhof, 15 Min. zu Fuß", detail: "Bedient die Innenstadt, den Bahnhof und die Rennstrecke" },
       { name: "Cité Plantagenêt (Altstadt Le Mans)", distance: "15 Min. mit der Straßenbahn", detail: "Historisches mittelalterliches Viertel, Restaurants, Kulturerbe" },
     ],
   },
@@ -151,7 +153,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     superhost: "Superhost",
     experience: "Jahre Erfahrung",
     about: "Über Alexandre",
-    aboutText: "Ingenieur, Geek, Sportler und Heimwerker — ich bin seit mehreren Jahren Superhost.\nMir ist es wichtig, saubere, komfortable und perfekt funktionierende Unterkünfte anzubieten.\nDieses Haus in Le Mans wurde konzipiert, um Familien, Freundesgruppen oder Geschäftsteams aufzunehmen, wobei dank der Suiten mit eigenem Bad die Privatsphäre jedes Einzelnen gewahrt bleibt.\nIch bleibe verfügbar und reaktionsschnell, lasse Ihnen aber gleichzeitig viel Autonomie.",
+    aboutText: "Ingenieur, Geek, Sportler und Heimwerker — ich bin seit mehreren Jahren Superhost.\nMir ist es wichtig, saubere, komfortable und perfekt funktionierende Unterkünfte anzubieten.\nDieses Haus in Le Mans wurde konzipiert, um Familien, Freundesgruppen oder Geschäftsteams aufzunehmen, wobei dank der Suiten mit eigenem Duschbad die Privatsphäre jedes Einzelnen gewahrt bleibt.\nIch bleibe verfügbar und reaktionsschnell, lasse Ihnen aber gleichzeitig viel Autonomie.",
     languages: "Sprachen",
     languagesValue: "Französisch, English",
     responseRate: "Antwortrate",
@@ -179,7 +181,6 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
           "Nichtraucher (im Innenbereich)",
           "Keine Haustiere erlaubt",
           "Keine Partys oder laute Veranstaltungen",
-          "Für Jugendliche und Erwachsene gedacht: nichts ist für kleine Kinder eingerichtet (ungesicherte Treppen, Barhocker, Fitnessraum); Kinder unter 10 Jahren sind unter der Verantwortung ihrer Eltern willkommen",
         ],
       },
       {
@@ -190,6 +191,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
           "Schloss an jedem Zimmer",
           "Privater Eingang mit Smart Lock",
           "Heizung in allen Räumen",
+          "Für Jugendliche und Erwachsene gedacht: nichts ist für kleine Kinder eingerichtet (ungesicherte Treppen, Barhocker, Fitnessraum); Kinder unter 10 Jahren sind unter der Verantwortung ihrer Eltern willkommen",
         ],
       },
       {

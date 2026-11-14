@@ -131,7 +131,7 @@ export default function Article() {
 
       <h2>Nuestra casa: perfecta para un equipo de karting</h2>
       <p>
-        Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge
+        Nuestro coliving de <strong>9 suites privadas con baño con ducha</strong> acoge
         hasta 20 personas — el formato ideal para una estructura completa de
         Mundial:
       </p>
@@ -160,7 +160,7 @@ export default function Article() {
           fuera de evento (prever más los días de gran afluencia).
         </li>
         <li>
-          <strong>10 min a pie de la estación TGV</strong>: París en 55 min.
+          <strong>15 min a pie de la estación TGV</strong>: París en 55 min.
           Los equipos internacionales pueden hacer transitar pilotos e
           ingenieros sin coche.
         </li>

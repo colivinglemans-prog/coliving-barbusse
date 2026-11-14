@@ -89,13 +89,13 @@ export default function Article() {
 
       <h2>Unser Haus: perfekt für Sammlerclubs</h2>
       <p>
-        Unsere <strong>9 privaten Suiten mit eigenem Bad</strong> beherbergen
+        Unsere <strong>9 privaten Suiten mit eigenem Duschbad</strong> beherbergen
         bis zu 20 Personen in ruhiger Umgebung, 20 Minuten vom Circuit Bugatti
         entfernt außerhalb des Events (30-45 Min. an Renntagen):
       </p>
       <ul>
         <li>Kostenfreies Parken in einer ruhigen Wohnstraße</li>
-        <li>10 Min. zu Fuß zum Bahnhof Le Mans + direkte Straßenbahn T1 zur Rennstrecke (~30 Min. von Tür zu Tür, ideal um an Tagen mit Andrang das Sammlerauto sicher abzustellen)</li>
+        <li>15 Min. zu Fuß zum Bahnhof Le Mans + direkte Straßenbahn T1 zur Rennstrecke (~35 Min. von Tür zu Tür, ideal um an Tagen mit Andrang das Sammlerauto sicher abzustellen)</li>
         <li>Voll ausgestattete Küche für ein gemeinsames Abendessen im „Team-Mahl'-Modus</li>
         <li>215 m² insgesamt (Gemeinschaftsräume, Zimmer und Sport/Zen-Bereich) zum Zusammenkommen</li>
         <li>Breitband-WLAN, Fitnessraum, Zen-Bereich</li>

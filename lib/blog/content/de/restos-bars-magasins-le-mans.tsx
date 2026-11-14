@@ -4,7 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Unser Haus liegt ideal im Viertel Gare Sud in Le Mans, nur 10 Gehminuten vom
+        Unser Haus liegt ideal im Viertel Gare Sud in Le Mans, nur 15 Gehminuten vom
         TGV-Bahnhof entfernt. Hier sind die guten Adressen, die wir unseren Gästen
         empfehlen, um zu essen, einzukaufen oder auszugehen, ohne wieder ins Auto
         steigen zu müssen.
@@ -146,7 +146,7 @@ export default function Article() {
       <h2>Ihr Aufenthalt mitten im Viertel</h2>
       <p>
         Unser Coliving liegt in einem lebhaften und gut angebundenen Viertel: TGV-Bahnhof
-        10 Gehminuten entfernt, Geschäfte und Restaurants vor Ort, Park am Wasser direkt
+        15 Gehminuten entfernt, Geschäfte und Restaurants vor Ort, Park am Wasser direkt
         nebenan. Sehen Sie sich <Link href="/de#disponibilite">unsere Verfügbarkeiten</Link>{" "}
         an und genießen Sie einen entspannten Aufenthalt, ganz ohne Auto im Alltag.
       </p>

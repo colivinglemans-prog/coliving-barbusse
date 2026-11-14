@@ -72,7 +72,7 @@ export default function LocationMap() {
         <Popup>
           <strong>Gare TGV du Mans</strong>
           <br />
-          10 min à pied de la maison
+          15 min à pied de la maison
         </Popup>
       </Marker>
       <Marker position={[PARC.lat, PARC.lng]} icon={parcIcon}>

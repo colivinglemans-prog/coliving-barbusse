@@ -94,10 +94,10 @@ export default function Article() {
 
       <h2>Ihr Aufenthalt in Le Mans rund um die Rennbahn</h2>
       <p>
-        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
+        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Duschbad</strong>{" "}
         ist ideal für ein Wochenende mit Familie oder Freunden rund um die
         Pferderennen. Bis zu 20 Personen in ruhiger Umgebung, 20 Minuten von der
-        Rennbahn und 10 Minuten vom TGV-Bahnhof entfernt.
+        Rennbahn und 15 Minuten vom TGV-Bahnhof entfernt.
       </p>
       <ul>
         <li>Kostenfreies Parken in der ruhigen Wohnstraße</li>

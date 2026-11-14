@@ -98,7 +98,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Parking</strong>: free on the street, no parking disc or meter, but no
-          reserved space. Consider car-sharing or the train: the TGV station is a 10-minute
+          reserved space. Consider car-sharing or the train: the TGV station is a 15-minute
           walk away.
         </li>
         <li>

@@ -60,7 +60,7 @@ export default function Article() {
 
       <h2>Nur einen Steinwurf vom Zentrum und der Rennstrecke entfernt</h2>
       <p>
-        Das Haus liegt ideal: 10 Gehminuten vom Bahnhof Le Mans (direkte Straßenbahn T1 zur
+        Das Haus liegt ideal: 15 Gehminuten vom Bahnhof Le Mans (direkte Straßenbahn T1 zur
         Rennstrecke), 20 Minuten vom Circuit Bugatti und ganz in der Nähe der Cité Plantagenêt.
         Nach einem Tag voller Besichtigungen oder Rennen gibt es nichts Besseres, als nach Hause
         zu kommen und den Garten zu genießen.

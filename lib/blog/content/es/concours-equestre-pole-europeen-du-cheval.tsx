@@ -120,7 +120,7 @@ export default function Article() {
 
       <h2>Disfrutar de Le Mans entre prueba y prueba</h2>
       <p>
-        La estación de TGV está a 10 minutos a pie, y el tranvía muy cerca. Por la noche o en
+        La estación de TGV está a 15 minutos a pie, y el tranvía muy cerca. Por la noche o en
         el día de descanso: la Cité Plantagenêt (el casco antiguo), las orillas del Sarthe y
         nuestras direcciones para comer (
         <Link href="/es/blog/que-visiter-le-mans-sarthe">qué visitar</Link>,{" "}

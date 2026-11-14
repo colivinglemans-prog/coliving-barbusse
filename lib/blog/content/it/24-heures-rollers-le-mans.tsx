@@ -101,7 +101,7 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        Dalla nostra casa, calcolate <strong>10 min a piedi fino alla
+        Dalla nostra casa, calcolate <strong>15 min a piedi fino alla
         stazione</strong>, poi tram diretto: <strong>~40 min da porta a
         porta</strong>, senza preoccupazioni di parcheggio sul lato
         circuito.
@@ -136,7 +136,7 @@ export default function Article() {
 
       <h2>La nostra casa: perfetta per una squadra 24H Rollerblade</h2>
       <p>
-        Il nostro coliving di <strong>9 suite private con bagno</strong>{" "}
+        Il nostro coliving di <strong>9 suite private con doccia privata</strong>{" "}
         ospita fino a 20 persone — la configurazione ideale per una o due
         squadre complete:
       </p>
@@ -162,8 +162,8 @@ export default function Article() {
           tranquilla.
         </li>
         <li>
-          <strong>10 min a piedi dalla stazione TGV</strong> + <strong>tram
-          T1 diretto</strong> verso il circuito (~30 min da porta a porta,
+          <strong>15 min a piedi dalla stazione TGV</strong> + <strong>tram
+          T1 diretto</strong> verso il circuito (~35 min da porta a porta,
           perfetto per evitare lo stress del parcheggio).
         </li>
         <li>

@@ -130,7 +130,7 @@ export default function Article() {
 
       <h2>Unser Haus: perfekt für ein Kart-Team</h2>
       <p>
-        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
+        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Duschbad</strong>{" "}
         beherbergt bis zu 20 Personen — das ideale Format für eine komplette
         WM-Struktur:
       </p>
@@ -159,7 +159,7 @@ export default function Article() {
           einplanen).
         </li>
         <li>
-          <strong>10 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min.
+          <strong>15 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min.
           Internationale Teams können Fahrer und Ingenieure ohne Auto reisen
           lassen.
         </li>

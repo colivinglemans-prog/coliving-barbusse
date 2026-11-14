@@ -99,7 +99,7 @@ export default function Article() {
       </ul>
       <p>
         Von unserem Haus aus rechnen Sie mit{" "}
-        <strong>10 Min. zu Fuß bis zum Bahnhof</strong>, dann direkte
+        <strong>15 Min. zu Fuß bis zum Bahnhof</strong>, dann direkte
         Straßenbahn: <strong>~40 Min. von Tür zu Tür</strong>, ohne
         Parkplatzsorgen an der Rennstrecke.
       </p>
@@ -132,7 +132,7 @@ export default function Article() {
 
       <h2>Unser Haus: perfekt für ein 24h-Inliner-Team</h2>
       <p>
-        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
+        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Duschbad</strong>{" "}
         beherbergt bis zu 20 Personen — die ideale Konfiguration für ein oder
         zwei komplette Teams:
       </p>
@@ -158,8 +158,8 @@ export default function Article() {
           <strong>Kostenfreies Parken</strong> in einer ruhigen Wohnstraße.
         </li>
         <li>
-          <strong>10 Min. zu Fuß zum TGV-Bahnhof</strong> +{" "}
-          <strong>direkte Straßenbahn T1</strong> zur Rennstrecke (~30 Min. von
+          <strong>15 Min. zu Fuß zum TGV-Bahnhof</strong> +{" "}
+          <strong>direkte Straßenbahn T1</strong> zur Rennstrecke (~35 Min. von
           Tür zu Tür, perfekt um Parkplatzstress zu vermeiden).
         </li>
         <li>

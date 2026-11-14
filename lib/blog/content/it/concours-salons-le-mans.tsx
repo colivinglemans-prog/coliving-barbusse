@@ -39,7 +39,7 @@ export default function Article() {
       </ul>
       <p>
         La casa è a 4,7 km dal circuito della 24 Ore, di fronte al quale si trova il Centre des
-        expositions, e a <strong>10 minuti a piedi dalla stazione</strong>: il tram T1,
+        expositions, e a <strong>15 minuti a piedi dalla stazione</strong>: il tram T1,
         all&apos;altezza della stazione, porta direttamente ad Antarès.
       </p>
 
@@ -114,7 +114,7 @@ export default function Article() {
       <h2>Arrivare la sera prima, senza stress</h2>
       <ul>
         <li>
-          <strong>In treno</strong>: la stazione TGV è a 10 minuti a piedi dalla casa. Per un
+          <strong>In treno</strong>: la stazione TGV è a 15 minuti a piedi dalla casa. Per un
           gruppo che arriva da lontano è spesso la soluzione più semplice: si scende dal treno, si
           lasciano le valigie, si cena insieme.
         </li>

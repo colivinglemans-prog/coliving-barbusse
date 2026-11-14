@@ -103,7 +103,7 @@ export default function Article() {
         <li>
           <strong>Parcheggio</strong>: libero e gratuito in strada, senza disco orario né
           parchimetro, ma senza posto riservato. Pensate al car pooling o al treno: la
-          stazione TGV è a 10 minuti a piedi.
+          stazione TGV è a 15 minuti a piedi.
         </li>
         <li>
           <strong>Arrivo autonomo</strong> dalle 17:00 grazie alla serratura connessa:
@@ -127,7 +127,7 @@ export default function Article() {
       </blockquote>
       <p>
         A maggio 2026, Ferdinand ha riunito i suoi cari per una festa:{" "}
-        <strong>16 adulti, ogni coppia nella propria camera con il proprio bagno</strong>.
+        <strong>16 adulti, ogni coppia nella propria camera con il proprio bagno con doccia</strong>.
       </p>
       <blockquote className="my-6 border-l-4 border-primary pl-4 italic">
         «Il fatto che ogni camera abbia il proprio bagno offre un vero comfort e privacy, cosa

@@ -60,7 +60,7 @@ export default function Article() {
 
       <h2>A due passi dal centro e dal circuito</h2>
       <p>
-        La casa è in posizione ideale: a 10 minuti a piedi dalla stazione di Le Mans (tram T1
+        La casa è in posizione ideale: a 15 minuti a piedi dalla stazione di Le Mans (tram T1
         diretto verso il circuito), a 20 minuti dal Circuit Bugatti e vicinissima alla Cité
         Plantagenêt. Dopo una giornata di visite o di gara, niente di meglio che tornare a
         godersi il giardino.

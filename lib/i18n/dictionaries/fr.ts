@@ -18,7 +18,7 @@ export const fr: Dictionary = {
     travelers: "20 voyageurs",
     rooms: "9 chambres",
     beds: "9 lits doubles + 2 clic-clac",
-    bathrooms: "9 salles de bain privatives",
+    bathrooms: "9 salles de douche privatives",
     area: "215 m²",
   },
   highlights: {
@@ -42,9 +42,9 @@ export const fr: Dictionary = {
     showLess: "Voir moins",
     body: `Notre maison de 215 m² offre un niveau de confort introuvable ailleurs en location au Mans.
 
-9 chambres doubles, chacune avec sa salle de douche privative — personne n'a à partager la salle de bain, même dans un grand groupe !
+9 chambres doubles, chacune avec sa salle de douche privative — personne n'a à partager la salle de douche, même dans un grand groupe !
 
-Literie de qualité, rangements et vraie intimité dans chaque chambre. Chaque suite dispose d'un lit double avec rangements, d'un bureau, d'une salle de bain privative, d'une smart TV, du Wi-Fi haut débit, d'un dressing et d'une clé individuelle.
+Literie de qualité, rangements et vraie intimité dans chaque chambre. Chaque suite dispose d'un lit double avec rangements, fait à l'arrivée (couette et 2 oreillers), d'une table de nuit, d'un bureau, d'une salle de douche privative avec sèche-serviettes, d'une smart TV, du Wi-Fi haut débit, d'une penderie ou d'un dressing et d'une clé individuelle.
 
 La maison est répartie sur 3 niveaux avec un grand salon, une cuisine-salle à manger entièrement équipée avec une grande table de 16 places (20 en y rapprochant les mini-tables de la véranda), un jardin clos de 90 m² et une salle de sport complète avec espace zen.
 
@@ -59,7 +59,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     room: "Chambre",
     doubleBed: "1 lit double",
     doubleBedSofa: "1 lit double + 1 clic-clac (1 place)",
-    features: "SDB privative · Smart TV · Bureau · Dressing · Clé individuelle",
+    features: "Lit fait à l'arrivée · Couette et 2 oreillers · Table de nuit · Salle de douche privative · Sèche-serviettes · Smart TV · Bureau · Penderie ou dressing · Clé individuelle",
     prevPhoto: "Photo précédente",
     nextPhoto: "Photo suivante",
   },
@@ -93,7 +93,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
       "Smart TV dans chaque chambre",
       "Espace de travail dédié dans chaque chambre",
       "Cafetière à grain",
-      "Cuisine entièrement équipée",
+      "Cuisine entièrement équipée, électroménager en double",
       "Lave-linge",
       "Sèche-linge",
       "Salle de sport privée",
@@ -101,10 +101,12 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
       "Serrure sur chaque chambre",
       "Entrée privée",
       "Chauffage",
-      "Lave-vaisselle",
-      "Micro-ondes",
-      "Four",
-      "Réfrigérateur / Congélateur",
+      "2 lave-vaisselle",
+      "3 micro-ondes",
+      "2 fours",
+      "2 réfrigérateurs-congélateurs combinés",
+      "2 plaques de cuisson et 2 hottes",
+      "4 WC séparés partagés + 1 WC privatif (chambre 7)",
       "Détecteur de fumée",
       "Extincteur",
     ],
@@ -138,11 +140,11 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     circuitTitle: "À proximité du Circuit Bugatti",
     circuitDesc: "Situé à seulement 4.7 km du mythique Circuit Bugatti, notre maison est le point de chute idéal pour les 24 Heures du Mans, le MotoGP, Le Mans Classic et tous les événements du circuit. Accès direct via le Tramway T1 depuis la gare TGV.",
     nearby: [
-      { name: "Gare TGV du Mans", distance: "10 min à pied", detail: "Paris en 55 min environ, Nantes en 1 h 10 à 1 h 20 (TGV direct), connexions vers Rennes et Angers" },
+      { name: "Gare TGV du Mans", distance: "15 min à pied", detail: "Paris en 55 min environ, Nantes en 1 h 10 à 1 h 20 (TGV direct), connexions vers Rennes et Angers" },
       { name: "Circuit Bugatti", distance: "4.7 km", detail: "24 Heures du Mans, MotoGP, Le Mans Classic. Accessible via Tramway T1" },
       { name: "Zones d'emploi Sud du Mans", distance: "< 10 min en voiture", detail: "Technopole Université, ZA Sud, centres de recherche" },
       { name: "Parc Gué de Maulny", distance: "5 min à pied", detail: "Espace vert de 10 hectares pour se détendre" },
-      { name: "Tramway T1", distance: "Au niveau de la gare, 10 min à pied", detail: "Dessert le centre-ville, la gare et le circuit" },
+      { name: "Tramway T1", distance: "Au niveau de la gare, 15 min à pied", detail: "Dessert le centre-ville, la gare et le circuit" },
       { name: "Cité Plantagenêt (Vieux Mans)", distance: "15 min en tramway", detail: "Quartier médiéval historique, restaurants, patrimoine" },
     ],
   },
@@ -151,7 +153,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     superhost: "Superhôte",
     experience: "ans d'expérience",
     about: "À propos d'Alexandre",
-    aboutText: "Ingénieur, geek, sportif et bricoleur, je suis superhôte depuis plusieurs années.\nJ'ai à cœur de proposer des hébergements propres, confortables et parfaitement fonctionnels.\nCette maison au Mans a été pensée pour accueillir familles, groupes d'amis ou équipes professionnelles, tout en garantissant l'intimité de chacun grâce à des suites avec salles de bain privatives.\nJe reste disponible et réactif, tout en vous laissant une grande autonomie.",
+    aboutText: "Ingénieur, geek, sportif et bricoleur, je suis superhôte depuis plusieurs années.\nJ'ai à cœur de proposer des hébergements propres, confortables et parfaitement fonctionnels.\nCette maison au Mans a été pensée pour accueillir familles, groupes d'amis ou équipes professionnelles, tout en garantissant l'intimité de chacun grâce à des suites avec salles de douche privatives.\nJe reste disponible et réactif, tout en vous laissant une grande autonomie.",
     languages: "Langues",
     languagesValue: "Français, English",
     responseRate: "Taux de réponse",
@@ -179,7 +181,6 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
           "Non-fumeur (intérieur)",
           "Animaux non admis",
           "Pas de fête ni d'événement bruyant",
-          "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport) ; les moins de 10 ans sont acceptés sous la responsabilité de leurs parents",
         ],
       },
       {
@@ -190,6 +191,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
           "Serrure sur chaque chambre",
           "Entrée privée avec serrure connectée",
           "Chauffage dans toutes les pièces",
+          "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport) ; les moins de 10 ans sont acceptés sous la responsabilité de leurs parents",
         ],
       },
       {

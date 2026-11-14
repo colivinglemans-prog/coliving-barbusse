@@ -172,12 +172,12 @@ export default function Article() {
         <li>
           <strong>Las idas y vueltas</strong>: entre la casa y el circuito hay 4,7 km. Decidan
           de antemano quién conduce de noche. Los accesos de vehículos al circuito dependen de
-          la fórmula de inscripción. El tranvía T1 se coge a la altura de la estación, a 10
+          la fórmula de inscripción. El tranvía T1 se coge a la altura de la estación, a 15
           minutos a pie, y llega hasta el circuito (final de línea Antarès / MMArena):
           compruebe sus horarios nocturnos si cuenta con él.
         </li>
         <li>
-          <strong>En tren</strong>: la estación de TGV de Le Mans está a 10 minutos a pie de la
+          <strong>En tren</strong>: la estación de TGV de Le Mans está a 15 minutos a pie de la
           casa.
         </li>
       </ul>

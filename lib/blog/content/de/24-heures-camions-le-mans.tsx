@@ -98,7 +98,7 @@ export default function Article() {
 
       <h2>Unser Haus: ideal für ein 24h-Lkw-Wochenende</h2>
       <p>
-        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
+        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Duschbad</strong>{" "}
         beherbergt bis zu 20 Personen — perfekt für eine Familien- oder
         Freundesgruppe:
       </p>
@@ -124,7 +124,7 @@ export default function Article() {
           (45-60 Min. an Renntagen).
         </li>
         <li>
-          <strong>10 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min. für
+          <strong>15 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min. für
           alle, die lieber mit dem Zug anreisen.
         </li>
         <li>

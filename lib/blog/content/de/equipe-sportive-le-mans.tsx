@@ -123,7 +123,7 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>Mit dem Zug</strong>: Der TGV-Bahnhof Le Mans liegt 10 Gehminuten entfernt,
+          <strong>Mit dem Zug</strong>: Der TGV-Bahnhof Le Mans liegt 15 Gehminuten entfernt,
           etwa 55 Minuten von Paris-Montparnasse.
         </li>
         <li>
@@ -133,7 +133,7 @@ export default function Article() {
           sich die Straßen.
         </li>
         <li>
-          <strong>Mit der Straßenbahn</strong>: Die Linie T1 am Bahnhof (10 Gehminuten) fährt
+          <strong>Mit der Straßenbahn</strong>: Die Linie T1 am Bahnhof (15 Gehminuten) fährt
           direkt zu Antarès und zum Stadion (Endhaltestelle Antarès / MMArena).
         </li>
       </ul>

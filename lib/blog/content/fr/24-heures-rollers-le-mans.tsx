@@ -94,7 +94,7 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        Depuis notre maison, comptez <strong>10 min à pied jusqu'à la gare</strong>, puis
+        Depuis notre maison, comptez <strong>15 min à pied jusqu'à la gare</strong>, puis
         tram direct : <strong>~40 min porte-à-porte</strong>, sans souci de stationnement
         côté circuit.
       </p>
@@ -124,7 +124,7 @@ export default function Article() {
 
       <h2>Notre maison : parfaite pour une équipe 24H Rollers</h2>
       <p>
-        Notre coliving de <strong>9 suites privatives avec salle de bain</strong> accueille
+        Notre coliving de <strong>9 suites privatives avec salle de douche</strong> accueille
         jusqu'à 20 personnes — la configuration idéale pour une ou deux équipes complètes :
       </p>
       <ul>
@@ -148,8 +148,8 @@ export default function Article() {
           <strong>Stationnement gratuit</strong> dans une rue résidentielle calme.
         </li>
         <li>
-          <strong>10 min à pied de la gare TGV</strong> + <strong>tram T1 direct</strong>{" "}
-          vers le circuit (~30 min porte-à-porte, parfait pour éviter le stress parking).
+          <strong>15 min à pied de la gare TGV</strong> + <strong>tram T1 direct</strong>{" "}
+          vers le circuit (~35 min porte-à-porte, parfait pour éviter le stress parking).
         </li>
         <li>
           <strong>Serrure connectée</strong>, arrivée autonome dès 17h — pratique pour

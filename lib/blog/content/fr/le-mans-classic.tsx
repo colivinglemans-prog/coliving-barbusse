@@ -82,12 +82,12 @@ export default function Article() {
 
       <h2>Notre maison : parfaite pour les clubs de collectionneurs</h2>
       <p>
-        Nos <strong>9 suites privatives avec salles de bain</strong> accueillent jusqu'à 20
+        Nos <strong>9 suites privatives avec salles de douche</strong> accueillent jusqu'à 20
         personnes dans un cadre calme, à 20 minutes du Circuit Bugatti hors événement (30-45 min les jours de course) :
       </p>
       <ul>
         <li>Stationnement gratuit dans une rue résidentielle calme</li>
-        <li>10 min à pied de la gare du Mans + tram T1 direct vers le circuit (~30 min porte-à-porte, idéal pour laisser la voiture de collection à l'abri les jours d'affluence)</li>
+        <li>15 min à pied de la gare du Mans + tram T1 direct vers le circuit (~35 min porte-à-porte, idéal pour laisser la voiture de collection à l'abri les jours d'affluence)</li>
         <li>Cuisine équipée pour dîner ensemble en mode "repas d'équipe"</li>
         <li>215 m² au total (espaces communs, chambres et annexe sport/zen) pour se retrouver</li>
         <li>Wi-Fi haut débit, salle de sport, espace zen</li>

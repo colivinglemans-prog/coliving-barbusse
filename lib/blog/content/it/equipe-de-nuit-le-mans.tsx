@@ -100,7 +100,7 @@ export default function Article() {
       <h2>In posizione strategica per i cantieri e i siti di Le Mans</h2>
       <ul>
         <li>
-          <strong>Stazione di Le Mans a 10 minuti a piedi</strong>: comoda per le squadre che
+          <strong>Stazione di Le Mans a 15 minuti a piedi</strong>: comoda per le squadre che
           intervengono sui binari o in stazione, e per i cambi turno che arrivano in TGV
           (Parigi-Montparnasse in circa 55 minuti).
         </li>
@@ -110,7 +110,7 @@ export default function Article() {
           <Link href="/it/blog/entreprises-proches-le-mans">le aziende vicine</Link>).
         </li>
         <li>
-          <strong>Tram T1</strong> all'altezza della stazione, a 10 minuti a piedi.
+          <strong>Tram T1</strong> all'altezza della stazione, a 15 minuti a piedi.
         </li>
         <li>
           <strong>Parcheggio</strong> gratuito in strada, senza disco orario né parchimetro, ma

@@ -86,12 +86,12 @@ export default function Article() {
 
       <h2>Unser Haus: für Gruppen gemacht</h2>
       <p>
-        Unser Coliving mit <strong>9 Suiten mit privaten Bädern</strong> empfängt bis
+        Unser Coliving mit <strong>9 Suiten mit eigenen Duschbädern</strong> empfängt bis
         zu 20 Personen:
       </p>
       <ul>
         <li>20 Minuten zum Circuit Bugatti außerhalb der Veranstaltung (45-60 Minuten an Renntagen)</li>
-        <li>10 Gehminuten zum TGV-Bahnhof + Straßenbahn T1 direkt zur Rennstrecke (~30 Minuten von Tür zu Tür, ohne Staus und Parkplatzsorgen)</li>
+        <li>15 Gehminuten zum TGV-Bahnhof + Straßenbahn T1 direkt zur Rennstrecke (~35 Minuten von Tür zu Tür, ohne Staus und Parkplatzsorgen)</li>
         <li>Kostenlose Parkplätze in der ruhigen Wohnstraße</li>
         <li>Insgesamt 215 m² (Gemeinschaftsbereiche, Zimmer und Sport-/Zen-Anbau), um zusammenzukommen</li>
         <li>Highspeed-WLAN, um die Sessions live zu verfolgen</li>

@@ -79,7 +79,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     locales: {
       fr: {
         "title": "Loger un groupe pour un concours ou un salon au Mans",
-        "description": "Concours d’apprentis, salon ou congrès au Mans : 9 chambres avec salle de douche, jusqu’à 20 couchages, gare TGV à 10 min à pied, tram au niveau de la gare.",
+        "description": "Concours d’apprentis, salon ou congrès au Mans : 9 chambres avec salle de douche, jusqu’à 20 couchages, gare TGV à 15 min à pied, tram au niveau de la gare.",
         "excerpt": "Apprentis, formateurs et modèles sous le même toit, une salle de douche par chambre pour se préparer sans file d’attente : comment loger un groupe venu pour un concours, un salon ou un congrès au Mans.",
         "keywords": [
           "hébergement groupe concours Le Mans",
@@ -91,7 +91,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       en: {
         "title": "Competitions and Trade Shows in Le Mans: Group Accommodation",
-        "description": "Hair Artist Awards, trade shows, conferences in Le Mans: house apprentices, trainers and models together. 9 bedrooms with shower rooms, 10 min from the station.",
+        "description": "Hair Artist Awards, trade shows, conferences in Le Mans: house apprentices, trainers and models together. 9 bedrooms with shower rooms, 15 min from the station.",
         "excerpt": "Coming to Le Mans for an apprentice competition, a trade show or a conference? Here is how our house sleeps a whole group the night before, as it did for 14 people at the 2026 Hair Artist Awards.",
         "keywords": [
           "hair artist awards le mans accommodation",
@@ -103,8 +103,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       it: {
         "title": "Concorsi e fiere a Le Mans: alloggio per gruppi e scuole",
-        "description": "Hair Artist Awards, concorsi per apprendisti, fiere: una casa intera a Le Mans per scuole ed espositori, 9 camere con bagno, a 10 minuti dalla stazione.",
-        "excerpt": "Concorso per apprendisti, fiera o congresso a Le Mans? Una casa intera per alloggiare insieme apprendisti, modelli e formatori la sera prima, a 10 minuti a piedi dalla stazione.",
+        "description": "Hair Artist Awards, concorsi per apprendisti, fiere: una casa intera a Le Mans per scuole ed espositori, 9 camere con doccia, a 15 minuti dalla stazione.",
+        "excerpt": "Concorso per apprendisti, fiera o congresso a Le Mans? Una casa intera per alloggiare insieme apprendisti, modelli e formatori la sera prima, a 15 minuti a piedi dalla stazione.",
         "keywords": [
           "alloggio gruppo fiera Le Mans",
           "Hair Artist Awards Le Mans",
@@ -115,7 +115,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       de: {
         "title": "Wettbewerb oder Messe in Le Mans: Gruppenunterkunft bis 20 Personen",
-        "description": "Hair Artist Awards, Fachmesse oder Kongress in Le Mans: 9 Zimmer mit eigenem Duschbad für Azubis, Ausbilder und Modelle, 10 Gehminuten vom Bahnhof.",
+        "description": "Hair Artist Awards, Fachmesse oder Kongress in Le Mans: 9 Zimmer mit eigenem Duschbad für Azubis, Ausbilder und Modelle, 15 Gehminuten vom Bahnhof.",
         "excerpt": "Im November 2026 hat ein Friseursalon aus der Ariège 14 Personen für die Hair Artist Awards bei uns untergebracht. So organisiert sich das Haus für Schulen, Ausbildungszentren und Aussteller bei Wettbewerben und Messen in Le Mans.",
         "keywords": [
           "Unterkunft Messe Le Mans",
@@ -127,8 +127,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       es: {
         "title": "Concursos y ferias en Le Mans: alojar a su grupo la víspera",
-        "description": "Hair Artist Awards, ferias y congresos en Le Mans: una casa para 20 con 9 habitaciones con baño, a 10 min a pie de la estación y del tranvía a Antarès.",
-        "excerpt": "Concurso de aprendices, feria profesional o congreso en Le Mans: cómo alojar juntos a alumnos, formadores y modelos la víspera, en una casa con un baño por habitación.",
+        "description": "Hair Artist Awards, ferias y congresos en Le Mans: una casa para 20 con 9 habitaciones con ducha, a 15 min a pie de la estación y del tranvía a Antarès.",
+        "excerpt": "Concurso de aprendices, feria profesional o congreso en Le Mans: cómo alojar juntos a alumnos, formadores y modelos la víspera, en una casa con un baño con ducha por habitación.",
         "keywords": [
           "alojamiento grupo feria Le Mans",
           "Hair Artist Awards Le Mans",
@@ -196,7 +196,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       es: {
         "title": "Celebrar el fin de año en Le Mans: Navidad, Año Nuevo o con el equipo",
-        "description": "Navidad antes del 24, reencuentros entre Navidad y Año Nuevo, comida de empresa: una casa entera en Le Mans para 20, mesa de 16 a 20 plazas y 9 habitaciones con baño.",
+        "description": "Navidad antes del 24, reencuentros entre Navidad y Año Nuevo, comida de empresa: una casa entera en Le Mans para 20, mesa de 16 a 20 plazas y 9 habitaciones con ducha.",
         "excerpt": "El 24 y el 31 cada uno tiene ya sus compromisos, así que cada vez más grupos se reúnen alrededor de las fiestas. Una casa entera en Le Mans para 20, con una mesa a la altura.",
         "keywords": [
           "casa para Navidad en grupo Francia",
@@ -395,7 +395,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       it: {
         "title": "Concorso ippico al Pôle Européen du Cheval: dove alloggiare",
-        "description": "Dove alloggiare per un concorso al Pôle Européen du Cheval di Yvré-l'Évêque: casa intera a Le Mans per cavalieri, istruttori e famiglie, 9 camere con bagno privato.",
+        "description": "Dove alloggiare per un concorso al Pôle Européen du Cheval di Yvré-l'Évêque: casa intera a Le Mans per cavalieri, istruttori e famiglie, 9 camere con doccia privata.",
         "excerpt": "Un weekend di concorso significa spesso un'intera squadra da alloggiare: cavalieri, istruttori, groom, genitori. Ecco come si organizza la casa per un concorso ippico al Pôle Européen du Cheval.",
         "keywords": [
           "alloggio concorso ippico Le Mans",
@@ -419,7 +419,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       es: {
         "title": "Concurso hípico en el Pôle Européen du Cheval: dónde alojarse en Le Mans",
-        "description": "Concurso en el Pôle Européen du Cheval de Yvré-l'Évêque: una casa entera en Le Mans para todo el equipo, 9 habitaciones con baño, gran mesa y lavadora, a unos 20 minutos.",
+        "description": "Concurso en el Pôle Européen du Cheval de Yvré-l'Évêque: una casa entera en Le Mans para todo el equipo, 9 habitaciones con ducha, gran mesa y lavadora, a unos 20 minutos.",
         "excerpt": "Un fin de semana de concurso supone alojar a todo un equipo: jinetes, entrenadores, mozos de cuadra, padres. Así se organiza la casa al ritmo de un concurso hípico.",
         "keywords": [
           "alojamiento concurso hípico Le Mans",
@@ -439,7 +439,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     locales: {
       fr: {
         "title": "Loger une équipe de nuit au Mans : une maison pour dormir le jour",
-        "description": "Mission de nuit au Mans : 9 chambres avec salle de douche privative et volets roulants pour dormir en plein jour, rue calme, salle de sport indépendante, cuisine équipée. À 10 min à pied de la gare.",
+        "description": "Mission de nuit au Mans : 9 chambres avec salle de douche privative et volets roulants pour dormir en plein jour, rue calme, salle de sport indépendante, cuisine équipée. À 15 min à pied de la gare.",
         "excerpt": "Quand on travaille de nuit, le vrai sujet est de dormir en plein jour. Une chambre noire par personne, le calme, et de quoi occuper ceux qui dorment peu sans réveiller les autres.",
         "keywords": [
           "logement équipe de nuit Le Mans",
@@ -463,7 +463,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       it: {
         "title": "Alloggio per squadre notturne a Le Mans: dormire bene di giorno",
-        "description": "Squadra che lavora di notte a Le Mans? Casa intera con 9 camere e bagno privato, tapparelle, palestra, cucina attrezzata, a 10 minuti a piedi dalla stazione. Fattura all'azienda.",
+        "description": "Squadra che lavora di notte a Le Mans? Casa intera con 9 camere con doccia privata, tapparelle, palestra, cucina attrezzata, a 15 minuti a piedi dalla stazione. Fattura all'azienda.",
         "excerpt": "Quando si lavora di notte, il vero problema è dormire in pieno giorno. Una camera a testa, il buio totale e la quiete: ecco perché la casa si presta alle squadre notturne a Le Mans.",
         "keywords": [
           "alloggio squadra notturna Le Mans",
@@ -475,7 +475,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       de: {
         "title": "Unterkunft für Nachtschichtteams in Le Mans: tagsüber gut schlafen",
-        "description": "Ein ganzes Haus in Le Mans für Nachtschichtteams: 9 Zimmer mit eigenem Duschbad und Rollläden, ruhiges Viertel, Küche, Fitnessraum, Bahnhof 10 Min. zu Fuß, Firmenrechnung.",
+        "description": "Ein ganzes Haus in Le Mans für Nachtschichtteams: 9 Zimmer mit eigenem Duschbad und Rollläden, ruhiges Viertel, Küche, Fitnessraum, Bahnhof 15 Min. zu Fuß, Firmenrechnung.",
         "excerpt": "Wer nachts arbeitet, muss am helllichten Tag schlafen können. Im Oktober 2026 hat ein Nachtschichtteam bei uns gewohnt: Darum eignet sich das Haus dafür, und darauf sollten Sie vor der Buchung achten.",
         "keywords": [
           "Monteurunterkunft Le Mans",
@@ -487,7 +487,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       es: {
         "title": "Alojar a un equipo de noche en Le Mans: una casa para dormir de día",
-        "description": "Misión nocturna en Le Mans: 9 habitaciones con baño privado y persianas para dormir de día, calle tranquila, gimnasio independiente y cocina equipada. A 10 min a pie de la estación.",
+        "description": "Misión nocturna en Le Mans: 9 habitaciones con ducha privada y persianas para dormir de día, calle tranquila, gimnasio independiente y cocina equipada. A 15 min a pie de la estación.",
         "excerpt": "Cuando se trabaja de noche, lo importante es poder dormir de día. Una habitación a oscuras por persona, tranquilidad y con qué entretener a quienes duermen poco sin despertar a los demás.",
         "keywords": [
           "alojamiento trabajadores Le Mans",
@@ -539,7 +539,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       it: {
         "title": "Alloggio per espositori e team al circuito di Le Mans",
-        "description": "Espositori, team e fornitori: una casa intera a 4,7 km dal circuito di Le Mans, 9 camere con chiave e bagno, fattura all'azienda. Date 2027.",
+        "description": "Espositori, team e fornitori: una casa intera a 4,7 km dal circuito di Le Mans, 9 camere con chiave e doccia privata, fattura all'azienda. Date 2027.",
         "excerpt": "Allestimento, giornate lunghe, smontaggio: una casa intera a 4,7 km dal circuito per alloggiare tutta la squadra, con fattura intestata all'azienda e le date 2027 da bloccare.",
         "keywords": [
           "alloggio team 24 Ore di Le Mans",
@@ -563,7 +563,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       es: {
         "title": "Expositores y escuderías: alojar a su equipo en Le Mans",
-        "description": "Montaje, carrera y desmontaje en el circuito de Le Mans: casa entera para 20, 9 habitaciones con llave y baño, factura a la empresa, a 4,7 km del circuito.",
+        "description": "Montaje, carrera y desmontaje en el circuito de Le Mans: casa para 20, 9 habitaciones con llave y ducha, factura a la empresa, a 4,7 km del circuito.",
         "excerpt": "Expositores, escuderías y proveedores del circuito de Le Mans: una casa entera para todo su equipo, del montaje al desmontaje, con factura a nombre de la empresa.",
         "keywords": [
           "alojamiento equipo 24 Horas de Le Mans",
@@ -911,7 +911,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       en: {
         "title": "Sports Team Accommodation in Le Mans: A Whole House for 20",
-        "description": "Away match, tournament or training camp in Le Mans? 9 bedrooms with private shower rooms, a table for 20, kit washing, a private gym, 10 min from the station.",
+        "description": "Away match, tournament or training camp in Le Mans? 9 bedrooms with private shower rooms, a table for 20, kit washing, a private gym, 15 min from the station.",
         "excerpt": "For a sports team in Le Mans, a whole house beats a hotel: 9 bedrooms with private shower rooms, team meals around one big table and kit washed on site. Handball, karting and cycling teams stayed with us in 2026.",
         "keywords": [
           "sports team accommodation le mans",
@@ -923,8 +923,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       it: {
         "title": "Alloggio per squadre sportive a Le Mans: casa intera fino a 20 posti",
-        "description": "Casa intera a Le Mans per squadre sportive: 9 camere con bagno privato, tavolo da 20, lavatrice, palestra. Vicino ad Antarès, stadio e circuito kart.",
-        "excerpt": "Torneo, trasferta o ritiro a Le Mans? Una casa intera con 9 camere e bagno privato, un grande tavolo per i pasti di squadra e tutto per lavare le divise e recuperare.",
+        "description": "Casa intera a Le Mans per squadre sportive: 9 camere con doccia privata, tavolo da 20, lavatrice, palestra. Vicino ad Antarès, stadio e circuito kart.",
+        "excerpt": "Torneo, trasferta o ritiro a Le Mans? Una casa intera con 9 camere e bagno privato con doccia, un grande tavolo per i pasti di squadra e tutto per lavare le divise e recuperare.",
         "keywords": [
           "alloggio squadra sportiva Le Mans",
           "casa per gruppi Le Mans",
@@ -947,8 +947,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       },
       es: {
         "title": "Alojamiento para equipos deportivos en Le Mans: casa entera hasta 20",
-        "description": "Casa entera en Le Mans para equipos deportivos: 9 habitaciones con baño, mesa para 20, lavadora, gimnasio privado y tranvía a Antarès y al estadio.",
-        "excerpt": "Un torneo, una concentración o un partido en Le Mans: una casa entera con 9 habitaciones con baño, una gran mesa y lavadora para alojar a todo el equipo bajo el mismo techo.",
+        "description": "Casa entera en Le Mans para equipos deportivos: 9 habitaciones con ducha, mesa para 20, lavadora, gimnasio privado y tranvía a Antarès y al estadio.",
+        "excerpt": "Un torneo, una concentración o un partido en Le Mans: una casa entera con 9 habitaciones con baño con ducha, una gran mesa y lavadora para alojar a todo el equipo bajo el mismo techo.",
         "keywords": [
           "alojamiento equipo deportivo Le Mans",
           "casa grupo Le Mans 20 personas",

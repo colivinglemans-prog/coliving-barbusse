@@ -37,7 +37,7 @@ export default function Article() {
       </ul>
       <p>
         The house is 4.7 km from the 24 Hours circuit, opposite which stands the Centre des
-        expositions, and <strong>a 10-minute walk from the station</strong>: the T1 tram, at
+        expositions, and <strong>a 15-minute walk from the station</strong>: the T1 tram, at
         the station, takes you straight to Antarès.
       </p>
 
@@ -110,7 +110,7 @@ export default function Article() {
       <h2>Arrive the day before, stress-free</h2>
       <ul>
         <li>
-          <strong>By train</strong>: the TGV station is a 10-minute walk from the house. For a
+          <strong>By train</strong>: the TGV station is a 15-minute walk from the house. For a
           group travelling from afar, it is often the easiest option: step off the train, drop
           the bags, have dinner together.
         </li>

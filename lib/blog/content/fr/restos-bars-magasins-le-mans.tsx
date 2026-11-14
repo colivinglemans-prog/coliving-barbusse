@@ -4,7 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Notre maison est idéalement située dans le quartier Gare Sud du Mans, à 10 minutes à
+        Notre maison est idéalement située dans le quartier Gare Sud du Mans, à 15 minutes à
         pied de la gare TGV. Voici les bonnes adresses que nous recommandons à nos voyageurs
         pour se restaurer, faire les courses ou sortir sans avoir besoin de reprendre la
         voiture.
@@ -144,7 +144,7 @@ export default function Article() {
 
       <h2>Votre séjour au cœur du quartier</h2>
       <p>
-        Notre coliving est situé dans un quartier vivant et bien desservi : gare TGV à 10
+        Notre coliving est situé dans un quartier vivant et bien desservi : gare TGV à 15
         min à pied, commerces et restaurants sur place, parc au bord de l'eau juste à
         côté. Consultez <Link href="/fr#disponibilite">nos disponibilités</Link> et profitez
         d'un séjour serein, sans avoir besoin de voiture pour le quotidien.

@@ -96,7 +96,7 @@ export default function Article() {
 
       <h2>La nostra casa: ideale per un weekend 24h Camion</h2>
       <p>
-        Il nostro coliving di <strong>9 suite private con bagno</strong>{" "}
+        Il nostro coliving di <strong>9 suite private con doccia privata</strong>{" "}
         ospita fino a 20 persone — perfetto per un gruppo familiare o di
         amici:
       </p>
@@ -122,7 +122,7 @@ export default function Article() {
           (45-60 min nei giorni di gara).
         </li>
         <li>
-          <strong>10 min a piedi dalla stazione TGV</strong>: Parigi in 55
+          <strong>15 min a piedi dalla stazione TGV</strong>: Parigi in 55
           min per chi preferisce il treno.
         </li>
         <li>

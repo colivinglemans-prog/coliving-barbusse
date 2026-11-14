@@ -120,7 +120,7 @@ export default function Article() {
 
       <h2>Our house: perfect for a karting team</h2>
       <p>
-        Our <strong>9 private suites with en-suite bathrooms</strong> accommodate
+        Our <strong>9 private suites with en-suite shower rooms</strong> accommodate
         up to 20 guests — the ideal setup for a complete World Championship
         structure:
       </p>
@@ -147,7 +147,7 @@ export default function Article() {
           off-event (expect more on peak event days).
         </li>
         <li>
-          <strong>10 min walk from the TGV station</strong>: Paris in 55 min.
+          <strong>15 min walk from the TGV station</strong>: Paris in 55 min.
           International teams can move drivers and engineers without a car.
         </li>
         <li>

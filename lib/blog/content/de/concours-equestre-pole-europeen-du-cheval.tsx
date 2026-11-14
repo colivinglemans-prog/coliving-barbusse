@@ -123,7 +123,7 @@ export default function Article() {
 
       <h2>Le Mans zwischen zwei Prüfungen genießen</h2>
       <p>
-        Der TGV-Bahnhof ist 10 Gehminuten entfernt, die Straßenbahn ganz in der Nähe. Am Abend
+        Der TGV-Bahnhof ist 15 Gehminuten entfernt, die Straßenbahn ganz in der Nähe. Am Abend
         oder am Ruhetag: die Cité Plantagenêt (die Altstadt), die Ufer der Sarthe und unsere
         Tipps zum Essen (
         <Link href="/de/blog/que-visiter-le-mans-sarthe">Sehenswürdigkeiten</Link>,{" "}

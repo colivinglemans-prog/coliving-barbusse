@@ -150,12 +150,12 @@ export default function Article() {
           <strong>Rennstrecke der 24 Stunden und Circuit Bugatti 4,7 km entfernt.</strong>
         </li>
         <li>
-          <strong>Straßenbahnlinie T1 am Bahnhof, 10 Gehminuten entfernt</strong>, bis zur
+          <strong>Straßenbahnlinie T1 am Bahnhof, 15 Gehminuten entfernt</strong>, bis zur
           Endhaltestelle Antarès / MMArena auf der Seite der Rennstrecke: praktisch für alle,
           die nicht mit dem Teamfahrzeug fahren.
         </li>
         <li>
-          <strong>TGV-Bahnhof Le Mans 10 Gehminuten entfernt</strong> (Paris-Montparnasse in
+          <strong>TGV-Bahnhof Le Mans 15 Gehminuten entfernt</strong> (Paris-Montparnasse in
           etwa 55 Minuten): Die Verstärkung fürs Wochenende und Kollegen, die nur zwei Tage
           bleiben, kommen mit dem Zug.
         </li>

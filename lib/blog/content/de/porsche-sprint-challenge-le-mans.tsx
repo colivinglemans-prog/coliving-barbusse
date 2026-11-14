@@ -91,7 +91,7 @@ export default function Article() {
 
       <h2>Unser Haus: gemacht für Renn-Mannschaften</h2>
       <p>
-        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong> beherbergt
+        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Duschbad</strong> beherbergt
         bis zu 20 Personen:
       </p>
       <ul>
@@ -115,7 +115,7 @@ export default function Article() {
           <strong>Etwa 20 Min. vom Bugatti-Circuit</strong> außerhalb der Stoßzeiten.
         </li>
         <li>
-          <strong>10 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min., praktisch für
+          <strong>15 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min., praktisch für
           Begleitpersonen, die nur einen Tag bleiben.
         </li>
         <li>

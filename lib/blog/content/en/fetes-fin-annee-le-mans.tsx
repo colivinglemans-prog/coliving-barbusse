@@ -90,7 +90,7 @@ export default function Article() {
         <li>
           <strong>Self check-in</strong> from 5 pm (or earlier if the house is ready),
           check-out before 11 am; early check-in or late check-out possible, at extra cost
-          and subject to availability. The TGV station is a 10-minute walk away for those
+          and subject to availability. The TGV station is a 15-minute walk away for those
           coming by train.
         </li>
         <li>

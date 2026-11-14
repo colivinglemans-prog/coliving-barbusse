@@ -99,7 +99,7 @@ export default function Article() {
       <h2>Well placed for Le Mans worksites and business sites</h2>
       <ul>
         <li>
-          <strong>Le Mans station a 10-minute walk away</strong>: handy for teams working on
+          <strong>Le Mans station a 15-minute walk away</strong>: handy for teams working on
           the tracks or at the station, and for relief crews arriving by TGV
           (Paris-Montparnasse in about 55 minutes).
         </li>
@@ -109,7 +109,7 @@ export default function Article() {
           <Link href="/en/blog/entreprises-proches-le-mans">nearby companies</Link>).
         </li>
         <li>
-          <strong>T1 tram</strong> at the station, a 10-minute walk away.
+          <strong>T1 tram</strong> at the station, a 15-minute walk away.
         </li>
         <li>
           <strong>Parking</strong>: free on the street, no parking disc or meter, but no

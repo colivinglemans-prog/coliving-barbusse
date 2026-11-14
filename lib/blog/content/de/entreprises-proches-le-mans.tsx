@@ -25,7 +25,7 @@ export default function Article() {
       <p>
         Der Technologiepark vereint Beratungsunternehmen, Digitaldienstleister, regionale
         Niederlassungen und vielfältige Dienstleistungsfirmen. Die Nähe zum TGV-Bahnhof
-        (10 Gehminuten vom Haus) macht ihn zu einem der dynamischsten Zentren von Le Mans
+        (15 Gehminuten vom Haus) macht ihn zu einem der dynamischsten Zentren von Le Mans
         für Geschäftsreisende.
       </p>
 
@@ -78,7 +78,7 @@ export default function Article() {
 
       <h3>Strategische Lage</h3>
       <ul>
-        <li><strong>10 Gehminuten</strong> vom TGV-Bahnhof (Paris in 55 Minuten)</li>
+        <li><strong>15 Gehminuten</strong> vom TGV-Bahnhof (Paris in 55 Minuten)</li>
         <li><strong>20 Gehminuten</strong> von Novaxis/Novaxud</li>
         <li><strong>Weniger als 20 Minuten</strong> zu Fuß/mit dem Auto zu Renault Manufacture Louis Schweitzer und CLAAS</li>
         <li>Kostenlose Parkplätze in der Straße direkt vor dem Haus</li>
@@ -87,7 +87,7 @@ export default function Article() {
       <h3>Ideal für Teams</h3>
       <ul>
         <li>
-          <strong>9 private Suiten mit eigenem Bad</strong>: Jedes Teammitglied hat
+          <strong>9 private Suiten mit eigenem Duschbad</strong>: Jedes Teammitglied hat
           nach intensiven Tagen seine Privatsphäre.
         </li>
         <li>

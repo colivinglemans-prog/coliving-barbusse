@@ -5,7 +5,7 @@ export default function Article() {
     <>
       <p className="lead">
         La nostra casa si trova in una posizione ideale nel quartiere Gare Sud di Le Mans, a
-        10 minuti a piedi dalla stazione TGV. Ecco gli indirizzi che consigliamo ai nostri
+        15 minuti a piedi dalla stazione TGV. Ecco gli indirizzi che consigliamo ai nostri
         viaggiatori per mangiare, fare la spesa o uscire la sera senza dover riprendere
         l'auto.
       </p>
@@ -141,7 +141,7 @@ export default function Article() {
       <h2>Il tuo soggiorno nel cuore del quartiere</h2>
       <p>
         Il nostro coliving si trova in un quartiere vivace e ben collegato: stazione TGV a
-        10 min a piedi, negozi e ristoranti sotto casa, parco lungo il fiume proprio
+        15 min a piedi, negozi e ristoranti sotto casa, parco lungo il fiume proprio
         accanto. Consulta <Link href="/it#disponibilite">le nostre disponibilità</Link> e
         goditi un soggiorno sereno, senza bisogno dell'auto per la vita di tutti i giorni.
       </p>

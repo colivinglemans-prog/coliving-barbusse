@@ -151,12 +151,12 @@ export default function Article() {
           <strong>Circuit des 24 Heures et circuit Bugatti à 4,7 km.</strong>
         </li>
         <li>
-          <strong>Tramway T1 au niveau de la gare, à 10 minutes à pied</strong>, jusqu'au
+          <strong>Tramway T1 au niveau de la gare, à 15 minutes à pied</strong>, jusqu'au
           terminus Antarès / MMArena, côté circuit : pratique pour ceux qui ne prennent pas le
           véhicule de l'équipe.
         </li>
         <li>
-          <strong>Gare TGV du Mans à 10 minutes à pied</strong> (Paris-Montparnasse en 55
+          <strong>Gare TGV du Mans à 15 minutes à pied</strong> (Paris-Montparnasse en 55
           minutes environ) : les renforts du week-end et les collègues qui ne restent que deux
           jours arrivent en train.
         </li>

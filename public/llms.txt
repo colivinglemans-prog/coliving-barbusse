@@ -1,11 +1,11 @@
 # Coliving Barbusse
 
-> Maison entière de 215 m² au Mans avec 9 chambres, chacune avec sa salle de douche privative, pour 10 à 20 personnes. À 10 min à pied de la gare TGV (Paris en 55 min environ) et à 4,7 km du circuit des 24 Heures. Pour les réunions de famille, les équipes de course, les équipes professionnelles, les séminaires et les équipes sportives.
+> Maison entière de 215 m² au Mans avec 9 chambres, chacune avec sa salle de douche privative, pour 10 à 20 personnes. À 15 min à pied de la gare TGV (Paris en 55 min environ) et à 4,7 km du circuit des 24 Heures. Pour les réunions de famille, les équipes de course, les équipes professionnelles, les séminaires et les équipes sportives.
 
 ## Informations clés
 
 - **Type** : maison entière en location courte durée, uniquement entière (plus de location à la chambre)
-- **Capacité** : jusqu'à 20 personnes. 9 chambres, chacune avec lit double, volets roulants (noir complet en plein jour), salle de douche privative, bureau, smart TV, Wi-Fi haut débit, dressing et clé individuelle ; 2 chambres ont en plus un clic-clac une place.
+- **Capacité** : jusqu'à 20 personnes. 9 chambres, chacune avec lit double (fait à l'arrivée, couette et 2 oreillers), table de nuit, volets roulants (noir complet en plein jour), salle de douche privative avec sèche-serviettes, bureau, smart TV, Wi-Fi haut débit, chauffage, penderie ou dressing et clé individuelle ; 2 chambres ont en plus un clic-clac une place.
   - 9 personnes sans partager leur chambre ni leur salle de douche
   - 11 personnes sans partager de lit
 - **Surface** : 215 m² sur 3 niveaux ; une chambre au rez-de-chaussée, les 8 autres à l'étage
@@ -35,9 +35,9 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 
 ## Accès
 
-- Gare TGV du Mans à 10 min à pied : Paris-Montparnasse en 55 min environ ; **Nantes en 1 h 10 à 1 h 20 environ en TGV direct** (1 h 30 à 2 h en TER) ; liaisons directes aussi vers Rennes et Angers
+- Gare TGV du Mans à 15 min à pied : Paris-Montparnasse en 55 min environ ; **Nantes en 1 h 10 à 1 h 20 environ en TGV direct** (1 h 30 à 2 h en TER) ; liaisons directes aussi vers Rennes et Angers
 - En voiture par l'A11 : environ 185 km et 2 h depuis Nantes, environ 210 km et 2 h depuis Paris (hors bouchons) ; stationnement dans la rue, sans place réservée — pour un groupe venu de deux villes, le train est souvent le plus simple
-- Tramway T1 au niveau de la gare, à 10 min à pied : centre-ville, gare et circuit (terminus Antarès / MMArena)
+- Tramway T1 au niveau de la gare, à 15 min à pied : centre-ville, gare et circuit (terminus Antarès / MMArena)
 - Circuit Bugatti et circuit des 24 Heures à 4,7 km
 - Zones d'activités du sud du Mans (Technopole Université, zone Sud) à moins de 10 min en voiture
 - Cité Plantagenêt (vieux Mans) à 15 min en tram ; parc du Gué de Maulny (10 ha) à 5 min à pied
@@ -45,7 +45,8 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 
 ## Équipements
 
-- Cuisine entièrement équipée : four, plaques, lave-vaisselle, micro-ondes, réfrigérateur-congélateur, cafetière à grain ; vaisselle pour 20, grands plats et grandes casseroles
+- Une seule cuisine, entièrement équipée, avec l'électroménager en double pour les groupes : 2 réfrigérateurs-congélateurs combinés, 2 fours, 2 plaques de cuisson, 2 hottes, 2 lave-vaisselle et 3 micro-ondes ; une seule machine à café à grain, une bouilloire et un grille-pain ; vaisselle pour 20, grands plats et grandes casseroles
+- WC : 4 WC séparés, partagés, plus un WC privatif dans la salle de douche d'une seule chambre (la chambre 7) ; les 8 autres salles de douche n'ont pas de WC (douche, lavabo, sèche-serviettes)
 - Grande table de 16 places assises (tabourets de bar) dans la cuisine, 20 en y rapprochant les deux mini-tables hautes de la véranda, à l'intérieur et chauffée toute l'année
 - Salon avec canapé d'angle et grande smart TV (entrée HDMI)
 - Véranda avec coin café et coin apéro
@@ -59,7 +60,6 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 
 - Une seule tablée pour tout le monde : 16 places, 20 avec la véranda (tabourets de bar, pas de chaises basses)
 - Une chambre au rez-de-chaussée, pratique pour des grands-parents ; les autres chambres sont à l'étage
-- Enfants (information, pas une règle) : maison pensée pour les ados et les adultes, rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, pas de chaises basses, TV dans toutes les chambres, salle de sport dans une annexe séparée de la maison). Elle n'est donc pas adaptée aux moins de 10 ans, qui sont acceptés sous la responsabilité de leurs parents : aucun âge à demander, la famille décide. Adolescents bienvenus, y compris en club avec leurs encadrants majeurs.
 - Occasions : Noël, Nouvel An, anniversaires, noces d'or, retrouvailles de famille, hébergement des proches autour d'un mariage, d'un baptême ou d'un PACS
 - Déjà accueilli : un groupe familial de 18 personnes (août 2026), 16 adultes réunis pour une fête de famille (mai 2026)
 - La maison héberge la famille et ses repas, mais ce n'est pas une salle de réception : pas de fête ni d'événement bruyant
@@ -107,6 +107,10 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Pas de fête ni d'événement bruyant
 - Stationnement dans la rue, sans place réservée
 
+## Bon à savoir
+
+- Enfants (information, pas une règle) : maison pensée pour les ados et les adultes, rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, pas de chaises basses, TV dans toutes les chambres, salle de sport dans une annexe séparée de la maison). Elle n'est donc pas adaptée aux moins de 10 ans, qui sont acceptés sous la responsabilité de leurs parents : aucun âge à demander, la famille décide. Adolescents bienvenus, y compris en club avec leurs encadrants majeurs.
+
 ## Avis
 
 - Note moyenne : 4,9/5 sur les 30 avis Airbnb, Booking.com et Abritel publiés sur le site
@@ -127,5 +131,5 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Concours équestres au Pôle Européen du Cheval : https://www.coliving-barbusse.fr/fr/blog/concours-equestre-pole-europeen-du-cheval
 - Concours, salons et congrès : https://www.coliving-barbusse.fr/fr/blog/concours-salons-le-mans
 - 24 Heures Vélo 2027 : https://www.coliving-barbusse.fr/fr/blog/24-heures-velo-le-mans-2027
-- Conditions de réservation (paiement, annulation, arrivée, règles dont l'accueil des enfants, données) : https://www.coliving-barbusse.fr/fr/conditions
+- Conditions de réservation (paiement, annulation, arrivée, règles, accueil des enfants, données) : https://www.coliving-barbusse.fr/fr/conditions
 - Blog (événements du circuit, Le Mans) : https://www.coliving-barbusse.fr/fr/blog

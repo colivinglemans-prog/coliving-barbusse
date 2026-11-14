@@ -18,7 +18,7 @@ export default function Article() {
       <h3>Maximale Erreichbarkeit</h3>
       <p>
         <strong>Paris in 55 Min. mit dem TGV</strong>, Lyon/Bordeaux/Lille mit
-        Umsteigen, und unser Haus liegt 10 Minuten zu Fuß vom TGV-Bahnhof Le
+        Umsteigen, und unser Haus liegt 15 Minuten zu Fuß vom TGV-Bahnhof Le
         Mans entfernt. Keine ermüdenden Fahrten, keine zu organisierenden
         Transfers: Ihre Mitarbeiter kommen entspannt und arbeitsbereit an.
       </p>
@@ -98,7 +98,7 @@ export default function Article() {
 
       <h3>11 Personen untergebracht, ohne dass jemand ein Bett teilt</h3>
       <p>
-        Das Haus hat <strong>9 private Suiten</strong>, jede mit eigenem Bad,
+        Das Haus hat <strong>9 private Suiten</strong>, jede mit eigenem Duschbad,
         Schreibtisch und eigenem Schlüssel: bis zu{" "}
         <strong>9 Teilnehmenden teilt niemand sein Zimmer oder sein eigenes
         Duschbad</strong>. Darüber hinaus ergibt das in Seminarkonfiguration{" "}
@@ -109,7 +109,7 @@ export default function Article() {
       </p>
       <p>
         Anders als in einem Hotel gibt es keine Hierarchie zwischen den Zimmern:
-        Alle sind gleichgestellt, jede Person mit eigenem Bad. Ein Hotel-Twin
+        Alle sind gleichgestellt, jede Person mit eigenem Duschbad. Ein Hotel-Twin
         bietet das nie.
       </p>
 

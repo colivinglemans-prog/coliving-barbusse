@@ -164,12 +164,12 @@ export default function Article() {
         <li>
           <strong>Getting back and forth</strong>: the house is 4.7 km from the circuit.
           Decide in advance who drives at night. Vehicle passes for the circuit are limited
-          according to your entry format. The T1 tram leaves from the station, a 10-minute
+          according to your entry format. The T1 tram leaves from the station, a 15-minute
           walk away, and runs to the circuit (Antarès / MMArena terminus): check its
           night-time timetable if you are counting on it.
         </li>
         <li>
-          <strong>By train</strong>: Le Mans TGV station is a 10-minute walk from the house.
+          <strong>By train</strong>: Le Mans TGV station is a 15-minute walk from the house.
         </li>
       </ul>
 

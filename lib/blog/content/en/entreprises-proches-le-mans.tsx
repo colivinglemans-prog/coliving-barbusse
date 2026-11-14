@@ -23,7 +23,7 @@ export default function Article() {
       </ul>
       <p>
         The tech park gathers consulting firms, IT services, regional HQs and a wide
-        range of tertiary companies. Combined with TGV station proximity (10 min walk
+        range of tertiary companies. Combined with TGV station proximity (15 min walk
         from the house), it's one of Le Mans's most dynamic hubs for business
         travellers.
       </p>
@@ -76,7 +76,7 @@ export default function Article() {
 
       <h3>Strategic location</h3>
       <ul>
-        <li><strong>10 min walk</strong> from the TGV station (Paris in 55 min)</li>
+        <li><strong>15 min walk</strong> from the TGV station (Paris in 55 min)</li>
         <li><strong>20 min walk</strong> from Novaxis/Novaxud</li>
         <li><strong>Less than 20 min</strong> walk/drive from Renault Manufacture Louis Schweitzer and CLAAS</li>
         <li>Free on-site street parking</li>
@@ -85,7 +85,7 @@ export default function Article() {
       <h3>Ideal for teams</h3>
       <ul>
         <li>
-          <strong>9 private suites with en-suite bathrooms</strong>: each team member has
+          <strong>9 private suites with en-suite shower rooms</strong>: each team member has
           their privacy after long days.
         </li>
         <li>

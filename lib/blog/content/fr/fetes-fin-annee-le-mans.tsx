@@ -88,7 +88,7 @@ export default function Article() {
         <li>
           <strong>Arrivée autonome</strong> à partir de 17h (ou avant si la maison est prête),
           départ avant 11h ; arrivée plus tôt ou départ plus tard possibles, en supplément et
-          selon les disponibilités. Gare TGV à 10 minutes à pied pour ceux qui viennent en
+          selon les disponibilités. Gare TGV à 15 minutes à pied pour ceux qui viennent en
           train.
         </li>
         <li>

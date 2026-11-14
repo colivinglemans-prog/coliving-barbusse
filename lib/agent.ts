@@ -101,10 +101,17 @@ function pages(lang: string): Record<string, string> {
   };
 }
 
-const FACTS_FR: Omit<PropertyFacts, "pages"> = {
+/**
+ * La fiche servie par `get_property_info` et `/api/agent/info` (le socle la sert telle quelle).
+ * Deux champs propres à Barbusse : `equipment` (chambres, salles de douche, WC, cuisine) et
+ * `goodToKnow` — l'accueil des moins de 10 ans est une information, jamais une règle (2026-11-14).
+ */
+type Facts = Omit<PropertyFacts, "pages"> & { equipment: string[]; goodToKnow: string[] };
+
+const FACTS_FR: Facts = {
   name: "Coliving Barbusse — maison entière au Mans",
   summary:
-    "Maison entière de 215 m² au Mans : 9 chambres, chacune avec sa salle de douche privative, pour 10 à 20 personnes. À 10 min à pied de la gare TGV (Paris en 55 min environ, liaisons directes vers Nantes, Rennes, Angers) et à 4,7 km du circuit des 24 Heures. Réunions de famille, équipes de course, équipes professionnelles, séminaires, équipes sportives.",
+    "Maison entière de 215 m² au Mans : 9 chambres, chacune avec sa salle de douche privative, pour 10 à 20 personnes. À 15 min à pied de la gare TGV (Paris en 55 min environ, liaisons directes vers Nantes, Rennes, Angers) et à 4,7 km du circuit des 24 Heures. Réunions de famille, équipes de course, équipes professionnelles, séminaires, équipes sportives.",
   address: PROPERTY_INFO.address.full,
   capacity: {
     max: PROPERTY_INFO.maxGuests,
@@ -113,21 +120,31 @@ const FACTS_FR: Omit<PropertyFacts, "pages"> = {
   checkIn: `Autonome par serrure connectée, ${PROPERTY_INFO.checkIn.fr}, à toute heure`,
   checkOut: PROPERTY_INFO.checkOut.fr,
   includes: ["Draps et serviettes", "Ménage de fin de séjour", "Taxe de séjour", "Fibre et Wi-Fi", "Salle de sport privée et salle zen"],
+  equipment: [
+    "Dans chaque chambre : lit double fait à l'arrivée (couette et 2 oreillers, draps et serviettes), table de nuit, penderie ou dressing, bureau, smart TV, Wi-Fi, chauffage, volet roulant, clé de la chambre",
+    "Dans chaque salle de douche privative : douche, lavabo, sèche-serviettes",
+    "WC : 4 WC séparés, partagés ; une seule chambre (la chambre 7) a en plus un WC privatif dans sa salle de douche, les 8 autres salles de douche n'ont pas de WC",
+    "Une seule cuisine, avec l'électroménager en double pour les groupes : 2 réfrigérateurs-congélateurs combinés, 2 fours, 2 plaques de cuisson, 2 hottes, 2 lave-vaisselle, 3 micro-ondes ; une machine à café à grain, une bouilloire, un grille-pain ; vaisselle pour 20",
+    "Jardin clos de 90 m², plein sud, avec une table pour manger à 20 et un salon de jardin 8 places",
+    "Lave-linge et sèche-linge",
+  ],
   rules: [
     "Animaux non autorisés",
     "Non-fumeur à l'intérieur",
     "Pas de fête ni d'événement bruyant (les repas de famille sont bienvenus)",
-    "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, TV dans les chambres, salle de sport dans une annexe). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents",
     "Stationnement gratuit dans la rue, sans place réservée",
+  ],
+  goodToKnow: [
+    "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, TV dans les chambres, salle de sport dans une annexe). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents",
   ],
   contact: { phone: PROPERTY_INFO.contact.phone, whatsapp: PROPERTY_INFO.contact.whatsapp, email: PROPERTY_INFO.contact.email },
 };
 
-const FACTS_EN: Omit<PropertyFacts, "pages"> = {
+const FACTS_EN: Facts = {
   ...FACTS_FR,
   name: "Coliving Barbusse — entire house in Le Mans",
   summary:
-    "215 m² entire house in Le Mans, France: 9 bedrooms, each with its own private shower room, for 10 to 20 guests. A 10-minute walk from the TGV station (Paris in about 55 min, direct trains to Nantes, Rennes, Angers) and 4.7 km from the 24 Hours circuit. Family gatherings, racing teams, work teams, seminars, sports teams.",
+    "215 m² entire house in Le Mans, France: 9 bedrooms, each with its own private shower room, for 10 to 20 guests. A 15-minute walk from the TGV station (Paris in about 55 min, direct trains to Nantes, Rennes, Angers) and 4.7 km from the 24 Hours circuit. Family gatherings, racing teams, work teams, seminars, sports teams.",
   capacity: {
     max: PROPERTY_INFO.maxGuests,
     note: "9 double-bed bedrooms (2 with an extra single sofa bed): 9 guests without sharing a room, 11 without sharing a bed, 20 at most when sharing double beds",
@@ -135,12 +152,22 @@ const FACTS_EN: Omit<PropertyFacts, "pages"> = {
   checkIn: `Self check-in with a smart lock, ${PROPERTY_INFO.checkIn.en}, at any hour`,
   checkOut: PROPERTY_INFO.checkOut.en,
   includes: ["Bed linen and towels", "End-of-stay cleaning", "Tourist tax", "Fibre and Wi-Fi", "Private gym and zen room"],
+  equipment: [
+    "In every bedroom: double bed made up on arrival (duvet and 2 pillows, sheets and towels), bedside table, wardrobe or walk-in closet, desk, smart TV, Wi-Fi, heating, roller shutter, bedroom key",
+    "In every private shower room: shower, washbasin, heated towel rail",
+    "Toilets: 4 separate shared toilets; only one bedroom (room 7) also has a private toilet in its shower room, the other 8 shower rooms have no toilet",
+    "A single kitchen, with appliances doubled up for groups: 2 fridge-freezers, 2 ovens, 2 hobs, 2 extractor hoods, 2 dishwashers, 3 microwaves; one bean-to-cup coffee machine, one kettle, one toaster; tableware for 20",
+    "Enclosed 90 m² south-facing garden, with a table to eat outside for 20 and an 8-seat garden lounge set",
+    "Washing machine and tumble dryer",
+  ],
   rules: [
     "No pets",
     "No smoking indoors",
     "No parties or noisy events (family meals are welcome)",
-    "A house designed for teens and adults: nothing is set up for young children (unguarded stairs, high stools, TV in every bedroom, gym in a separate annex). Children under 10 are welcome under their parents' responsibility",
     "Free street parking, no reserved space",
+  ],
+  goodToKnow: [
+    "A house designed for teens and adults: nothing is set up for young children (unguarded stairs, high stools, TV in every bedroom, gym in a separate annex). Children under 10 are welcome under their parents' responsibility",
   ],
 };
 

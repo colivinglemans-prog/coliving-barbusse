@@ -85,12 +85,12 @@ export default function Article() {
 
       <h2>Our house: built for groups</h2>
       <p>
-        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 20
+        Our <strong>9 private suites with en-suite shower rooms</strong> welcome up to 20
         guests:
       </p>
       <ul>
         <li>20 min from the Bugatti Circuit off-event (45-60 min on race days)</li>
-        <li>10 min walk from the TGV station + direct tram T1 to the circuit (~30 min door-to-door, no parking hassle)</li>
+        <li>15 min walk from the TGV station + direct tram T1 to the circuit (~35 min door-to-door, no parking hassle)</li>
         <li>Free street parking in a quiet residential area</li>
         <li>215 m² total (common areas, bedrooms and gym/zen annex) to gather</li>
         <li>High-speed Wi-Fi to follow the sessions live</li>

@@ -120,7 +120,7 @@ export default function Article() {
 
       <h2>Godersi Le Mans tra una prova e l'altra</h2>
       <p>
-        La stazione TGV è a 10 minuti a piedi, il tram a due passi. La sera o nel giorno di
+        La stazione TGV è a 15 minuti a piedi, il tram a due passi. La sera o nel giorno di
         riposo: la Cité Plantagenêt, il centro storico, le rive della Sarthe e i nostri
         indirizzi per mangiare (
         <Link href="/it/blog/que-visiter-le-mans-sarthe">cosa visitare</Link>,{" "}

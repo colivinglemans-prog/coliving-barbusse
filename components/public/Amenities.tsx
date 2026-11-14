@@ -22,6 +22,8 @@ const ICONS: React.ReactNode[] = [
   <MicrowaveIcon key="microwave" />,
   <OvenIcon key="oven" />,
   <FridgeIcon key="fridge" />,
+  <HobIcon key="hob" />,
+  <ToiletIcon key="toilet" />,
   <SmokeDetectorIcon key="smoke" />,
   <ExtinguisherIcon key="extinguisher" />,
 ];
@@ -167,6 +169,20 @@ function FridgeIcon() {
   return (
     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.25 2.25h13.5v19.5H5.25zM5.25 10.5h13.5M9 6v3m0 3v6" />
+    </svg>
+  );
+}
+function HobIcon() {
+  return (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 3.75h16.5v16.5H3.75zM8.25 10.5a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM15.75 10.5a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM8.25 18a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM15.75 18a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
+    </svg>
+  );
+}
+function ToiletIcon() {
+  return (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3h4.5v7.5h-4.5zM4.5 10.5h15a6 6 0 01-6 6h-3a6 6 0 01-6-6zM9 16.5l-.75 4.5h7.5L15 16.5" />
     </svg>
   );
 }

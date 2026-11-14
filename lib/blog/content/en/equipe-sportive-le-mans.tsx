@@ -119,7 +119,7 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>By train</strong>: Le Mans TGV station is a 10-minute walk away, about 55
+          <strong>By train</strong>: Le Mans TGV station is a 15-minute walk away, about 55
           minutes from Paris-Montparnasse.
         </li>
         <li>
@@ -128,7 +128,7 @@ export default function Article() {
           van. The streets fill up during major events.
         </li>
         <li>
-          <strong>By tram</strong>: the T1 tram, at the station (a 10-minute walk), runs
+          <strong>By tram</strong>: the T1 tram, at the station (a 15-minute walk), runs
           straight to Antarès and the stadium (Antarès / MMArena terminus).
         </li>
       </ul>

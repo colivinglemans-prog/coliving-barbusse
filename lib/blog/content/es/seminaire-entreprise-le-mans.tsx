@@ -18,7 +18,7 @@ export default function Article() {
       <h3>Máxima accesibilidad</h3>
       <p>
         <strong>París en 55 min de TGV</strong>, Lyon/Burdeos/Lille con
-        transbordo, y nuestra casa está a 10 minutos a pie de la estación
+        transbordo, y nuestra casa está a 15 minutos a pie de la estación
         TGV de Le Mans. Ningún trayecto pesado, ningún transfer que
         organizar: sus colaboradores llegan relajados y listos para
         trabajar.
@@ -105,8 +105,8 @@ export default function Article() {
       <h3>11 personas alojadas sin que nadie comparta cama</h3>
       <p>
         La casa cuenta con <strong>9 suites privadas</strong>, cada una con su
-        baño, su escritorio y su llave individual: hasta{" "}
-        <strong>9 participantes, nadie comparte su habitación ni su baño
+        baño con ducha, su escritorio y su llave individual: hasta{" "}
+        <strong>9 participantes, nadie comparte su habitación ni su baño con ducha
         privado</strong>. Más allá, en configuración seminario, eso da{" "}
         <strong>7 habitaciones individuales y 2 habitaciones
         dobles</strong> — estas últimas tienen una cama doble y un sofá cama
@@ -116,7 +116,7 @@ export default function Article() {
       </p>
       <p>
         A diferencia de un hotel, sin jerarquía entre las habitaciones: todo el
-        mundo está en igualdad de condiciones, con su propio baño. Una
+        mundo está en igualdad de condiciones, con su propio baño con ducha. Una
         habitación twin de hotel nunca ofrece eso.
       </p>
 

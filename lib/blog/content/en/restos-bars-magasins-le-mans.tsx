@@ -4,7 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Our house is ideally located in the Gare Sud neighbourhood of Le Mans, 10 minutes
+        Our house is ideally located in the Gare Sud neighbourhood of Le Mans, 15 minutes
         walk from the TGV station. Here are the addresses we recommend to our guests for
         eating, drinking, shopping or exploring — all without needing the car.
       </p>
@@ -140,7 +140,7 @@ export default function Article() {
 
       <h2>Your stay at the heart of the neighbourhood</h2>
       <p>
-        Our coliving is in a lively, well-connected area: TGV station 10 min walk, shops
+        Our coliving is in a lively, well-connected area: TGV station 15 min walk, shops
         and restaurants nearby, a riverside park right next door. Check{" "}
         <Link href="/en#disponibilite">our availability</Link> and enjoy a relaxed stay
         without needing a car for the everyday.

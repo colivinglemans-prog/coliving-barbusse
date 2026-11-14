@@ -101,7 +101,7 @@ export default function Article() {
         <li>
           <strong>Stationnement</strong> : libre et gratuit dans la rue, sans disque ni
           horodateur, mais sans place réservée. Pensez au covoiturage ou au train : la gare
-          TGV est à 10 minutes à pied.
+          TGV est à 15 minutes à pied.
         </li>
         <li>
           <strong>Arrivée autonome</strong> à partir de 17h grâce à la serrure connectée :

@@ -40,7 +40,7 @@ export default function Article() {
       </ul>
       <p>
         Das Haus liegt 4,7 km von der Rennstrecke der 24 Stunden entfernt, gegenüber der sich
-        das Centre des expositions befindet, und <strong>10 Gehminuten vom Bahnhof</strong>:
+        das Centre des expositions befindet, und <strong>15 Gehminuten vom Bahnhof</strong>:
         Die Straßenbahnlinie T1 am Bahnhof fährt direkt zum Antarès.
       </p>
 
@@ -113,7 +113,7 @@ export default function Article() {
       <h2>Am Vortag anreisen, ganz entspannt</h2>
       <ul>
         <li>
-          <strong>Mit dem Zug</strong>: Der TGV-Bahnhof liegt 10 Gehminuten vom Haus entfernt.
+          <strong>Mit dem Zug</strong>: Der TGV-Bahnhof liegt 15 Gehminuten vom Haus entfernt.
           Für eine Gruppe, die von weit her kommt, ist das oft am einfachsten: aus dem Zug
           steigen, die Koffer abstellen, gemeinsam zu Abend essen.
         </li>

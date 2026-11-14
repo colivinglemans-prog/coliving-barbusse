@@ -90,7 +90,7 @@ export default function Article() {
 
       <h2>Nuestra casa: pensada para los equipos</h2>
       <p>
-        Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge hasta 20
+        Nuestro coliving de <strong>9 suites privadas con baño con ducha</strong> acoge hasta 20
         personas:
       </p>
       <ul>
@@ -114,7 +114,7 @@ export default function Article() {
           <strong>Unos 20 min del circuito Bugatti</strong> fuera de horas punta.
         </li>
         <li>
-          <strong>10 min a pie de la estación TGV</strong>: París en 55 min, práctico
+          <strong>15 min a pie de la estación TGV</strong>: París en 55 min, práctico
           para los acompañantes que solo se quedan un día.
         </li>
         <li>

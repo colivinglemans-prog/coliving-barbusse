@@ -18,7 +18,7 @@ export const es: Dictionary = {
     travelers: "20 huéspedes",
     rooms: "9 habitaciones",
     beds: "9 camas dobles + 2 sofás cama",
-    bathrooms: "9 baños privados",
+    bathrooms: "9 baños privados con ducha",
     area: "215 m²",
   },
   highlights: {
@@ -44,7 +44,7 @@ export const es: Dictionary = {
 
 9 habitaciones dobles, cada una con su baño privado con ducha — ¡nadie tiene que compartir el baño, ni siquiera en un grupo grande!
 
-Ropa de cama de calidad, almacenamiento y verdadera intimidad en cada habitación. Cada suite dispone de cama doble con almacenamiento, escritorio, baño privado, smart TV, Wi-Fi de alta velocidad, vestidor y llave individual.
+Ropa de cama de calidad, almacenamiento y verdadera intimidad en cada habitación. Cada suite dispone de cama doble con almacenamiento, hecha a la llegada (edredón y 2 almohadas), mesita de noche, escritorio, baño privado con ducha y toallero eléctrico, smart TV, Wi-Fi de alta velocidad, armario o vestidor y llave individual.
 
 La casa se distribuye en 3 plantas con un gran salón, una cocina-comedor totalmente equipada con una gran mesa de 16 plazas (20 acercando las mesitas de la galería), un jardín cerrado de 90 m² y un gimnasio completo con espacio zen.
 
@@ -59,7 +59,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     room: "Habitación",
     doubleBed: "1 cama doble",
     doubleBedSofa: "1 cama doble + 1 sofá cama (1 plaza)",
-    features: "Baño privado · Smart TV · Escritorio · Vestidor · Llave individual",
+    features: "Cama hecha a la llegada · Edredón y 2 almohadas · Mesita de noche · Baño privado · Toallero eléctrico · Smart TV · Escritorio · Armario o vestidor · Llave individual",
     prevPhoto: "Foto anterior",
     nextPhoto: "Foto siguiente",
   },
@@ -93,7 +93,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
       "Smart TV en cada habitación",
       "Espacio de trabajo dedicado en cada habitación",
       "Cafetera de grano",
-      "Cocina totalmente equipada",
+      "Cocina totalmente equipada, electrodomésticos por duplicado",
       "Lavadora",
       "Secadora",
       "Gimnasio privado",
@@ -101,10 +101,12 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
       "Cerradura en cada habitación",
       "Entrada privada",
       "Calefacción",
-      "Lavavajillas",
-      "Microondas",
-      "Horno",
-      "Frigorífico / Congelador",
+      "2 lavavajillas",
+      "3 microondas",
+      "2 hornos",
+      "2 frigoríficos combi (con congelador)",
+      "2 placas de cocina y 2 campanas extractoras",
+      "4 aseos independientes compartidos + 1 aseo privado (habitación 7)",
       "Detector de humo",
       "Extintor",
     ],
@@ -138,11 +140,11 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     circuitTitle: "Cerca del Circuito Bugatti",
     circuitDesc: "Situada a solo 4,7 km del legendario Circuito Bugatti, nuestra casa es la base ideal para las 24 Horas de Le Mans, MotoGP, Le Mans Classic y todos los eventos del circuito. Acceso directo mediante Tranvía T1 desde la estación TGV.",
     nearby: [
-      { name: "Estación TGV de Le Mans", distance: "10 min a pie", detail: "París en unos 55 min, Nantes en 1 h 10 a 1 h 20 (TGV directo), conexiones a Rennes y Angers" },
+      { name: "Estación TGV de Le Mans", distance: "15 min a pie", detail: "París en unos 55 min, Nantes en 1 h 10 a 1 h 20 (TGV directo), conexiones a Rennes y Angers" },
       { name: "Circuito Bugatti", distance: "4,7 km", detail: "24 Horas de Le Mans, MotoGP, Le Mans Classic. Accesible mediante Tranvía T1" },
       { name: "Zonas empresariales Sur de Le Mans", distance: "< 10 min en coche", detail: "Technopole Université, zona Sur, centros de investigación" },
       { name: "Parc Gué de Maulny", distance: "5 min a pie", detail: "Espacio verde de 10 hectáreas para relajarse" },
-      { name: "Tranvía T1", distance: "En la estación, a 10 min a pie", detail: "Conecta el centro de la ciudad, la estación y el circuito" },
+      { name: "Tranvía T1", distance: "En la estación, a 15 min a pie", detail: "Conecta el centro de la ciudad, la estación y el circuito" },
       { name: "Cité Plantagenêt (Le Mans antiguo)", distance: "15 min en tranvía", detail: "Barrio medieval histórico, restaurantes, patrimonio" },
     ],
   },
@@ -151,7 +153,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     superhost: "Superhost",
     experience: "años de experiencia",
     about: "Sobre Alexandre",
-    aboutText: "Ingeniero, geek, deportista y manitas, soy Superhost desde hace varios años.\nMe importa ofrecer alojamientos limpios, cómodos y perfectamente funcionales.\nEsta casa de Le Mans está pensada para acoger familias, grupos de amigos o equipos profesionales, garantizando la intimidad de cada uno gracias a suites con baño privado.\nMe mantengo disponible y reactivo, dejándote al mismo tiempo gran autonomía.",
+    aboutText: "Ingeniero, geek, deportista y manitas, soy Superhost desde hace varios años.\nMe importa ofrecer alojamientos limpios, cómodos y perfectamente funcionales.\nEsta casa de Le Mans está pensada para acoger familias, grupos de amigos o equipos profesionales, garantizando la intimidad de cada uno gracias a suites con baño privado con ducha.\nMe mantengo disponible y reactivo, dejándote al mismo tiempo gran autonomía.",
     languages: "Idiomas",
     languagesValue: "Francés, English",
     responseRate: "Tasa de respuesta",
@@ -179,7 +181,6 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
           "No fumadores (en el interior)",
           "No se admiten animales",
           "Sin fiestas ni eventos ruidosos",
-          "Pensada para adolescentes y adultos: nada está adaptado a niños pequeños (escaleras sin protección, taburetes altos, gimnasio); los menores de 10 años son bienvenidos bajo la responsabilidad de sus padres",
         ],
       },
       {
@@ -190,6 +191,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
           "Cerradura en cada habitación",
           "Entrada privada con cerradura conectada",
           "Calefacción en todas las estancias",
+          "Pensada para adolescentes y adultos: nada está adaptado a niños pequeños (escaleras sin protección, taburetes altos, gimnasio); los menores de 10 años son bienvenidos bajo la responsabilidad de sus padres",
         ],
       },
       {

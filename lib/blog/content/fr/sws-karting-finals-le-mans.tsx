@@ -83,7 +83,7 @@ export default function Article() {
 
       <h2>Notre maison : parfaite pour une équipe de karting</h2>
       <p>
-        Notre coliving de <strong>9 suites privatives avec salle de bain</strong>{" "}
+        Notre coliving de <strong>9 suites privatives avec salle de douche</strong>{" "}
         accueille jusqu&apos;à 20 personnes — la configuration idéale pour un team
         complet :
       </p>
@@ -109,7 +109,7 @@ export default function Article() {
           forte affluence).
         </li>
         <li>
-          <strong>10 min à pied de la gare TGV</strong> : Paris en 55 min. Les pilotes
+          <strong>15 min à pied de la gare TGV</strong> : Paris en 55 min. Les pilotes
           étrangers peuvent récupérer leur matériel au circuit puis rejoindre la maison
           sans voiture.
         </li>

@@ -69,14 +69,14 @@ export default function Article() {
 
       <h2>Unser Haus: perfekt für ein MotoGP-Wochenende unter Freunden</h2>
       <p>
-        Unser Coliving mit <strong>9 privaten Suiten mit eigenen Bädern</strong>{" "}
+        Unser Coliving mit <strong>9 privaten Suiten mit eigenen Duschbädern</strong>{" "}
         empfängt bis zu 20 Personen in ruhiger Lage, 20 Minuten vom Circuit Bugatti
         entfernt (45-60 Minuten an Renntagen):
       </p>
       <ul>
         <li>Kostenlose Parkplätze in der ruhigen Wohnstraße</li>
-        <li>10 Gehminuten vom Bahnhof Le Mans + Straßenbahn T1 direkt zur Rennstrecke (~30 Minuten von Tür zu Tür, ohne Parkplatzstress)</li>
-        <li>Insgesamt 215 m² (Gemeinschaftsbereiche, Zimmer und Sport-/Zen-Anbau): Wohnzimmer, Küche, Veranda, Terrasse</li>
+        <li>15 Gehminuten vom Bahnhof Le Mans + Straßenbahn T1 direkt zur Rennstrecke (~35 Minuten von Tür zu Tür, ohne Parkplatzstress)</li>
+        <li>Insgesamt 215 m² (Gemeinschaftsbereiche, Zimmer und Sport-/Zen-Anbau): Wohnzimmer, Küche, Veranda, Garten mit Essplatz im Freien</li>
         <li>Fitnessraum und Zen-Bereich</li>
         <li>Highspeed-WLAN, um die Trainings in der Wiederholung zu sehen</li>
         <li>Smart-Lock, eigenständige Anreise ab 17 Uhr</li>

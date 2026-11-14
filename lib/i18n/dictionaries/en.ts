@@ -18,7 +18,7 @@ export const en: Dictionary = {
     travelers: "20 guests",
     rooms: "9 bedrooms",
     beds: "9 double beds + 2 sofa beds",
-    bathrooms: "9 private bathrooms",
+    bathrooms: "9 private shower rooms",
     area: "215 m²",
   },
   highlights: {
@@ -42,9 +42,9 @@ export const en: Dictionary = {
     showLess: "Show less",
     body: `Our 215 m² house offers a level of comfort unmatched elsewhere in Le Mans rentals.
 
-9 double bedrooms, each with its own private shower room — no one has to share a bathroom, even in a large group!
+9 double bedrooms, each with its own private shower room — no one has to share a shower room, even in a large group!
 
-Quality bedding, storage and real privacy in every room. Each suite features a double bed with storage, a desk, a private bathroom, a smart TV, high-speed Wi-Fi, a dressing area and an individual key.
+Quality bedding, storage and real privacy in every room. Each suite features a double bed with storage, made up on arrival (duvet and 2 pillows), a bedside table, a desk, a private shower room with a heated towel rail, a smart TV, high-speed Wi-Fi, a wardrobe or dressing area and an individual key.
 
 The house is spread over 3 levels with a large living room, a fully equipped dining kitchen with a 16-seat table (20 once the veranda bistro tables are pulled up to it), a 90 m² enclosed garden and a fully equipped gym with zen area.
 
@@ -59,7 +59,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     room: "Room",
     doubleBed: "1 double bed",
     doubleBedSofa: "1 double bed + 1 sofa bed (1 person)",
-    features: "Private bathroom · Smart TV · Desk · Wardrobe · Individual key",
+    features: "Bed made up on arrival · Duvet and 2 pillows · Bedside table · Private shower room · Heated towel rail · Smart TV · Desk · Wardrobe · Individual key",
     prevPhoto: "Previous photo",
     nextPhoto: "Next photo",
   },
@@ -93,7 +93,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
       "Smart TV in each room",
       "Dedicated workspace in each room",
       "Bean-to-cup coffee machine",
-      "Fully equipped kitchen",
+      "Fully equipped kitchen, appliances doubled up",
       "Washing machine",
       "Tumble dryer",
       "Private gym",
@@ -101,10 +101,12 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
       "Lock on each room",
       "Private entrance",
       "Heating",
-      "Dishwasher",
-      "Microwave",
-      "Oven",
-      "Fridge / Freezer",
+      "2 dishwashers",
+      "3 microwaves",
+      "2 ovens",
+      "2 fridge-freezers",
+      "2 hobs and 2 extractor hoods",
+      "4 separate shared toilets + 1 private toilet (room 7)",
       "Smoke detector",
       "Fire extinguisher",
     ],
@@ -138,11 +140,11 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     circuitTitle: "Near the Bugatti Circuit",
     circuitDesc: "Located just 4.7 km from the legendary Bugatti Circuit, our house is the perfect base for the 24 Hours of Le Mans, MotoGP, Le Mans Classic and all circuit events. Direct access via Tramway T1 from the TGV station.",
     nearby: [
-      { name: "Le Mans TGV Station", distance: "10 min walk", detail: "Paris in about 55 min, Nantes in 1 h 10 to 1 h 20 (direct TGV), connections to Rennes and Angers" },
+      { name: "Le Mans TGV Station", distance: "15 min walk", detail: "Paris in about 55 min, Nantes in 1 h 10 to 1 h 20 (direct TGV), connections to Rennes and Angers" },
       { name: "Bugatti Circuit", distance: "4.7 km", detail: "24 Hours of Le Mans, MotoGP, Le Mans Classic. Accessible via Tramway T1" },
       { name: "South Le Mans business areas", distance: "< 10 min by car", detail: "Technopole University, South business zone, research centres" },
       { name: "Parc Gué de Maulny", distance: "5 min walk", detail: "10-hectare green space to relax" },
-      { name: "Tramway T1", distance: "At the station, 10 min walk", detail: "Serves the city centre, station and circuit" },
+      { name: "Tramway T1", distance: "At the station, 15 min walk", detail: "Serves the city centre, station and circuit" },
       { name: "Cité Plantagenêt (Old Le Mans)", distance: "15 min by tram", detail: "Historic medieval quarter, restaurants, heritage" },
     ],
   },
@@ -179,7 +181,6 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
           "No smoking (indoors)",
           "No pets",
           "No parties or loud events",
-          "Designed for teenagers and adults: nothing is set up for young children (unprotected stairs, high stools, gym); children under 10 are welcome under their parents' responsibility",
         ],
       },
       {
@@ -190,6 +191,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
           "Lock on each room",
           "Private entrance with smart lock",
           "Heating in all rooms",
+          "Designed for teenagers and adults: nothing is set up for young children (unprotected stairs, high stools, gym); children under 10 are welcome under their parents' responsibility",
         ],
       },
       {

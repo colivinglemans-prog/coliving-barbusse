@@ -89,9 +89,9 @@ export default function Article() {
 
       <h2>Votre séjour au Mans autour de l'hippodrome</h2>
       <p>
-        Notre coliving de <strong>9 suites privatives avec salle de bain</strong> est idéal
+        Notre coliving de <strong>9 suites privatives avec salle de douche</strong> est idéal
         pour un week-end famille ou entre amis autour des courses hippiques. Jusqu'à 20
-        personnes dans un cadre calme, à 20 minutes de l'hippodrome et 10 minutes de la
+        personnes dans un cadre calme, à 20 minutes de l'hippodrome et 15 minutes de la
         gare TGV.
       </p>
       <ul>

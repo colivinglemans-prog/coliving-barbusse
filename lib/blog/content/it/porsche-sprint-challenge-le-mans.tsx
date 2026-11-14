@@ -88,7 +88,7 @@ export default function Article() {
 
       <h2>La nostra casa: pensata per gli equipaggi</h2>
       <p>
-        Il nostro coliving di <strong>9 suite private con bagno</strong> ospita fino a 20
+        Il nostro coliving di <strong>9 suite private con doccia privata</strong> ospita fino a 20
         persone:
       </p>
       <ul>
@@ -113,7 +113,7 @@ export default function Article() {
           traffico.
         </li>
         <li>
-          <strong>10 min a piedi dalla stazione TGV</strong>: Parigi in 55 min, comodo
+          <strong>15 min a piedi dalla stazione TGV</strong>: Parigi in 55 min, comodo
           per gli accompagnatori che restano solo un giorno.
         </li>
         <li>

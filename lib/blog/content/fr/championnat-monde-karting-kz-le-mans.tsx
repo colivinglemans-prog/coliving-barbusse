@@ -127,7 +127,7 @@ export default function Article() {
 
       <h2>Notre maison : parfaite pour une team de karting</h2>
       <p>
-        Notre coliving de <strong>9 suites privatives avec salle de bain</strong>{" "}
+        Notre coliving de <strong>9 suites privatives avec salle de douche</strong>{" "}
         accueille jusqu&apos;à 20 personnes — le format idéal pour une structure
         complète de Mondial :
       </p>
@@ -155,7 +155,7 @@ export default function Article() {
           événement (prévoir plus les jours de forte affluence).
         </li>
         <li>
-          <strong>10 min à pied de la gare TGV</strong> : Paris en 55 min. Les
+          <strong>15 min à pied de la gare TGV</strong> : Paris en 55 min. Les
           teams internationaux peuvent faire transiter pilotes et ingénieurs sans
           voiture.
         </li>

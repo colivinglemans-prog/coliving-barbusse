@@ -80,12 +80,12 @@ export default function Article() {
       <h2>Unser Haus — 9 private Suiten, 20 Minuten von der Rennstrecke</h2>
       <p>
         Für Gruppen, Großfamilien oder Unternehmen bietet unser 215 m² großes Haus{" "}
-        <strong>9 Doppelzimmer mit eigenem Bad</strong>. Sie schlafen zu 20 Personen
+        <strong>9 Doppelzimmer mit eigenem Duschbad</strong>. Sie schlafen zu 20 Personen
         in Ruhe, jeder in seinem eigenen Bereich, ohne Kompromisse beim Komfort.
       </p>
       <ul>
         <li>20 Minuten zum Circuit Bugatti außerhalb der Veranstaltung (45-60 Minuten an Renntagen wegen Staus)</li>
-        <li>10 Gehminuten zum TGV-Bahnhof Le Mans + Straßenbahn T1 direkt zur Rennstrecke (~30 Minuten von Tür zu Tür, ohne Parkplatzstress)</li>
+        <li>15 Gehminuten zum TGV-Bahnhof Le Mans + Straßenbahn T1 direkt zur Rennstrecke (~35 Minuten von Tür zu Tür, ohne Parkplatzstress)</li>
         <li>Kostenlose Parkplätze in der Straße direkt vor dem Haus</li>
         <li>Voll ausgestattete Küche</li>
         <li>Fitnessraum und Zen-Bereich vor Ort</li>

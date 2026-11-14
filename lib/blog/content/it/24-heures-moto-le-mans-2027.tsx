@@ -67,7 +67,7 @@ export default function Article() {
       <ul>
         <li>Parcheggio gratuito in una via residenziale tranquilla</li>
         <li>20 min dal Circuit Bugatti fuori evento (45-60 min nei giorni di gara)</li>
-        <li>10 min a piedi dalla stazione TGV + tram T1 diretto verso il circuito (~30 min porta a porta, ideale per evitare il traffico)</li>
+        <li>15 min a piedi dalla stazione TGV + tram T1 diretto verso il circuito (~35 min porta a porta, ideale per evitare il traffico)</li>
         <li>Cucina attrezzata per cenare insieme dopo la gara</li>
         <li>Sala fitness per smaltire le rigidità</li>
         <li>Arrivo autonomo dalle 17 con serratura connessa</li>

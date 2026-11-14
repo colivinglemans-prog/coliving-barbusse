@@ -59,11 +59,11 @@ export default async function Home({
 }) {
   const { locale } = await params;
   const JSONLD_DESC: Record<string, string> = {
-    fr: "Maison de 215 m² avec 9 chambres doubles et salles de bain privatives au Mans. Proche Circuit Bugatti et Gare TGV.",
-    en: "215 m² house with 9 twin bedrooms and en-suite bathrooms in Le Mans. Near Bugatti Circuit and TGV station.",
-    it: "Casa di 215 m² con 9 camere matrimoniali e bagni privati a Le Mans. Vicino al Circuito Bugatti e alla stazione TGV.",
-    de: "215 m² großes Haus mit 9 Doppelzimmern und eigenen Bädern in Le Mans. In der Nähe der Bugatti-Rennstrecke und des TGV-Bahnhofs.",
-    es: "Casa de 215 m² con 9 habitaciones dobles y baños privados en Le Mans. Cerca del Circuito Bugatti y la estación TGV.",
+    fr: "Maison de 215 m² avec 9 chambres doubles et salles de douche privatives au Mans. Proche Circuit Bugatti et Gare TGV.",
+    en: "215 m² house with 9 twin bedrooms and en-suite shower rooms in Le Mans. Near Bugatti Circuit and TGV station.",
+    it: "Casa di 215 m² con 9 camere matrimoniali e bagni privati con doccia a Le Mans. Vicino al Circuito Bugatti e alla stazione TGV.",
+    de: "215 m² großes Haus mit 9 Doppelzimmern und eigenen Duschbädern in Le Mans. In der Nähe der Bugatti-Rennstrecke und des TGV-Bahnhofs.",
+    es: "Casa de 215 m² con 9 habitaciones dobles y baños privados con ducha en Le Mans. Cerca del Circuito Bugatti y la estación TGV.",
   };
   const AMENITY: Record<string, { parking: string; gym: string; zen: string }> = {
     fr: { parking: "Stationnement gratuit dans la rue", gym: "Salle de sport", zen: "Espace zen" },

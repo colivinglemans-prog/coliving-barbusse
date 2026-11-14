@@ -90,7 +90,7 @@ export default function Article() {
         <li>
           <strong>Llegada autónoma</strong> a partir de las 17 h (o antes si la casa está
           lista), salida antes de las 11 h; es posible llegar antes o salir más tarde, con
-          suplemento y según disponibilidad. Estación de TGV a 10 minutos a pie para quienes
+          suplemento y según disponibilidad. Estación de TGV a 15 minutos a pie para quienes
           vienen en tren.
         </li>
         <li>

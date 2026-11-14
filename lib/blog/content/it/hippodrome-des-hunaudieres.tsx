@@ -94,10 +94,10 @@ export default function Article() {
 
       <h2>Il vostro soggiorno a Le Mans intorno all'ippodromo</h2>
       <p>
-        Il nostro coliving di <strong>9 suite private con bagno</strong> è
+        Il nostro coliving di <strong>9 suite private con doccia privata</strong> è
         ideale per un weekend in famiglia o tra amici intorno alle corse
         ippiche. Fino a 20 persone in una cornice tranquilla, a 20 minuti
-        dall'ippodromo e a 10 minuti dalla stazione TGV.
+        dall'ippodromo e a 15 minuti dalla stazione TGV.
       </p>
       <ul>
         <li>Parcheggio gratuito nella via residenziale tranquilla</li>

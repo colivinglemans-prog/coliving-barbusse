@@ -84,12 +84,12 @@ export default function Article() {
 
       <h2>La nostra casa: pensata per i gruppi</h2>
       <p>
-        Il nostro coliving di <strong>9 suite con bagno privato</strong> accoglie fino a
+        Il nostro coliving di <strong>9 suite con bagno privato con doccia</strong> accoglie fino a
         20 persone:
       </p>
       <ul>
         <li>20 min dal Circuit Bugatti fuori evento (45-60 min nei giorni di gara)</li>
-        <li>10 min a piedi dalla stazione TGV + tram T1 diretto verso il circuito (~30 min porta a porta, senza traffico né problemi di parcheggio)</li>
+        <li>15 min a piedi dalla stazione TGV + tram T1 diretto verso il circuito (~35 min porta a porta, senza traffico né problemi di parcheggio)</li>
         <li>Parcheggio gratuito in una via residenziale tranquilla</li>
         <li>215 m² totali (spazi comuni, camere e annesso sport/zen) per stare insieme</li>
         <li>Wi-Fi ad alta velocità per seguire le sessioni in diretta</li>

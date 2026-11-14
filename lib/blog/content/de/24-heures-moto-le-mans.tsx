@@ -67,7 +67,7 @@ export default function Article() {
       <ul>
         <li>Kostenlose Parkplätze in der ruhigen Wohnstraße</li>
         <li>20 Minuten zum Circuit Bugatti außerhalb der Veranstaltung (45-60 Minuten an Renntagen)</li>
-        <li>10 Gehminuten zum TGV-Bahnhof + Straßenbahn T1 direkt zur Rennstrecke (~30 Minuten von Tür zu Tür, ideal um Staus zu vermeiden)</li>
+        <li>15 Gehminuten zum TGV-Bahnhof + Straßenbahn T1 direkt zur Rennstrecke (~35 Minuten von Tür zu Tür, ideal um Staus zu vermeiden)</li>
         <li>Ausgestattete Küche, um nach dem Rennen gemeinsam zu Abend zu essen</li>
         <li>Fitnessraum, um Muskelkater loszuwerden</li>
         <li>Eigenständige Anreise ab 17 Uhr mit Smart-Lock</li>

@@ -90,7 +90,7 @@ export default function Article() {
         <li>
           <strong>Selbstständige Ankunft</strong> ab 17 Uhr (oder früher, wenn das Haus bereit
           ist), Abreise vor 11 Uhr; frühere Ankunft oder spätere Abreise möglich, gegen Aufpreis
-          und je nach Verfügbarkeit. Der TGV-Bahnhof ist 10 Gehminuten entfernt, für alle, die
+          und je nach Verfügbarkeit. Der TGV-Bahnhof ist 15 Gehminuten entfernt, für alle, die
           mit dem Zug anreisen.
         </li>
         <li>

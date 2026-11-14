@@ -109,7 +109,7 @@ export default function Article() {
           <strong>About 20 min from the Bugatti circuit</strong> outside peak traffic.
         </li>
         <li>
-          <strong>10 min walk from the TGV station</strong>: Paris in 55 min, handy for
+          <strong>15 min walk from the TGV station</strong>: Paris in 55 min, handy for
           supporters staying only a day.
         </li>
         <li>

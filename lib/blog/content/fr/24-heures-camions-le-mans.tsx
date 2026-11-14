@@ -94,7 +94,7 @@ export default function Article() {
 
       <h2>Notre maison : idéale pour un week-end 24h Camions</h2>
       <p>
-        Notre coliving de <strong>9 suites privatives avec salle de bain</strong>{" "}
+        Notre coliving de <strong>9 suites privatives avec salle de douche</strong>{" "}
         accueille jusqu&apos;à 20 personnes — parfait pour un groupe familial ou
         d&apos;amis :
       </p>
@@ -119,7 +119,7 @@ export default function Article() {
           <strong>20 min du Circuit Bugatti</strong> hors événement (45-60 min les jours de course).
         </li>
         <li>
-          <strong>10 min à pied de la gare TGV</strong> : Paris en 55 min pour ceux
+          <strong>15 min à pied de la gare TGV</strong> : Paris en 55 min pour ceux
           qui préfèrent le train.
         </li>
         <li>

@@ -90,7 +90,7 @@ export default function Article() {
 
       <h2>Our house: ideal for a 24h Truck weekend</h2>
       <p>
-        Our <strong>9 private suites with en-suite bathrooms</strong> accommodate
+        Our <strong>9 private suites with en-suite shower rooms</strong> accommodate
         up to 20 guests — perfect for a family group or friends:
       </p>
       <ul>
@@ -114,7 +114,7 @@ export default function Article() {
           <strong>20 min from the Bugatti Circuit</strong> off-event (45-60 min on race days).
         </li>
         <li>
-          <strong>10 min walk from the TGV station</strong>: Paris in 55 min for
+          <strong>15 min walk from the TGV station</strong>: Paris in 55 min for
           those who prefer the train.
         </li>
         <li>

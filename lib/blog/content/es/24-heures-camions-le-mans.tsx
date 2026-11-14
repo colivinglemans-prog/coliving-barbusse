@@ -97,7 +97,7 @@ export default function Article() {
 
       <h2>Nuestra casa: ideal para un fin de semana de 24h Camiones</h2>
       <p>
-        Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge
+        Nuestro coliving de <strong>9 suites privadas con baño con ducha</strong> acoge
         hasta 20 personas — perfecto para un grupo familiar o de amigos:
       </p>
       <ul>
@@ -122,7 +122,7 @@ export default function Article() {
           min los días de carrera).
         </li>
         <li>
-          <strong>10 min a pie de la estación TGV</strong>: París en 55 min
+          <strong>15 min a pie de la estación TGV</strong>: París en 55 min
           para quienes prefieren el tren.
         </li>
         <li>

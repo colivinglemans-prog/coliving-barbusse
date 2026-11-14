@@ -123,7 +123,7 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>En train</strong> : la gare TGV du Mans est à 10 minutes à pied, à environ
+          <strong>En train</strong> : la gare TGV du Mans est à 15 minutes à pied, à environ
           55 minutes de Paris-Montparnasse.
         </li>
         <li>
@@ -133,7 +133,7 @@ export default function Article() {
           événements.
         </li>
         <li>
-          <strong>En tram</strong> : le tramway T1, au niveau de la gare (10 minutes à pied),
+          <strong>En tram</strong> : le tramway T1, au niveau de la gare (15 minutes à pied),
           dessert directement Antarès et le stade (terminus Antarès / MMArena).
         </li>
       </ul>

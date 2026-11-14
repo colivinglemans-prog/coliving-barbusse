@@ -39,7 +39,7 @@ export default function Article() {
       </ul>
       <p>
         La maison est à 4,7 km du circuit des 24 Heures, en face duquel se trouve le Centre
-        des expositions, et à <strong>10 minutes à pied de la gare</strong> : le tramway T1,
+        des expositions, et à <strong>15 minutes à pied de la gare</strong> : le tramway T1,
         au niveau de la gare, mène directement à Antarès.
       </p>
 
@@ -113,7 +113,7 @@ export default function Article() {
       <h2>Arriver la veille, sans stress</h2>
       <ul>
         <li>
-          <strong>En train</strong> : la gare TGV est à 10 minutes à pied de la maison. Pour un
+          <strong>En train</strong> : la gare TGV est à 15 minutes à pied de la maison. Pour un
           groupe qui vient de loin, c'est souvent le plus simple : on descend du train, on pose
           les valises, on dîne ensemble.
         </li>

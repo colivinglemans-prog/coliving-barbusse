@@ -61,7 +61,7 @@ export default function Article() {
 
       <h2>À deux pas du centre et du circuit</h2>
       <p>
-        La maison est idéalement située : à 10 minutes à pied de la gare du Mans (tram T1 direct
+        La maison est idéalement située : à 15 minutes à pied de la gare du Mans (tram T1 direct
         vers le circuit), à 20 minutes du Circuit Bugatti et tout proche de la Cité Plantagenêt.
         Après une journée de visite ou de course, rien de tel que de rentrer profiter du jardin.
       </p>

@@ -119,7 +119,7 @@ export default function Article() {
 
       <h2>Making the most of Le Mans between classes</h2>
       <p>
-        The TGV station is a 10-minute walk away, with the tram close by. In the evening or
+        The TGV station is a 15-minute walk away, with the tram close by. In the evening or
         on your day off: the Cité Plantagenêt (the medieval old town), the banks of the
         Sarthe, and our favourite places to eat (
         <Link href="/en/blog/que-visiter-le-mans-sarthe">what to see</Link>,{" "}

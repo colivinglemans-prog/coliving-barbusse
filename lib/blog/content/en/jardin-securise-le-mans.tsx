@@ -59,7 +59,7 @@ export default function Article() {
 
       <h2>A stone's throw from the centre and the circuit</h2>
       <p>
-        The house is ideally located: a 10-minute walk from Le Mans station (direct T1 tram to
+        The house is ideally located: a 15-minute walk from Le Mans station (direct T1 tram to
         the circuit), 20 minutes from the Bugatti Circuit and very close to Plantagenet City.
         After a day of sightseeing or racing, nothing beats coming home to enjoy the garden.
       </p>

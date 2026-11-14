@@ -92,7 +92,7 @@ export default function Article() {
         intimité pour chacun.
       </p>
       <p>
-        Notre coliving de <strong>9 suites avec salles de bain privatives</strong> est idéal
+        Notre coliving de <strong>9 suites avec salles de douche privatives</strong> est idéal
         pour les familles élargies, réunions de famille ou séjours multi-générations. Salle de
         sport, espace zen et jardin pour occuper petits et grands.
       </p>
@@ -111,7 +111,7 @@ export default function Article() {
       <h2>Préparer votre séjour</h2>
       <p>
         Que vous veniez pour les courses, le patrimoine ou la gastronomie, notre maison vous
-        accueille à 10 minutes de la gare TGV Le Mans et au cœur de toutes les attractions.
+        accueille à 15 minutes de la gare TGV Le Mans et au cœur de toutes les attractions.
         Consultez <Link href="/fr#disponibilite">nos disponibilités</Link> ou découvrez{" "}
         <Link href="/fr/chambres">les 9 chambres</Link>.
       </p>

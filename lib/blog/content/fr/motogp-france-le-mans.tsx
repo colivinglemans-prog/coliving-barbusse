@@ -67,13 +67,13 @@ export default function Article() {
 
       <h2>Notre maison : parfaite pour un week-end MotoGP entre amis</h2>
       <p>
-        Notre coliving de <strong>9 suites privatives avec salles de bain</strong> accueille
+        Notre coliving de <strong>9 suites privatives avec salles de douche</strong> accueille
         jusqu'à 20 personnes dans le calme, à 20 minutes du Circuit Bugatti hors événement (45-60 min les jours de course) :
       </p>
       <ul>
         <li>Stationnement gratuit dans la rue résidentielle calme</li>
-        <li>10 min à pied de la gare du Mans + tram T1 direct vers le circuit (~30 min porte-à-porte, sans stress parking)</li>
-        <li>215 m² au total (espaces communs, chambres et annexe sport/zen) : salon, cuisine, véranda, terrasse</li>
+        <li>15 min à pied de la gare du Mans + tram T1 direct vers le circuit (~35 min porte-à-porte, sans stress parking)</li>
+        <li>215 m² au total (espaces communs, chambres et annexe sport/zen) : salon, cuisine, véranda, jardin avec espace repas extérieur</li>
         <li>Salle de sport et espace zen</li>
         <li>Wi-Fi haut débit pour revoir les essais en replay</li>
         <li>Serrure connectée, arrivée autonome à partir de 17h</li>

@@ -168,12 +168,12 @@ export default function Article() {
         <li>
           <strong>Gli spostamenti</strong>: 4,7 km separano la casa dal circuito. Decidete in
           anticipo chi guida di notte. Gli accessi veicoli al circuito sono contati in base alla
-          formula d&apos;iscrizione. Il tram T1 si prende all&apos;altezza della stazione, a 10
+          formula d&apos;iscrizione. Il tram T1 si prende all&apos;altezza della stazione, a 15
           minuti a piedi, e arriva fino al circuito (capolinea Antarès / MMArena): verificate gli
           orari notturni se contate su di lui.
         </li>
         <li>
-          <strong>In treno</strong>: la stazione TGV di Le Mans è a 10 minuti a piedi dalla casa.
+          <strong>In treno</strong>: la stazione TGV di Le Mans è a 15 minuti a piedi dalla casa.
         </li>
       </ul>
 

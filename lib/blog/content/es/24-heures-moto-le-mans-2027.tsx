@@ -69,7 +69,7 @@ export default function Article() {
       <ul>
         <li>Aparcamiento gratuito en una calle residencial tranquila</li>
         <li>20 min del Circuito Bugatti fuera del evento (45-60 min los días de carrera)</li>
-        <li>10 min a pie de la estación TGV + tranvía T1 directo al circuito (~30 min puerta a puerta, ideal para evitar los atascos)</li>
+        <li>15 min a pie de la estación TGV + tranvía T1 directo al circuito (~35 min puerta a puerta, ideal para evitar los atascos)</li>
         <li>Cocina equipada para cenar todos juntos después de la carrera</li>
         <li>Sala de deporte para aliviar las agujetas</li>
         <li>Llegada autónoma a partir de las 17 h con cerradura conectada</li>

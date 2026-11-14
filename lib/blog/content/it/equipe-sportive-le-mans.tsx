@@ -122,7 +122,7 @@ export default function Article() {
       </p>
       <ul>
         <li>
-          <strong>In treno</strong>: la stazione TGV di Le Mans è a 10 minuti a piedi, a circa 55
+          <strong>In treno</strong>: la stazione TGV di Le Mans è a 15 minuti a piedi, a circa 55
           minuti da Parigi-Montparnasse.
         </li>
         <li>
@@ -131,7 +131,7 @@ export default function Article() {
           camion, rimorchio o furgone grande. Durante i grandi eventi le strade si riempiono.
         </li>
         <li>
-          <strong>In tram</strong>: il tram T1, all&apos;altezza della stazione (10 minuti a
+          <strong>In tram</strong>: il tram T1, all&apos;altezza della stazione (15 minuti a
           piedi), porta direttamente ad Antarès e allo stadio (capolinea Antarès / MMArena).
         </li>
       </ul>

@@ -85,7 +85,7 @@ export default function Article() {
 
       <h2>Unser Haus: perfekt für ein Kart-Team</h2>
       <p>
-        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Bad</strong>{" "}
+        Unser Coliving mit <strong>9 privaten Suiten mit eigenem Duschbad</strong>{" "}
         beherbergt bis zu 20 Personen — die ideale Konfiguration für ein
         komplettes Team:
       </p>
@@ -111,7 +111,7 @@ export default function Article() {
           Tagen mit hohem Besucheraufkommen einplanen).
         </li>
         <li>
-          <strong>10 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min.
+          <strong>15 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min.
           Ausländische Fahrer können ihr Material am Circuit abholen und dann das
           Haus ohne Auto erreichen.
         </li>

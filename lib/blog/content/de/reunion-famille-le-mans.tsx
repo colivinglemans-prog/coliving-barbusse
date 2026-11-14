@@ -102,7 +102,7 @@ export default function Article() {
         <li>
           <strong>Parken</strong>: frei und kostenlos auf der Straße, ohne Parkscheibe oder
           Parkuhr, aber ohne reservierten Stellplatz. Denken Sie an Fahrgemeinschaften oder
-          den Zug: Der TGV-Bahnhof ist 10 Gehminuten entfernt.
+          den Zug: Der TGV-Bahnhof ist 15 Gehminuten entfernt.
         </li>
         <li>
           <strong>Selbstständige Ankunft</strong> ab 17 Uhr dank des smarten Schlosses:

@@ -68,14 +68,14 @@ export default function Article() {
 
       <h2>Our house: perfect for a MotoGP weekend with friends</h2>
       <p>
-        Our <strong>9 private suites with en-suite bathrooms</strong> welcome up to 20
+        Our <strong>9 private suites with en-suite shower rooms</strong> welcome up to 20
         guests in a quiet setting, 20 minutes from the Bugatti Circuit off-event
         (45-60 min on race days):
       </p>
       <ul>
         <li>Free street parking in a quiet residential area</li>
-        <li>10 min walk from Le Mans station + direct tram T1 to the circuit (~30 min door-to-door, no parking stress)</li>
-        <li>215 m² total (common areas, bedrooms and gym/zen annex): living room, kitchen, sunroom, terrace</li>
+        <li>15 min walk from Le Mans station + direct tram T1 to the circuit (~35 min door-to-door, no parking stress)</li>
+        <li>215 m² total (common areas, bedrooms and gym/zen annex): living room, kitchen, sunroom, garden with outdoor dining area</li>
         <li>Gym and zen space</li>
         <li>High-speed Wi-Fi to watch practice replays</li>
         <li>Smart lock, self check-in from 5 pm</li>

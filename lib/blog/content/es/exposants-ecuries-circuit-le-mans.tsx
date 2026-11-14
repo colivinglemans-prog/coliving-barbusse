@@ -152,12 +152,12 @@ export default function Article() {
           <strong>Circuito de las 24 Horas y circuito Bugatti a 4,7 km.</strong>
         </li>
         <li>
-          <strong>Tranvía T1 a la altura de la estación, a 10 minutos a pie</strong>, hasta el
+          <strong>Tranvía T1 a la altura de la estación, a 15 minutos a pie</strong>, hasta el
           final de línea Antarès / MMArena, del lado del circuito: práctico para quienes no
           cogen el vehículo del equipo.
         </li>
         <li>
-          <strong>Estación de TGV de Le Mans a 10 minutos a pie</strong> (París-Montparnasse en
+          <strong>Estación de TGV de Le Mans a 15 minutos a pie</strong> (París-Montparnasse en
           unos 55 minutos): los refuerzos del fin de semana y los compañeros que solo se quedan
           dos días llegan en tren.
         </li>

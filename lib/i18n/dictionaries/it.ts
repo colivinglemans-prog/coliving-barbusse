@@ -18,7 +18,7 @@ export const it: Dictionary = {
     travelers: "20 ospiti",
     rooms: "9 camere",
     beds: "9 letti matrimoniali + 2 divani letto",
-    bathrooms: "9 bagni privati",
+    bathrooms: "9 bagni privati con doccia",
     area: "215 m²",
   },
   highlights: {
@@ -44,7 +44,7 @@ export const it: Dictionary = {
 
 9 camere matrimoniali, ciascuna con bagno doccia privato — nessuno deve condividere il bagno, anche in un gruppo numeroso!
 
-Biancheria di qualità, armadi e vera privacy in ogni camera. Ogni suite dispone di un letto matrimoniale con vani contenitori, una scrivania, un bagno privato, una smart TV, Wi-Fi ad alta velocità, un guardaroba e una chiave individuale.
+Biancheria di qualità, armadi e vera privacy in ogni camera. Ogni suite dispone di un letto matrimoniale con vani contenitori, già pronto all'arrivo (piumone e 2 cuscini), un comodino, una scrivania, un bagno privato con doccia e scaldasalviette, una smart TV, Wi-Fi ad alta velocità, un guardaroba e una chiave individuale.
 
 La casa è distribuita su 3 livelli con un grande soggiorno, una cucina-sala da pranzo completamente attrezzata con un grande tavolo da 16 posti (20 avvicinando i tavolini della veranda), un giardino recintato di 90 m² e una palestra completa con spazio zen.
 
@@ -59,7 +59,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     room: "Camera",
     doubleBed: "1 letto matrimoniale",
     doubleBedSofa: "1 letto matrimoniale + 1 divano letto (1 posto)",
-    features: "Bagno privato · Smart TV · Scrivania · Guardaroba · Chiave individuale",
+    features: "Letto pronto all'arrivo · Piumone e 2 cuscini · Comodino · Bagno privato · Scaldasalviette · Smart TV · Scrivania · Guardaroba · Chiave individuale",
     prevPhoto: "Foto precedente",
     nextPhoto: "Foto successiva",
   },
@@ -93,7 +93,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
       "Smart TV in ogni camera",
       "Postazione di lavoro dedicata in ogni camera",
       "Macchina del caffè a grani",
-      "Cucina completamente attrezzata",
+      "Cucina completamente attrezzata, elettrodomestici doppi",
       "Lavatrice",
       "Asciugatrice",
       "Palestra privata",
@@ -101,10 +101,12 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
       "Serratura in ogni camera",
       "Ingresso privato",
       "Riscaldamento",
-      "Lavastoviglie",
-      "Microonde",
-      "Forno",
-      "Frigorifero / Congelatore",
+      "2 lavastoviglie",
+      "3 microonde",
+      "2 forni",
+      "2 frigoriferi combinati (con congelatore)",
+      "2 piani cottura e 2 cappe",
+      "4 WC separati in comune + 1 WC privato (camera 7)",
       "Rilevatore di fumo",
       "Estintore",
     ],
@@ -138,11 +140,11 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     circuitTitle: "Vicino al Circuito Bugatti",
     circuitDesc: "Situata a soli 4,7 km dal leggendario Circuito Bugatti, la nostra casa è la base ideale per la 24 Ore di Le Mans, il MotoGP, Le Mans Classic e tutti gli eventi del circuito. Accesso diretto tramite Tram T1 dalla stazione TGV.",
     nearby: [
-      { name: "Stazione TGV di Le Mans", distance: "10 min a piedi", detail: "Parigi in circa 55 min, Nantes in 1 h 10 - 1 h 20 (TGV diretto), collegamenti per Rennes e Angers" },
+      { name: "Stazione TGV di Le Mans", distance: "15 min a piedi", detail: "Parigi in circa 55 min, Nantes in 1 h 10 - 1 h 20 (TGV diretto), collegamenti per Rennes e Angers" },
       { name: "Circuito Bugatti", distance: "4,7 km", detail: "24 Ore di Le Mans, MotoGP, Le Mans Classic. Accessibile tramite Tram T1" },
       { name: "Zone economiche Sud Le Mans", distance: "< 10 min in auto", detail: "Technopole Université, zona Sud, centri di ricerca" },
       { name: "Parc Gué de Maulny", distance: "5 min a piedi", detail: "Spazio verde di 10 ettari per rilassarsi" },
-      { name: "Tram T1", distance: "Alla stazione, 10 min a piedi", detail: "Serve il centro città, la stazione e il circuito" },
+      { name: "Tram T1", distance: "Alla stazione, 15 min a piedi", detail: "Serve il centro città, la stazione e il circuito" },
       { name: "Cité Plantagenêt (Vecchia Le Mans)", distance: "15 min in tram", detail: "Quartiere medievale storico, ristoranti, patrimonio" },
     ],
   },
@@ -151,7 +153,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     superhost: "Superhost",
     experience: "anni di esperienza",
     about: "Su Alexandre",
-    aboutText: "Ingegnere, geek, sportivo e bricoleur, sono Superhost da diversi anni.\nMi impegno a offrire alloggi puliti, confortevoli e perfettamente funzionali.\nQuesta casa a Le Mans è stata pensata per accogliere famiglie, gruppi di amici o team aziendali, garantendo al contempo la privacy di ognuno grazie a suite con bagno privato.\nResto disponibile e reattivo, lasciandoti grande autonomia.",
+    aboutText: "Ingegnere, geek, sportivo e bricoleur, sono Superhost da diversi anni.\nMi impegno a offrire alloggi puliti, confortevoli e perfettamente funzionali.\nQuesta casa a Le Mans è stata pensata per accogliere famiglie, gruppi di amici o team aziendali, garantendo al contempo la privacy di ognuno grazie a suite con bagno privato con doccia.\nResto disponibile e reattivo, lasciandoti grande autonomia.",
     languages: "Lingue",
     languagesValue: "Francese, English",
     responseRate: "Tasso di risposta",
@@ -179,7 +181,6 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
           "Vietato fumare (all'interno)",
           "Animali non ammessi",
           "Niente feste o eventi rumorosi",
-          "Pensata per ragazzi e adulti: nulla è attrezzato per i bambini piccoli (scale non protette, sgabelli alti, palestra); i bambini sotto i 10 anni sono accettati sotto la responsabilità dei genitori",
         ],
       },
       {
@@ -190,6 +191,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
           "Serratura in ogni camera",
           "Ingresso privato con serratura connessa",
           "Riscaldamento in tutte le stanze",
+          "Pensata per ragazzi e adulti: nulla è attrezzato per i bambini piccoli (scale non protette, sgabelli alti, palestra); i bambini sotto i 10 anni sono accettati sotto la responsabilità dei genitori",
         ],
       },
       {

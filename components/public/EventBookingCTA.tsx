@@ -41,7 +41,7 @@ const COPY: Record<Locale, Copy> = {
     soldOutTitle: "Complet pour cet événement",
     range: (f, t, n) => `Du ${f} au ${t} · ${n} nuit${n > 1 ? "s" : ""}`,
     pitch:
-      "9 suites privatives avec salle de bain, jusqu'à 20 personnes, 215 m². Réservation en direct, sans commission de plateforme.",
+      "9 suites privatives avec salle de douche, jusqu'à 20 personnes, 215 m². Réservation en direct, sans commission de plateforme.",
     soldOutBody:
       "Ces dates sont déjà réservées. Consultez le calendrier pour trouver d'autres disponibilités.",
     book: "Voir le prix et réserver",
@@ -71,7 +71,7 @@ const COPY: Record<Locale, Copy> = {
     soldOutTitle: "Tutto esaurito per questo evento",
     range: (f, t, n) => `Dal ${f} al ${t} · ${n} nott${n > 1 ? "i" : "e"}`,
     pitch:
-      "9 suite private con bagno, fino a 20 persone, 215 m². Prenotazione diretta, senza commissioni di piattaforma.",
+      "9 suite private con doccia privata, fino a 20 persone, 215 m². Prenotazione diretta, senza commissioni di piattaforma.",
     soldOutBody:
       "Queste date sono già prenotate. Consultate il calendario per altre disponibilità.",
     book: "Vedi il prezzo e prenota",
@@ -86,7 +86,7 @@ const COPY: Record<Locale, Copy> = {
     soldOutTitle: "Für diese Veranstaltung ausgebucht",
     range: (f, t, n) => `Vom ${f} bis ${t} · ${n} N${n > 1 ? "ächte" : "acht"}`,
     pitch:
-      "9 private Suiten mit eigenem Bad, bis zu 20 Personen, 215 m². Direktbuchung, ohne Plattformprovision.",
+      "9 private Suiten mit eigenem Duschbad, bis zu 20 Personen, 215 m². Direktbuchung, ohne Plattformprovision.",
     soldOutBody:
       "Diese Daten sind bereits gebucht. Im Kalender finden Sie weitere freie Termine.",
     book: "Preis ansehen und buchen",
@@ -101,7 +101,7 @@ const COPY: Record<Locale, Copy> = {
     soldOutTitle: "Completo para este evento",
     range: (f, t, n) => `Del ${f} al ${t} · ${n} noche${n > 1 ? "s" : ""}`,
     pitch:
-      "9 suites privadas con baño, hasta 20 personas, 215 m². Reserva directa, sin comisión de plataforma.",
+      "9 suites privadas con baño con ducha, hasta 20 personas, 215 m². Reserva directa, sin comisión de plataforma.",
     soldOutBody:
       "Estas fechas ya están reservadas. Consulte el calendario para ver otras disponibilidades.",
     book: "Ver el precio y reservar",

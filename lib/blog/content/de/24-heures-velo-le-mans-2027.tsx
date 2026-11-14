@@ -171,12 +171,12 @@ export default function Article() {
         <li>
           <strong>Hin- und Rückfahrten</strong>: Zwischen Haus und Rennstrecke liegen 4,7 km.
           Legen Sie im Voraus fest, wer nachts fährt. Die Fahrzeugzugänge zur Strecke sind je
-          nach Anmeldeformel begrenzt. Die Straßenbahnlinie T1 hält am Bahnhof, 10 Gehminuten
+          nach Anmeldeformel begrenzt. Die Straßenbahnlinie T1 hält am Bahnhof, 15 Gehminuten
           entfernt, und fährt bis zur Strecke (Endhaltestelle Antarès / MMArena): Prüfen Sie
           die Nachtfahrzeiten, wenn Sie auf sie setzen.
         </li>
         <li>
-          <strong>Mit dem Zug</strong>: Der TGV-Bahnhof Le Mans liegt 10 Gehminuten vom Haus
+          <strong>Mit dem Zug</strong>: Der TGV-Bahnhof Le Mans liegt 15 Gehminuten vom Haus
           entfernt.
         </li>
       </ul>

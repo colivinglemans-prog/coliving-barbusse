@@ -101,7 +101,7 @@ export default function Article() {
       <h2>Bien placée pour les chantiers et les sites du Mans</h2>
       <ul>
         <li>
-          <strong>Gare du Mans à 10 minutes à pied</strong> : pratique pour les équipes en
+          <strong>Gare du Mans à 15 minutes à pied</strong> : pratique pour les équipes en
           intervention sur les voies ou en gare, et pour les relèves qui arrivent en TGV
           (Paris-Montparnasse en 55 minutes environ).
         </li>
@@ -111,7 +111,7 @@ export default function Article() {
           <Link href="/fr/blog/entreprises-proches-le-mans">les entreprises proches</Link>).
         </li>
         <li>
-          <strong>Tramway T1</strong> au niveau de la gare, à 10 minutes à pied.
+          <strong>Tramway T1</strong> au niveau de la gare, à 15 minutes à pied.
         </li>
         <li>
           <strong>Stationnement</strong> gratuit dans la rue, sans disque ni horodateur, mais

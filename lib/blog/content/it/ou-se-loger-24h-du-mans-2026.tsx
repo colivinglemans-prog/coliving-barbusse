@@ -77,12 +77,12 @@ export default function Article() {
       <h2>La nostra casa — 9 suite private a 20 minuti dal circuito</h2>
       <p>
         Per gruppi, famiglie allargate o aziende, la nostra casa di 215 m² offre{" "}
-        <strong>9 camere matrimoniali con bagno privato</strong>. Dormite in 20 in
+        <strong>9 camere matrimoniali con bagno privato con doccia</strong>. Dormite in 20 in
         tranquillità, ognuno nel proprio spazio, senza compromessi sul comfort.
       </p>
       <ul>
         <li>20 min dal Circuit Bugatti fuori evento (45-60 min nei giorni di gara a causa del traffico)</li>
-        <li>10 min a piedi dalla stazione TGV Le Mans + tram T1 diretto verso il circuito (~30 min porta a porta, senza stress per il parcheggio)</li>
+        <li>15 min a piedi dalla stazione TGV Le Mans + tram T1 diretto verso il circuito (~35 min porta a porta, senza stress per il parcheggio)</li>
         <li>Parcheggio gratuito in strada, proprio davanti alla casa</li>
         <li>Cucina completamente attrezzata</li>
         <li>Sala fitness e spazio zen in loco</li>

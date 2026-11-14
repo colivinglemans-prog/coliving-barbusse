@@ -46,10 +46,10 @@ function content(locale: Locale): Content {
           { title: "Included", items: ["Bed linen and towels, end-of-stay cleaning and tourist tax are included in the price.", "Cleaning during the stay and change of sheets on request, at extra cost."] },
           { title: "Capacity and house rules", items: [
             `Entire house, ${rooms} bedrooms each with a private shower room, ${max} guests maximum.`,
-            "Designed for teenagers and adults: nothing is set up for young children (unprotected stairs, high stools, gym). Children under 10 are welcome under their parents' responsibility.",
             "No pets. No smoking indoors. No parties or noisy events (family meals are welcome).",
             "Free street parking, no reserved space.",
           ] },
+          { title: "Good to know", items: ["Designed for teenagers and adults: nothing is set up for young children (unprotected stairs, high stools, gym). Children under 10 are welcome under their parents' responsibility."] },
           { title: "Personal data", items: [
             `The data needed for the booking (name, contact details, dates, payment) is used only to manage the booking and the stay. It is processed by Beds24 (booking software) and its payment provider; the first name is passed to the smart-lock provider (Nuki) to create the door code; the site and its management tools are hosted by Vercel and Upstash. Nothing is sold or used for advertising.`,
             `To access, correct or delete your data: ${email}.`,
@@ -71,10 +71,10 @@ function content(locale: Locale): Content {
           { title: "Inklusive", items: ["Bettwäsche und Handtücher, Endreinigung und Kurtaxe sind im Preis enthalten.", "Reinigung während des Aufenthalts und Bettwäschewechsel auf Anfrage, gegen Aufpreis."] },
           { title: "Kapazität und Hausregeln", items: [
             `Ganzes Haus, ${rooms} Zimmer mit eigenem Duschbad, maximal ${max} Gäste.`,
-            "Für Jugendliche und Erwachsene gedacht: Nichts ist für kleine Kinder eingerichtet (ungesicherte Treppen, Barhocker, Fitnessraum). Kinder unter 10 Jahren sind unter der Verantwortung ihrer Eltern willkommen.",
             "Keine Haustiere. Rauchen im Haus verboten. Keine Partys oder lauten Veranstaltungen (Familienessen sind willkommen).",
             "Kostenloses Parken auf der Straße, kein reservierter Stellplatz.",
           ] },
+          { title: "Gut zu wissen", items: ["Für Jugendliche und Erwachsene gedacht: Nichts ist für kleine Kinder eingerichtet (ungesicherte Treppen, Barhocker, Fitnessraum). Kinder unter 10 Jahren sind unter der Verantwortung ihrer Eltern willkommen."] },
           { title: "Personenbezogene Daten", items: [
             `Die für die Buchung nötigen Daten (Name, Kontaktdaten, Daten, Zahlung) dienen nur der Verwaltung der Buchung und des Aufenthalts. Sie werden von Beds24 (Buchungssoftware) und deren Zahlungsdienstleister verarbeitet; der Vorname wird an den Anbieter des smarten Schlosses (Nuki) übermittelt, um den Türcode zu erstellen; Website und Verwaltungswerkzeuge werden bei Vercel und Upstash gehostet. Nichts wird verkauft oder für Werbung genutzt.`,
             `Auskunft, Berichtigung oder Löschung: ${email}.`,
@@ -95,11 +95,11 @@ function content(locale: Locale): Content {
           { title: "Llegada y salida", items: [`Llegada autónoma con cerradura conectada, ${checkIn}, a cualquier hora.`, `Salida ${checkOut}.`, "Estancia mínima: 2 noches, 3 noches durante las fiestas de Navidad y Año Nuevo."] },
           { title: "Incluido", items: ["Ropa de cama y toallas, limpieza final y tasa turística incluidas en el precio.", "Limpieza durante la estancia y cambio de sábanas bajo petición, con suplemento."] },
           { title: "Capacidad y normas", items: [
-            `Casa entera, ${rooms} habitaciones con baño privado, ${max} personas como máximo.`,
-            "Pensada para adolescentes y adultos: nada está adaptado a niños pequeños (escaleras sin protección, taburetes altos, gimnasio). Los menores de 10 años son bienvenidos bajo la responsabilidad de sus padres.",
+            `Casa entera, ${rooms} habitaciones con baño privado con ducha, ${max} personas como máximo.`,
             "No se admiten mascotas. Prohibido fumar en el interior. Sin fiestas ni eventos ruidosos (las comidas familiares son bienvenidas).",
             "Aparcamiento gratuito en la calle, sin plaza reservada.",
           ] },
+          { title: "Conviene saber", items: ["Pensada para adolescentes y adultos: nada está adaptado a niños pequeños (escaleras sin protección, taburetes altos, gimnasio). Los menores de 10 años son bienvenidos bajo la responsabilidad de sus padres."] },
           { title: "Datos personales", items: [
             `Los datos necesarios para la reserva (nombre, contacto, fechas, pago) solo se usan para gestionar la reserva y la estancia. Los tratan Beds24 (software de reservas) y su proveedor de pago; el nombre de pila se transmite al proveedor de la cerradura inteligente (Nuki) para crear el código de la puerta; el sitio y sus herramientas de gestión están alojados en Vercel y Upstash. Nada se vende ni se usa con fines publicitarios.`,
             `Para consultar, corregir o borrar sus datos: ${email}.`,
@@ -120,11 +120,11 @@ function content(locale: Locale): Content {
           { title: "Arrivo e partenza", items: [`Arrivo in autonomia con serratura connessa, ${checkIn}, a qualsiasi ora.`, `Partenza ${checkOut}.`, "Soggiorno minimo: 2 notti, 3 notti durante le feste di Natale e Capodanno."] },
           { title: "Incluso", items: ["Biancheria da letto e asciugamani, pulizia finale e tassa di soggiorno inclusi nel prezzo.", "Pulizia durante il soggiorno e cambio lenzuola su richiesta, a pagamento."] },
           { title: "Capienza e regole", items: [
-            `Casa intera, ${rooms} camere con bagno privato, massimo ${max} ospiti.`,
-            "Pensata per ragazzi e adulti: nulla è attrezzato per i bambini piccoli (scale non protette, sgabelli alti, palestra). I bambini sotto i 10 anni sono accettati sotto la responsabilità dei genitori.",
+            `Casa intera, ${rooms} camere con bagno privato con doccia, massimo ${max} ospiti.`,
             "Animali non ammessi. Vietato fumare all'interno. Niente feste o eventi rumorosi (i pasti in famiglia sono benvenuti).",
             "Parcheggio gratuito in strada, senza posto riservato.",
           ] },
+          { title: "Buono a sapersi", items: ["Pensata per ragazzi e adulti: nulla è attrezzato per i bambini piccoli (scale non protette, sgabelli alti, palestra). I bambini sotto i 10 anni sono accettati sotto la responsabilità dei genitori."] },
           { title: "Dati personali", items: [
             `I dati necessari alla prenotazione (nome, recapiti, date, pagamento) servono solo a gestire la prenotazione e il soggiorno. Sono trattati da Beds24 (software di prenotazione) e dal suo fornitore di pagamento; il nome viene trasmesso al fornitore della serratura connessa (Nuki) per creare il codice della porta; il sito e i suoi strumenti di gestione sono ospitati da Vercel e Upstash. Nulla viene venduto né usato per pubblicità.`,
             `Per consultare, correggere o cancellare i dati: ${email}.`,
@@ -146,10 +146,10 @@ function content(locale: Locale): Content {
           { title: "Compris", items: ["Draps et serviettes, ménage de fin de séjour et taxe de séjour sont compris dans le prix.", "Ménage en cours de séjour et changement des draps sur demande, en supplément."] },
           { title: "Capacité et règles", items: [
             `Maison entière, ${rooms} chambres avec chacune sa salle de douche, ${max} personnes au maximum.`,
-            "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents.",
             "Animaux non autorisés. Non-fumeur à l'intérieur. Pas de fête ni d'événement bruyant (les repas de famille sont bienvenus).",
             "Stationnement gratuit dans la rue, sans place réservée.",
           ] },
+          { title: "Bon à savoir", items: ["Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents."] },
           { title: "Données personnelles", items: [
             `Les données nécessaires à la réservation (nom, coordonnées, dates, paiement) servent uniquement à gérer la réservation et le séjour. Elles sont traitées par Beds24 (logiciel de réservation) et son prestataire de paiement ; le prénom est transmis au fournisseur de la serrure connectée (Nuki) pour créer le code de la porte ; le site et ses outils de gestion sont hébergés par Vercel et Upstash. Rien n'est vendu ni utilisé à des fins publicitaires.`,
             `Pour consulter, corriger ou supprimer vos données : ${email}.`,

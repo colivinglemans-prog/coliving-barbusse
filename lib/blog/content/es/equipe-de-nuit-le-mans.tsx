@@ -104,7 +104,7 @@ export default function Article() {
       <h2>Bien situada para las obras y los centros de trabajo de Le Mans</h2>
       <ul>
         <li>
-          <strong>Estación de Le Mans a 10 minutos a pie</strong>: práctico para los equipos
+          <strong>Estación de Le Mans a 15 minutos a pie</strong>: práctico para los equipos
           que intervienen en las vías o en la estación, y para los relevos que llegan en TGV
           (París-Montparnasse en unos 55 minutos).
         </li>
@@ -114,7 +114,7 @@ export default function Article() {
           <Link href="/es/blog/entreprises-proches-le-mans">las empresas cercanas</Link>).
         </li>
         <li>
-          <strong>Tranvía T1</strong> a la altura de la estación, a 10 minutos a pie.
+          <strong>Tranvía T1</strong> a la altura de la estación, a 15 minutos a pie.
         </li>
         <li>
           <strong>Aparcamiento</strong> gratuito en la calle, sin disco ni parquímetro, pero

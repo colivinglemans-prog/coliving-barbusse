@@ -121,7 +121,7 @@ export default function Article() {
 
       <h2>Profiter du Mans entre deux épreuves</h2>
       <p>
-        La gare TGV est à 10 minutes à pied, le tramway tout proche. Le soir ou le jour de
+        La gare TGV est à 15 minutes à pied, le tramway tout proche. Le soir ou le jour de
         repos : la Cité Plantagenêt, les bords de Sarthe, et nos adresses pour manger (
         <Link href="/fr/blog/que-visiter-le-mans-sarthe">que visiter</Link>,{" "}
         <Link href="/fr/blog/restos-bars-magasins-le-mans">restos et bars</Link>). Les

@@ -17,7 +17,7 @@ export default function Article() {
       <h3>Top-tier accessibility</h3>
       <p>
         <strong>Paris in 55 min by TGV</strong>, Lyon/Bordeaux/Lille with one
-        connection, and our house is 10 minutes walk from the Le Mans TGV station.
+        connection, and our house is 15 minutes walk from the Le Mans TGV station.
         No tiresome journey, no transfers to organise: your team arrives relaxed
         and ready to work.
       </p>
@@ -96,7 +96,7 @@ export default function Article() {
 
       <h3>11 people housed without anyone sharing a bed</h3>
       <p>
-        The house has <strong>9 private suites</strong>, each with its own bathroom,
+        The house has <strong>9 private suites</strong>, each with its own shower room,
         desk and individual key: up to{" "}
         <strong>9 participants, nobody shares their bedroom or their en-suite shower
         room</strong>. Beyond that, in seminar configuration, that means{" "}
@@ -107,7 +107,7 @@ export default function Article() {
       </p>
       <p>
         Unlike a hotel, there is no hierarchy between rooms: everyone is on equal
-        footing, with their own bathroom. A hotel twin never gives you that.
+        footing, with their own shower room. A hotel twin never gives you that.
       </p>
 
       <h3>Modular workspaces</h3>

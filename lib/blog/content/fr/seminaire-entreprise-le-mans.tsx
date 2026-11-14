@@ -17,7 +17,7 @@ export default function Article() {
       <h3>Accessibilité maximale</h3>
       <p>
         <strong>Paris en 55 min de TGV</strong>, Lyon/Bordeaux/Lille en correspondance,
-        et notre maison est à 10 minutes à pied de la gare TGV du Mans. Aucun trajet
+        et notre maison est à 15 minutes à pied de la gare TGV du Mans. Aucun trajet
         fastidieux, aucun transfert à organiser : vos collaborateurs arrivent détendus
         et prêts à travailler.
       </p>
@@ -97,7 +97,7 @@ export default function Article() {
       <h3>11 personnes logées sans que personne partage un lit</h3>
       <p>
         La maison compte <strong>9 suites privatives</strong>, chacune avec sa salle de
-        bain, son bureau et sa clé individuelle : jusqu'à{" "}
+        douche, son bureau et sa clé individuelle : jusqu'à{" "}
         <strong>9 participants, personne ne partage sa chambre ni sa salle de douche
         privative</strong>. Au-delà, en configuration séminaire, cela donne{" "}
         <strong>7 chambres individuelles et 2 chambres à deux</strong> — celles-ci
@@ -107,7 +107,7 @@ export default function Article() {
       </p>
       <p>
         Contrairement à un hôtel, pas de hiérarchie entre les chambres : tout le monde
-        est logé à la même enseigne, avec sa propre salle de bain. Un twin d'hôtel ne
+        est logé à la même enseigne, avec sa propre salle de douche. Un twin d'hôtel ne
         donne jamais ça.
       </p>
 

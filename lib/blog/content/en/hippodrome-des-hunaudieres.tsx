@@ -87,9 +87,9 @@ export default function Article() {
 
       <h2>Your stay in Le Mans around the races</h2>
       <p>
-        Our coliving house with <strong>9 private suites with en-suite bathrooms</strong>{" "}
+        Our coliving house with <strong>9 private suites with en-suite shower rooms</strong>{" "}
         is ideal for a family or friends' weekend around horse racing. Up to 20 guests in
-        a quiet setting, 20 minutes from the racecourse and 10 minutes from the TGV
+        a quiet setting, 20 minutes from the racecourse and 15 minutes from the TGV
         station.
       </p>
       <ul>

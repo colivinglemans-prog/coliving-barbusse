@@ -101,7 +101,7 @@ export default function Article() {
       <h2>Gut gelegen für Baustellen und Standorte in Le Mans</h2>
       <ul>
         <li>
-          <strong>Bahnhof Le Mans 10 Gehminuten entfernt</strong>: praktisch für Teams im
+          <strong>Bahnhof Le Mans 15 Gehminuten entfernt</strong>: praktisch für Teams im
           Einsatz an den Gleisen oder im Bahnhof und für Ablösungen, die mit dem TGV anreisen
           (Paris-Montparnasse in etwa 55 Minuten).
         </li>
@@ -111,7 +111,7 @@ export default function Article() {
           <Link href="/de/blog/entreprises-proches-le-mans">Unternehmen in der Nähe</Link>).
         </li>
         <li>
-          <strong>Straßenbahnlinie T1</strong> am Bahnhof, 10 Gehminuten entfernt.
+          <strong>Straßenbahnlinie T1</strong> am Bahnhof, 15 Gehminuten entfernt.
         </li>
         <li>
           <strong>Parken</strong> kostenlos auf der Straße, ohne Parkscheibe oder Parkuhr, aber

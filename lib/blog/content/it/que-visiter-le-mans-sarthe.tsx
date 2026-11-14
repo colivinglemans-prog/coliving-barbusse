@@ -93,7 +93,7 @@ export default function Article() {
         intimità per ciascuno.
       </p>
       <p>
-        Il nostro coliving di <strong>9 suite con bagno privato</strong> è ideale per
+        Il nostro coliving di <strong>9 suite con bagno privato con doccia</strong> è ideale per
         famiglie allargate, riunioni di famiglia o soggiorni multi-generazionali. Sala
         fitness, spazio zen e giardino per intrattenere grandi e piccini.
       </p>
@@ -112,7 +112,7 @@ export default function Article() {
       <h2>Preparare il tuo soggiorno</h2>
       <p>
         Che tu venga per le gare, il patrimonio o la gastronomia, la nostra casa ti
-        accoglie a 10 minuti dalla stazione TGV Le Mans e nel cuore di tutte le
+        accoglie a 15 minuti dalla stazione TGV Le Mans e nel cuore di tutte le
         attrazioni. Consulta <Link href="/it#disponibilite">le nostre disponibilità</Link>{" "}
         o scopri <Link href="/it/chambres">le 9 camere</Link>.
       </p>

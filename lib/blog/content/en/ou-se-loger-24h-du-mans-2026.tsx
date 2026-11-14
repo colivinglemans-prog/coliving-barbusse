@@ -75,12 +75,12 @@ export default function Article() {
       <h2>Our house — 9 private suites 20 minutes from the circuit</h2>
       <p>
         For groups, large families or businesses, our 215 m² house offers{" "}
-        <strong>9 twin bedrooms with en-suite bathrooms</strong>. Up to 20 guests sleep
+        <strong>9 twin bedrooms with en-suite shower rooms</strong>. Up to 20 guests sleep
         in peace, each in their own space, with no compromise on comfort.
       </p>
       <ul>
         <li>20 min from the Bugatti Circuit off-event (45-60 min on race days due to traffic)</li>
-        <li>10 min walk from Le Mans TGV station + direct tram T1 to the circuit (~30 min door-to-door, no parking stress)</li>
+        <li>15 min walk from Le Mans TGV station + direct tram T1 to the circuit (~35 min door-to-door, no parking stress)</li>
         <li>Free street parking right in front of the house</li>
         <li>Fully equipped kitchen</li>
         <li>Gym and zen space</li>

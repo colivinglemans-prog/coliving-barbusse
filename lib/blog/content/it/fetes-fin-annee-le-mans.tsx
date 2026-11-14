@@ -89,7 +89,7 @@ export default function Article() {
         <li>
           <strong>Arrivo autonomo</strong> dalle 17:00 (o prima se la casa è pronta), partenza
           entro le 11:00; arrivo anticipato o partenza posticipata possibili, a pagamento e
-          secondo disponibilità. Stazione TGV a 10 minuti a piedi per chi arriva in treno.
+          secondo disponibilità. Stazione TGV a 15 minuti a piedi per chi arriva in treno.
         </li>
         <li>
           <strong>Bambini</strong>: la casa non è adatta ai bambini sotto i 10 anni (scale),

@@ -39,7 +39,7 @@ export default function Article() {
       </ul>
       <p>
         La casa está a 4,7 km del circuito de las 24 Horas, frente al cual se encuentra el
-        Centre des expositions, y a <strong>10 minutos a pie de la estación</strong>: el
+        Centre des expositions, y a <strong>15 minutos a pie de la estación</strong>: el
         tranvía T1, a la altura de la estación, lleva directamente a Antarès.
       </p>
 
@@ -112,7 +112,7 @@ export default function Article() {
       <h2>Llegar la víspera, sin estrés</h2>
       <ul>
         <li>
-          <strong>En tren</strong>: la estación de TGV está a 10 minutos a pie de la casa. Para
+          <strong>En tren</strong>: la estación de TGV está a 15 minutos a pie de la casa. Para
           un grupo que viene de lejos, suele ser lo más sencillo: se baja del tren, se dejan
           las maletas y se cena todos juntos.
         </li>

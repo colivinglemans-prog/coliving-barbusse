@@ -166,12 +166,12 @@ export default function Article() {
         <li>
           <strong>Les allers-retours</strong> : 4,7 km séparent la maison du circuit. Décidez à
           l'avance qui conduit la nuit. Les accès véhicules au circuit sont comptés selon la
-          formule d'inscription. Le tramway T1 se prend au niveau de la gare, à 10 minutes à
+          formule d'inscription. Le tramway T1 se prend au niveau de la gare, à 15 minutes à
           pied, et va jusqu'au circuit (terminus Antarès / MMArena) : vérifiez ses horaires de
           nuit si vous comptez sur lui.
         </li>
         <li>
-          <strong>En train</strong> : la gare TGV du Mans est à 10 minutes à pied de la maison.
+          <strong>En train</strong> : la gare TGV du Mans est à 15 minutes à pied de la maison.
         </li>
       </ul>
 

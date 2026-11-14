@@ -93,7 +93,7 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        From our house, it&apos;s a <strong>10-minute walk to the station</strong>,
+        From our house, it&apos;s a <strong>15-minute walk to the station</strong>,
         then a direct tram: <strong>~40 min door-to-door</strong>, no parking stress on
         the circuit side.
       </p>
@@ -123,7 +123,7 @@ export default function Article() {
 
       <h2>Our house: perfect for a 24H Rollers team</h2>
       <p>
-        Our coliving of <strong>9 private suites with en-suite bathrooms</strong>{" "}
+        Our coliving of <strong>9 private suites with en-suite shower rooms</strong>{" "}
         accommodates up to 20 guests — the perfect setup for one or two complete teams:
       </p>
       <ul>
@@ -145,8 +145,8 @@ export default function Article() {
           <strong>Free street parking</strong> in a quiet residential area.
         </li>
         <li>
-          <strong>10 min walk from the TGV station</strong> +{" "}
-          <strong>direct tram T1</strong> to the circuit (~30 min door-to-door, perfect to
+          <strong>15 min walk from the TGV station</strong> +{" "}
+          <strong>direct tram T1</strong> to the circuit (~35 min door-to-door, perfect to
           avoid parking stress).
         </li>
         <li>

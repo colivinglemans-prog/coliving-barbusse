@@ -100,7 +100,7 @@ export default function Article() {
         </li>
       </ul>
       <p>
-        Desde nuestra casa, cuente <strong>10 min a pie hasta la estación</strong>,
+        Desde nuestra casa, cuente <strong>15 min a pie hasta la estación</strong>,
         luego tranvía directo: <strong>~40 min puerta a puerta</strong>, sin
         problemas de aparcamiento en el lado del circuito.
       </p>
@@ -134,7 +134,7 @@ export default function Article() {
 
       <h2>Nuestra casa: perfecta para un equipo de 24H Rollers</h2>
       <p>
-        Nuestro coliving de <strong>9 suites privadas con baño</strong> acoge
+        Nuestro coliving de <strong>9 suites privadas con baño con ducha</strong> acoge
         hasta 20 personas — la configuración ideal para uno o dos equipos
         completos:
       </p>
@@ -160,8 +160,8 @@ export default function Article() {
           tranquila.
         </li>
         <li>
-          <strong>10 min a pie de la estación TGV</strong> +{" "}
-          <strong>tranvía T1 directo</strong> hacia el circuito (~30 min
+          <strong>15 min a pie de la estación TGV</strong> +{" "}
+          <strong>tranvía T1 directo</strong> hacia el circuito (~35 min
           puerta a puerta, perfecto para evitar el estrés del aparcamiento).
         </li>
         <li>

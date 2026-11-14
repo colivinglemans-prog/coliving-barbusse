@@ -90,7 +90,7 @@ export default function Article() {
         kitchen to cook the market produce, space for the kids, privacy for everyone.
       </p>
       <p>
-        Our coliving with <strong>9 suites with en-suite bathrooms</strong> is ideal for
+        Our coliving with <strong>9 suites with en-suite shower rooms</strong> is ideal for
         extended families, family reunions or multi-generational stays. Gym, zen space
         and garden keep young and old busy.
       </p>
@@ -109,7 +109,7 @@ export default function Article() {
       <h2>Planning your stay</h2>
       <p>
         Whether you come for the races, the heritage or the food, our house welcomes
-        you 10 minutes from the Le Mans TGV station and at the heart of every
+        you 15 minutes from the Le Mans TGV station and at the heart of every
         attraction. Check <Link href="/en#disponibilite">our availability</Link> or
         discover <Link href="/en/chambres">the 9 bedrooms</Link>.
       </p>

@@ -23,7 +23,7 @@ export default function Article() {
       </ul>
       <p>
         Le technopôle regroupe des cabinets de conseil, services numériques, directions
-        régionales et sociétés tertiaires variées. La proximité de la gare TGV (10 min à
+        régionales et sociétés tertiaires variées. La proximité de la gare TGV (15 min à
         pied depuis la maison) en fait un des pôles les plus dynamiques de Le Mans pour les
         voyageurs d'affaires.
       </p>
@@ -76,7 +76,7 @@ export default function Article() {
 
       <h3>Emplacement stratégique</h3>
       <ul>
-        <li><strong>10 min à pied</strong> de la gare TGV (Paris en 55 min)</li>
+        <li><strong>15 min à pied</strong> de la gare TGV (Paris en 55 min)</li>
         <li><strong>20 min à pied</strong> de Novaxis/Novaxud</li>
         <li><strong>Moins de 20 min</strong> à pied/voiture de Renault Manufacture Louis Schweitzer et CLAAS</li>
         <li>Stationnement gratuit dans la rue, juste devant la maison</li>
@@ -85,7 +85,7 @@ export default function Article() {
       <h3>Idéal pour les équipes</h3>
       <ul>
         <li>
-          <strong>9 suites privatives avec salle de bain</strong> : chaque collaborateur a
+          <strong>9 suites privatives avec salle de douche</strong> : chaque collaborateur a
           son intimité après des journées denses.
         </li>
         <li>

@@ -296,7 +296,7 @@ const JUMP_TO_BOOKING: Record<Locale, string> = {
 const HOUSE_CTA: Record<Locale, { title: string; text: string; button: string }> = {
   fr: {
     title: "Séjourner au Mans en groupe",
-    text: "Une maison entière, jusqu'à 20 personnes : 9 suites avec salle de bain, 215 m². Réservation en direct, sans commission de plateforme.",
+    text: "Une maison entière, jusqu'à 20 personnes : 9 suites avec salle de douche, 215 m². Réservation en direct, sans commission de plateforme.",
     button: "Voir les disponibilités",
   },
   en: {
@@ -306,17 +306,17 @@ const HOUSE_CTA: Record<Locale, { title: string; text: string; button: string }>
   },
   it: {
     title: "Soggiornare a Le Mans in gruppo",
-    text: "Una casa intera, fino a 20 persone: 9 suite con bagno, 215 m². Prenotazione diretta, senza commissioni di piattaforma.",
+    text: "Una casa intera, fino a 20 persone: 9 suite con doccia privata, 215 m². Prenotazione diretta, senza commissioni di piattaforma.",
     button: "Vedi le disponibilità",
   },
   de: {
     title: "Mit der Gruppe in Le Mans übernachten",
-    text: "Ein ganzes Haus für bis zu 20 Personen: 9 Suiten mit eigenem Bad, 215 m². Direktbuchung, ohne Plattformprovision.",
+    text: "Ein ganzes Haus für bis zu 20 Personen: 9 Suiten mit eigenem Duschbad, 215 m². Direktbuchung, ohne Plattformprovision.",
     button: "Verfügbarkeit ansehen",
   },
   es: {
     title: "Alojarse en Le Mans en grupo",
-    text: "Una casa entera, hasta 20 personas: 9 suites con baño, 215 m². Reserva directa, sin comisión de plataforma.",
+    text: "Una casa entera, hasta 20 personas: 9 suites con baño con ducha, 215 m². Reserva directa, sin comisión de plataforma.",
     button: "Ver disponibilidad",
   },
 };

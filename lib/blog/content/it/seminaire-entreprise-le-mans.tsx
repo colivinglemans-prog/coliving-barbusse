@@ -18,7 +18,7 @@ export default function Article() {
       <h3>Accessibilità massima</h3>
       <p>
         <strong>Parigi in 55 min di TGV</strong>, Lione/Bordeaux/Lille con
-        coincidenza, e la nostra casa è a 10 minuti a piedi dalla stazione
+        coincidenza, e la nostra casa è a 15 minuti a piedi dalla stazione
         TGV di Le Mans. Nessun tragitto noioso, nessun trasferimento da
         organizzare: i vostri collaboratori arrivano rilassati e pronti a
         lavorare.
@@ -100,9 +100,9 @@ export default function Article() {
       <h3>11 persone alloggiate senza che nessuno condivida il letto</h3>
       <p>
         La casa conta <strong>9 suite private</strong>, ognuna con il proprio
-        bagno, la scrivania e la chiave individuale: fino a{" "}
+        bagno con doccia, la scrivania e la chiave individuale: fino a{" "}
         <strong>9 partecipanti, nessuno condivide la propria camera né il
-        proprio bagno privato</strong>. Oltre, in configurazione seminario,
+        proprio bagno privato con doccia</strong>. Oltre, in configurazione seminario,
         diventano <strong>7 camere singole e 2 camere doppie</strong>{" "}
         — queste ultime hanno un letto matrimoniale e un divano letto singolo,
         quindi nessuno condivide il letto. Sono <strong>11 partecipanti
@@ -111,7 +111,7 @@ export default function Article() {
       </p>
       <p>
         A differenza di un hotel, nessuna gerarchia tra le camere: tutti
-        trattati alla stessa maniera, ognuno con il proprio bagno. Una camera
+        trattati alla stessa maniera, ognuno con il proprio bagno con doccia. Una camera
         doppia d'albergo non lo offre mai.
       </p>
 

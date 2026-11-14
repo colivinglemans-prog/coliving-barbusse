@@ -23,7 +23,7 @@ export default function Article() {
       </ul>
       <p>
         Il tecnopolo riunisce società di consulenza, servizi digitali, direzioni regionali
-        e diverse aziende del terziario. La vicinanza alla stazione TGV (10 min a piedi
+        e diverse aziende del terziario. La vicinanza alla stazione TGV (15 min a piedi
         dalla casa) ne fa uno dei poli più dinamici di Le Mans per i viaggiatori d'affari.
       </p>
 
@@ -76,7 +76,7 @@ export default function Article() {
 
       <h3>Posizione strategica</h3>
       <ul>
-        <li><strong>10 min a piedi</strong> dalla stazione TGV (Parigi in 55 min)</li>
+        <li><strong>15 min a piedi</strong> dalla stazione TGV (Parigi in 55 min)</li>
         <li><strong>20 min a piedi</strong> da Novaxis/Novaxud</li>
         <li><strong>Meno di 20 min</strong> a piedi/in auto da Renault Manufacture Louis Schweitzer e CLAAS</li>
         <li>Parcheggio gratuito in strada, proprio davanti alla casa</li>
@@ -85,7 +85,7 @@ export default function Article() {
       <h3>Ideale per i team</h3>
       <ul>
         <li>
-          <strong>9 suite private con bagno</strong>: ogni collaboratore ha la propria
+          <strong>9 suite private con doccia privata</strong>: ogni collaboratore ha la propria
           intimità dopo giornate intense.
         </li>
         <li>

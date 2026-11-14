@@ -97,7 +97,7 @@ export default function Article() {
         Platz für die Kinder und Privatsphäre für alle.
       </p>
       <p>
-        Unser Coliving mit <strong>9 Suiten mit privaten Bädern</strong> ist ideal für
+        Unser Coliving mit <strong>9 Suiten mit eigenen Duschbädern</strong> ist ideal für
         Großfamilien, Familientreffen oder Mehrgenerationenaufenthalte. Fitnessraum,
         Zen-Bereich und Garten bieten Beschäftigung für Groß und Klein.
       </p>
@@ -116,7 +116,7 @@ export default function Article() {
       <h2>Ihren Aufenthalt vorbereiten</h2>
       <p>
         Ob Sie wegen der Rennen, des Kulturerbes oder der Gastronomie anreisen — unser
-        Haus empfängt Sie 10 Minuten vom TGV-Bahnhof Le Mans entfernt, im Herzen aller
+        Haus empfängt Sie 15 Minuten vom TGV-Bahnhof Le Mans entfernt, im Herzen aller
         Attraktionen. Sehen Sie sich <Link href="/de#disponibilite">unsere
         Verfügbarkeiten</Link> an oder entdecken Sie{" "}
         <Link href="/de/chambres">die 9 Zimmer</Link>.

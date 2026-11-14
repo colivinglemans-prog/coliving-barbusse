@@ -150,11 +150,11 @@ export default function Article() {
           <strong>24 Hours circuit and Bugatti circuit 4.7 km away.</strong>
         </li>
         <li>
-          <strong>T1 tram at the station, a 10-minute walk away</strong>, to the Antarès /
+          <strong>T1 tram at the station, a 15-minute walk away</strong>, to the Antarès /
           MMArena terminus on the circuit side: handy for anyone not taking the team vehicle.
         </li>
         <li>
-          <strong>Le Mans TGV station a 10-minute walk away</strong> (Paris-Montparnasse in
+          <strong>Le Mans TGV station a 15-minute walk away</strong> (Paris-Montparnasse in
           about 55 minutes): weekend reinforcements and colleagues staying only a couple of
           days arrive by train.
         </li>

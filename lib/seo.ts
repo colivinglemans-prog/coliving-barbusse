@@ -124,11 +124,11 @@ export const HOME_TITLES: Record<Locale, string> = {
 };
 
 export const HOME_DESCRIPTIONS: Record<Locale, string> = {
-  fr: "Maison de 215 m² au Mans : 9 chambres avec douche privative, jusqu'à 20 personnes, à 10 min de la gare TGV. Familles, équipes, séminaires.",
-  en: "215 m² house in Le Mans: 9 bedrooms with private shower room, up to 20 people, 10 min from the TGV station. Families, teams, seminars.",
-  de: "215 m² großes Haus in Le Mans: 9 Zimmer mit eigenem Duschbad, bis zu 20 Personen, 10 Min. vom TGV-Bahnhof. Familien, Teams, Seminare.",
-  es: "Casa de 215 m² en Le Mans: 9 habitaciones con ducha privada, hasta 20 personas, a 10 min de la estación TGV. Familias, equipos, seminarios.",
-  it: "Casa di 215 m² a Le Mans: 9 camere con doccia privata, fino a 20 persone, a 10 min dalla stazione TGV. Famiglie, team, seminari.",
+  fr: "Maison de 215 m² au Mans : 9 chambres avec douche privative, jusqu'à 20 personnes, à 15 min de la gare TGV. Familles, équipes, séminaires.",
+  en: "215 m² house in Le Mans: 9 bedrooms with private shower room, up to 20 people, 15 min from the TGV station. Families, teams, seminars.",
+  de: "215 m² großes Haus in Le Mans: 9 Zimmer mit eigenem Duschbad, bis zu 20 Personen, 15 Min. vom TGV-Bahnhof. Familien, Teams, Seminare.",
+  es: "Casa de 215 m² en Le Mans: 9 habitaciones con ducha privada, hasta 20 personas, a 15 min de la estación TGV. Familias, equipos, seminarios.",
+  it: "Casa di 215 m² a Le Mans: 9 camere con doccia privata, fino a 20 persone, a 15 min dalla stazione TGV. Famiglie, team, seminari.",
 };
 
 /** Mentions légales — `noindex`, hors sitemap, liées depuis le pied de page. */
