@@ -10,11 +10,16 @@ export type { NtfyOptions };
  *
  * Sans `NTFY_TOPIC`, le socle journalise et n'envoie rien : rien n'est noté non plus.
  */
-export async function sendNtfy(message: string, options: NtfyOptions = {}): Promise<void> {
+export async function sendNtfy(
+  message: string,
+  options: NtfyOptions = {},
+  /** Titre noté dans le journal à la place du vrai : jamais de prénom ni de donnée personnelle. */
+  log: { title?: string } = {},
+): Promise<void> {
   await sendSocleNtfy(message, options);
   if (!process.env.NTFY_TOPIC) return;
   await recordNotification({
-    title: options.title ?? "(sans titre)",
+    title: log.title ?? options.title ?? "(sans titre)",
     priority: options.priority ?? 3,
     ...(options.tags?.length ? { tags: options.tags } : {}),
   });

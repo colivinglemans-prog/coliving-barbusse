@@ -12,7 +12,7 @@ import {
   setBoostMode,
   setTargetTemperature,
 } from "@/lib/cozytouch";
-import { getActiveBookings, countGuests, guestsAround } from "@/lib/bookings";
+import { getActiveBookings, getBookingsAround, countGuests, guestsAround } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
@@ -58,6 +58,12 @@ export async function GET(request: NextRequest) {
     // Thermo injoignable (circuit du garage coupé le 10/11 au soir, maison vide) : alerte après
     // deux passages de suite, règle commune ; aucune commande envoyée dans le vide.
     const unreachable = connectivity !== null && isUnreachable(connectivity);
+    // Voyageurs là ou arrivant d'ici demain → 5 (douches froides), sinon 3. Beds24 illisible → 5.
+    const reachPriority = unreachable
+      ? await getBookingsAround(today, tomorrowParis())
+          .then((b): 3 | 5 => (guestsAround(b, today, tomorrowParis()) ? 5 : 3))
+          .catch((): 3 | 5 => 5)
+      : (5 as const);
     await reportAlerts(
       "water-heater-reach",
       unreachable
@@ -65,7 +71,7 @@ export async function GET(request: NextRequest) {
             {
               id: "unreachable",
               // 5 si des voyageurs sont là ou arrivent d'ici demain (douches froides), 3 sinon.
-              priority: guestsAround(bookings, today, tomorrowParis()) ? 5 : 3,
+              priority: reachPriority,
               line: `Le thermo ne répond plus à Cozytouch (appareil ${connectivity!.deviceAvailable === false ? "indisponible" : "?"}, passerelle ${connectivity!.gatewayStatus ?? "?"}). Les ballons sont dans le garage : circuit du garage coupé ? Il faut réarmer, sinon plus d'eau chaude.`,
             },
           ]

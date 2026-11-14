@@ -5,7 +5,7 @@ import { sendHeatingAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun, type TrackedAlert } from "@/lib/alert-memory";
 import { readPowerCut } from "@/lib/heating-state";
 import { todayParis, nowParis, tomorrowParis } from "@sejour/socle/lib/time";
-import { getActiveBookings, guestsAround } from "@/lib/bookings";
+import { getBookingsAround, guestsAround } from "@/lib/bookings";
 
 /**
  * Connectivité des radiateurs, toutes les 30 min (cron-job.org) et à 8 h (Vercel).
@@ -62,19 +62,28 @@ export async function GET(request: NextRequest) {
       ...offlineDevices.filter((n) => !inCut.has(n)).map((n) => ({ id: `offline:${n}`, line: `Hors ligne : ${n}` })),
       ...missingDevices.map((n) => ({ id: `missing:${n}`, line: `Introuvable dans l'API Heatzy : ${n}` })),
     ];
-    let urgent = faulty.length > 1;
-    if (faulty.length === 1) {
-      urgent = await getActiveBookings()
-        .then((b) => guestsAround(b, todayParis(), tomorrowParis()))
-        .catch(() => true);
+    // La gravité de chaque radiateur ne dépend que de la présence de voyageurs ; « plusieurs en
+    // défaut → 4 » se décide à l'envoi, sur les seuls confirmés (sinon un radiateur vu une fois
+    // ferait escalader l'alerte déjà ouverte). Beds24 illisible : gravité 3 (pas d'escalade
+    // pour une panne de Beds24), mais l'envoi part en 4.
+    let guests: boolean | null = false;
+    if (faulty.length > 0) {
+      const today = todayParis();
+      guests = await getBookingsAround(today, tomorrowParis())
+        .then((b) => guestsAround(b, today, tomorrowParis()))
+        .catch((e) => {
+          console.error("[heating-health] réservations illisibles:", e instanceof Error ? e.message : e);
+          return null;
+        });
     }
-    const tracked: TrackedAlert[] = faulty.map((f) => ({ ...f, priority: urgent ? 4 : 3 }));
+    const tracked: TrackedAlert[] = faulty.map((f) => ({ ...f, priority: guests ? 4 : 3 }));
 
     const alert = await reportAlerts("heating-health", tracked, sendHeatingAlert, {
       title: (c) => `${c.length} radiateur(s) en alerte`,
       intro: `Constaté à deux contrôles de suite, le dernier le ${todayParis()} à ${nowParis().toLocaleTimeString("fr-FR")}.`,
       recoveredTitle: "Radiateurs rétablis",
       recoveredBody: "Tous les radiateurs sont de nouveau en ligne.",
+      priority: (c) => (c.length > 1 || guests !== false ? 4 : 3),
     });
     await reportCronRun("heating-health", LABEL, sendHeatingAlert, null).catch(() => {});
 

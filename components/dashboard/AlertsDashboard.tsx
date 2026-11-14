@@ -17,6 +17,8 @@ interface NotificationRecord {
 }
 interface Payload {
   days: number;
+  /** Plafond du journal atteint : la période affichée est incomplète. */
+  capped: boolean;
   summary: {
     total: number;
     byPriority: Record<string, number>;
@@ -90,6 +92,13 @@ export default function AlertsDashboard() {
           alertes de la surveillance GitHub n&apos;y figurent pas.
         </p>
       </header>
+
+      {data.capped && (
+        <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Le journal a atteint son plafond : les notifications les plus anciennes de la période ne sont plus
+          comptées.
+        </div>
+      )}
 
       <section className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">

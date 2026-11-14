@@ -122,6 +122,18 @@ ceux d'une coupure soupçonnée ou signalée ; les erreurs des crons `heating-he
 `heating-automation` et `heating-reset` passent par `reportCronRun` (deux passages en erreur
 avant l'alerte, une seule tant que l'erreur dure, retour en priorité 1 au premier succès).
 
+Depuis le 2026-11-14 :
+- **`alerts: false`** sur un appareil de `data/heatzy-zones.json` (`alertIgnoredDids`,
+  `lib/heatzy.ts`) : le radiateur reste piloté par l'automatisation et le reset, mais n'entre plus
+  dans aucune alerte — `heating-health`, « n'ont pas pris leur mode » (ni dans le décompte ni dans
+  le corps), détection de coupure, préparation d'arrivée (traité comme `unpaired`). **Véranda D**,
+  panne connue sans conséquence (décision de l'hôte). Retirer le champ une fois le radiateur réparé.
+- **Priorité de `heating-health`** : gravité de chaque radiateur 3 si la maison est vide, 4 si des
+  voyageurs sont là ou arrivent d'ici demain (`getBookingsAround`, `guestsAround`) ; l'envoi part
+  en 4 dès que plusieurs radiateurs **confirmés** sont en défaut, ou si Beds24 est illisible
+  (option `priority` de `reportAlerts`, décidée sur les confirmés pour qu'un radiateur vu une
+  seule fois ne relance pas l'alerte ouverte).
+
 ### Alertes (basées sur température + comportement)
 
 **Sans réservation** :

@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
           // 3 : une information, pas une panne (2026-11-10).
           priority: 3,
           tags: ["key"],
-        });
+        }, { title: "🔑 Check-in" }); // le prénom ne va pas dans le journal des 30 jours
         // SET seulement après succès de l'envoi pour pouvoir retry au prochain tick si ntfy down
         await redis.set(key, { at: new Date().toISOString(), enteredAt }, {
           ex: REDIS_KEY_TTL_SECONDS,

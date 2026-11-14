@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Journal indisponible (Redis non configuré)" }, { status: 503 });
   }
   try {
-    const records = await readNotifications();
+    const { records, capped } = await readNotifications();
     return NextResponse.json(
-      { days: NOTIFY_LOG_DAYS, summary: summarizeNotifications(records), recent: records.slice(0, 200) },
+      { days: NOTIFY_LOG_DAYS, capped, summary: summarizeNotifications(records), recent: records.slice(0, 200) },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {

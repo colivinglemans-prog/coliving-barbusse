@@ -33,18 +33,44 @@ export async function recordNotification(record: Omit<NotificationRecord, "at">,
     const redis = getRedis();
     await redis.lpush(NOTIFY_LOG_KEY, JSON.stringify(entry));
     await redis.ltrim(NOTIFY_LOG_KEY, 0, MAX_ENTRIES - 1);
+    // Purge par date : les plus anciennes sont en fin de liste.
+    const limit = now.getTime() - NOTIFY_LOG_DAYS * 24 * 3600 * 1000;
+    for (let i = 0; i < 50; i++) {
+      const oldest = parse(await redis.lindex(NOTIFY_LOG_KEY, -1));
+      if (oldest && Date.parse(oldest.at) >= limit) break;
+      if ((await redis.rpop(NOTIFY_LOG_KEY)) === null) break;
+    }
   } catch (e) {
     console.error("[notify-log] écriture:", e instanceof Error ? e.message : e);
   }
 }
 
-/** Les notifications des `days` derniers jours, de la plus récente à la plus ancienne. */
-export async function readNotifications(days = NOTIFY_LOG_DAYS, now = new Date()): Promise<NotificationRecord[]> {
+/** Une entrée du journal, ou `null` si elle est illisible (jamais d'exception). */
+export function parse(raw: unknown): NotificationRecord | null {
+  try {
+    const r = typeof raw === "string" ? JSON.parse(raw) : raw;
+    return r && typeof r === "object" && typeof (r as NotificationRecord).at === "string"
+      ? (r as NotificationRecord)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Les notifications des `days` derniers jours, de la plus récente à la plus ancienne.
+ * `capped` : le plafond est atteint alors que la plus ancienne gardée a moins de `days` jours —
+ * la période est alors incomplète, la page le dit.
+ */
+export async function readNotifications(
+  days = NOTIFY_LOG_DAYS,
+  now = new Date(),
+): Promise<{ records: NotificationRecord[]; capped: boolean }> {
   const raw = await getRedis().lrange<unknown>(NOTIFY_LOG_KEY, 0, MAX_ENTRIES - 1);
   const since = now.getTime() - days * 24 * 3600 * 1000;
-  return raw
-    .map((r) => (typeof r === "string" ? (JSON.parse(r) as NotificationRecord) : (r as NotificationRecord)))
-    .filter((r) => r && typeof r.at === "string" && Date.parse(r.at) >= since);
+  const all = raw.map(parse).filter((r): r is NotificationRecord => r !== null);
+  const records = all.filter((r) => Date.parse(r.at) >= since);
+  return { records, capped: raw.length >= MAX_ENTRIES && records.length === all.length };
 }
 
 export interface NotificationSummary {

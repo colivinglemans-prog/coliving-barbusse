@@ -174,12 +174,13 @@ pricing, veille des événements, sauvegarde réussie.
   mais n'entre ni dans `heating-health`, ni dans « n'ont pas pris leur mode », ni dans la
   détection de coupure, ni dans la préparation d'arrivée (traité comme `unpaired`). **Véranda D**
   depuis le 2026-11-14 : panne connue, sans conséquence (décision de l'hôte).
-- **Priorité selon la présence** (`stayInProgress`, `guestsAround`, `lib/bookings.ts`, séjours
-  `confirmed` / `new`) : radiateur seul 3 → 4 avec voyageurs ; thermo injoignable
+- **Priorité selon la présence** (`stayInProgress`, `guestsAround`, `getBookingsAround`,
+  `lib/bookings.ts`, séjours vendus au sens de `countsAsSold`) : radiateur seul 3 → 4 avec voyageurs ; thermo injoignable
   (`water-heater-reach`) 3 → 5 avec voyageurs ; mouvement caméra 4 quand la maison est vide, 2
   pendant un séjour (jour d'arrivée au jour de départ inclus). Beds24 illisible → la priorité
   haute. Un changement de priorité d'une alerte ouverte la relance (escalade) : voulu, des
-  voyageurs arrivent et la panne dure.
+  voyageurs arrivent et la panne dure. « Plusieurs radiateurs → 4 » se décide à l'envoi, sur les
+  seuls confirmés (option `priority` de `reportAlerts`).
 - **Passages Sophie / Eric** (`cleaning-watch`) : priorité 2.
 
 ### Journal des notifications (30 jours)
@@ -187,7 +188,9 @@ pricing, veille des événements, sauvegarde réussie.
 ntfy.sh ne garde qu'environ 12 h. **Tout envoi ntfy du site passe par `@/lib/ntfy`** (enveloppe
 de `sendNtfy` du socle) — jamais directement par `@sejour/socle/lib/ntfy` — qui note chaque envoi
 réussi dans la liste Redis `barbusse:ntfy:log` (`lib/notify-log.ts`) : instant, titre, priorité,
-mots-clés, **jamais le corps**. La caméra, qui poste elle-même vers ntfy (pièce jointe), appelle
+mots-clés, **jamais le corps** ni un prénom (le check-in est noté « 🔑 Check-in », troisième
+argument `log` de `sendNtfy`) ; les entrées de plus de 30 jours sont purgées à l'écriture, une
+entrée illisible est ignorée, et la page signale un plafond (5 000) atteint. La caméra, qui poste elle-même vers ntfy (pièce jointe), appelle
 `recordNotification`. Page admin **`/dashboard/alertes`** (`app/api/dashboard/alertes`,
 `denyNonAdmin`, hors de la liste blanche viewer) : total, moyenne par jour, sonores, graphe par
 jour, notifications qui reviennent le plus (titres regroupés, nombres → « N »), 200 dernières.

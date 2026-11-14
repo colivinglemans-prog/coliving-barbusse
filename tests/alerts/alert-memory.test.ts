@@ -95,6 +95,20 @@ describe("reportAlerts", () => {
     expect(await reportAlerts("t", [], send, OPTS)).toBe("recover");
   });
 
+  it("plusieurs en défaut → 4 décidé à l'envoi : un 2e vu une seule fois ne relance rien", async () => {
+    const a: TrackedAlert = { id: "offline:A", priority: 3, line: "Hors ligne : A" };
+    const b: TrackedAlert = { id: "offline:B", priority: 3, line: "Hors ligne : B" };
+    const opts = { ...OPTS, priority: (c: TrackedAlert[]) => (c.length > 1 ? 4 : 3) as 3 | 4 };
+    await reportAlerts("r", [a], send, opts);
+    expect(await reportAlerts("r", [a], send, opts)).toBe("open");
+    expect(await reportAlerts("r", [a, b], send, opts)).toBe("persist");
+    expect(await reportAlerts("r", [a], send, opts)).toBe("persist");
+    expect(sent.map((s) => s.priority)).toEqual([3]);
+    await reportAlerts("r", [a, b], send, opts);
+    expect(await reportAlerts("r", [a, b], send, opts)).toBe("escalate");
+    expect(sent.map((s) => s.priority)).toEqual([3, 4]);
+  });
+
   it("confirmAfter: 1 alerte dès le premier passage", async () => {
     expect(await reportAlerts("t", [offline], send, { ...OPTS, confirmAfter: 1 })).toBe("open");
   });

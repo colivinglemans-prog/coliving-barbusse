@@ -263,6 +263,8 @@ export async function GET(request: NextRequest) {
     const readingByDid = new Map((readings ?? []).map((r) => [r.did, r]));
 
     const failures: string[] = [];
+    /** Les échecs montrés dans l'alerte : sans les radiateurs tenus hors des alertes. */
+    const alertFailures: string[] = [];
     const failedDevices: string[] = [];
 
     for (const zone of config.zones) {
@@ -292,7 +294,10 @@ export async function GET(request: NextRequest) {
           failures.push(`${device.name}: ${msg}`);
           // Un radiateur vu hors ligne à ce passage refuse forcément son mode : c'est
           // `heating-health` qui le signale (2 contrôles de suite), pas cette alerte.
-          if (readingByDid.get(did)?.online !== false && device.alerts !== false) failedDevices.push(device.name);
+          if (readingByDid.get(did)?.online !== false && device.alerts !== false) {
+            failedDevices.push(device.name);
+            alertFailures.push(`${device.name}: ${msg}`);
+          }
           console.error(`Heating automation error for ${device.name}:`, e);
         }
         // Consignes montées par un voyageur : ramenées à celles de la zone. Un échec ici n'est
@@ -320,7 +325,7 @@ export async function GET(request: NextRequest) {
     if (transition.action === "open" || transition.action === "escalate") {
       await sendHeatingAlert(
         `${failedDevices.length} radiateur(s) n'ont pas pris leur mode`,
-        [`Situation : ${situation}`, "", ...failures.map((f) => `  - ${f}`)].join("\n"),
+        [`Situation : ${situation}`, "", ...alertFailures.map((f) => `  - ${f}`)].join("\n"),
       ).catch(() => {});
     } else if (transition.action === "recover") {
       await sendHeatingAlert("Tous les radiateurs ont repris leur mode", "Plus aucun échec de commande.", 1).catch(

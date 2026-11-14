@@ -3,7 +3,7 @@ import { withArchive } from "./bookings-archive";
 import { todayParis, tomorrowParis } from "@sejour/socle/lib/time";
 import type { Booking } from "@sejour/socle/lib/booking";
 import type { Beds24Booking } from "./types";
-import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
+import { countsAsSold, isExcludedStatus } from "@sejour/socle/lib/booking-status";
 
 /**
  * Le live **et** l'historique archivé, dédoublonnés, le live gagnant.
@@ -114,10 +114,21 @@ export function countGuests(
 
 /**
  * Présence de voyageurs, pour régler la priorité d'une alerte (2026-11-14) : une panne compte
- * davantage quand quelqu'un est là. Seuls les séjours vendus comptent (`confirmed`, `new`).
+ * davantage quand quelqu'un est là. Seuls les séjours vendus comptent (`countsAsSold` du socle :
+ * `new` compris, demandes et options non).
  */
 function isSoldStay(b: Pick<Beds24Booking, "status">): boolean {
-  return b.status === "confirmed" || b.status === "new";
+  return countsAsSold(b.status);
+}
+
+/**
+ * Les séjours en cours ou qui commencent d'ici `tomorrow`, en une requête. `getActiveBookings`
+ * ne convient pas : sa fenêtre d'arrivée exige aussi un départ d'ici demain, donc une arrivée de
+ * demain n'y figure jamais.
+ */
+export async function getBookingsAround(today: string, tomorrow: string): Promise<Beds24Booking[]> {
+  const bookings = await getBookingsWithArchive({ arrivalTo: tomorrow, departureFrom: today });
+  return bookings.filter((b) => !isExcludedStatus(b.status));
 }
 
 /** Un séjour est en cours, du jour d'arrivée au jour de départ inclus (ménage compris). */

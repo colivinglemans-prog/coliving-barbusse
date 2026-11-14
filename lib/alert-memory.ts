@@ -80,6 +80,13 @@ export interface ReportOptions {
   recoveredBody?: string;
   /** En-tête facultatif du corps, avant les lignes. */
   intro?: string;
+  /**
+   * Priorité de l'envoi, décidée sur les seuls constats **confirmés** (défaut : la plus haute de
+   * leurs priorités). Pour une règle qui dépend de leur nombre (« plusieurs radiateurs → 4 ») :
+   * la mettre dans la gravité de chaque constat ferait escalader une alerte ouverte dès qu'un
+   * autre constat apparaît, avant même sa confirmation.
+   */
+  priority?: (confirmed: TrackedAlert[]) => AlertPriority;
   confirmAfter?: number;
   now?: Date;
 }
@@ -117,7 +124,7 @@ export async function notifyTransition(
   transition: Pick<AlertTransition, "action" | "failingIds">,
   alerts: readonly TrackedAlert[],
   send: AlertSender,
-  options: Pick<ReportOptions, "title" | "recoveredTitle" | "recoveredBody" | "intro">,
+  options: Pick<ReportOptions, "title" | "recoveredTitle" | "recoveredBody" | "intro" | "priority">,
 ): Promise<void> {
   if (transition.action === "recover") {
     await send(options.recoveredTitle, options.recoveredBody ?? "Plus aucune alerte en cours.", 1);
@@ -127,7 +134,9 @@ export async function notifyTransition(
   const ids = new Set(transition.failingIds);
   const confirmed = alerts.filter((a) => ids.has(a.id));
   if (confirmed.length === 0) return;
-  const priority = Math.max(...confirmed.map((a) => a.priority)) as AlertPriority;
+  const priority = options.priority
+    ? options.priority(confirmed)
+    : (Math.max(...confirmed.map((a) => a.priority)) as AlertPriority);
   const body = [...(options.intro ? [options.intro, ""] : []), ...confirmed.map((a) => a.line)].join("\n");
   await send(options.title(confirmed), body, priority);
 }

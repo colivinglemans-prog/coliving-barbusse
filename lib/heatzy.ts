@@ -215,12 +215,12 @@ export function getZoneConfig(): HeatzyZoneConfig {
   return getBaseZoneConfig();
 }
 
-/** Merges base config with extra devices from Blob */
 /** Radiateurs tenus hors de toute alerte (`alerts: false` dans `data/heatzy-zones.json`). */
 export function alertIgnoredDids(config: HeatzyZoneConfig): Set<string> {
   return new Set(config.zones.flatMap((z) => z.devices).filter((d) => d.alerts === false).map((d) => d.did));
 }
 
+/** Merges base config with extra devices from Blob */
 export async function getFullZoneConfig(): Promise<HeatzyZoneConfig> {
   const base = getBaseZoneConfig();
   const extras = await getExtraDevices();

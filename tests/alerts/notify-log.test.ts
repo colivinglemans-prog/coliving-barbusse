@@ -3,12 +3,19 @@
  * hors des alertes. Données inventées.
  */
 import { describe, expect, it } from "vitest";
-import { summarizeNotifications, titleFamily, type NotificationRecord } from "@/lib/notify-log";
+import { parse, summarizeNotifications, titleFamily, type NotificationRecord } from "@/lib/notify-log";
 import { guestsAround, stayInProgress } from "@/lib/bookings";
 import { alertIgnoredDids } from "@/lib/heatzy";
 import type { Beds24Booking, HeatzyZoneConfig } from "@/lib/types";
 
 describe("journal des notifications", () => {
+  it("une entrée illisible est ignorée, jamais une exception", () => {
+    expect(parse("{pas du json")).toBeNull();
+    expect(parse(null)).toBeNull();
+    expect(parse({ title: "sans date" })).toBeNull();
+    expect(parse('{"at":"2026-11-14T00:00:00Z","title":"x","priority":3}')).toMatchObject({ title: "x" });
+  });
+
   it("regroupe les titres qui ne diffèrent que par un nombre", () => {
     expect(titleFamily("[Chauffage] 3 radiateur(s) en alerte")).toBe("[Chauffage] N radiateur(s) en alerte");
   });
