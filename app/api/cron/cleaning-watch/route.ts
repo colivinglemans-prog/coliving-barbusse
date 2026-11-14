@@ -3,6 +3,7 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
 import { buildSessions, mergeArrivals, maxArrivalMs, newArrivalsSince, parsePeople, type CleaningArrival, type CleaningSession, type TrackedPerson } from "@/lib/cleaning/sessions";
 import { garageArrivals, doorArrivals, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
+import { upsertSessions, pruneOldSessions } from "@/lib/cleaning/store";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 
 /**
@@ -30,8 +31,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const LAST_KEY = redisKey("cleaning", "last-arrival");
-const SESSIONS_KEY = redisKey("cleaning", "sessions");
-const SESSIONS_MAX = 400;
 const DEFAULT_PEOPLE = "Sophie:ménage,Eric:dépannage";
 
 export async function GET(request: NextRequest) {
@@ -65,19 +64,30 @@ export async function GET(request: NextRequest) {
   });
   const buttons = await buttonPresses().catch(() => [] as Date[]);
 
+  // Toutes les venues (dédoublonnées par personne) → sessions avec la meilleure sortie que les
+  // mouvements du moment permettent. On les PERSISTE à chaque passage : la sortie se précise et
+  // se grave, elle ne se réeffacera plus (corrige la perte constatée sur « Suivi »). Amorce aussi
+  // le magasin dès le 1er passage pour que la page montre tout l'historique.
+  const allSessions = buildSessions(newArrivalsSince(arrivals, 0), motions, buttons);
+  let upserted = 0;
+  if (!dry) {
+    upserted = await upsertSessions(allSessions);
+    await pruneOldSessions();
+  }
+
   const redis = getRedis();
   const stored = await redis.get<number>(LAST_KEY);
   const lastMs = typeof stored === "number" ? stored : Number(stored ?? 0);
 
-  // Premier passage : ligne de base sans alerte.
+  // Premier passage : magasin amorcé ci-dessus, mais pas d'alerte rétroactive.
   if (!stored) {
     const baseline = maxArrivalMs(arrivals, 0);
     if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
-    return NextResponse.json({ success: true, baseline: true, garage: garage.length, porte: door.length, notes });
+    return NextResponse.json({ success: true, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
   }
 
   const fresh = newArrivalsSince(arrivals, lastMs);
-  const sessions = buildSessions(fresh, motions, buttons);
+  const freshSessions = buildSessions(fresh, motions, buttons);
 
   if (fresh.length > 0 && !dry && !process.env.NTFY_TOPIC) {
     return NextResponse.json(
@@ -86,14 +96,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  for (const s of sessions) {
-    if (!dry) {
-      await sendArrival(s, roleOf(s.who, people));
-      await redis.lpush(SESSIONS_KEY, JSON.stringify(serializeSession(s)));
-    }
+  for (const s of freshSessions) {
+    if (!dry) await sendArrival(s, roleOf(s.who, people));
   }
   if (!dry && fresh.length > 0) {
-    await redis.ltrim(SESSIONS_KEY, 0, SESSIONS_MAX - 1);
     await redis.set(LAST_KEY, maxArrivalMs(arrivals, lastMs));
   }
 
@@ -105,7 +111,8 @@ export async function GET(request: NextRequest) {
     porte: door.length,
     motions: motions.length,
     fresh: fresh.length,
-    sessions: sessions.map(serializeSession),
+    upserted,
+    sessions: freshSessions.map(serializeSession),
     notes,
   });
 }

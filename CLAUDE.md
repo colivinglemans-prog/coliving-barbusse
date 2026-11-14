@@ -1082,8 +1082,10 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
 | Pièce | Rôle |
 |---|---|
 | [lib/cleaning/sessions.ts](lib/cleaning/sessions.ts) | Logique pure : fusion des arrivées, dédoublonnage (<45 min), estimation de sortie, durée. Testée (`tests/cleaning/`). |
-| `/api/cron/cleaning-watch` | Horaire (cron-job.org). Ligne de base au 1er passage, puis ntfy par nouvelle arrivée + journal Redis `barbusse:cleaning:sessions`. `?dry=1` calcule sans envoyer. |
-| `/api/dashboard/suivi` + `/dashboard/suivi` | **Page admin « Suivi »** : passages reconstitués en direct (garage + porte), totaux par personne (heures/coût), graphe mensuel, journal. `lib/cleaning/sources.ts` fournit les 4 sources au cron **et** à la page. |
+| `/api/cron/cleaning-watch` | Horaire (cron-job.org). Ligne de base au 1er passage, puis ntfy par nouvelle arrivée. **Persiste et affine** les sessions dans le magasin `barbusse:cleaning:log` (`lib/cleaning/store.ts`). `?dry=1` calcule sans envoyer. |
+| `/api/dashboard/suivi` + `/dashboard/suivi` | **Page admin « Suivi »** : **lit le magasin persistant** (plus de recalcul en direct), totaux par personne (heures/coût), graphe mensuel, journal. `lib/cleaning/sources.ts` fournit les 4 sources au cron **et** à l'amorçage de la page. |
+| [lib/cleaning/store.ts](lib/cleaning/store.ts) | Magasin Redis des passages (hash `barbusse:cleaning:log`, clé `who:arrivalMs`). ⚠️ **La sortie estimée ne peut que progresser, jamais régresser ni revenir à `null`** : c'est ce qui corrige la perte (un mouvement caméra qui vieillit et quitte le cloud ne fait plus disparaître la sortie). Le cron l'affine chaque heure. |
+| `/api/dashboard/video` + `/dashboard/video` | **Page admin « Vidéo »** : caméras Wansview (image rafraîchie ≈30 s + galerie des mouvements, clips `.ts` lus par `mpegts.js`), encarts ICSee/ANRAN « non connectées ». Le **direct** continu viendra d'un pont local (go2rtc/Freebox) via `CAMERA_LIVE_BASE`, pas de Vercel. |
 
 - **Intratone** n'a pas d'API publique. Séquence (reconstituée) : `connexion.php` (FormData
   identifiant/mdp/device) → `data/connect.php?SID=` (bootstrap legacy) → `data/events/evts.php` (sélection
@@ -1151,6 +1153,7 @@ INTRATONE_CENTRALE_ID    # Id de la centrale digicode du garage (hors dépôt : 
 TRACKED_PEOPLE           # Optionnel : "Sophie:ménage,Eric:dépannage" — personnes suivies (nom:rôle)
 CLEANING_WATCH_ENABLED   # Optionnel : "false" pour couper le suivi ménage sans redéployer
 CLEANING_RATES           # Optionnel : "Sophie:21" (€/h) — coût estimé sur la page /dashboard/suivi
+CAMERA_LIVE_BASE         # Optionnel : URL du pont vidéo local (go2rtc/Freebox) pour le direct dans /dashboard/video
 BEDS24_WEBHOOK_SECRET    # En-tête x-webhook-secret du webhook Beds24
 DEEPL_API_KEY            # Local seulement (scripts/translate-reviews.mjs), pas sur Vercel
 BLOB_READ_WRITE_TOKEN    # Store Vercel Blob PRIVÉ de la sauvegarde Beds24 (posé par Vercel à la liaison du store)
