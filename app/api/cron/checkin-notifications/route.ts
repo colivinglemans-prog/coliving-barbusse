@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { getBookingsWithArchive } from "@/lib/bookings";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "@/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import type { Beds24Booking } from "@/lib/types";
 import { readKeypadArrivals } from "@/lib/access-sync";

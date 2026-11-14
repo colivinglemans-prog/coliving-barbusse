@@ -13,6 +13,7 @@ const { store, sendNtfy } = vi.hoisted(() => ({
 
 vi.mock("@/lib/redis", () => ({
   getRedis: () => ({ set: async () => "OK", del: async () => 1 }),
+  hasRedis: () => false,
   redisKey: (...parts: Array<string | number>) => ["barbusse", ...parts].join(":"),
   getJson: async (key: string) => store.get(key) ?? null,
   setJson: async (key: string, value: unknown) => {

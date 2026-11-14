@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { formatEventWatch, watchEvents } from "@sejour/socle/lib/events-watch";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "@/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import { EVENTS_WATCH, LE_MANS_EVENTS } from "@/lib/events";
 

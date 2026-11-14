@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { getDevices, getFullZoneConfig } from "@/lib/heatzy";
+import { alertIgnoredDids, getDevices, getFullZoneConfig } from "@/lib/heatzy";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun, type TrackedAlert } from "@/lib/alert-memory";
 import { readPowerCut } from "@/lib/heating-state";
-import { todayParis, nowParis } from "@sejour/socle/lib/time";
+import { todayParis, nowParis, tomorrowParis } from "@sejour/socle/lib/time";
+import { getActiveBookings, guestsAround } from "@/lib/bookings";
 
 /**
  * Connectivité des radiateurs, toutes les 30 min (cron-job.org) et à 8 h (Vercel).
@@ -14,6 +15,11 @@ import { todayParis, nowParis } from "@sejour/socle/lib/time";
  *   qui décroche une minute ne mérite pas une alerte) ;
  * - une alerte à l'ouverture, une quand un nouveau radiateur tombe, rien entre les deux ;
  * - « Radiateurs rétablis » en priorité 1 quand tout est revenu.
+ *
+ * **Priorité** (2026-11-14) : un radiateur seul en défaut part en 3 (sans son fort) quand la
+ * maison est vide ; en 4 dès que des voyageurs sont là ou arrivent d'ici demain, ou que plusieurs
+ * radiateurs sont en défaut. Beds24 illisible → comme si des voyageurs étaient là.
+ * Les radiateurs `alerts: false` (Véranda D, en panne connue) ne sont jamais contrôlés.
  *
  * Les radiateurs d'une coupure de courant soupçonnée ou signalée (`lib/power-cut.ts`) sont
  * ignorés : l'alerte de coupure les nomme déjà.
@@ -29,11 +35,12 @@ export async function GET(request: NextRequest) {
     const [config, rawDevices, cut] = await Promise.all([getFullZoneConfig(), getDevices(), readPowerCut()]);
     const inCut = new Set(cut?.devices ?? []);
 
-    // Radiateurs configurés : identifiant → nom
+    // Radiateurs configurés : identifiant → nom (hors radiateurs tenus hors des alertes)
+    const ignored = alertIgnoredDids(config);
     const configuredDevices = new Map<string, string>();
     for (const zone of config.zones) {
       for (const device of zone.devices) {
-        configuredDevices.set(device.did, device.name);
+        if (!ignored.has(device.did)) configuredDevices.set(device.did, device.name);
       }
     }
 
@@ -51,12 +58,17 @@ export async function GET(request: NextRequest) {
       if (!apiDeviceIds.has(did)) missingDevices.push(name);
     }
 
-    const tracked: TrackedAlert[] = [
-      ...offlineDevices
-        .filter((n) => !inCut.has(n))
-        .map((n) => ({ id: `offline:${n}`, priority: 4 as const, line: `Hors ligne : ${n}` })),
-      ...missingDevices.map((n) => ({ id: `missing:${n}`, priority: 4 as const, line: `Introuvable dans l'API Heatzy : ${n}` })),
+    const faulty = [
+      ...offlineDevices.filter((n) => !inCut.has(n)).map((n) => ({ id: `offline:${n}`, line: `Hors ligne : ${n}` })),
+      ...missingDevices.map((n) => ({ id: `missing:${n}`, line: `Introuvable dans l'API Heatzy : ${n}` })),
     ];
+    let urgent = faulty.length > 1;
+    if (faulty.length === 1) {
+      urgent = await getActiveBookings()
+        .then((b) => guestsAround(b, todayParis(), tomorrowParis()))
+        .catch(() => true);
+    }
+    const tracked: TrackedAlert[] = faulty.map((f) => ({ ...f, priority: urgent ? 4 : 3 }));
 
     const alert = await reportAlerts("heating-health", tracked, sendHeatingAlert, {
       title: (c) => `${c.length} radiateur(s) en alerte`,

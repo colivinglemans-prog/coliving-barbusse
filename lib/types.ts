@@ -53,6 +53,12 @@ export interface HeatzyDeviceConfig {
    * continue de lui envoyer son mode.
    */
   unpaired?: boolean;
+  /**
+   * `false` : radiateur toujours piloté, mais **jamais dans une alerte** (hors ligne, mode refusé,
+   * coupure de courant, préparation d'arrivée). Pour un radiateur en panne connue qui décroche
+   * sans conséquence — Véranda D depuis le 2026-11-14, décision de l'hôte.
+   */
+  alerts?: boolean;
   /** Puissance du radiateur en watts, pour l'estimation de charge (`lib/radiator-load.ts`). Défaut : 1 000 W (ACOVA Atoll LCD 1000). */
   powerW?: number;
 }

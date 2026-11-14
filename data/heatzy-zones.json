@@ -12,7 +12,7 @@
         { "did": "7sLDdAyoRXVsBcFnvcqHyt", "name": "Cuisine", "defaultMode": "fro" },
         { "did": "TCslYTUi8gdD2QqCNMhVpS", "name": "Salon", "defaultMode": "fro" },
         { "did": "PI4Rfe9cbeLieqQAn6Rp8n", "name": "Véranda G", "defaultMode": "fro" },
-        { "did": "pjYjbLHneM85rZbJvbnmBs", "name": "Véranda D", "defaultMode": "fro" },
+        { "did": "pjYjbLHneM85rZbJvbnmBs", "name": "Véranda D", "defaultMode": "fro", "alerts": false },
         { "did": "VKSyryoTXK2GslCxPjoY6O", "name": "Entrée", "defaultMode": "fro" }
       ]
     },

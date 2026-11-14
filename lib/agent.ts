@@ -6,7 +6,7 @@
  * `lib/beds24-property.ts` (identifiants) — seuls les textes destinés aux IA sont écrits ici.
  */
 import { monthlyAvailability } from "@sejour/socle/lib/availability";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "./ntfy";
 import { DEFAULT_LOCALE, LOCALES } from "@sejour/socle/lib/locales";
 import { quoteKeysFromEnv } from "@sejour/socle/lib/quote-token";
 import { fetchRoomPrice } from "@sejour/socle/lib/stay-price";

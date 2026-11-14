@@ -46,7 +46,7 @@ import {
   type NukiLockHealth,
 } from "@sejour/socle/lib/nuki";
 import { addDays } from "@sejour/socle/lib/dates";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "./ntfy";
 import { reportAlerts, type TrackedAlert } from "./alert-memory";
 import { todayParis } from "@sejour/socle/lib/time";
 import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";

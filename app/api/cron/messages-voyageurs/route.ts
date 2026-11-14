@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "@/lib/ntfy";
 import { modes, runCron } from "@/lib/messages/engine";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { reportAlerts } from "@/lib/alert-memory";

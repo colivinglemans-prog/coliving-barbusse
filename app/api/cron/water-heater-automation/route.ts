@@ -12,11 +12,11 @@ import {
   setBoostMode,
   setTargetTemperature,
 } from "@/lib/cozytouch";
-import { getActiveBookings, countGuests } from "@/lib/bookings";
+import { getActiveBookings, countGuests, guestsAround } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
-import { todayParis, nowParis } from "@sejour/socle/lib/time";
+import { todayParis, nowParis, tomorrowParis } from "@sejour/socle/lib/time";
 import {
   absenceSince,
   appendWaterHeaterLog,
@@ -64,7 +64,8 @@ export async function GET(request: NextRequest) {
         ? [
             {
               id: "unreachable",
-              priority: 5,
+              // 5 si des voyageurs sont là ou arrivent d'ici demain (douches froides), 3 sinon.
+              priority: guestsAround(bookings, today, tomorrowParis()) ? 5 : 3,
               line: `Le thermo ne répond plus à Cozytouch (appareil ${connectivity!.deviceAvailable === false ? "indisponible" : "?"}, passerelle ${connectivity!.gatewayStatus ?? "?"}). Les ballons sont dans le garage : circuit du garage coupé ? Il faut réarmer, sinon plus d'eau chaude.`,
             },
           ]

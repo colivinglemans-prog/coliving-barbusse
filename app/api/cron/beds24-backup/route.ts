@@ -2,7 +2,7 @@ import { gzipSync } from "node:zlib";
 import { NextRequest, NextResponse } from "next/server";
 import { del, list, put } from "@vercel/blob";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "@/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import { getAllBookingsRaw } from "@/lib/beds24";
 

@@ -21,6 +21,7 @@ const LIENS: DashboardLink[] = [
   { href: "/dashboard/calendar", label: "Calendrier", adminOnly: false },
   { href: "/dashboard/stats", label: "Statistiques", adminOnly: true },
   { href: "/dashboard/suivi", label: "Suivi", adminOnly: true },
+  { href: "/dashboard/alertes", label: "Alertes", adminOnly: true },
   { href: "/dashboard/seo", label: "Référencement", adminOnly: true },
   { href: "/dashboard/pricing", label: "Pricing", adminOnly: true },
   { href: "/dashboard/heating", label: "Chauffage", adminOnly: false },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "@/lib/ntfy";
 import { buildSessions, mergeArrivals, maxArrivalMs, newArrivalsSince, parsePeople, type CleaningArrival, type CleaningSession, type TrackedPerson } from "@/lib/cleaning/sessions";
 import { garageArrivals, doorArrivals, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
@@ -122,7 +122,7 @@ async function sendArrival(s: CleaningSession, role: string): Promise<void> {
   }).format(s.arrival);
   await sendNtfy(`Passage de ${s.who} (${role}) à ${when} — ${s.arrivalSource}.`, {
     title: `Accès maison — ${s.who}`,
-    priority: 3,
+    priority: 2, // une information (2026-11-14)
     tags: s.arrivalSource === "garage" ? ["house", "oncoming_automobile"] : ["house", "key"],
   });
 }

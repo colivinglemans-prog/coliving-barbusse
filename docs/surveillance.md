@@ -154,7 +154,7 @@ règle, dans [lib/alert-memory.ts](../lib/alert-memory.ts) (`reportAlerts`, `rep
 |---|---|---|
 | Serrure hors ligne / clavier non appairé | `nuki-lock` | Évaluée au **cron horaire seulement**, jamais au passage lancé par le webhook Beds24 (nos propres écritures le déclenchent). Priorité 4. La pile faible n'est plus signalée par la synchro : le passage `daily` de 9 h de la préparation d'arrivée la signale. |
 | Codes du clavier (planificateur, échecs d'écriture, confirmation) | `nuki-codes` | Identifiant = type + réservation (+ étape) ; priorité 3 / 4 / 5 selon la proximité de l'arrivée. |
-| Radiateurs hors ligne | `heating-health` | Ignorés pendant une coupure soupçonnée ou signalée. |
+| Radiateurs hors ligne | `heating-health` | Ignorés pendant une coupure soupçonnée ou signalée. Un seul radiateur en défaut : priorité 3 si la maison est vide, 4 si des voyageurs sont là ou arrivent d'ici demain (ou si plusieurs sont en défaut). |
 | Radiateurs qui refusent leur mode | `heating-automation` | Deux passages de suite ; un radiateur vu hors ligne au même passage n'y compte pas (c'est `heating-health` qui le signale). |
 | Coupure de courant | (`barbusse:heating:power-cut`, `lib/power-cut.ts`) | Soupçonnée au 1er passage, signalée en priorité 5 au 2e (15 min) si au moins 3 des **mêmes** radiateurs manquent encore (une chute toute neuve repart en soupçon) ; « courant revenu » en priorité 1. |
 | Ballon thermodynamique | `water-heater-health` | Remplace `barbusse:water-heater:health-pending` (expire seule). |
@@ -166,3 +166,29 @@ Inchangées : la préparation d'arrivée (déjà deux lectures, anti-répétitio
 le keepalive et la sauvegarde Beds24 (hebdomadaires), le webhook refusé (6 h), le devis IA. Les
 notifications d'information restent : check-in (priorité 3 depuis le 2026-11-10), rapport
 pricing, veille des événements, sauvegarde réussie.
+
+### Ajustements du 2026-11-14 (relecture de l'hôte)
+
+- **Radiateurs tenus hors des alertes** : `alerts: false` sur l'appareil dans
+  `data/heatzy-zones.json` (`alertIgnoredDids`, `lib/heatzy.ts`). Le radiateur reste piloté,
+  mais n'entre ni dans `heating-health`, ni dans « n'ont pas pris leur mode », ni dans la
+  détection de coupure, ni dans la préparation d'arrivée (traité comme `unpaired`). **Véranda D**
+  depuis le 2026-11-14 : panne connue, sans conséquence (décision de l'hôte).
+- **Priorité selon la présence** (`stayInProgress`, `guestsAround`, `lib/bookings.ts`, séjours
+  `confirmed` / `new`) : radiateur seul 3 → 4 avec voyageurs ; thermo injoignable
+  (`water-heater-reach`) 3 → 5 avec voyageurs ; mouvement caméra 4 quand la maison est vide, 2
+  pendant un séjour (jour d'arrivée au jour de départ inclus). Beds24 illisible → la priorité
+  haute. Un changement de priorité d'une alerte ouverte la relance (escalade) : voulu, des
+  voyageurs arrivent et la panne dure.
+- **Passages Sophie / Eric** (`cleaning-watch`) : priorité 2.
+
+### Journal des notifications (30 jours)
+
+ntfy.sh ne garde qu'environ 12 h. **Tout envoi ntfy du site passe par `@/lib/ntfy`** (enveloppe
+de `sendNtfy` du socle) — jamais directement par `@sejour/socle/lib/ntfy` — qui note chaque envoi
+réussi dans la liste Redis `barbusse:ntfy:log` (`lib/notify-log.ts`) : instant, titre, priorité,
+mots-clés, **jamais le corps**. La caméra, qui poste elle-même vers ntfy (pièce jointe), appelle
+`recordNotification`. Page admin **`/dashboard/alertes`** (`app/api/dashboard/alertes`,
+`denyNonAdmin`, hors de la liste blanche viewer) : total, moyenne par jour, sonores, graphe par
+jour, notifications qui reviennent le plus (titres regroupés, nombres → « N »), 200 dernières.
+Non couvertes : les notifications de la surveillance GitHub (envoyées par Actions).

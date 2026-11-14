@@ -1,4 +1,4 @@
-import { sendNtfy, type NtfyOptions } from "@sejour/socle/lib/ntfy";
+import { sendNtfy, type NtfyOptions } from "./ntfy";
 
 /**
  * Alertes d'exploitation des crons (chauffage, eau chaude, jetons Beds24), en notification

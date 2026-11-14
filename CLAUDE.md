@@ -143,6 +143,8 @@ lib/
   seo.ts, site.ts     # Chemins SEO ; SITE_URL, guideUrl(), guestLocaleFromCountry()
   alerts.ts           # Alertes d'exploitation des crons → ntfy (priorité 4)
   alert-memory.ts     # Règle commune des alertes : 2 passages de suite, pas de répétition, retour en priorité 1
+  ntfy.ts             # sendNtfy du socle + journal 30 j : TOUT envoi ntfy du site passe par ici
+  notify-log.ts       # Journal des notifications (Redis barbusse:ntfy:log), page /dashboard/alertes
   invoice-config.ts   # INVOICE_TEMPLATE (branding + mentions) et le préfixe du compteur.
                       # Le reste est dans @sejour/socle/lib/invoice-config (Lot 4).
   invoice-number.ts   # Le client Upstash, branché sur createInvoiceNumbering du socle.
@@ -540,7 +542,7 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
   - **Consignes montées par les voyageurs ramenées toutes les 15 min** par `heating-automation` (boutons des Heatzy laissés libres, choix de l'hôte).
   - **Alerte de coupure** (`lib/power-cut.ts`) : 3 radiateurs ou plus hors ligne au même passage → coupure soupçonnée ; **toujours hors ligne au passage suivant** → ntfy priorité 5, puis « courant revenu » en priorité 1.
   - La charge du passage est mémorisée (`barbusse:heating:load`) pour le dashboard.
-- Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. `LOCKED_DEVICES` : devices tenus en hors-gel, ignorés par les crons.
+- Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. `LOCKED_DEVICES` : devices tenus en hors-gel, ignorés par les crons. `alerts: false` sur un appareil de `data/heatzy-zones.json` : piloté, mais jamais dans une alerte (**Véranda D**, panne connue, 2026-11-14 ; voir docs/surveillance.md).
 - **Préparation d'arrivée** (`/api/cron/arrival-readiness`, lecture seule) : serrure, radiateurs et ballon contrôlés la veille 19 h et le jour J (12h30, 15h30, 16h30), non-arrivée signalée le lendemain 9 h, pile de la serrure chaque matin ; silence 22 h–8 h. Détail : [docs/surveillance.md](docs/surveillance.md).
 - Détail (modes, scheduling, alertes, présence, dashboard, transitions, reset) : [docs/heatzy.md](docs/heatzy.md).
 

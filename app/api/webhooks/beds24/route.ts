@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { constantTimeEqual } from "@sejour/socle/lib/cron-auth";
 import { runAccessSync } from "@/lib/access-sync";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "@/lib/ntfy";
 import { modes, runCron } from "@/lib/messages/engine";
 import { firstRefusalAlert, recordWebhookCall, type WebhookResult } from "@/lib/webhook-trace";
 

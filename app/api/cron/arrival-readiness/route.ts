@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { sendNtfy } from "@sejour/socle/lib/ntfy";
+import { sendNtfy } from "@/lib/ntfy";
 import { addDays } from "@sejour/socle/lib/dates";
 import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
 import { createNukiArrivalProbe, createNukiProbe } from "@sejour/socle/lib/arrival-readiness/nuki-probe";
@@ -85,7 +85,8 @@ async function readHeating(withStatus: boolean): Promise<HeatingSnapshot> {
             zone,
             online: online.get(d.did) ?? false,
             locked: locked.has(d.did),
-            unpaired: d.unpaired === true,
+            // Un radiateur tenu hors des alertes est ignoré comme un module non appairé.
+            unpaired: d.unpaired === true || d.alerts === false,
             status: null,
           };
           if (!withStatus || !base.online || base.locked || base.unpaired) return base;

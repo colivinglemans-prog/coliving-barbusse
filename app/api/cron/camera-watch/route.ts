@@ -3,6 +3,9 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { AjCloud } from "@/lib/camera/ajcloud";
 import { maxCts, newAlarmsSince, toCameraAlert } from "@/lib/camera/watch";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
+import { getActiveBookings, stayInProgress } from "@/lib/bookings";
+import { recordNotification } from "@/lib/notify-log";
+import { todayParis } from "@sejour/socle/lib/time";
 
 /**
  * Veille de vidéosurveillance : relaie vers ntfy les nouveaux événements de mouvement des
@@ -24,6 +27,10 @@ import { getRedis, hasRedis, redisKey } from "@/lib/redis";
  * Variables : `AJCLOUD_EMAIL`, `AJCLOUD_PASSWORD` (absentes → le cron se tait, `skipped`),
  * `NTFY_TOPIC`, `CRON_SECRET`. `CAMERA_WATCH_ENABLED=false` le coupe sans redéployer.
  * `?dry=1` calcule et rend le compte rendu sans envoyer ni rien mémoriser.
+ *
+ * **Priorité selon la présence** (2026-11-14, décision de l'hôte) : 4 quand la maison est vide
+ * (un mouvement y est suspect), 2 pendant un séjour, du jour d'arrivée au jour de départ inclus
+ * (chaque entrée et sortie des voyageurs ferait sonner le téléphone). Beds24 illisible → 4.
  *
  * Cron-job.org, toutes les 5 minutes.
  */
@@ -70,6 +77,7 @@ export async function GET(request: NextRequest) {
       baseline?: boolean;
     }> = [];
     let sent = 0;
+    let priority: 2 | 4 | undefined;
 
     for (const device of devices) {
       if (!device.emcUrl) {
@@ -114,11 +122,12 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      priority ??= await motionPriority();
       for (const alarm of fresh) {
         if (sent >= MAX_ALERTS_PER_RUN) break;
         const alert = toCameraAlert(alarm);
         if (!dry) {
-          await sendMotion(device.name, alert.when, alert.imageUrl, alert.videoUrl);
+          await sendMotion(device.name, alert.when, alert.imageUrl, alert.videoUrl, priority);
         }
         sent += 1;
       }
@@ -126,7 +135,7 @@ export async function GET(request: NextRequest) {
       if (!dry) await redis.set(key, maxCts(alarms, lastCts));
     }
 
-    return NextResponse.json({ success: true, dry, devices: report, sent });
+    return NextResponse.json({ success: true, dry, devices: report, sent, ...(priority ? { priority } : {}) });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: msg }, { status: 502 });
@@ -138,18 +147,28 @@ export async function GET(request: NextRequest) {
  * donnée) et le clip vidéo au tap. Titre en ASCII (les en-têtes ntfy le sont) ; le corps, lui,
  * accepte l'UTF-8. On ne journalise jamais les URLs signées.
  */
+async function motionPriority(): Promise<2 | 4> {
+  try {
+    return stayInProgress(await getActiveBookings(), todayParis()) ? 2 : 4;
+  } catch (e) {
+    console.error("[camera-watch] réservations illisibles:", e instanceof Error ? e.message : e);
+    return 4;
+  }
+}
+
 async function sendMotion(
   deviceName: string,
   when: string,
   imageUrl: string | null,
   videoUrl: string | null,
+  priority: 2 | 4,
 ): Promise<void> {
   const topic = process.env.NTFY_TOPIC;
   if (!topic) return;
   const headers: Record<string, string> = {
     "Content-Type": "text/plain; charset=utf-8",
     Title: asciiTitle(`Mouvement - ${deviceName}`),
-    Priority: "4",
+    Priority: String(priority),
     Tags: "camera,movie_camera",
   };
   if (imageUrl) headers.Attach = imageUrl;
@@ -161,6 +180,8 @@ async function sendMotion(
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`ntfy ${res.status}`);
+  // Journal des 30 jours : titre et priorité seulement, jamais les liens signés.
+  await recordNotification({ title: `Mouvement - ${deviceName}`, priority, tags: ["camera"] });
 }
 
 /** Replie les accents du titre (en-têtes ntfy en ASCII) sans dépendre de la table complète. */

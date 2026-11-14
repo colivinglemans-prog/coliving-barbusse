@@ -111,3 +111,21 @@ export function countGuests(
     })
     .reduce((sum, b) => sum + (b.numAdult ?? 0) + (b.numChild ?? 0), 0);
 }
+
+/**
+ * Présence de voyageurs, pour régler la priorité d'une alerte (2026-11-14) : une panne compte
+ * davantage quand quelqu'un est là. Seuls les séjours vendus comptent (`confirmed`, `new`).
+ */
+function isSoldStay(b: Pick<Beds24Booking, "status">): boolean {
+  return b.status === "confirmed" || b.status === "new";
+}
+
+/** Un séjour est en cours, du jour d'arrivée au jour de départ inclus (ménage compris). */
+export function stayInProgress(bookings: readonly Beds24Booking[], today: string): boolean {
+  return bookings.some((b) => isSoldStay(b) && b.arrival <= today && b.departure >= today);
+}
+
+/** Des voyageurs sont là, ou arrivent d'ici demain. */
+export function guestsAround(bookings: readonly Beds24Booking[], today: string, tomorrow: string): boolean {
+  return bookings.some((b) => isSoldStay(b) && b.arrival <= tomorrow && b.departure >= today);
+}

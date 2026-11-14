@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import {
+  alertIgnoredDids,
   getFullZoneConfig,
   getLockedDevices,
   saveLockedDevices,
@@ -142,7 +143,9 @@ export async function GET(request: NextRequest) {
     let powerCut: "suspected" | "cut" | "restored" | null = null;
     let cutOngoing = false;
     if (readings) {
-      const online = readings.filter((r) => r.online).map((r) => r.name);
+      // Un radiateur tenu hors des alertes ne compte pas dans la détection de coupure.
+      const ignored = alertIgnoredDids(config);
+      const online = readings.filter((r) => r.online && !ignored.has(r.did)).map((r) => r.name);
       const [previousOnline, cut] = await Promise.all([readOnlineRadiators(), readPowerCut()]);
       const t = powerCutTransition(previousOnline, online, cut, now);
       await Promise.all([saveOnlineRadiators(online), savePowerCut(t.cut)]);
@@ -289,7 +292,7 @@ export async function GET(request: NextRequest) {
           failures.push(`${device.name}: ${msg}`);
           // Un radiateur vu hors ligne à ce passage refuse forcément son mode : c'est
           // `heating-health` qui le signale (2 contrôles de suite), pas cette alerte.
-          if (readingByDid.get(did)?.online !== false) failedDevices.push(device.name);
+          if (readingByDid.get(did)?.online !== false && device.alerts !== false) failedDevices.push(device.name);
           console.error(`Heating automation error for ${device.name}:`, e);
         }
         // Consignes montées par un voyageur : ramenées à celles de la zone. Un échec ici n'est
