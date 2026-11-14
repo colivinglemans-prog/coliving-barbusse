@@ -2,7 +2,7 @@ import DashboardNav from "@/components/dashboard/DashboardNav";
 import SearchConsoleDashboard from "@sejour/socle/components/SearchConsoleDashboard";
 
 /**
- * Ce que Google Search Console sait des recherches qui mènent au site : requêtes, clics,
+ * Ce que Google Search Console (et, en dessous, Bing Webmaster) sait des recherches qui mènent au site : requêtes, clics,
  * impressions, position. Le composant est celui du socle, **le même que chez Albiez** ; ne
  * restent ici que les données propres au bien.
  *
@@ -18,8 +18,9 @@ export default function SeoPage() {
       <DashboardNav />
       <SearchConsoleDashboard
         title="Coliving Barbusse — référencement"
-        subtitle="Recherches Google qui mènent au site"
+        subtitle="Recherches Google et Bing qui mènent au site"
         accent="#334155"
+        bingEndpoint="/api/dashboard/seo/bing"
         links={[
           { href: "https://search.google.com/search-console", label: "Search Console" },
           {
