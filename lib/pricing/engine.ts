@@ -108,11 +108,14 @@ export function computeEnginePrices(input: EngineInput): Record<string, EngineNi
       minStay = fixed.minStay;
       reasons.push(`${fixed.label} ${fixed.price} €`);
     } else if (ev) {
-      price = ev.rule.price;
-      minStay = ev.rule.minStay;
-      floor = ev.leadIn ? (ev.rule.leadInFloor ?? ev.rule.floor) : ev.rule.floor;
+      // Nuit d'approche (ajoutée par `extendBefore`) : son propre prix et plancher, pas ceux de
+      // la course — sans paliers, elle vaudrait sinon le prix de l'événement (relecture Fable).
+      const leadInPrice = ev.leadIn ? ev.rule.leadInFloor : undefined;
+      price = leadInPrice ?? ev.rule.price;
+      minStay = leadInPrice !== undefined ? Math.min(ev.rule.minStay, config.defaultMinStay) : ev.rule.minStay;
+      floor = leadInPrice ?? ev.rule.floor;
       ceiling = config.eventCeiling;
-      reasons.push(`${ev.name} ${ev.rule.price} €${ev.leadIn ? " (nuit d'approche)" : ""}`);
+      reasons.push(`${ev.name} ${price} €${leadInPrice !== undefined ? " (nuit d'approche)" : ""}`);
     } else {
       const m = config.monthFactor[month] ?? 1;
       const w = config.weekdayFactor[weekday] ?? 1;

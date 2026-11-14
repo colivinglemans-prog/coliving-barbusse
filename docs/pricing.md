@@ -234,3 +234,32 @@ en retard. Le keepalive entretient la voie `tarifs` dès que la variable existe.
 - **Écart notable à relire en phase 2** : sur les deux semaines qui viennent, Beyond est au plancher
   de 280 € quand le moteur affiche entre 335 et 467 €. Le moteur brade beaucoup moins à l'approche des
   dates.
+
+### Après la relecture Fable du code (2026-11-14)
+
+- **Lecture en tranches de 365 jours** (`readCalendar`) avant et après l'envoi : un appel Beds24 rend
+  365 jours au plus, et sans cela les 30 dernières nuits auraient été réécrites chaque jour, puis
+  relues « ? » (faux écart, donc coupe-circuit dès le premier envoi réel).
+- **Une nuit non lue compte comme vendable** pour le moteur : la compter fermée fabriquait un faux
+  trou (×0,85, séjour minimum de 1 nuit) en bord d'horizon.
+- **Exemptés de la quarantaine** :
+  - les **prix forcés** (validés par l'exploitant, déjà bornés) ;
+  - une **hausse qui remonte une nuit d'événement sous son plancher** (cas des 7-8/06 à 570 €).
+- **Panne pendant l'envoi** : un journal d'intention est écrit avant l'envoi. Toute erreur ensuite
+  pose le coupe-circuit et alerte immédiatement.
+- **Le journal garde toutes les écritures** (`lines`), y compris les 394 de la bascule ;
+  `push-last` n'en garde qu'un échantillon de 20.
+- **`dailyChanges`** : nombre de nuits dont la **cible** a changé depuis la veille (cibles gardées
+  14 jours). C'est la mesure du régime quotidien pendant l'envoi à blanc, celle qui valide le
+  plafond de 60. L'écart avec les prix Beyond reste énorme tant que Beyond écrit.
+- `?dry=1` ne remplace plus le dernier passage affiché au dashboard. Un passage `locked` n'envoie pas
+  de faux rétablissement. **Rappel** si le coupe-circuit reste posé plus de 48 h.
+- **Nuits d'approche** (`extendBefore`) : prix et plancher de `leadInFloor`, séjour minimum de
+  2 nuits. Sans paliers, elles valaient sinon le prix de la course.
+- **Socle** : une réponse Beds24 vide ou sans `success: true` explicite lève une erreur.
+- Test `tests/pricing/event-floors.test.ts` : tout grand événement de l'horizon a un plancher. Il
+  échouera exprès quand les événements 2028 entreront dans l'horizon (mi-2027) ; il faudra alors
+  ajouter leurs planchers.
+- **Non traité** : la lecture somme les rooms alors que l'écriture vise `ROOM_ID`. C'est sans effet,
+  avec une seule room. Le décalage d'un jour sur `minStay` reste à vérifier en phase 0, par
+  l'aller-retour réel.

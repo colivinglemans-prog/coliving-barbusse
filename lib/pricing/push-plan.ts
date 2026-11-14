@@ -15,7 +15,8 @@ import {
  *    rejette tout l'envoi ;
  * 3. diff avec le calendrier actuel : rien à écrire si prix et séjour minimum sont identiques ;
  * 4. une variation de plus de `maxChange` met **la date seule** en quarantaine (elle garde son
- *    prix) ; une date sans prix actuel en est exemptée ;
+ *    prix). En sont exemptés : une date sans prix actuel, un **prix forcé** (validé et borné), et
+ *    une hausse qui remonte une nuit d'événement **sous son plancher** ;
  * 5. plus de `maxDates` écritures : l'envoi est rejeté (relever le paramètre exprès).
  *
  * Les nuits vendues ou bloquées sont écrites comme les autres : `price1` ne touche pas une
@@ -94,7 +95,11 @@ export function planPush(input: {
       unchanged++;
       continue;
     }
-    if (now && now.price > 0) {
+    // Quarantaine, sauf (relecture Fable) : un prix forcé — validé par l'exploitant et déjà
+    // borné — et une hausse qui remonte une nuit d'événement actuellement sous son plancher.
+    const belowFloor = floor !== null && effectivePrice(now?.price ?? 0, now?.minStay ?? t.minStay) < floor.floor - 1;
+    const exempt = t.source === "override" || (belowFloor && now !== null && price1 > now.price);
+    if (now && now.price > 0 && !exempt) {
       const changePct = (price1 - now.price) / now.price;
       if (Math.abs(changePct) > maxChange) {
         quarantined.push({ date, from: now.price, to: price1, changePct: Math.round(changePct * 1000) / 10 });

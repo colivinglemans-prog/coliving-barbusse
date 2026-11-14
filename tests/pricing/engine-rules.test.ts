@@ -18,6 +18,9 @@ describe("règles du moteur (corrections du 2026-11-14)", () => {
   it("la nuit d'approche des 24 Heures prend le plancher d'approche, pas celui de la course", () => {
     const r = computeEnginePrices({ today: "2027-06-04", nights: nights(["2027-06-07", "2027-06-08"]), events: LE_MANS_EVENTS, config: ENGINE_CONFIG });
     expect(r["2027-06-07"].reasons[0]).toMatch(/nuit d'approche/);
+    expect(r["2027-06-07"].price).toBe(1_560);
+    expect(r["2027-06-07"].minStay).toBe(2);
+    expect(r["2027-06-08"].price).toBe(2_800); // veille de la course : nuit de l'événement
   });
 
   it("les fêtes sont resserrées sur les vraies nuits", () => {

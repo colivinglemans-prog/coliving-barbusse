@@ -73,6 +73,23 @@ describe("planPush", () => {
     expect(Object.keys(p.writes)).toEqual(["2027-01-11"]);
   });
 
+  it("exempte de la quarantaine un prix forcé (validé par l'exploitant et borné)", () => {
+    const p = plan({ "2027-05-14": now(600, 3) }, { "2027-05-14": { price: 1_400, minStay: 3, source: "override" } });
+    expect(p.quarantined).toEqual([]);
+    expect(p.writes["2027-05-14"].price1).toBe(1_400);
+  });
+
+  it("exempte une hausse qui remonte une nuit d'événement sous son plancher (cas des 7-8/06)", () => {
+    const p = plan({ "2027-06-07": now(570, 4) }, { "2027-06-07": engine(1_560, 2) });
+    expect(p.quarantined).toEqual([]);
+    expect(p.writes["2027-06-07"].price1).toBe(1_560);
+  });
+
+  it("met quand même en quarantaine une baisse forte sur une nuit d'événement au-dessus du plancher", () => {
+    const p = plan({ "2027-06-10": now(3_400, 4) }, { "2027-06-10": engine(2_300, 4) });
+    expect(p.quarantined.map((q) => q.date)).toEqual(["2027-06-10"]);
+  });
+
   it("exempte de la quarantaine une date sans prix actuel", () => {
     const p = plan({}, { "2027-12-20": engine(600) });
     expect(p.quarantined).toEqual([]);

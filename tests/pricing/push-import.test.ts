@@ -31,6 +31,16 @@ describe("porte unique d'écriture des prix", () => {
     expect(users).toEqual(["lib/beds24.ts", "lib/pricing/push.ts"]);
   });
 
+  it("updateCalendar (socle) n'est appelé que par lib/beds24.ts", () => {
+    const users = all.filter((f) => /\bupdateCalendar\b/.test(f.text)).map((f) => f.path);
+    expect(users).toEqual(["lib/beds24.ts"]);
+  });
+
+  it("le jeton des tarifs n'est lu que par lib/beds24.ts", () => {
+    const readers = all.filter((f) => /process\.env\.BEDS24_PRICING_REFRESH_TOKEN/.test(f.text)).map((f) => f.path);
+    expect(readers).toEqual(["lib/beds24.ts"]);
+  });
+
   it("la voie « tarifs » n'est nommée que dans lib/beds24.ts (et comme libellé du keepalive)", () => {
     const users = all.filter((f) => /["']tarifs["']/.test(f.text)).map((f) => f.path).sort();
     // Le keepalive n'emploie « tarifs » que comme libellé d'alerte : il passe par

@@ -4,7 +4,7 @@ import { todayParis } from "@sejour/socle/lib/time";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { sendPricingAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
-import { runPricingPush, type PushRun } from "@/lib/pricing/push";
+import { haltState, runPricingPush, type PushRun } from "@/lib/pricing/push";
 
 /**
  * Envoi quotidien des prix du moteur vers Beds24 — le seul appelant de `lib/pricing/push.ts`.
@@ -42,7 +42,8 @@ export async function GET(request: NextRequest) {
   await beat("pricing-push", "ok");
   await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, null).catch(() => undefined);
 
-  if (run.mode !== "off" && !forceDry) {
+  // `locked` : un autre envoi tournait, ce passage n'a rien constaté — ne pas « rétablir ».
+  if (run.mode !== "off" && !forceDry && run.outcome !== "locked") {
     await reportAlerts(
       "pricing-rejected",
       run.outcome === "rejected"
@@ -89,8 +90,26 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Coupe-circuit oublié : un rappel (une seule fois) au-delà de 48 h, sinon le cron reste « ok ».
+  if (!forceDry) {
+    const halt = await haltState().catch(() => null);
+    const longHalt = halt && Date.now() - Date.parse(halt.since) > 48 * 3600_000;
+    await reportAlerts(
+      "pricing-halt-long",
+      longHalt ? [{ id: "halt", priority: 3, line: `Posé le ${halt.since.slice(0, 10)} : ${halt.reason}` }] : [],
+      sendPricingAlert,
+      {
+        title: () => "Envoi des prix coupé depuis plus de 48 h",
+        intro: "Les prix ne bougent plus. Lever le coupe-circuit depuis la page Pricing une fois la cause comprise :",
+        recoveredTitle: "Coupe-circuit des prix levé",
+        confirmAfter: 1,
+      },
+    ).catch((e) => console.error("[pricing-push] rappel coupe-circuit:", e));
+  }
+
   return NextResponse.json({
     mode: run.mode,
+    dailyChanges: run.dailyChanges,
     outcome: run.outcome,
     writes: run.writes,
     unchanged: run.unchanged,
