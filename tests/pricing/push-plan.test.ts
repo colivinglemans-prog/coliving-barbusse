@@ -85,6 +85,11 @@ describe("planPush", () => {
     expect(p.writes["2027-06-07"].price1).toBe(1_560);
   });
 
+  it("plafonne l'exemption « sous le plancher » : une cible aberrante reste en quarantaine", () => {
+    const p = plan({ "2027-04-08": now(400, 3) }, { "2027-04-08": engine(3_400, 3) });
+    expect(p.quarantined.map((q) => q.date)).toEqual(["2027-04-08"]);
+  });
+
   it("met quand même en quarantaine une baisse forte sur une nuit d'événement au-dessus du plancher", () => {
     const p = plan({ "2027-06-10": now(3_400, 4) }, { "2027-06-10": engine(2_300, 4) });
     expect(p.quarantined.map((q) => q.date)).toEqual(["2027-06-10"]);

@@ -98,7 +98,11 @@ export function planPush(input: {
     // Quarantaine, sauf (relecture Fable) : un prix forcé — validé par l'exploitant et déjà
     // borné — et une hausse qui remonte une nuit d'événement actuellement sous son plancher.
     const belowFloor = floor !== null && effectivePrice(now?.price ?? 0, now?.minStay ?? t.minStay) < floor.floor - 1;
-    const exempt = t.source === "override" || (belowFloor && now !== null && price1 > now.price);
+    // L'exemption « sous le plancher » est plafonnée à 1,25 × le plancher : elle sert à remonter
+    // une nuit bradée jusqu'au plancher, pas à laisser passer une cible aberrante (contre-relecture).
+    const towardFloor =
+      belowFloor && now !== null && price1 > now.price && floor !== null && effective <= floor.floor * 1.25;
+    const exempt = t.source === "override" || towardFloor;
     if (now && now.price > 0 && !exempt) {
       const changePct = (price1 - now.price) / now.price;
       if (Math.abs(changePct) > maxChange) {

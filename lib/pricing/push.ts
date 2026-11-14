@@ -250,7 +250,7 @@ async function writeAndVerify(
     Object.entries(plan.writes).map(([d, w]) => [d, { price1: w.price1, minStay: w.minStay }]),
   );
   // Journal d'intention : si la fonction meurt pendant l'envoi, on sait ce qui devait partir.
-  await setJson(`${JOURNAL_PREFIX}:${planned.at}:intent`, { at: planned.at, lines });
+  await setJson(`${JOURNAL_PREFIX}:${planned.at}:intent`, { at: planned.at, lines }, 30 * 24 * 3600);
   try {
     const { warnings } = await writeCalendar(compressSpans(days));
     const dates = Object.keys(days).sort();

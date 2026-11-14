@@ -14,6 +14,7 @@ const h = vi.hoisted(() => {
     failGet: false,
     applyWrites: true,
     writeThrows: false,
+    readThrowsAfterWrite: false,
     reads: [] as { start: string; end: string }[],
     writes: [] as { from: string; to: string; price1?: number; minStay?: number }[][],
     alerts: [] as string[],
@@ -45,6 +46,10 @@ vi.mock("@/lib/alerts", () => ({
 vi.mock("@/lib/beds24", () => ({
   getCalendarDays: async (_p: number, start: string, end: string) => {
     h.reads.push({ start, end });
+    // Comme Beds24 : jamais plus de 365 jours par appel.
+    const span = (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000 + 1;
+    if (span > 365) throw new Error(`lecture de ${span} jours refusée`);
+    if (h.readThrowsAfterWrite && h.writes.length > 0) throw new Error("relecture impossible");
     const out: Record<string, { price: number; minStay: number; available: boolean }> = {};
     for (let d = start; d <= end; d = next(d)) {
       out[d] = h.calendar.get(d) ?? { price: 470, minStay: 2, available: true };
@@ -83,6 +88,7 @@ beforeEach(() => {
   h.failGet = false;
   h.applyWrites = true;
   h.writeThrows = false;
+  h.readThrowsAfterWrite = false;
   h.reads.length = 0;
   h.writes.length = 0;
   h.alerts.length = 0;
@@ -123,6 +129,8 @@ describe("runPricingPush", () => {
     const run = await runPricingPush({ today: TODAY });
     expect(run.outcome).toBe("written");
     expect(h.writes).toHaveLength(1);
+    // Deux lectures avant l'envoi, puis la relecture de contrôle, elle aussi en tranches.
+    expect(h.reads.length).toBeGreaterThanOrEqual(3);
     for (const span of h.writes[0]) {
       expect(Object.keys(span).sort()).toEqual(expect.arrayContaining(["from", "to"]));
       expect(Object.keys(span).every((k) => ["from", "to", "price1", "minStay"].includes(k))).toBe(true);
@@ -138,19 +146,37 @@ describe("runPricingPush", () => {
     expect(h.writes).toEqual([]);
   });
 
-  it("live mais Redis illisible au moment du contrôle : n'écrit rien (fail closed)", async () => {
-    process.env.PRICING_PUSH_MODE = "live";
-    const { isHalted } = await import("@/lib/pricing/push");
-    h.failGet = true;
-    expect(await isHalted()).toBe(true);
-  });
-
-  it("forceDry ne rend jamais plus permissif et ne touche pas au dernier passage", async () => {
+  it("forceDry ne rend jamais plus permissif et ne touche ni au dernier passage ni aux cibles", async () => {
     process.env.PRICING_PUSH_MODE = "live";
     const run = await runPricingPush({ today: TODAY, forceDry: true });
     expect(run.outcome).toBe("dry");
     expect(h.writes).toEqual([]);
     expect(h.mem.has("barbusse:pricing:push-last")).toBe(false);
+    expect(h.mem.has(`barbusse:pricing:push-targets:${TODAY}`)).toBe(false);
+  });
+
+  it("live et Redis illisible au contrôle du coupe-circuit : n'écrit rien", async () => {
+    process.env.PRICING_PUSH_MODE = "live";
+    // La lecture du halt est le seul `get` brut de Redis du parcours : elle échoue, on n'écrit pas.
+    h.failGet = true;
+    const run = await runPricingPush({ today: TODAY });
+    expect(run.outcome).toBe("halted");
+    expect(h.writes).toEqual([]);
+  });
+
+  it("relecture qui lève après l'écriture : coupe-circuit et alerte", async () => {
+    process.env.PRICING_PUSH_MODE = "live";
+    h.readThrowsAfterWrite = true;
+    await expect(runPricingPush({ today: TODAY })).rejects.toThrow("relecture impossible");
+    expect(h.mem.has(HALT_KEY)).toBe(true);
+    expect(h.alerts[0]).toMatch(/Panne pendant l'envoi/);
+  });
+
+  it("une nuit non lue compte comme vendable pour le moteur (pas de faux trou)", async () => {
+    const { buildTargets } = await import("@/lib/pricing/push");
+    const cal = { "2027-03-02": { price: 470, minStay: 2, available: true } };
+    const t = buildTargets("2027-03-02", cal, 3);
+    expect(t["2027-03-02"].minStay).toBe(2);
   });
 
   it("écart à la relecture : pose le coupe-circuit, ne renvoie rien", async () => {

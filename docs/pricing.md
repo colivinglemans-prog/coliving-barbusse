@@ -136,9 +136,9 @@ est **mis en pause**, pas résilié ; résiliation après le 31/01/2027.
   refuse avant l'envoi.
 - **Les nuits vendues ou bloquées sont écrites aussi** : `price1` ne touche pas une réservation, et
   une annulation rouvre ainsi la nuit au bon prix au lieu d'un prix périmé.
-- **Horizon de 395 jours** (365 + 30). Une lecture Beds24 s'arrête à 365 jours ; les nuits au-delà
-  sont quand même ciblées (comptées « non vendables » pour le moteur), pour qu'une nuit entre dans la
-  fenêtre de réservation déjà au bon prix.
+- **Horizon de 395 jours** (365 + 30), pour qu'une nuit entre dans la fenêtre de réservation déjà au
+  bon prix. Une lecture Beds24 s'arrête à 365 jours : `readCalendar` lit en deux tranches, avant et
+  après l'envoi. Une nuit non rendue compte comme vendable pour le moteur.
 
 ### Interrupteur à deux clés (fail closed)
 
@@ -244,7 +244,8 @@ en retard. Le keepalive entretient la voie `tarifs` dès que la variable existe.
   trou (×0,85, séjour minimum de 1 nuit) en bord d'horizon.
 - **Exemptés de la quarantaine** :
   - les **prix forcés** (validés par l'exploitant, déjà bornés) ;
-  - une **hausse qui remonte une nuit d'événement sous son plancher** (cas des 7-8/06 à 570 €).
+  - une **hausse qui remonte une nuit d'événement sous son plancher** (cas des 7-8/06 à 570 €),
+    plafonnée à 1,25 fois le plancher : au-delà, la quarantaine s'applique.
 - **Panne pendant l'envoi** : un journal d'intention est écrit avant l'envoi. Toute erreur ensuite
   pose le coupe-circuit et alerte immédiatement.
 - **Le journal garde toutes les écritures** (`lines`), y compris les 394 de la bascule ;
