@@ -602,6 +602,14 @@ dessiné par `SearchConsoleDashboard` du socle **v3.16.0**, le même écran que 
   telle quelle) et `GSC_SITE_URL` — **jamais dans le dépôt**, qui est public.
 - Si Google refuse la propriété, la route liste celles que le compte de service voit : c'est la
   bonne valeur de `GSC_SITE_URL`.
+- **Section Bing** (socle **v3.23.0**, `lib/bing-webmaster.ts` + `BingWebmasterPanel`, prop
+  `bingEndpoint`) : pages indexées, explorées, erreurs d'exploration, clics/impressions, requêtes
+  et pages Bing (ChatGPT Search et Copilot s'appuient sur Bing). Route admin
+  `app/api/dashboard/seo/bing/route.ts`, propriété Bing = **domaine nu**
+  `https://coliving-barbusse.fr/` (vérifié par `GetUserSites`). Clé `BING_WEBMASTER_API_KEY`
+  (même clé pour Albiez ; Vercel prod en *sensitive* + `.env.local`) : elle est **dans l'URL
+  d'appel** de l'API Bing, donc jamais d'URL ni d'erreur brute dans un log ou une réponse.
+  Tant que Bing n'a que des zéros, l'écran le dit au lieu de dessiner des cartes à zéro.
 
 ## Dashboard calendrier (`/dashboard/calendar`)
 
