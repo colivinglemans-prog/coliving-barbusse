@@ -49,13 +49,14 @@ export function eventNights(e: LocalEvent, extendBefore = 0): string[] {
 
 /** Index des événements par nuit : le grand événement l'emporte sur le mineur. */
 function indexEvents(events: LocalEvent[], config: EngineConfig) {
-  const major = new Map<string, { rule: EventRule; name: string }>();
+  const major = new Map<string, { rule: EventRule; name: string; leadIn: boolean }>();
   const minor = new Map<string, string>();
   for (const e of events) {
     const rule = config.majorEvents.find((r) => keyPrefix(e.key) === r.keyPrefix);
+    const eve = addDays(e.start, -1);
     for (const n of eventNights(e, rule?.extendBefore)) {
       if (rule) {
-        if (!major.has(n)) major.set(n, { rule, name: e.name });
+        if (!major.has(n)) major.set(n, { rule, name: e.name, leadIn: n < eve });
       } else if (!minor.has(n)) {
         minor.set(n, e.name);
       }
@@ -109,9 +110,9 @@ export function computeEnginePrices(input: EngineInput): Record<string, EngineNi
     } else if (ev) {
       price = ev.rule.price;
       minStay = ev.rule.minStay;
-      floor = ev.rule.floor;
+      floor = ev.leadIn ? (ev.rule.leadInFloor ?? ev.rule.floor) : ev.rule.floor;
       ceiling = config.eventCeiling;
-      reasons.push(`${ev.name} ${ev.rule.price} €`);
+      reasons.push(`${ev.name} ${ev.rule.price} €${ev.leadIn ? " (nuit d'approche)" : ""}`);
     } else {
       const m = config.monthFactor[month] ?? 1;
       const w = config.weekdayFactor[weekday] ?? 1;
@@ -124,8 +125,10 @@ export function computeEnginePrices(input: EngineInput): Record<string, EngineNi
       }
     }
 
+    // Grands événements : prix figé, **sans paliers d'anticipation** — ne pas baisser un
+    // événement à l'approche, ni le gonfler au loin (relecture du 2026-11-14).
     const lead = daysBetween(today, date);
-    const tier = config.leadTime.find((t) => lead >= t.minDays && lead <= t.maxDays);
+    const tier = ev ? undefined : config.leadTime.find((t) => lead >= t.minDays && lead <= t.maxDays);
     if (tier) {
       price *= tier.factor;
       reasons.push(`${tier.label} ×${tier.factor}`);

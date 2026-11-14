@@ -5,6 +5,7 @@ import {
   refreshBeds24ReadToken,
   refreshBeds24PublicToken,
   refreshBeds24MessagesToken,
+  refreshBeds24PricingToken,
 } from "@/lib/beds24";
 import { sendBeds24Alert } from "@/lib/alerts";
 
@@ -32,7 +33,7 @@ import { sendBeds24Alert } from "@/lib/alerts";
  * premier échoue : un jeton mort ne doit pas en entraîner un second.
  */
 
-type Voie = "ecriture" | "lecture" | "publique" | "messagerie";
+type Voie = "ecriture" | "lecture" | "publique" | "messagerie" | "tarifs";
 type Resultat = { ok: true; expiresIn: number } | { ok: false; error: string };
 
 const REPARATION: Record<Voie, string[]> = {
@@ -59,6 +60,13 @@ const REPARATION: Record<Voie, string[]> = {
     "     https://api.beds24.com/v2/authentication/setup",
     "3. Copier le champ refreshToken dans BEDS24_PUBLIC_REFRESH_TOKEN (.env.local + Vercel)",
   ],
+  tarifs: [
+    "1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code avec les scopes",
+    "   read:inventory, write:inventory — et RIEN d'autre (pas de bookings)",
+    '2. curl -H "code: <INVITE>" -H "deviceName: coliving-barbusse-tarifs-AAAA-MM" \\',
+    "     https://api.beds24.com/v2/authentication/setup",
+    "3. Copier le champ refreshToken dans BEDS24_PRICING_REFRESH_TOKEN (.env.local + Vercel)",
+  ],
   messagerie: [
     "1. Beds24 > SETTINGS > ACCOUNT > ACCESS > générer un invite code avec les scopes",
     "   read:bookings, read:bookings-personal, write:bookings-personal",
@@ -70,6 +78,9 @@ const REPARATION: Record<Voie, string[]> = {
 };
 
 const CONSEQUENCE: Record<Voie, string> = {
+  tarifs:
+    "L'envoi quotidien des prix vers Beds24 est cassé : les prix restent ceux du dernier envoi " +
+    "réussi. La route pricing-push alertera aussi de son côté.",
   ecriture: "L'ajout de consignes de ménage sur les réservations est cassé.",
   lecture:
     "Le dashboard, les factures, la taxe de séjour et le fiscal n'ont plus de données : " +
@@ -122,9 +133,14 @@ export async function GET(request: NextRequest) {
 
   const messagerie = await entretenir("messagerie", refreshBeds24MessagesToken);
 
-  const ok = publique.ok && lecture.ok && ecriture.ok && messagerie.ok;
+  // Le jeton des tarifs n'existe qu'une fois la sortie de Beyond engagée : sans variable, rien à
+  // entretenir, et ce n'est pas une panne.
+  const pricing = refreshBeds24PricingToken();
+  const tarifs = pricing ? await entretenir("tarifs", () => pricing) : null;
+
+  const ok = publique.ok && lecture.ok && ecriture.ok && messagerie.ok && (tarifs?.ok ?? true);
   return NextResponse.json(
-    { ok, publique, lecture, ecriture, messagerie },
+    { ok, publique, lecture, ecriture, messagerie, tarifs },
     { status: ok ? 200 : 500 },
   );
 }

@@ -110,3 +110,127 @@ une **copie datée** de Beds24, pas une source. La notification ntfy du lundi ou
 - **Semaine des essais 2027** (`test-24h-2027`, 31/05 → 06/06, `confirmed: false`) : le moteur la
   tarifie à 1 560 € de plancher, soit la parité avec l'option agence (1 430 € nets ÷ 0,916 en direct),
   choix de l'exploitant. `extendBefore: -1` fait commencer l'événement la nuit du premier jour.
+
+## Envoi des prix vers Beds24 : sortie de Beyond (depuis le 2026-11-14)
+
+Plan complet : `C:\Users\alexa\.claude\plans\piped-wibbling-dove.md` (7 agents, deux relectures Fable).
+Bascule visée le **01/12/2026**, sous condition : phase 0 validée et 7 jours d'envoi à blanc. Beyond
+est **mis en pause**, pas résilié ; résiliation après le 31/01/2027.
+
+### La porte unique
+
+`lib/pricing/push.ts` est **le seul module qui écrit** dans Beds24, appelé par le seul cron
+`/api/cron/pricing-push` (cron-job.org, **05:10 UTC**, après le relevé de 05:00). Déroulé :
+1. verrou Redis ;
+2. relecture **fraîche** du calendrier (`getCalendarDays(..., { fresh: true })`) ;
+3. moteur et prix forcés (`buildTargets`) ;
+4. plan (`lib/pricing/push-plan.ts`, pur) ;
+5. envoi (`writeCalendar` → `updateCalendar` du socle v3.22.0) ;
+6. relecture de contrôle ;
+7. journal (`barbusse:pricing:push-last`, et `barbusse:pricing:push-journal:<horodatage>` sans TTL).
+
+- **Voie `tarifs`** (`BEDS24_PRICING_REFRESH_TOKEN`, `read:inventory` et `write:inventory`) : aucun
+  repli, aucune autre voie ne se replie vers elle. `writeCalendar` n'est importé que par `push.ts`
+  (test `tests/pricing/push-import.test.ts`).
+- **Seuls `price1` et `minStay` partent** : jamais `numAvail`, `override` ni prix liés. Le socle les
+  refuse avant l'envoi.
+- **Les nuits vendues ou bloquées sont écrites aussi** : `price1` ne touche pas une réservation, et
+  une annulation rouvre ainsi la nuit au bon prix au lieu d'un prix périmé.
+- **Horizon de 395 jours** (365 + 30). Une lecture Beds24 s'arrête à 365 jours ; les nuits au-delà
+  sont quand même ciblées (comptées « non vendables » pour le moteur), pour qu'une nuit entre dans la
+  fenêtre de réservation déjà au bon prix.
+
+### Interrupteur à deux clés (fail closed)
+
+| Clé | Où | Effet |
+|---|---|---|
+| `PRICING_PUSH_MODE` | variable Vercel | `off` (défaut, ou valeur inconnue) : rien ; `dry` : calcul et journal sans écrire ; `live` : écriture |
+| `barbusse:pricing:halt` | Redis, bouton « Couper l'envoi » de la page Pricing | posé = aucune écriture, même en `live` ; Redis illisible = posé |
+
+`?dry=1` sur la route force un calcul à blanc ponctuel (jamais plus permissif). **Un écart à la
+relecture pose le halt et alerte, sans renvoi** : un renvoi automatique ferait une guerre d'écritures
+si Beyond écrivait encore. On lève le halt depuis le dashboard après avoir compris.
+
+### Garde-fous (`lib/pricing/guards.ts`, indépendants de la grille)
+
+- **Bornes absolues** : 250 à 3 500 € effectifs, séjour minimum de 1 à 7 nuits. Une seule valeur
+  dehors et **tout l'envoi est rejeté**.
+- **Planchers des grands événements 2027** (prix effectifs), déclarés ici et pas seulement dans la
+  grille :
+
+  | Événement | Plancher |
+  |---|---|
+  | 24H Moto | 600 € |
+  | MotoGP | 650 € |
+  | Essais, avec les nuits d'approche du 7-8/06 | 1 560 € |
+  | 24 Heures | 2 220 € |
+  | Classic Heritage | 1 050 € |
+
+  Ils restent actifs même avec les paramètres de bascule relevés.
+- **Quarantaine** : une date qui varie de plus de `PRICING_MAX_CHANGE` (0,25 par défaut) garde son prix
+  et part dans une alerte. Une date sans prix actuel en est exemptée.
+- **Plafond de dates** : au-delà de `PRICING_MAX_DATES` (60 par défaut, 395 au plus), l'envoi est
+  rejeté.
+- **Pour la bascule** : relever les deux paramètres (`PRICING_MAX_DATES=395`, `PRICING_MAX_CHANGE=10`)
+  le temps du premier envoi, puis les remettre.
+- **On ne desserre jamais un garde-fou pour faire passer un envoi.**
+
+### Remise de durée : compensée par le moteur
+
+Les remises de durée Beds24 sont des **règles de prix liées à `price1`**, sans champ de dates (lues
+par l'API le 2026-11-14) :
+
+| Règle | Durée | Facteur |
+|---|---|---|
+| 2 | dès 4 nuits | ×0,92 |
+| 3 | dès 7 nuits | ×0,90 |
+| 4 | dès 28 nuits | ×0,70 |
+
+On ne peut pas en exclure les événements. La grille et les prix forcés raisonnent donc en **prix
+effectif**, et l'envoi écrit `price1 = effectif ÷ remise garantie` dès que le séjour minimum la rend
+certaine (`price1For` : ÷ 0,92 à partir de 4 nuits). C'est ce qui avait coûté environ 1 000 € sur les
+24 Heures 2027.
+
+### Prix forcés (`lib/pricing/overrides.ts`)
+
+Liste versionnée, sans interface en v1. Grands événements 2027 **figés au milieu entre le moteur et
+Beyond** (décision du 2026-11-14), sans paliers d'anticipation :
+
+| Événement | Prix effectif |
+|---|---|
+| 24H Moto | 940 € |
+| MotoGP | 1 400 € |
+| Essais et 7-8/06 | 1 560 € |
+| 24 Heures (déjà vendues, en cas d'annulation) | 2 800 € |
+| Classic Heritage | 1 860 € |
+
+**À recalculer sur le relevé de la veille de la bascule** et à montrer à l'exploitant avant le `live`.
+
+### Grille (corrections du 2026-11-14)
+
+- 24 Heures : 2 800 € (plancher 2 220 €) ; leurs nuits d'approche (`extendBefore`) ont leur propre
+  plancher, `leadInFloor` 1 560 €.
+- **Plus de paliers d'anticipation sur les grands événements**.
+- Fêtes resserrées : du 23 au 26/12 et du 30/12 au 01/01.
+
+### Alertes ntfy (`sendPricingAlert`, préfixe « [Prix] »)
+
+| Cas | Priorité | Quand |
+|---|---|---|
+| Envoi rejeté | 4 | dès le premier passage |
+| Dates en quarantaine | 3 | dès le premier passage, une ligne par date |
+| Écart relu | 4 | immédiate, le halt est posé |
+| Erreur de la route | 4 | après 2 passages en erreur |
+
+Le battement de cœur `pricing-push` (retard toléré de 26 h) fait partie de `EXPECTED_CRONS` : **le
+job cron-job.org doit exister dès que ce code est en production**, sinon la surveillance le signale
+en retard. Le keepalive entretient la voie `tarifs` dès que la variable existe.
+
+### Premier envoi à blanc (2026-11-14, en local, sur le vrai calendrier)
+
+- **Paramètres normaux** : rejeté, comme voulu (299 dates à modifier, au-delà de 60, et 65 en
+  quarantaine).
+- **Paramètres de bascule** : 394 dates écrites, **aucune violation** de borne ni de plancher.
+- **Écart notable à relire en phase 2** : sur les deux semaines qui viennent, Beyond est au plancher
+  de 280 € quand le moteur affiche entre 335 et 467 €. Le moteur brade beaucoup moins à l'approche des
+  dates.

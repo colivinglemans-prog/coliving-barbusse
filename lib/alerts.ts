@@ -24,3 +24,4 @@ export const sendHeatingAlert = alert("Chauffage", ["fire", "warning"]);
 export const sendWaterHeaterAlert = alert("Eau chaude", ["droplet", "warning"]);
 export const sendBeds24Alert = alert("Beds24", ["key", "warning"]);
 export const sendCronAlert = alert("Crons", ["alarm_clock", "warning"]);
+export const sendPricingAlert = alert("Prix", ["moneybag", "warning"]);

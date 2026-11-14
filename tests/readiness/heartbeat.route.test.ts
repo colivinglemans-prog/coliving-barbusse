@@ -23,7 +23,7 @@ import { beat } from "@/lib/heartbeat";
 const NOW = new Date("2026-11-14T12:00:00Z");
 
 async function allFresh() {
-  for (const name of ["nuki-sync", "heating-automation", "water-heater-automation", "arrival-readiness"] as const) {
+  for (const name of ["nuki-sync", "heating-automation", "water-heater-automation", "arrival-readiness", "pricing-push"] as const) {
     await beat(name, "ok", new Date(NOW.getTime() - 10 * 60_000));
   }
 }
@@ -68,7 +68,7 @@ describe("/api/health/heartbeat", () => {
     await allFresh();
     await beat("nuki-sync", "error", NOW);
     vi.setSystemTime(new Date(NOW.getTime() + 3 * 3600_000));
-    for (const name of ["heating-automation", "water-heater-automation", "arrival-readiness"] as const) {
+    for (const name of ["heating-automation", "water-heater-automation", "arrival-readiness", "pricing-push"] as const) {
       await beat(name, "ok", new Date());
     }
     await beat("nuki-sync", "error", new Date());

@@ -21,6 +21,8 @@ export const EXPECTED_CRONS = [
   { name: "water-heater-automation", maxAgeMinutes: 150 },
   // `35 * * * *`, jour et nuit : les heures de silence sont gérées par la route, pas par l'horaire.
   { name: "arrival-readiness", maxAgeMinutes: 150 },
+  // `10 5 * * *` (cron-job.org), une fois par jour : un passage manqué toléré, pas deux.
+  { name: "pricing-push", maxAgeMinutes: 1_560 },
 ] as const satisfies readonly ExpectedCron[];
 
 export type MonitoredCron = (typeof EXPECTED_CRONS)[number]["name"];

@@ -300,8 +300,9 @@ Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déploy�
 
 ## Pricing (Beds24, Beyond, moteur en simulation)
 
-Politique tarifaire configurée **dans Beds24**, pas dans le code : le site n'affiche aucun prix en dur. **Le direct doit toujours être moins cher qu'Airbnb** (remise directe −7 %). Le cron `pricing-snapshot` relève chaque jour prix, séjour minimum et dispo sur 365 j (Upstash, sans TTL) ; le moteur maison (`lib/pricing/engine.ts`) tourne **en simulation seulement**, sans aucune écriture possible vers Beds24 (décision Beyond le 2027-01-15).
+Politique tarifaire configurée **dans Beds24**, pas dans le code : le site n'affiche aucun prix en dur. **Le direct doit toujours être moins cher qu'Airbnb** (remise directe −7 %). Le cron `pricing-snapshot` relève chaque jour prix, séjour minimum et dispo sur 365 j (Upstash, sans TTL) ; le moteur maison (`lib/pricing/engine.ts`) tourne en simulation ; **la sortie de Beyond est engagée** (plan du 2026-11-14, bascule visée le 01/12/2026) : `lib/pricing/push.ts` sait écrire prix et séjours minimum dans Beds24, mais **rien ne part tant que `PRICING_PUSH_MODE` n'est pas `live`** (absent = `off`).
 - ⚠️ **Ne jamais ajouter `/dashboard/pricing` ni `/api/dashboard/pricing` à `allowedPaths`** de `proxy.ts` : page admin, interne (aucun chiffre du moteur dans `/dashboard/stats`).
+- ⚠️ **Une seule porte d'écriture des prix : `lib/pricing/push.ts`, appelée par le seul cron `pricing-push`.** Le jeton `BEDS24_PRICING_REFRESH_TOKEN` (voie `tarifs`) n'a **aucun repli** et `writeCalendar` n'est importé nulle part ailleurs (test `tests/pricing/push-import.test.ts`). Aucune route du dashboard n'écrit dans Beds24 : le coupe-circuit n'écrit que dans Redis. Les bornes absolues et planchers d'événement (`lib/pricing/guards.ts`) ne viennent pas d'`ENGINE_CONFIG` et **ne s'assouplissent jamais pour faire passer un envoi** : on corrige la grille ou un prix forcé.
 - ⚠️ Beds24 ne sait pas plafonner la taxe de séjour : jamais 2,75 % sur le direct, un forfait bas. Jamais un frais ou une remise actifs **à la fois** sur Airbnb et dans Beds24 (double comptage).
 - Détail complet (markups, occupation, paliers, frais, HomeToGo, relevés, moteur, page v1.1, essais 2027) : [docs/pricing.md](docs/pricing.md).
 
@@ -383,6 +384,7 @@ une garde admin ou `CRON_SECRET` ; aucun PIN ne part vers le navigateur hors des
 | `BEDS24_READ_REFRESH_TOKEN` | `coliving-barbusse-lecture-2026-09b` | + `read:bookings`, `read:bookings-personal`, `read:bookings-financial` | dashboard, factures, fiscal |
 | `BEDS24_REFRESH_TOKEN` | `coliving-barbusse-ecriture-2026-09` | `read:bookings`, `write:bookings` | consignes de ménage, `NUKI_PIN`, confirmation `new` → `confirmed` |
 | `BEDS24_MESSAGES_REFRESH_TOKEN` | `coliving-barbusse-messagerie-2026-09` | `read:bookings`, `read:bookings-personal`, `write:bookings-personal` | messages voyageur |
+| `BEDS24_PRICING_REFRESH_TOKEN` | `coliving-barbusse-tarifs-AAAA-MM` | `read:inventory`, `write:inventory` | envoi des prix (`lib/pricing/push.ts` seul), **à créer** — voir `docs/pricing.md` |
 
 Vérifiés contre l'API, pas supposés : le public reçoit `401` sur `/bookings`, la lecture ne
 peut pas écrire, l'écriture ne voit ni `price`, ni `commission`, ni `invoiceItems`.
@@ -1113,6 +1115,10 @@ BEDS24_READ_REFRESH_TOKEN   # Dashboard, factures, fiscal : + read:bookings & -p
                             # Aussi utilisé par scripts/beds24-backup.mjs.
 BEDS24_REFRESH_TOKEN        # Notes de ménage, NUKI_PIN, confirmation : read:bookings, write:bookings. Ne voit pas l'argent.
 BEDS24_MESSAGES_REFRESH_TOKEN # Messages voyageur : read:bookings + read/write:bookings-personal.
+BEDS24_PRICING_REFRESH_TOKEN  # Envoi des prix : read:inventory + write:inventory, aucun repli (à créer).
+PRICING_PUSH_MODE           # off (défaut) | dry | live — l'envoi réel exige live ET pas de coupe-circuit.
+PRICING_MAX_DATES           # Dates modifiées par envoi, 60 par défaut (395 au plus, relevé pour la bascule).
+PRICING_MAX_CHANGE          # Variation avant quarantaine, 0.25 par défaut (relevé pour la bascule).
                             # /bookings/messages refuse tout jeton sans la variante -personal.
                             # Les quatre sont des refresh tokens — plus aucun long life depuis le 2026-09-11.
                             # Obtenus via un invite code (Settings → API → Invites) échangé par

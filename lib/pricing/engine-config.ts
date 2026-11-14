@@ -26,6 +26,12 @@ export interface EventRule {
    * négative retire la veille : `-1` fait commencer l'événement la nuit de son premier jour.
    */
   extendBefore?: number;
+  /**
+   * Plancher des nuits ajoutées par `extendBefore` (avant la veille du premier jour). Sans lui,
+   * elles prennent le plancher de l'événement : deux nuits isolées avant les 24 Heures au
+   * plancher de la course ne se vendraient jamais (cas des 7-8/06/2027).
+   */
+  leadInFloor?: number;
 }
 
 export interface EngineConfig {
@@ -68,7 +74,9 @@ export const ENGINE_CONFIG: EngineConfig = {
   eventCeiling: 3_500,
   minorEventFactor: 1.05,
   majorEvents: [
-    { keyPrefix: "24h-mans", price: 2_600, floor: 2_220, minStay: 4, extendBefore: 1 },
+    // 24 Heures : 2027 vendues à ~2 720 € en 3 jours, à 208 jours → prix relevé (2026-11-14).
+    // Prix **effectifs** : l'envoi compense la remise de durée (÷ 0,92) dès un séjour min. ≥ 4.
+    { keyPrefix: "24h-mans", price: 2_800, floor: 2_220, minStay: 4, extendBefore: 1, leadInFloor: 1_560 },
     { keyPrefix: "classic", price: 1_300, floor: 1_050, minStay: 4 },
     { keyPrefix: "motogp", price: 850, floor: 650, minStay: 3 },
     { keyPrefix: "24h-moto", price: 750, floor: 600, minStay: 3 },
@@ -77,8 +85,9 @@ export const ENGINE_CONFIG: EngineConfig = {
     { keyPrefix: "test-24h", price: 1_560, floor: 1_560, minStay: 2, extendBefore: -1 },
   ],
   fixedPeriods: [
-    { label: "Noël", from: "12-20", to: "12-27", price: 850, minStay: 3 },
-    { label: "Nouvel An", from: "12-28", to: "01-02", price: 850, minStay: 3 },
+    // Resserrées sur les vraies nuits de fête (décision de l'exploitant, 2026-11-14).
+    { label: "Noël", from: "12-23", to: "12-26", price: 850, minStay: 3 },
+    { label: "Nouvel An", from: "12-30", to: "01-01", price: 850, minStay: 3 },
   ],
   leadTime: [
     { label: "J-3", minDays: 0, maxDays: 3, factor: 0.7 },

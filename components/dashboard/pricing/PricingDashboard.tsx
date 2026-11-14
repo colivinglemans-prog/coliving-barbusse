@@ -11,6 +11,7 @@ import {
   nightPriceFor,
 } from "@/lib/pricing/channel-prices";
 import HistoryChart from "./HistoryChart";
+import PushHealth from "./PushHealth";
 import PricingChart from "./PricingChart";
 import {
   BEYOND_COLOUR,
@@ -96,6 +97,7 @@ export default function PricingDashboard() {
 
   return (
     <div className="space-y-6">
+      <PushHealth />
       <p className="rounded-2xl bg-slate-100 px-4 py-3 text-xs leading-snug text-slate-600">
         <strong>Simulation</strong> : le moteur maison calcule ses prix mais n&apos;envoie rien à Beds24.
         Tous les prix sont des <strong>nuits de base pour 9 personnes au plus, avant majoration du canal et

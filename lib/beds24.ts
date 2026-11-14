@@ -6,6 +6,8 @@ import {
   Beds24Error,
   createBeds24Client,
   expandSpans,
+  type Beds24CalendarWrite,
+  type Beds24CalendarWriteResult,
   type Beds24TokenExchange,
 } from "@sejour/socle/lib/beds24-client";
 import type {
@@ -14,7 +16,7 @@ import type {
   Beds24CalendarRoom,
   Beds24Property,
 } from "@sejour/socle/lib/beds24-types";
-import { PROPERTY_ID } from "@/lib/beds24-property";
+import { PROPERTY_ID, ROOM_ID } from "@/lib/beds24-property";
 
 export { PROPERTY_ID, ROOM_ID } from "@/lib/beds24-property";
 
@@ -92,6 +94,17 @@ const client = createBeds24Client({
      * sous un autre privilège, ou échouerait en laissant croire que le message est parti.
      */
     messagerie: { env: "BEDS24_MESSAGES_REFRESH_TOKEN" },
+    /**
+     * Écriture des prix et séjours minimum (sortie de Beyond Pricing, plan du 2026-11-14).
+     * Scopes `read:inventory` et `write:inventory`, **rien d'autre** : un écrivain de prix n'a
+     * pas à lire une réservation.
+     *
+     * **Aucun repli**, et **une seule porte** : seul `lib/pricing/push.ts` appelle
+     * `writeCalendar`, et un test vérifie qu'aucun autre module ne l'importe. Un envoi de prix
+     * qui dégraderait vers une autre voie écrirait sous un autre privilège — ou ferait croire
+     * qu'il est parti. Aucune autre voie ne doit se replier vers celle-ci.
+     */
+    tarifs: { env: "BEDS24_PRICING_REFRESH_TOKEN" },
   },
 });
 
@@ -119,6 +132,24 @@ export function refreshBeds24WriteToken(): Promise<Beds24TokenExchange> {
  */
 export function refreshBeds24MessagesToken(): Promise<Beds24TokenExchange> {
   return client.refresh("messagerie");
+}
+
+/**
+ * Échange forcé du jeton des tarifs — pour le cron keepalive. `null` tant que la variable n'est
+ * pas posée (avant la bascule) : rien à entretenir, et ce n'est pas une panne.
+ */
+export function refreshBeds24PricingToken(): Promise<Beds24TokenExchange> | null {
+  if (!process.env.BEDS24_PRICING_REFRESH_TOKEN) return null;
+  return client.refresh("tarifs");
+}
+
+/**
+ * Écrit prix et séjours minimum sur la room de la maison. **Réservé à `lib/pricing/push.ts`**,
+ * qui applique les garde-fous avant d'appeler ; ne jamais l'importer ailleurs (test
+ * `tests/pricing/push-import.test.ts`).
+ */
+export function writeCalendar(spans: readonly Beds24CalendarWrite[]): Promise<Beds24CalendarWriteResult> {
+  return client.updateCalendar(ROOM_ID, spans, "tarifs");
 }
 
 export function updateBookingNotes(id: number, notes: string): Promise<void> {
@@ -510,8 +541,11 @@ export async function getCalendarDays(
   propertyId: number,
   from: string,
   to: string,
+  /** `fresh` court-circuite le cache de 60 s : obligatoire avant et après un envoi de prix. */
+  options: { fresh?: boolean } = {},
 ): Promise<Record<string, CalendarDay>> {
   const data = await client.get<{ data: Beds24CalendarRoom[] }>("/inventory/rooms/calendar", {
+    fresh: options.fresh,
     params: {
       propertyId: String(propertyId),
       startDate: from,
