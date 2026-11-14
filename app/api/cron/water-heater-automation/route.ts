@@ -58,20 +58,23 @@ export async function GET(request: NextRequest) {
     // Thermo injoignable (circuit du garage coupé le 10/11 au soir, maison vide) : alerte après
     // deux passages de suite, règle commune ; aucune commande envoyée dans le vide.
     const unreachable = connectivity !== null && isUnreachable(connectivity);
-    // Voyageurs là ou arrivant d'ici demain → 5 (douches froides), sinon 3. Beds24 illisible → 5.
-    const reachPriority = unreachable
+    // Voyageurs là ou arrivant d'ici demain → 5 (douches froides), sinon 3. Beds24 illisible :
+    // gravité 3 (pas d'escalade pour une panne de Beds24), mais l'envoi part en 5.
+    const reachGuests: boolean | null = unreachable
       ? await getBookingsAround(today, tomorrowParis())
-          .then((b): 3 | 5 => (guestsAround(b, today, tomorrowParis()) ? 5 : 3))
-          .catch((): 3 | 5 => 5)
-      : (5 as const);
+          .then((b) => guestsAround(b, today, tomorrowParis()))
+          .catch((e) => {
+            console.error("[water-heater-automation] réservations illisibles:", e instanceof Error ? e.message : e);
+            return null;
+          })
+      : false;
     await reportAlerts(
       "water-heater-reach",
       unreachable
         ? [
             {
               id: "unreachable",
-              // 5 si des voyageurs sont là ou arrivent d'ici demain (douches froides), 3 sinon.
-              priority: reachPriority,
+              priority: reachGuests ? 5 : 3,
               line: `Le thermo ne répond plus à Cozytouch (appareil ${connectivity!.deviceAvailable === false ? "indisponible" : "?"}, passerelle ${connectivity!.gatewayStatus ?? "?"}). Les ballons sont dans le garage : circuit du garage coupé ? Il faut réarmer, sinon plus d'eau chaude.`,
             },
           ]
@@ -81,6 +84,7 @@ export async function GET(request: NextRequest) {
         title: () => "Thermo injoignable — circuit du garage coupé ?",
         recoveredTitle: "Thermo de nouveau joignable",
         recoveredBody: "Cozytouch voit de nouveau le thermo.",
+        priority: () => (reachGuests === false ? 3 : 5),
       },
     ).catch(() => {});
     if (unreachable) {
