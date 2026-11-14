@@ -87,8 +87,8 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     showAll: (count) => `Mostra tutti i ${count} servizi`,
     showLess: "Mostra meno",
     labels: [
-      "Lenzuola e asciugamani forniti",
-      "Pulizie incluse",
+      "Lenzuola e asciugamani inclusi nel prezzo",
+      "Pulizia finale inclusa nel prezzo",
       "Wi-Fi ad alta velocità",
       "Smart TV in ogni camera",
       "Postazione di lavoro dedicata in ogni camera",

@@ -87,8 +87,8 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     showAll: (count) => `Mostrar los ${count} servicios`,
     showLess: "Mostrar menos",
     labels: [
-      "Sábanas y toallas incluidas",
-      "Limpieza incluida",
+      "Sábanas y toallas incluidas en el precio",
+      "Limpieza final incluida en el precio",
       "Wi-Fi de alta velocidad",
       "Smart TV en cada habitación",
       "Espacio de trabajo dedicado en cada habitación",

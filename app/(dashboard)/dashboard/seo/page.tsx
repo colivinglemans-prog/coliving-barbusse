@@ -23,6 +23,10 @@ export default function SeoPage() {
         links={[
           { href: "https://search.google.com/search-console", label: "Search Console" },
           {
+            href: "https://www.bing.com/webmasters/home?siteUrl=https://www.coliving-barbusse.fr/",
+            label: "Bing Webmaster (pages indexées, ChatGPT)",
+          },
+          {
             href: "https://vercel.com/colivinglemans-progs-projects/coliving-barbusse/analytics",
             label: "Visites (Vercel Analytics)",
           },

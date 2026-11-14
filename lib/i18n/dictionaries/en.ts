@@ -87,8 +87,8 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     showAll: (count) => `Show all ${count} amenities`,
     showLess: "Show less",
     labels: [
-      "Bed linen and towels provided",
-      "Cleaning included",
+      "Bed linen and towels included in the price",
+      "End-of-stay cleaning included in the price",
       "High-speed Wi-Fi",
       "Smart TV in each room",
       "Dedicated workspace in each room",

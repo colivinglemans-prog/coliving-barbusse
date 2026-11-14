@@ -87,8 +87,8 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     showAll: (count) => `Alle ${count} Ausstattungsmerkmale anzeigen`,
     showLess: "Weniger anzeigen",
     labels: [
-      "Bettwäsche und Handtücher gestellt",
-      "Reinigung inklusive",
+      "Bettwäsche und Handtücher im Preis enthalten",
+      "Endreinigung im Preis enthalten",
       "Highspeed-WLAN",
       "Smart-TV in jedem Zimmer",
       "Dedizierter Arbeitsplatz in jedem Zimmer",

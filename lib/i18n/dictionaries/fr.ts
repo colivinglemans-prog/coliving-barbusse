@@ -87,8 +87,8 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     showAll: (count) => `Afficher les ${count} équipements`,
     showLess: "Voir moins",
     labels: [
-      "Draps et serviettes fournis",
-      "Ménage inclus",
+      "Draps et serviettes compris dans le prix",
+      "Ménage de fin de séjour compris dans le prix",
       "Wifi haut débit",
       "Smart TV dans chaque chambre",
       "Espace de travail dédié dans chaque chambre",
