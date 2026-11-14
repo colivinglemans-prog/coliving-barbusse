@@ -82,11 +82,13 @@ export interface BookingOfWeek {
  */
 export const REVENUE_GOAL = 100_000;
 /**
- * Commission Beyond (plan Growth, 1 % des réservations). ⚠️ Beyond la prélève aussi sur les
- * contrats négociés à la main — l'agence des 24 Heures 2026, Spartner 2027 (« Rev. on books
- * 10 704 € » dans sa liste d'événements) — où son prix n'a joué aucun rôle.
+ * Coût réel de Beyond, **TVA comprise** : formule « Pro · Pay on stay » à 1,74 % des réservations
+ * (factures Beyond, relevé du 2026-11-14), plus 20 % de TVA que l'entreprise individuelle (franchise
+ * en base, art. 293 B) ne récupère pas, soit environ 2,09 %. En 2026, de janvier à novembre :
+ * 1 335,60 € HT, soit 1 602,72 € TTC. ⚠️ Beyond le prélève aussi sur les contrats négociés à la
+ * main (agence des 24 Heures 2026), où son prix n'a joué aucun rôle.
  */
-export const BEYOND_FEE_RATE = 0.01;
+export const BEYOND_FEE_RATE = 0.0174 * 1.2;
 
 export interface RevenueStat {
   /** CA brut (hors taxe de séjour) des séjours commencés depuis le 1er janvier — l'« YTD » de Beyond. */
