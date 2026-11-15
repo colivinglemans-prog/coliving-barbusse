@@ -6,7 +6,8 @@ import { hasRedis, redisKey, stringStore } from "@/lib/redis";
 
 /**
  * Indexation automatique, une fois par jour (`vercel.json`, 05:30 UTC = 06:30 à Paris l'hiver) :
- * les pages **nouvelles ou modifiées** du sitemap, et `/llms.txt` quand son contenu change, vont à
+ * les pages **nouvelles**, ou **modifiées selon le `lastmod`** du sitemap (une page sans
+ * `lastmod` n'est soumise qu'une fois : seuls les articles et `/llms.txt` sont vraiment suivis), et `/llms.txt` quand son contenu change, vont à
  * IndexNow (Bing, Yandex…) et à l'API Bing (`SubmitUrlBatch`, ~100 URL/jour), puis le reliquat
  * jamais soumis à Bing dans le quota restant. Jamais une page inchangée. Toute la logique est dans
  * `@sejour/socle/lib/indexing` (v3.24.0) ; ne restent ici que les réglages du site.
@@ -17,6 +18,7 @@ import { hasRedis, redisKey, stringStore } from "@/lib/redis";
  * `?dry=1` rend le plan sans rien envoyer ni écrire (seule la lecture du quota Bing est faite).
  * Remplace le `npm run indexnow` manuel après déploiement (le script reste pour l'usage manuel).
  */
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const CONFIG: IndexingConfig = {
@@ -47,9 +49,9 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json({ success: true, ...report });
   } catch (e) {
-    // Les erreurs du socle ne portent jamais la clé Bing ; on ne renvoie que leur message.
-    const message = e instanceof Error ? e.message : String(e);
-    console.error("Indexation :", message);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    // Le détail ne va qu'au journal (les erreurs du socle ne portent jamais la clé Bing) ; le
+    // client reçoit un message générique.
+    console.error("[indexing]", e instanceof Error ? e.message : String(e));
+    return NextResponse.json({ success: false, error: "Indexation momentanément impossible." }, { status: 500 });
   }
 }

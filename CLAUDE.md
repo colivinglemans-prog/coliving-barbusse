@@ -107,6 +107,7 @@ app/
       pricing-snapshot/    # Quotidien (Vercel 05:00 UTC) : photo prix/séjour min/dispo 365 j → Upstash
       pricing-report/      # Lundi (Vercel 06:00 UTC) : rapport d'évaluation du pricing (ntfy), ?dry=1
       pricing-review-reminder/ # Mardi (Vercel 07:00 UTC) : rappel « évaluation des prix avec Claude » (ntfy), ?dry=1
+      indexing/            # Quotidien (Vercel 05:30 UTC, à l'heure près sur Hobby) : pages nouvelles/modifiées → IndexNow + Bing, ?dry=1
 components/
   public/             # Composants du site vitrine
   dashboard/          # Composants du dashboard
@@ -337,7 +338,7 @@ CORS ouvert), documentée dans `public/llms.txt`. Le prix vient de `getroomprice
 Beds24 tout compris) et passe un **garde-fou** : `breakdown` (le détail montré au voyageur) recalcule la grille (nuits
 −7 %, ménage 280, linge 15 €/voyageur, taxe 2,20 €/**adulte**/nuit). Un écart de plus de 1 €
 bloque le prix (`price-blocked`) et envoie un ntfy « Devis IA Barbusse » : c'est le signal
-qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas le contourner. **Indexation automatique** (socle v3.24.0, `lib/indexing.ts`) : le cron `/api/cron/indexing` (`vercel.json`, 05:30 UTC) envoie chaque jour les pages **nouvelles ou modifiées** du sitemap, et `/llms.txt` quand son contenu change, à IndexNow et à l’API Bing (`SubmitUrlBatch`, ~100 URL/jour, `BING_WEBMASTER_API_KEY`), puis le reliquat jamais soumis à Bing dans le quota restant — jamais une page inchangée. État Upstash `barbusse:indexing:state` (alerte ntfy `[Indexation]` sous `…:alert`, deux passages KO de suite) ; `?dry=1` rend le plan sans rien envoyer. Plus besoin de `npm run indexnow` après un déploiement : le script (clé publique dans `public/<clé>.txt`) reste pour un envoi manuel. Google n’en a pas besoin : il relit le sitemap seul.
+qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas le contourner. **Indexation automatique** (socle v3.24.0, `lib/indexing.ts`) : le cron `/api/cron/indexing` (`vercel.json`, 05:30 UTC) envoie chaque jour les pages **nouvelles**, ou **modifiées selon le `lastmod`** du sitemap (une page sans `lastmod` n’est soumise qu’une fois et jamais re-signalée : seuls les articles et `/llms.txt` sont vraiment suivis ; ne jamais mettre `lastModified: new Date()` dans le sitemap), et `/llms.txt` quand son contenu change, à IndexNow et à l’API Bing (`SubmitUrlBatch`, ~100 URL/jour, `BING_WEBMASTER_API_KEY`), puis le reliquat jamais soumis à Bing dans le quota restant — jamais une page inchangée. État Upstash `barbusse:indexing:state` (alerte ntfy `[Indexation]` sous `…:alert`, deux passages KO de suite) ; `?dry=1` rend le plan sans rien envoyer. Plus besoin de `npm run indexnow` après un déploiement : le script (clé publique dans `public/<clé>.txt`) reste pour un envoi manuel. Google n’en a pas besoin : il relit le sitemap seul.
 
 - Politiques servies aux IA = `CANCELLATION_POLICY` / `PAYMENT_POLICY` de `lib/property-info.ts`.
 - Arrivée le jour même : le devis porte une consigne d'appeler l'hôte (`lastMinute`).
@@ -987,7 +988,7 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 
 Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
 
-Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `pricing-review-reminder` mardi 7 h, `beds24-backup` dimanche 3 h (UTC).
+Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `pricing-review-reminder` mardi 7 h, `beds24-backup` dimanche 3 h, `indexing` 5 h 30 (UTC).
 
 ### Sauvegarde Beds24 (cron Vercel, hebdomadaire)
 
