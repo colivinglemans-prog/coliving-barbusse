@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await runCron();
+    await clearFailures();
     // Un autre passage tient le verrou Redis : rien à faire, ce n'est pas une erreur.
     if ("locked" in result) return NextResponse.json({ ok: true, locked: true });
     const failed = result.results.filter((r) => r.outcome === "failed");
@@ -84,6 +85,28 @@ export async function GET(request: NextRequest) {
     });
   } catch (e) {
     console.error(JSON.stringify({ scope: "guest-message", event: "failed", reason: "cron", error: e instanceof Error ? e.name : typeof e }));
-    return NextResponse.json({ ok: false, error: "indisponible" }, { status: 502 });
+    // Règle des alertes (2026-11-10) : un échec isolé — Beds24 lent, quota de 5 min partagé avec
+    // les autres crons — ne doit pas faire écrire cron-job.org. 502 seulement au 2e échec de suite :
+    // une vraie panne reste signalée, 10 min plus tard. Le passage suivant rattrape tout.
+    const failures = await countFailure();
+    return NextResponse.json({ ok: false, error: "indisponible", failures }, { status: failures >= 2 ? 502 : 200 });
   }
+}
+
+const FAILURES = () => redisKey("messages", "cron", "failures");
+
+/** Échecs consécutifs du passage (1 h de mémoire). Sans Redis : 2, soit un 502 comme avant. */
+async function countFailure(): Promise<number> {
+  if (!hasRedis()) return 2;
+  try {
+    const n = await getRedis().incr(FAILURES());
+    await getRedis().expire(FAILURES(), 3600);
+    return n;
+  } catch {
+    return 2;
+  }
+}
+
+async function clearFailures(): Promise<void> {
+  if (hasRedis()) await getRedis().del(FAILURES()).catch(() => {});
 }
