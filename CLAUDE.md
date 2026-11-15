@@ -337,7 +337,7 @@ CORS ouvert), documentée dans `public/llms.txt`. Le prix vient de `getroomprice
 Beds24 tout compris) et passe un **garde-fou** : `breakdown` (le détail montré au voyageur) recalcule la grille (nuits
 −7 %, ménage 280, linge 15 €/voyageur, taxe 2,20 €/**adulte**/nuit). Un écart de plus de 1 €
 bloque le prix (`price-blocked`) et envoie un ntfy « Devis IA Barbusse » : c'est le signal
-qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas le contourner. IndexNow : `npm run indexnow` (clé publique dans `public/<clé>.txt`) soumet sitemap + llms.txt à Bing et aux moteurs participants, à lancer après chaque déploiement de contenu.
+qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas le contourner. **Indexation automatique** (socle v3.24.0, `lib/indexing.ts`) : le cron `/api/cron/indexing` (`vercel.json`, 05:30 UTC) envoie chaque jour les pages **nouvelles ou modifiées** du sitemap, et `/llms.txt` quand son contenu change, à IndexNow et à l’API Bing (`SubmitUrlBatch`, ~100 URL/jour, `BING_WEBMASTER_API_KEY`), puis le reliquat jamais soumis à Bing dans le quota restant — jamais une page inchangée. État Upstash `barbusse:indexing:state` (alerte ntfy `[Indexation]` sous `…:alert`, deux passages KO de suite) ; `?dry=1` rend le plan sans rien envoyer. Plus besoin de `npm run indexnow` après un déploiement : le script (clé publique dans `public/<clé>.txt`) reste pour un envoi manuel. Google n’en a pas besoin : il relit le sitemap seul.
 
 - Politiques servies aux IA = `CANCELLATION_POLICY` / `PAYMENT_POLICY` de `lib/property-info.ts`.
 - Arrivée le jour même : le devis porte une consigne d'appeler l'hôte (`lastMinute`).
