@@ -16,6 +16,7 @@ import {
   GUEST_MESSAGE_KINDS,
   type GuestMessageKind,
 } from "@/lib/guest-messages";
+import { readStayHours } from "@/lib/stay-hours";
 
 /**
  * Messages voyageur déclenchables depuis le calendrier — arrivée (avec le PIN) et départ.
@@ -174,7 +175,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         aroundUrl: aroundUrl(locale),
       });
     } else {
-      message = buildDepartureMessage(locale, { firstName: booking.firstName });
+      // Départ tardif convenu (`lib/stay-hours.ts`) : « comme convenu, vous pouvez rester jusqu'à 16h ».
+      const departureHour = (await readStayHours())[booking.id]?.departureHour;
+      message = buildDepartureMessage(locale, { firstName: booking.firstName, departureHour });
     }
 
     await sendBookingMessage(id, message);

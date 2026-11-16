@@ -26,7 +26,11 @@ import type { MessageTemplate } from "@sejour/socle/lib/guest-messaging/types";
  * - `autour` — articles « Pendant votre séjour » du blog (`aroundUrl`), pour tout le groupe ;
  * - `avisGoogle`, `site` — fiche Google et site ;
  * - `direct` (facultative) — présente pour une réservation directe seulement : on ne propose
- *   jamais de réserver en direct par la messagerie d'une plateforme.
+ *   jamais de réserver en direct par la messagerie d'une plateforme ;
+ * - `heureArrivee`, `heureDepart` — heures du séjour dans la langue du voyageur (« 17h », « 5 pm »,
+ *   « 17 Uhr », « 17:00 »), standard sauf horaire convenu (`lib/stay-hours.ts`, 2026-11-16) ;
+ * - `arriveeConvenue`, `departConvenu` (facultatives) — drapeaux, **vides sans accord** : un séjour
+ *   standard reçoit les textes d'avant au caractère près (`tests/stay-hours-messages.test.ts`).
  *
  * Dernière minute (décision de l'hôte du 2026-11-08) : départ à partir de 2 nuits, lendemain de
  * l'arrivée à partir de 3 ; tous deux, et l'avis, sont des messages de confort (`quietHours`) qui
@@ -47,13 +51,13 @@ import type { MessageTemplate } from "@sejour/socle/lib/guest-messaging/types";
 const confirmation: MessageTemplate = {
   id: "confirmation",
   label: "Confirmation de réservation",
-  version: 1,
+  version: 2,
   trigger: { anchor: "booked", delayMinutes: 0 },
   late: { mode: "skip", graceHours: 24 },
   onAnchorChange: "ignore",
-  variables: ["arrivee", "depart", "nuits", "adultes", "adresse", "autour", "evenements", "whatsapp"],
+  variables: ["arrivee", "heureArrivee", "depart", "heureDepart", "nuits", "adultes", "adresse", "autour", "evenements", "whatsapp"],
   optionalVariables: ["prenom", "enfants"],
-  previewVisible: ["prenom", "arrivee", "depart", "nuits", "adultes", "enfants", "adresse", "autour", "evenements", "whatsapp"],
+  previewVisible: ["prenom", "arrivee", "heureArrivee", "depart", "heureDepart", "nuits", "adultes", "enfants", "adresse", "autour", "evenements", "whatsapp"],
   subject: {
     fr: "Votre réservation au Coliving Henri Barbusse est confirmée",
     en: "Your booking at Coliving Henri Barbusse is confirmed",
@@ -66,8 +70,8 @@ const confirmation: MessageTemplate = {
 
 Merci pour votre réservation au Coliving Henri Barbusse, au Mans ! Votre séjour est confirmé :
 
-Arrivée : {{arrivee}}, à partir de 17h
-Départ : {{depart}}, avant 11h
+Arrivée : {{arrivee}}, à partir de {{heureArrivee}}
+Départ : {{depart}}, avant {{heureDepart}}
 Nuits : {{nuits}}
 Adultes : {{adultes}}{{#enfants}}
 Enfants : {{enfants}}{{/enfants}}
@@ -96,8 +100,8 @@ Alexandre`,
 
 Thank you for booking Coliving Henri Barbusse in Le Mans! Your stay is confirmed:
 
-Arrival: {{arrivee}}, from 5 pm
-Departure: {{depart}}, before 11 am
+Arrival: {{arrivee}}, from {{heureArrivee}}
+Departure: {{depart}}, before {{heureDepart}}
 Nights: {{nuits}}
 Adults: {{adultes}}{{#enfants}}
 Children: {{enfants}}{{/enfants}}
@@ -126,8 +130,8 @@ Alexandre`,
 
 vielen Dank für Ihre Buchung im Coliving Henri Barbusse in Le Mans! Ihr Aufenthalt ist bestätigt:
 
-Ankunft: {{arrivee}}, ab 17 Uhr
-Abreise: {{depart}}, bis 11 Uhr
+Ankunft: {{arrivee}}, ab {{heureArrivee}}
+Abreise: {{depart}}, bis {{heureDepart}}
 Nächte: {{nuits}}
 Erwachsene: {{adultes}}{{#enfants}}
 Kinder: {{enfants}}{{/enfants}}
@@ -156,8 +160,8 @@ Alexandre`,
 
 ¡Gracias por tu reserva en el Coliving Henri Barbusse, en Le Mans! Tu estancia está confirmada:
 
-Llegada: {{arrivee}}, a partir de las 17:00
-Salida: {{depart}}, antes de las 11:00
+Llegada: {{arrivee}}, a partir de las {{heureArrivee}}
+Salida: {{depart}}, antes de las {{heureDepart}}
 Noches: {{nuits}}
 Adultos: {{adultes}}{{#enfants}}
 Niños: {{enfants}}{{/enfants}}
@@ -186,8 +190,8 @@ Alexandre`,
 
 grazie per la tua prenotazione al Coliving Henri Barbusse, a Le Mans! Il tuo soggiorno è confermato:
 
-Arrivo: {{arrivee}}, dalle 17:00
-Partenza: {{depart}}, entro le 11:00
+Arrivo: {{arrivee}}, dalle {{heureArrivee}}
+Partenza: {{depart}}, entro le {{heureDepart}}
 Notti: {{nuits}}
 Adulti: {{adultes}}{{#enfants}}
 Bambini: {{enfants}}{{/enfants}}
@@ -228,15 +232,15 @@ Alexandre`,
 const arrivee: MessageTemplate = {
   id: "arrivee-code",
   label: "Arrivée + code de la porte",
-  version: 2,
+  version: 3,
   trigger: { anchor: "arrival", offsetDays: -5, at: "16:00" },
   // Réservation tardive : le message part dès que le code est sur la serrure, jusqu'au soir de l'arrivée.
   late: { mode: "send", until: { anchor: "arrival", offsetDays: 0, at: "23:00" } },
   conditions: { requiredInfoItem: "NUKI_PIN" },
   onAnchorChange: "resend",
-  variables: ["code", "guide", "wifiReseau", "wifiMotDePasse"],
+  variables: ["code", "guide", "wifiReseau", "wifiMotDePasse", "heureArrivee"],
   optionalVariables: ["prenom"],
-  previewVisible: ["prenom", "guide"],
+  previewVisible: ["prenom", "guide", "heureArrivee"],
   subject: {
     fr: "Votre code d'accès au Coliving Henri Barbusse",
     en: "Your access code for Coliving Henri Barbusse",
@@ -254,7 +258,7 @@ Votre code personnel pour la porte d'entrée, valable pendant tout votre séjour
 {{code}}
 -------------------------------------
 
-L'arrivée est autonome, à partir de 17h. Toutes les instructions (accès, stationnement, maison) sont dans le guide d'arrivée :
+L'arrivée est autonome, à partir de {{heureArrivee}}. Toutes les instructions (accès, stationnement, maison) sont dans le guide d'arrivée :
 {{guide}}
 
 Wi-Fi
@@ -272,7 +276,7 @@ Your personal code for the front door, valid for your whole stay:
 {{code}}
 -------------------------------------
 
-Check-in is self-service, from 5 pm. All the instructions (access, parking, the house) are in the arrival guide:
+Check-in is self-service, from {{heureArrivee}}. All the instructions (access, parking, the house) are in the arrival guide:
 {{guide}}
 
 Wi-Fi
@@ -290,7 +294,7 @@ Ihr persönlicher Code für die Haustür, gültig für Ihren gesamten Aufenthalt
 {{code}}
 -------------------------------------
 
-Die Anreise erfolgt selbstständig, ab 17 Uhr. Alle Hinweise (Zugang, Parken, das Haus) finden Sie im Ankunftsguide:
+Die Anreise erfolgt selbstständig, ab {{heureArrivee}}. Alle Hinweise (Zugang, Parken, das Haus) finden Sie im Ankunftsguide:
 {{guide}}
 
 WLAN
@@ -308,7 +312,7 @@ Tu código personal para la puerta de entrada, válido durante toda tu estancia:
 {{code}}
 -------------------------------------
 
-La llegada es autónoma, a partir de las 17:00. Todas las instrucciones (acceso, aparcamiento, la casa) están en la guía de llegada:
+La llegada es autónoma, a partir de las {{heureArrivee}}. Todas las instrucciones (acceso, aparcamiento, la casa) están en la guía de llegada:
 {{guide}}
 
 Wifi
@@ -326,7 +330,7 @@ Il tuo codice personale per la porta d'ingresso, valido per tutto il soggiorno:
 {{code}}
 -------------------------------------
 
-L'arrivo è autonomo, dalle 17:00. Tutte le istruzioni (accesso, parcheggio, la casa) sono nella guida all'arrivo:
+L'arrivo è autonomo, dalle {{heureArrivee}}. Tutte le istruzioni (accesso, parcheggio, la casa) sono nella guida all'arrivo:
 {{guide}}
 
 Wi-Fi
@@ -428,15 +432,15 @@ Alexandre`,
 const depart: MessageTemplate = {
   id: "depart",
   label: "Veille du départ",
-  version: 3,
+  version: 4,
   trigger: { anchor: "departure", offsetDays: -1, at: "17:00" },
   late: { mode: "skip", graceHours: 6 },
   // Sur une nuit, la veille du départ est le jour de l'arrivée : le guide suffit.
   conditions: { minNights: 2, quietHours: 12 },
   onAnchorChange: "ignore",
-  variables: ["telephone", "whatsapp"],
-  optionalVariables: ["prenom"],
-  previewVisible: ["prenom", "telephone", "whatsapp"],
+  variables: ["telephone", "whatsapp", "heureDepart"],
+  optionalVariables: ["prenom", "departConvenu"],
+  previewVisible: ["prenom", "telephone", "whatsapp", "heureDepart", "departConvenu"],
   subject: {
     fr: "Votre départ demain",
     en: "Your departure tomorrow",
@@ -447,7 +451,7 @@ const depart: MessageTemplate = {
   body: {
     fr: `Bonjour{{#prenom}} {{prenom}}{{/prenom}},
 
-Votre séjour se termine demain : merci de libérer la maison avant 11h (sauf accord avec nous).
+{{^departConvenu}}Votre séjour se termine demain : merci de libérer la maison avant {{heureDepart}} (sauf accord avec nous).{{/departConvenu}}{{#departConvenu}}Votre séjour se termine demain : comme convenu, vous pouvez rester jusqu'à {{heureDepart}}.{{/departConvenu}}
 
 Le ménage est inclus. Il vous reste seulement quelques gestes avant de partir :
 
@@ -480,7 +484,7 @@ Alexandre
 {{telephone}}`,
     en: `Hello{{#prenom}} {{prenom}}{{/prenom}},
 
-Your stay ends tomorrow: please leave the house by 11 am (unless agreed otherwise with us).
+{{^departConvenu}}Your stay ends tomorrow: please leave the house by {{heureDepart}} (unless agreed otherwise with us).{{/departConvenu}}{{#departConvenu}}Your stay ends tomorrow: as agreed, you can stay until {{heureDepart}}.{{/departConvenu}}
 
 Cleaning is included. There are just a few things left to do before you go:
 
@@ -513,7 +517,7 @@ Alexandre
 {{telephone}}`,
     de: `Hallo{{#prenom}} {{prenom}}{{/prenom}},
 
-Ihr Aufenthalt endet morgen: Bitte verlassen Sie das Haus bis 11 Uhr (sofern nicht anders mit uns vereinbart).
+{{^departConvenu}}Ihr Aufenthalt endet morgen: Bitte verlassen Sie das Haus bis {{heureDepart}} (sofern nicht anders mit uns vereinbart).{{/departConvenu}}{{#departConvenu}}Ihr Aufenthalt endet morgen: Wie vereinbart können Sie bis {{heureDepart}} bleiben.{{/departConvenu}}
 
 Die Endreinigung ist inbegriffen. Vor der Abreise bleiben nur noch ein paar Handgriffe:
 
@@ -546,7 +550,7 @@ Alexandre
 {{telephone}}`,
     es: `Hola{{#prenom}} {{prenom}}{{/prenom}},
 
-Tu estancia termina mañana: te pedimos que dejes la casa antes de las 11:00 (salvo acuerdo con nosotros).
+{{^departConvenu}}Tu estancia termina mañana: te pedimos que dejes la casa antes de las {{heureDepart}} (salvo acuerdo con nosotros).{{/departConvenu}}{{#departConvenu}}Tu estancia termina mañana: como acordamos, puedes quedarte hasta las {{heureDepart}}.{{/departConvenu}}
 
 La limpieza está incluida. Solo quedan unos pocos gestos antes de irte:
 
@@ -579,7 +583,7 @@ Alexandre
 {{telephone}}`,
     it: `Ciao{{#prenom}} {{prenom}}{{/prenom}},
 
-il tuo soggiorno termina domani: ti chiediamo di lasciare la casa entro le 11:00 (salvo accordi diversi con noi).
+{{^departConvenu}}il tuo soggiorno termina domani: ti chiediamo di lasciare la casa entro le {{heureDepart}} (salvo accordi diversi con noi).{{/departConvenu}}{{#departConvenu}}il tuo soggiorno termina domani: come concordato, puoi restare fino alle {{heureDepart}}.{{/departConvenu}}
 
 Le pulizie sono incluse. Restano solo pochi gesti prima di partire:
 

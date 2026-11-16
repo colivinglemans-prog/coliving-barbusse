@@ -39,6 +39,7 @@ import { PROPERTY_INFO } from "@/lib/property-info";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { aroundUrl, guideUrl, SITE_URL, type GuideLocale } from "@/lib/site";
 import { getWifi } from "@/lib/wifi";
+import { formatHourFor, readStayHours, stayHours, type StayHoursTable } from "@/lib/stay-hours";
 import { TEMPLATES } from "./templates";
 
 /**
@@ -82,9 +83,18 @@ export function modes(): { modes: Record<string, TemplateMode>; display: Record<
   return parseModes(IDS, process.env.MESSAGES_MODES, process.env.MESSAGES_KILL_SWITCH?.trim() === "1");
 }
 
-type Row = MessagingBooking & { firstName?: string; pin?: string; adults?: number; children?: number };
+type Row = MessagingBooking & {
+  firstName?: string;
+  pin?: string;
+  adults?: number;
+  children?: number;
+  /** Horaires convenus (`lib/stay-hours.ts`) ; absents = 17 h / 11 h. */
+  arrivalHour?: number;
+  departureHour?: number;
+};
 
-function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[]): Row {
+function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[], table: StayHoursTable): Row {
+  const agreed = table[b.id] ?? {};
   const { locale, source } = pickGuestLocale({ lang: b.lang, country: b.country });
   return {
     id: b.id,
@@ -104,23 +114,41 @@ function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[]):
     children: b.numChild,
     // Gardé côté serveur pour l'envoi ; jamais dans un DTO (`buildGuestMessagesReport` projette).
     pin: nukiCodeOf(b) ?? undefined,
+    arrivalHour: agreed.arrivalHour,
+    departureHour: agreed.departureHour,
   };
 }
 
 async function loadRows(): Promise<Row[]> {
   const today = todayParis();
-  const [bookings, host] = await Promise.all([
+  const [bookings, host, table] = await Promise.all([
     reservationsMessagerie({ departDu: addDays(today, -PAST_DAYS), arriveeAu: addDays(today, AHEAD_DAYS) }),
     messagesHote(PAST_DAYS + AHEAD_DAYS),
+    readStayHours(),
   ]);
   const byBooking = new Map<number, Beds24Message[]>();
   for (const m of host) byBooking.set(m.bookingId, [...(byBooking.get(m.bookingId) ?? []), m]);
-  return bookings.map((b) => toMessagingBooking(b, byBooking.get(b.id) ?? []));
+  return bookings.map((b) => toMessagingBooking(b, byBooking.get(b.id) ?? [], table));
 }
 
 async function reload(id: number): Promise<Row | null> {
-  const [b, thread] = await Promise.all([reservationMessagerie(id), getBookingMessages(id)]);
-  return b ? toMessagingBooking(b, thread) : null;
+  const [b, thread, table] = await Promise.all([reservationMessagerie(id), getBookingMessages(id), readStayHours()]);
+  return b ? toMessagingBooking(b, thread, table) : null;
+}
+
+/**
+ * Heures d'arrivée et de départ du séjour, dans la langue du voyageur (« 17h », « 5 pm »,
+ * « 17 Uhr », « 17:00 »), et les drapeaux `arriveeConvenue` / `departConvenu`, **vides sans
+ * accord** : un séjour standard rend les textes d'avant au caractère près.
+ */
+export function hourVars(locale: string, agreed: { arrivalHour?: number; departureHour?: number }): Vars {
+  const hours = stayHours(0, { 0: agreed });
+  return {
+    heureArrivee: formatHourFor(locale, hours.arrivalHour),
+    heureDepart: formatHourFor(locale, hours.departureHour),
+    arriveeConvenue: hours.arrivalAgreed ? "1" : undefined,
+    departConvenu: hours.departureAgreed ? "1" : undefined,
+  };
 }
 
 /** Dates, nuits et voyageurs de la confirmation, dans la langue du voyageur. */
@@ -135,6 +163,7 @@ function stayVars(b: Row): Vars {
     nuits: String(nightsOf(b)),
     adultes: b.adults ? String(b.adults) : undefined,
     enfants: b.children ? String(b.children) : undefined,
+    ...hourVars(b.locale, { arrivalHour: b.arrivalHour, departureHour: b.departureHour }),
   };
 }
 
