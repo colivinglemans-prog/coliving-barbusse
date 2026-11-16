@@ -35,6 +35,11 @@ const KEYPAD_TRIGGER = 255;
 const APP_TRIGGER = 0;
 /** `state.state` d'une serrure verrouillée. */
 export const LOCK_STATE_LOCKED = 1;
+/**
+ * États de passage ou indéfinis (déverrouillage, verrouillage, ouverture en cours, indéfini) : le
+ * relevé ne tranche pas, le suivant le fera (relecture C5).
+ */
+export const LOCK_STATES_TRANSIENT: ReadonlySet<number> = new Set([2, 4, 7, 255]);
 
 const LOCK_STATE_LABEL: Record<number, string> = {
   2: "en cours de déverrouillage",
@@ -109,6 +114,12 @@ export interface DepartureLockResult {
   closesDay?: boolean;
   /** Un voyageur qui part est revenu (son code a ouvert après D) : titre de l'alerte. */
   guestReturned?: boolean;
+  /**
+   * Alerte distincte « journal illisible, porte non verrouillée » (scope `departure-lock-log`,
+   * règle commune) : `undefined` ne touche pas à son état, `[]` le fait avancer sans constat, un
+   * élément est un constat (priorité 3).
+   */
+  journalAlerts?: TrackedAlert[];
   /** Pour le journal du cron et la réponse JSON : jamais de nom de voyageur ni de code. */
   detail: string;
 }
@@ -130,8 +141,22 @@ export function departureLockDueAt(today: string, departureHour: number): Date {
  */
 export function isCleaningCode(name: string | null | undefined, people: readonly string[]): boolean {
   if (!name || managedBookingId(name) !== null) return false;
-  const lower = name.toLowerCase();
-  return people.some((p) => p.trim() !== "" && lower.includes(p.trim().toLowerCase()));
+  return people.some((p) => mentionsPerson(name, p));
+}
+
+/** Minuscules, sans accents : « Éric » et « eric » se valent. */
+const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+
+/**
+ * Le libellé contient-il le nom de la personne **en mots entiers** (casse et accents ignorés) ?
+ * « # Eric » oui, « Frederic » non (relecture du 2026-11-16 : une sous-chaîne prenait l'un pour
+ * l'autre).
+ */
+export function mentionsPerson(label: string, person: string): boolean {
+  const p = fold(person);
+  if (p === "") return false;
+  const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}($|[^\\p{L}\\p{N}])`, "u").test(fold(label));
 }
 
 /**
@@ -278,19 +303,36 @@ export function departureLockCheck(input: DepartureLockInput): DepartureLockResu
   const unreadable = (detail: string): DepartureLockResult => ({ status: "unreadable", departureHour, report: "skip", alerts: [], detail });
   if (lock === null) return unreadable("serrure illisible");
   if (!lock.online) return unreadable("serrure hors ligne (alerte de la synchronisation)");
+  if (lock.lockState === null || LOCK_STATES_TRANSIENT.has(lock.lockState)) {
+    return unreadable(`serrure dans un état de passage (${lock.lockState === null ? "inconnu" : (LOCK_STATE_LABEL[lock.lockState] ?? lock.lockState)}) : le relevé suivant tranchera`);
+  }
   if (lock.lockState === LOCK_STATE_LOCKED) {
     return {
       status: "locked",
       departureHour,
       report: "report",
       alerts: [],
+      journalAlerts: [],
       closesDay: ended,
       detail: ended
         ? "porte verrouillée, code des partants expiré : journée close"
         : `porte verrouillée, surveillée jusqu'à ${parisClock(codeEnd)}`,
     };
   }
-  if (log === null || log === undefined) return unreadable("journal de la serrure illisible");
+  if (log === null || log === undefined) {
+    // La porte n'est pas verrouillée, mais on ne peut pas savoir si le ménage est entré : alerte
+    // distincte, priorité 3, au 2e relevé (relecture C6). L'alerte principale ne bouge pas.
+    return {
+      ...unreadable("journal de la serrure illisible, porte non verrouillée"),
+      journalAlerts: [
+        {
+          id: `departure-lock-log:${today}`,
+          priority: 3,
+          line: `Porte non verrouillée après le départ de ${departureHour} h, journal de la serrure illisible : impossible de savoir si le ménage est entré.`,
+        },
+      ],
+    };
+  }
 
   const reading = readDepartureLog(input, departureHour);
   if (reading.takeover) {
@@ -299,6 +341,7 @@ export function departureLockCheck(input: DepartureLockInput): DepartureLockResu
       departureHour,
       report: "close-silently",
       alerts: [],
+      journalAlerts: [],
       closesDay: true,
       detail: `maison reprise en main (${reading.takeover})`,
     };
@@ -315,6 +358,7 @@ export function departureLockCheck(input: DepartureLockInput): DepartureLockResu
     status: "unlocked",
     departureHour,
     report: "report",
+    journalAlerts: [],
     guestReturned: reading.guestReturned,
     alerts: [
       {

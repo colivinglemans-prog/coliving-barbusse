@@ -20,15 +20,27 @@ const h = vi.hoisted(() => ({
   logCalls: 0,
   garageCalls: 0,
   hang: false,
+  logDown: false,
+  /** Redis configuré : la table des horaires convenus est relue (`hours`, ou panne). */
+  redis: false,
+  hours: {} as Record<string, string>,
+  hoursDown: false,
+  getJsonDown: false,
 }));
 
 vi.mock("@/lib/redis", () => ({
-  hasRedis: () => false,
+  hasRedis: () => h.redis,
   redisKey: (...p: Array<string | number>) => ["barbusse", ...p].join(":"),
-  getRedis: () => {
-    throw new Error("pas de Redis dans ce test");
+  getRedis: () => ({
+    hgetall: async () => {
+      if (h.hoursDown) throw new Error("Redis injoignable");
+      return h.hours;
+    },
+  }),
+  getJson: async (k: string) => {
+    if (h.getJsonDown) throw new Error("Redis injoignable");
+    return h.mem.has(k) ? JSON.parse(JSON.stringify(h.mem.get(k))) : null;
   },
-  getJson: async (k: string) => (h.mem.has(k) ? JSON.parse(JSON.stringify(h.mem.get(k))) : null),
   setJson: async (k: string, v: unknown) => {
     h.mem.set(k, JSON.parse(JSON.stringify(v)));
   },
@@ -43,6 +55,7 @@ vi.mock("@sejour/socle/lib/nuki", async (importOriginal) => ({
   },
   listLogSince: async () => {
     h.logCalls++;
+    if (h.logDown) throw new Error("journal Nuki 503");
     return h.log;
   },
 }));
@@ -190,6 +203,57 @@ describe("departureLockCheck (pure)", () => {
     expect(departureLockCheck({ ...standard, lock: null })).toMatchObject({ status: "unreadable", report: "skip" });
     expect(departureLockCheck({ ...standard, log: null })).toMatchObject({ status: "unreadable", report: "skip" });
   });
+
+  it("TRACKED_PEOPLE : correspondance en mot entier, sans casse ni accents ; le préfixe # suffit", () => {
+    expect(isCleaningCode("Frederic", ["Eric"])).toBe(false);
+    expect(isCleaningCode("Frédéric", ["Éric"])).toBe(false);
+    expect(isCleaningCode("# éric", ["Eric"])).toBe(true);
+    expect(isCleaningCode("Code ERIC-2", ["Éric"])).toBe(true);
+    expect(isPersonalCode("Frederic", ["Eric"])).toBe(false);
+    expect(isPersonalCode("# Frederic", ["Eric"])).toBe(true);
+    expect(departureLockCheck({ ...standard, people: ["Eric"], log: [entry(at(11, 10), "Frederic")] }).status).toBe("unlocked");
+  });
+
+  it("serrure en ligne mais état nul ou de passage (2, 4, 7, 255) : rien n'est conclu", () => {
+    for (const lockState of [null, 2, 4, 7, 255]) {
+      expect(departureLockCheck({ ...standard, lock: { online: true, lockState } })).toMatchObject({ status: "unreadable", report: "skip", alerts: [] });
+    }
+  });
+
+  it("journal illisible, porte non verrouillée : constat distinct, priorité 3", () => {
+    const r = departureLockCheck({ ...standard, log: null });
+    expect(r).toMatchObject({ status: "unreadable", report: "skip", alerts: [] });
+    expect(r.journalAlerts).toEqual([
+      expect.objectContaining({
+        id: `departure-lock-log:${DAY}`,
+        priority: 3,
+        line: expect.stringContaining("impossible de savoir si le ménage est entré"),
+      }),
+    ]);
+  });
+
+  it("E ≤ D + 30 min (rotation) et porte déverrouillée : constat dès le premier relevé, journée non close", () => {
+    const r = departureLockCheck({ ...base, departures: [{ bookingId: 1000001, departureHour: 16 }], codeEnd: at(14), now: at(16, 30) });
+    expect(r.status).toBe("unlocked");
+    expect(r.closesDay).toBeUndefined();
+    expect(r.alerts).toHaveLength(1);
+  });
+
+  it("plusieurs départs : D est le plus tardif, et un retour se compte après lui", () => {
+    const two = {
+      ...standard,
+      departures: [
+        { bookingId: 1000001, departureHour: 11 },
+        { bookingId: 1000003, departureHour: 16 },
+      ],
+      codeEnd: at(17),
+    };
+    // 12 h 10 : un partant ouvre, mais avant D (16 h) : pas un retour.
+    expect(departureLockCheck({ ...two, now: at(16, 30), log: [entry(at(12, 10), LEAVING)] }).guestReturned).toBe(false);
+    const r = departureLockCheck({ ...two, now: at(16, 45), log: [entry(at(16, 40), "1000003: Autre")] });
+    expect(r).toMatchObject({ status: "unlocked", guestReturned: true });
+    expect(r.alerts[0].line).toContain("départ de 16 h");
+  });
 });
 
 describe("departureCodeEnd (la formule de la synchro)", () => {
@@ -229,6 +293,11 @@ describe("runDepartureLockCheck (passage complet)", () => {
     h.logCalls = 0;
     h.garageCalls = 0;
     h.hang = false;
+    h.logDown = false;
+    h.redis = false;
+    h.hours = {};
+    h.hoursDown = false;
+    h.getJsonDown = false;
     process.env.NUKI_API_TOKEN = "jeton-de-test";
     process.env.NUKI_SMARTLOCK_ID = "1";
     process.env.NTFY_TOPIC = "https://ntfy.example.test/sujet-de-test";
@@ -429,5 +498,85 @@ describe("runDepartureLockCheck (passage complet)", () => {
     await runDepartureLockCheckSummer(DAY, 12 * 60 + 15, none, at(12, 15));
     expect(none).toHaveBeenCalledTimes(1);
     expect(h.nukiCalls).toBe(2);
+  });
+
+  it("journal illisible sur 2 relevés, porte non verrouillée : alerte distincte en priorité 3", async () => {
+    h.logDown = true;
+    await run([11, 30]);
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+    await run([11, 45]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(h.sendNtfy.mock.calls[0][1]).toMatchObject({ title: "[Serrure] Porte non verrouillée, journal de la serrure illisible", priority: 3 });
+    expect(h.sendNtfy.mock.calls[0][0]).toContain("impossible de savoir si le ménage est entré");
+  });
+
+  it("serrure dans un état de passage : ni journal ni alerte, le relevé suivant tranche", async () => {
+    h.health = { online: true, lockState: 4 };
+    await run([11, 30]);
+    await run([11, 45]);
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+    expect(h.logCalls).toBe(0);
+    h.health = { online: true, lockState: 3 };
+    await run([12, 0]);
+    await run([12, 15]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+  });
+
+  it("alerte ouverte : le garage n'est plus relu, la serrure et le journal si", async () => {
+    await run([11, 30]);
+    await run([11, 45]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(h.garageCalls).toBe(2);
+    await run([12, 0]);
+    await run([12, 15]);
+    expect(h.garageCalls).toBe(2);
+    expect(h.logCalls).toBe(4);
+    expect(h.nukiCalls).toBe(4);
+  });
+
+  it("minuit (hiver) : plus de départ, l'alerte ouverte se referme sans message", async () => {
+    await run([11, 30]);
+    await run([11, 45]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    const next = "2027-01-11";
+    const r = await runDepartureLockCheck(bookings, next, parisInstant(next, 0));
+    expect(r.report).toBe("close-silently");
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect((h.mem.get("barbusse:alert:departure-lock") as { open: boolean }).open).toBe(false);
+  });
+
+  it("minuit (mode été) : l'alerte ouverte se referme sans message, sans appel à Nuki ni à Beds24", async () => {
+    const load = vi.fn(async () => bookings);
+    await runDepartureLockCheckSummer(DAY, 11 * 60 + 30, load, at(11, 30));
+    await runDepartureLockCheckSummer(DAY, 11 * 60 + 45, load, at(11, 45));
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    const calls = h.nukiCalls;
+    const next = "2027-01-11";
+    expect(await runDepartureLockCheckSummer(next, 0, load, parisInstant(next, 0))).toBeNull();
+    expect((h.mem.get("barbusse:alert:departure-lock") as { open: boolean }).open).toBe(false);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(h.nukiCalls).toBe(calls);
+    expect(load).toHaveBeenCalledTimes(1);
+    // À midi, toujours pas de départ ce jour-là : fermeture (déjà faite), rien d'autre.
+    expect((await runDepartureLockCheckSummer(next, 12 * 60, load, parisInstant(next, 12)))?.report).toBe("close-silently");
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+  });
+
+  it("Redis illisible (horaires convenus, état d'alerte, fin de journée) : relevé sauté, aucune alerte", async () => {
+    h.redis = true;
+    h.hoursDown = true;
+    for (const m of [30, 45]) expect((await run([11, m])).report).toBe("skip");
+    h.hoursDown = false;
+    h.getJsonDown = true;
+    for (const m of [30, 45, 59]) expect(await run([11, m])).toMatchObject({ status: "unreadable", report: "skip" });
+    expect(h.nukiCalls).toBe(0);
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+  });
+
+  it("le départ convenu est relu dans Redis : 16 h reste 16 h même si la réservation arrive sans", async () => {
+    h.redis = true;
+    h.hours = { "1000001": JSON.stringify({ departureHour: 16 }) };
+    expect((await run([11, 45])).status).toBe("none");
+    expect(h.nukiCalls).toBe(0);
   });
 });

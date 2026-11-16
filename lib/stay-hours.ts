@@ -15,19 +15,28 @@ const KEY = () => redisKey("stay-hours");
 /** Toute la table. **Ne lève jamais** : Redis absent ou injoignable ⇒ table vide (heures standard). */
 export async function readStayHours(): Promise<StayHoursTable> {
   try {
-    if (!hasRedis()) return {};
-    const raw = await getRedis().hgetall<Record<string, unknown>>(KEY());
-    const table: Record<number, AgreedHours> = {};
-    for (const [field, value] of Object.entries(raw ?? {})) {
-      const id = Number(field);
-      const agreed = parseAgreedHours(value);
-      if (Number.isInteger(id) && agreed) table[id] = agreed;
-    }
-    return table;
+    return await readStayHoursStrict();
   } catch (e) {
     console.error("[stay-hours] lecture impossible :", e instanceof Error ? e.message : e);
     return {};
   }
+}
+
+/**
+ * Toute la table, mais **lève** si Redis est injoignable (Redis non configuré : table vide). Pour
+ * qui ne doit pas confondre « aucun accord » et « accords illisibles » : le relevé de la porte au
+ * départ, qui sinon ramènerait un départ convenu à 16 h à 11 h et alerterait à tort.
+ */
+export async function readStayHoursStrict(): Promise<StayHoursTable> {
+  if (!hasRedis()) return {};
+  const raw = await getRedis().hgetall<Record<string, unknown>>(KEY());
+  const table: Record<number, AgreedHours> = {};
+  for (const [field, value] of Object.entries(raw ?? {})) {
+    const id = Number(field);
+    const agreed = parseAgreedHours(value);
+    if (Number.isInteger(id) && agreed) table[id] = agreed;
+  }
+  return table;
 }
 
 /**
