@@ -7,6 +7,7 @@ import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { waterHeaterIssues } from "@/lib/water-heater-health";
 import { todayParis, currentHourParis, nowParis } from "@sejour/socle/lib/time";
+import { beat } from "@/lib/heartbeat";
 
 /**
  * Contrôle du ballon, toutes les 2 h. Les constats viennent de `waterHeaterIssues` et passent par
@@ -17,6 +18,9 @@ import { todayParis, currentHourParis, nowParis } from "@sejour/socle/lib/time";
  * - le retour à la normale part en priorité 1.
  */
 const LABEL = "Contrôle du ballon";
+
+// Trois lectures (réservations, ballon, journal) : < 8 s mesurés.
+export const maxDuration = 30;
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -51,6 +55,7 @@ export async function GET(request: NextRequest) {
         recoveredBody: "Plus aucun écart constaté sur le ballon.",
       },
     );
+    await beat("water-heater-health", "ok");
     await reportCronRun("water-heater-health", LABEL, sendWaterHeaterAlert, null).catch(() => {});
 
     return NextResponse.json({
@@ -71,6 +76,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("water-heater-health", "error");
     await reportCronRun("water-heater-health", LABEL, sendWaterHeaterAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }

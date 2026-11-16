@@ -234,7 +234,7 @@ docs/journal.md § Conventions).
 
 ## TODO — dette technique restante (au 2026-11-07)
 
-Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0, CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 (Albiez et Barbusse). Reste :
+Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0 **ce jour-là** (non revérifié depuis), CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 à l'époque (**v3.24.0** au 2026-11-16, Albiez et Barbusse). Reste :
 
 **À surveiller**
 - [ ] Premier passage automatique du cron `beds24-backup` : dimanche 2026-11-08, 03:00 UTC (notification ntfy priorité 1 attendue).
@@ -369,18 +369,22 @@ mesures : docs/journal.md § Cloisonnement du dashboard) :
    ([lib/bookings.ts](lib/bookings.ts)).
 2. À la sortie : le DTO en liste blanche, qui protège aussi des champs que Beds24 ajoutera.
 
-⚠️ **`includeInfoItems: true` n'est légitime qu'à cinq endroits** : `getBookingById` (donc
-`nuki-code` et `invoices/prefill`, toutes deux admin-only), `findBookingByStripeIds` (matching
-`STRIPEPAYMENT`), `getAllBookingsRaw` (cron `beds24-backup`, vers un Blob privé), la
-synchronisation Nuki (`lib/access-sync.ts`, qui lit et écrit `NUKI_PIN`), et le cron
-`checkin-notifications` (qui lit encore en secours l'ancien code `CHECKIN`). Tous sont derrière
-une garde admin ou `CRON_SECRET` ; aucun PIN ne part vers le navigateur hors des routes admin.
+⚠️ **`includeInfoItems: true` n'est légitime qu'à sept endroits** (recomptés le 2026-11-16) :
+1. `getBookingById` (`lib/beds24.ts`, donc `nuki-code` et `invoices/prefill`, toutes deux admin-only) ;
+2. `findBookingByStripeIds` (matching `STRIPEPAYMENT`) ;
+3. `getAllBookingsRaw` (cron `beds24-backup`, vers un Blob privé) ;
+4. la synchronisation Nuki (`lib/access-sync.ts`, `getBookings`, qui lit et écrit `NUKI_PIN`) ;
+5. le cron `checkin-notifications` (`getBookingsWithArchive`, qui lit encore en secours l'ancien code `CHECKIN`) ;
+6. `reservationsMessagerie` et 7. `reservationMessagerie` (`lib/beds24.ts`, messages voyageurs : le
+   code de la serrure entre dans le message d'arrivée).
+
+Tous sont derrière une garde admin ou `CRON_SECRET` ; aucun PIN ne part vers le navigateur hors des routes admin.
 
 ## Beds24 API (v2)
 
-**Quatre tokens — un par chemin, pas par verbe.** Les trois premiers datent du 2026-09-11
+**Cinq tokens — un par chemin, pas par verbe.** Les trois premiers datent du 2026-09-11
 (rotation complète après la découverte de quatre secrets en clair dans
-`.claude/settings.json`) ; la messagerie s'est ajoutée le 2026-09-22.
+`.claude/settings.json`) ; la messagerie s'est ajoutée le 2026-09-22, les tarifs avec la sortie de Beyond.
 
 | Variable | `deviceName` | Scopes | Chemin servi |
 |---|---|---|---|
@@ -393,14 +397,14 @@ une garde admin ou `CRON_SECRET` ; aucun PIN ne part vers le navigateur hors des
 Vérifiés contre l'API, pas supposés : le public reçoit `401` sur `/bookings`, la lecture ne
 peut pas écrire, l'écriture ne voit ni `price`, ni `commission`, ni `invoiceItems`.
 
-**Règles des quatre voies** (justifications : docs/journal.md § Beds24 API (v2)) :
+**Règles des cinq voies** (justifications : docs/journal.md § Beds24 API (v2)) :
 - `/bookings/messages` exige la variante `-personal` des scopes, en lecture **comme** en
   écriture : d'où un jeton dédié plutôt qu'un jeton d'écriture élargi. Cette voie n'a **aucun
   repli** — un envoi dégradé écrirait sous un autre privilège ou ferait croire au départ.
 - La page publique a son propre jeton (inventaire seulement). Sur 401, le repli va vers le
   jeton de **lecture** — jamais vers l'écriture.
 - **Aucun long life token** (`BEDS24_API_TOKEN` retiré le 2026-09-11). Un refresh token meurt
-  après 30 jours sans usage ; le cron keepalive échange les quatre chaque semaine.
+  après 30 jours sans usage ; le cron keepalive échange les cinq chaque semaine (`tarifs` seulement si sa variable existe).
 
 ⚠️ **`vercel env add --force` ne remplace pas toujours une variable `Secret` existante**, et
 échoue en silence si l'on masque sa sortie. Pour une rotation : `vercel env rm` puis
@@ -423,7 +427,7 @@ réellement chaque jeton et nomme celui qui échoue.
 curl -H 'token: <TOKEN>' https://api.beds24.com/v2/authentication/details
 ```
 
-**Vercel** : les quatre refresh tokens (`BEDS24_PUBLIC_REFRESH_TOKEN`, `BEDS24_READ_REFRESH_TOKEN`, `BEDS24_REFRESH_TOKEN`, `BEDS24_MESSAGES_REFRESH_TOKEN`) doivent être configurés sur Production + Development.
+**Vercel** : les refresh tokens (`BEDS24_PUBLIC_REFRESH_TOKEN`, `BEDS24_READ_REFRESH_TOKEN`, `BEDS24_REFRESH_TOKEN`, `BEDS24_MESSAGES_REFRESH_TOKEN`, et `BEDS24_PRICING_REFRESH_TOKEN` une fois créé) doivent être configurés sur Production + Development.
 
 ### Le transport et les types viennent du socle
 
@@ -500,7 +504,7 @@ remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki We
 |---|---|
 | `@sejour/socle/lib/access-codes` (v3.8.0) | Planificateur pur : quoi créer, recaler, reprendre, supprimer. |
 | `@sejour/socle/lib/nuki` | Client Nuki Web, erreurs expurgées des PIN. |
-| [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, **au passage horaire du cron seulement**, règle commune : `barbusse:alert:nuki-lock` et `…:nuki-codes`, deux passages de suite). Verrou Redis `nuki:sync:lock`. |
+| [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, **au passage horaire du cron seulement**, règle commune : `barbusse:alert:nuki-lock` et `…:nuki-codes`, deux passages de suite). **Exception** (2026-11-16) : pose (`create`/`update`) ratée pour une arrivée aujourd'hui ou demain → `…:nuki-codes-urgent`, priorité 5 **dès le premier échec**, aussi depuis le webhook (le PIN est déjà dans Beds24, une auto-action a pu l'envoyer). Verrou Redis `nuki:sync:lock` à valeur unique, rendu seulement par son détenteur. |
 | `/api/cron/nuki-sync` | Passage horaire (cron-job.org). `?dry=1` = plan sans écriture. |
 | `/api/dashboard/nuki-status` | **Admin seulement.** État du code par réservation (`ok` / `pending` / `error`), calculé à blanc par le planificateur, sans PIN. Alimente la pastille des barres du calendrier (vert / ambre / rouge) et une ligne dans la fiche. |
 | `/api/webhooks/beds24` | Webhook « Booking » de Beds24, en-tête `x-webhook-secret`. Déclenche un passage : PIN posé en quelques secondes pour une réservation de dernière minute. Le corps n'est pas lu. |
@@ -520,7 +524,8 @@ l'écriture échoue, le code n'est pas posé. Le gabarit Beds24 le lit par
 conditionnée à la présence de ce code (« All Booking Info Codes »).
 
 **Variables** : `NUKI_API_TOKEN`, `NUKI_SMARTLOCK_ID`, `NUKI_SYNC_MODE` (`live` pour écrire ;
-toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
+toute autre valeur = à blanc **mais les alertes du cron partent quand même** — serrure hors
+ligne, PIN manquant ; `?dry=1` seul les tait), `BEDS24_WEBHOOK_SECRET`.
 
 **Pièges payés le 2026-11-07** :
 - Une mise à jour Nuki (`POST …/auth/{id}`) **efface les champs non renvoyés** — un renommage
@@ -544,7 +549,7 @@ toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
   - **Consignes montées par les voyageurs ramenées toutes les 15 min** par `heating-automation` (boutons des Heatzy laissés libres, choix de l'hôte).
   - **Alerte de coupure** (`lib/power-cut.ts`) : 3 radiateurs ou plus hors ligne au même passage → coupure soupçonnée ; **toujours hors ligne au passage suivant** → ntfy priorité 5, puis « courant revenu » en priorité 1.
   - La charge du passage est mémorisée (`barbusse:heating:load`) pour le dashboard.
-- Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. `LOCKED_DEVICES` : devices tenus en hors-gel, ignorés par les crons. `alerts: false` sur un appareil de `data/heatzy-zones.json` : piloté, mais jamais dans une alerte (**Véranda D**, panne connue, 2026-11-14 ; voir docs/surveillance.md).
+- Températures de l'API en dixièmes (179 = 17,9 °C). **Mode été** (Redis `heatzy:summer-mode`) : automation et reset en no-op, `heating-health` reste actif. Devices tenus en hors-gel, ignorés par les crons : la **source** est Redis `heatzy:locked-devices` (posé depuis le dashboard) ; `LOCKED_DEVICES` n'est qu'un **repli**, lu quand Redis est injoignable. `alerts: false` sur un appareil de `data/heatzy-zones.json` : piloté, mais jamais dans une alerte (**Véranda D**, panne connue, 2026-11-14 ; voir docs/surveillance.md).
 - **Préparation d'arrivée** (`/api/cron/arrival-readiness`, lecture seule) : serrure, radiateurs et ballon contrôlés la veille 19 h et le jour J (12h30, 15h30, 16h30), non-arrivée signalée le lendemain 9 h, pile de la serrure chaque matin ; silence 22 h–8 h. Détail : [docs/surveillance.md](docs/surveillance.md).
 - Détail (modes, scheduling, alertes, présence, dashboard, transitions, reset) : [docs/heatzy.md](docs/heatzy.md).
 
@@ -948,7 +953,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 - ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Statuts `cancelled` / `black` exclus du comptage.
 - ⚠️ Le thermo **alimente un ballon classique** (résistance seule, ~3 kW, permanent) : de l'eau tiède en sortie du thermo, c'est le classique qui chauffe. Aux heures de pic, il porte **seul** l'eau chaude (thermo en Absence) ; à 14 personnes, il peut s'épuiser en fin de série de douches — surveiller les retours voyageurs.
 - ⚠️ **Le boost n'ajoute que de la résistance** : la PAC chauffe dans tous les modes tant que l'eau est sous la consigne. Un boost hors des tirages remplace de la PAC par de la résistance.
-- ⚠️ **Absence aux heures de pic (2026-11-09, coupures à 9 kVA)** : **mesuré le 9/11 au soir avec le compteur d'énergie du thermo, le mode Éco (`manualEcoActive`) ne coupe PAS l'appoint** (≈ 2,1 kW toute la soirée ; PAC seule ≈ 300 W). **Seul le mode Absence coupe toute la chauffe** (`setAbsenceMode`, effet en 10-15 min). Règle (`getExpectedSettings`, `PEAK_WINDOWS`) : **Éco 55 °C** (50 °C vide), **jamais de boost automatique**, **Absence de 4 h 45 à 7 h et de 16 h 45 à 22 h** quand des voyageurs sont là ; le ballon classique 300 L fournit l'eau chaude pendant ces plages. Hors pic, le thermo gère seul PAC et appoint. Ordre des commandes : boost off et Absence on d'abord, Absence off en dernier. Le boost de rattrapage est supprimé. Les puissances remontées (`PowerHeatPumpState` ≈ 1 000 W = chaleur produite, `PowerHeatElectricalState` = 1 800 W figé) ne mesurent rien : se fier au compteur `ElectricEnergyConsumptionState`.
+- ⚠️ **Absence aux heures de pic (2026-11-09, coupures à 9 kVA)** : **mesuré le 9/11 au soir avec le compteur d'énergie du thermo, le mode Éco (`manualEcoActive`) ne coupe PAS l'appoint** (≈ 2,1 kW toute la soirée ; PAC seule ≈ 300 W). **Seul le mode Absence coupe toute la chauffe** (`setAbsenceMode`, effet en 10-15 min). Règle (`getExpectedSettings`, `PEAK_WINDOWS`) : **Éco 55 °C** (50 °C vide), **jamais de boost automatique**, **Absence de 4 h 45 à 7 h et de 16 h 45 à 22 h** quand des voyageurs sont là ; le ballon classique 300 L fournit l'eau chaude pendant ces plages. Hors pic, le thermo gère seul PAC et appoint. Ordre des commandes : boost off, mode, consigne, **Absence en dernier** (posée ou levée) ; chaque commande dans son `try`, l'Absence tentée même si une commande précédente est refusée, échecs → alerte `water-heater-commands` et réponse 502 (`lib/water-heater-commands.ts`, 2026-11-16). Le boost de rattrapage est supprimé. Les puissances remontées (`PowerHeatPumpState` ≈ 1 000 W = chaleur produite, `PowerHeatElectricalState` = 1 800 W figé) ne mesurent rien : se fier au compteur `ElectricEnergyConsumptionState`.
 - **Contrôle** (`lib/water-heater-health.ts`) : recalcule les réglages attendus à la même heure ; Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **« PAC à l'arrêt »** (compteur immobile 2 h, hors Absence) ; un constat n'alerte que s'il était déjà là au contrôle précédent, une seule fois tant qu'il dure (règle commune, `barbusse:alert:water-heater-health`).
 - **Thermo injoignable** (`getConnectivity`, `isUnreachable`) : `available` de l'appareil et passerelle Overkiz — les états restent en cache quand le thermo n'a plus de courant (circuit du garage coupé le 10/11, maison vide). Alerte priorité 5 après deux passages de suite (`water-heater-reach`).
 - **Dashboard** : boost, Éco+ et Performance manuels **refusés (409) aux heures de pic** ; l'admin peut forcer après confirmation, mais **l'automation reprend la main au passage suivant (15 min)**.
@@ -971,6 +976,8 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 
 ## Cron Jobs (via cron-job.org)
 
+Cadences **relevées sur cron-job.org le 2026-11-15** (heure de Paris) :
+
 | Job | URL | Fréquence |
 |-----|-----|-----------|
 | Automation chauffage | `/api/cron/heating-automation` | `*/15 * * * *` |
@@ -979,14 +986,22 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 | Automation ECS | `/api/cron/water-heater-automation` | `*/15 * * * *` (depuis le 2026-11-09 ; journal : une entrée par heure ou par commande) |
 | Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
 | Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
+| Messages voyageurs | `/api/cron/messages-voyageurs` | `*/10 * * * *` |
 | Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
-| Veille caméra (mouvement) | `/api/cron/camera-watch` | `*/5 * * * *` |
-| Suivi ménage (Sophie) | `/api/cron/cleaning-watch` | `0 * * * *` |
+| Veille caméra (mouvement) | `/api/cron/camera-watch` | `*/10 * * * *` |
+| Suivi ménage (Sophie) | `/api/cron/cleaning-watch` | `*/10 * * * *` |
 | Préparation d'arrivée | `/api/cron/arrival-readiness` | `35 * * * *` (jour et nuit) |
+| Envoi des prix | `/api/cron/pricing-push` | `10 8 * * *` — **8 h 10 heure de Paris** depuis le 2026-11-15 (05:10 UTC avant) |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
-| Veille événements | `/api/cron/events-watch` | `0 8 * * 1` |
+| Veille événements | `/api/cron/events-watch` | `0 11 * * 1` |
 
-Authentifiés via header `Authorization: Bearer {CRON_SECRET}`.
+Authentifiés via header `Authorization: Bearer {CRON_SECRET}`. **Tous** battent
+(`lib/heartbeat.ts`, retard toléré selon la cadence ci-dessus, délai de grâce au démarrage) sauf
+`pricing-review-reminder`, exempté avec son motif ; **tous** déclarent un `maxDuration` ; `?dry=1`
+et `?dryRun=1` valent partout où un mode à blanc existe (`lib/cron-params.ts`). Un cron qui
+répond 5xx fait écrire cron-job.org à l'hôte : `water-heater-automation` répond **502** quand une
+commande du ballon est refusée, `heating-reset` **502** quand tous les radiateurs refusent
+(2026-11-16).
 
 Crons **Vercel** (déclarés dans `vercel.json`, une fois par jour au plus sur le plan Hobby) : `heating-automation` 7 h et `heating-health` 8 h (en doublon de cron-job.org), `pricing-snapshot` 5 h, `pricing-report` lundi 6 h, `pricing-review-reminder` mardi 7 h, `beds24-backup` dimanche 3 h, `indexing` 5 h 30 (UTC).
 
@@ -1000,10 +1015,10 @@ Store : `barbusse-sauvegardes` (privé, région cdg1, relié en Production + Dev
 
 Beds24 **invalide un refresh token qui n'a pas servi depuis 30 jours** (`401 Token not valid`).
 
-Le cron `/api/cron/beds24-keepalive` force l'échange des **quatre** refresh tokens chaque lundi
-4 h, hors cache — c'est l'échange qui repousse l'échéance, pas la lecture d'un access token
-encore valide gardé en mémoire. Aucun des quatre ne s'entretient seul de façon fiable (usage
-rare ou intermittent). Les quatre sont tentés même si le premier échoue — un jeton mort ne doit
+Le cron `/api/cron/beds24-keepalive` force l'échange des **cinq** refresh tokens chaque lundi
+4 h (`tarifs` seulement si `BEDS24_PRICING_REFRESH_TOKEN` existe), hors cache — c'est l'échange qui repousse l'échéance, pas la lecture d'un access token
+encore valide gardé en mémoire. Aucun ne s'entretient seul de façon fiable (usage
+rare ou intermittent). Tous sont tentés même si le premier échoue — un jeton mort ne doit
 pas en entraîner un second — et chaque échec déclenche une alerte ntfy (`sendBeds24Alert`)
 nommant les scopes exacts à régénérer pour cette voie-là.
 
@@ -1025,10 +1040,10 @@ L'invite code est à usage unique ; sa validité est courte (« ~20 min » et «
 
 Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et envoie une notification push.
 
-- **Détection** : première ouverture réussie au clavier par le code `<n° de réservation>: …`, lue dans le **journal de la serrure** (`keypadArrivals` du socle, `GET /smartlock/{id}/log`). L'ancien signal — un `infoItems[]` `CHECKIN` que déposait le connecteur Beds24 → Nuki, horodaté dans `createTime` — reste lu en secours pendant la transition ; il disparaît avec le connecteur.
+- **Détection** : première ouverture réussie au clavier par le code `<n° de réservation>: …`, lue dans le **journal de la serrure** (`keypadArrivals` du socle, `listLogSince` : toutes les pages depuis le dernier passage réussi moins 2 h, 24 h au premier passage, 48 h au plus — `lib/nuki-log-cursor.ts`, Redis `barbusse:nuki:log-since:checkin`). ⚠️ Jamais `listLog` : l'API rend 50 lignes au plus, quel que soit `limit`, et un soir chargé faisait sortir une arrivée de la page (2026-11-16). L'ancien signal — un `infoItems[]` `CHECKIN` que déposait le connecteur Beds24 → Nuki, horodaté dans `createTime` — reste lu en secours pendant la transition ; il disparaît avec le connecteur.
 - **Cron** : `/api/cron/checkin-notifications` toutes les 10 min, fenêtre arrivées J-3 → J+1.
 - **Contenu** : le **prénom seul** (`firstNameOnly` du socle), jamais le nom de famille — le sujet ntfy n'a pour secret que son nom.
-- **Anti-doublon** : Redis `checkin:notified:{bookingId}` (TTL 60 jours) — une seule notif par résa, même si le code est retapé.
+- **Anti-doublon** : Redis `checkin:notified:{bookingId}` (TTL 60 jours) — une seule notif par résa, même si le code est retapé. La clé est **réservée avant l’envoi** (`SET NX`) et rendue si l’envoi échoue (2026-11-16 : deux passages concurrents envoyaient chacun la notification). Journal de la serrure illisible → alerte `checkin-keypad` (deux passages).
 - **Priorité 3** (4 jusqu'au 2026-11-10) : une information, pas une panne.
 - **Service push** : ntfy.sh (gratuit, topic privé non-devinable). Variable `NTFY_TOPIC` = URL complète (ex `https://ntfy.sh/coliving-barbusse-xxxxx`). Subscribe au topic depuis l'app ntfy mobile.
 - **Helper** : `sendNtfy(message, { title, priority, tags, click })` de `@sejour/socle/lib/ntfy`. Encode automatiquement le titre en RFC 2047 pour les emojis/accents (les headers ntfy doivent être ASCII).
@@ -1065,7 +1080,7 @@ lit l'état, l'image instantanée et surtout les **événements de mouvement** (
 |---|---|
 | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Client API cloud AJCloud : login (défi NaCl Box + signature HMAC-SHA256 `X-UAC-Signature`), `device-list`, `fetch-infos` (snapshot, RTSP local, en ligne), `alarms-survey` (mouvement). `tweetnacl` pour le chiffrement. |
 | [lib/camera/watch.ts](lib/camera/watch.ts) | Logique pure : nouveaux événements depuis le dernier `cts`, mise en forme. Testée (`tests/camera/`). |
-| `/api/cron/camera-watch` | Toutes les 5 min (cron-job.org). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. |
+| `/api/cron/camera-watch` | Toutes les 10 min (cron-job.org). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. |
 
 - **Anti-inondation** : au premier passage d'une caméra, aucune notification — on pose seulement
   la ligne de base `barbusse:camera:last-cts:<did>` (Redis). Les passages suivants ne notifient
@@ -1084,14 +1099,14 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
 
 | Source | Pièce | Rôle |
 |---|---|---|
-| **Garage** (Intratone) | [lib/cleaning/intratone.ts](lib/cleaning/intratone.ts) | Ouvertures par code clavier du digicode (le code dont le libellé contient `CLEANER_NAME`). |
-| **Porte** (Nuki) | journal de la serrure | Code manuel « # Sophie », lu via `listLog` du socle. |
+| **Garage** (Intratone) | [lib/cleaning/intratone.ts](lib/cleaning/intratone.ts) | Ouvertures par code clavier du digicode (les codes dont le libellé contient un nom de `TRACKED_PEOPLE`). |
+| **Porte** (Nuki) | journal de la serrure | Code manuel « # Sophie », lu via `listLogSince` du socle depuis le dernier passage réussi (`lib/nuki-log-cursor.ts`). |
 | **Caméra** (mouvement) | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Derniers mouvements, pour **estimer** l'heure de sortie. |
 
 | Pièce | Rôle |
 |---|---|
 | [lib/cleaning/sessions.ts](lib/cleaning/sessions.ts) | Logique pure : fusion des arrivées, dédoublonnage (<45 min), estimation de sortie, durée. Testée (`tests/cleaning/`). |
-| `/api/cron/cleaning-watch` | Horaire (cron-job.org). Ligne de base au 1er passage, puis ntfy par nouvelle arrivée. **Persiste et affine** les sessions dans le magasin `barbusse:cleaning:log` (`lib/cleaning/store.ts`). `?dry=1` calcule sans envoyer. |
+| `/api/cron/cleaning-watch` | Toutes les 10 min (cron-job.org). Ligne de base au 1er passage, puis ntfy par nouvelle arrivée. **Persiste et affine** les sessions dans le magasin `barbusse:cleaning:log` (`lib/cleaning/store.ts`). `?dry=1` calcule sans envoyer. |
 | `/api/dashboard/suivi` + `/dashboard/suivi` | **Page admin « Suivi »** : **lit le magasin persistant** (plus de recalcul en direct), totaux par personne (heures/coût), graphe mensuel, journal. `lib/cleaning/sources.ts` fournit les 4 sources au cron **et** à l'amorçage de la page. |
 | [lib/cleaning/store.ts](lib/cleaning/store.ts) | Magasin Redis des passages (hash `barbusse:cleaning:log`, clé `who:arrivalMs`). ⚠️ **La sortie estimée ne peut que progresser, jamais régresser ni revenir à `null`** : c'est ce qui corrige la perte (un mouvement caméra qui vieillit et quitte le cloud ne fait plus disparaître la sortie). Le cron l'affine chaque heure. |
 | `/api/dashboard/video` + `/dashboard/video` | **Page admin « Vidéo »** : caméras Wansview (image rafraîchie ≈30 s + galerie des mouvements, clips `.ts` lus par `mpegts.js`), encarts ICSee/ANRAN « non connectées ». Le **direct** continu viendra d'un pont local (go2rtc/Freebox) via `CAMERA_LIVE_BASE`, pas de Vercel. |
@@ -1100,7 +1115,7 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
   identifiant/mdp/device) → `data/connect.php?SID=` (bootstrap legacy) → `data/events/evts.php` (sélection
   de la centrale `INTRATONE_CENTRALE_ID`) → `data/events/evts_list.php` `evt=4` (code clavier). ⚠️ Les
   événements récents n'apparaissent qu'après « récupération » depuis l'interphone (auto pour les modèles
-  connectés ; `evts_recup` est refusé hors UI) — d'où un cron **horaire**, pas temps réel.
+  connectés ; `evts_recup` est refusé hors UI) — d'où un suivi décalé (cron toutes les 10 min, mais l'événement n'arrive qu'à sa récupération), pas temps réel.
 - **Les ouvertures ne tracent que les entrées** (sortie par bouton poussoir interne, sans nom). La fin de
   visite est donc **estimée** (dernier mouvement caméra, sinon BP), pas mesurée. Les heures servent à
   **recouper la facture de Sophie, pas à pointer** (statut auto-entrepreneur, risque de salariat déguisé).
@@ -1134,7 +1149,7 @@ PRICING_PUSH_MODE           # off (défaut) | dry | live — l'envoi réel exige
 PRICING_MAX_DATES           # Dates modifiées par envoi, 60 par défaut (395 au plus, relevé pour la bascule).
 PRICING_MAX_CHANGE          # Variation avant quarantaine, 0.25 par défaut (relevé pour la bascule).
                             # /bookings/messages refuse tout jeton sans la variante -personal.
-                            # Les quatre sont des refresh tokens — plus aucun long life depuis le 2026-09-11.
+                            # Les cinq sont des refresh tokens — plus aucun long life depuis le 2026-09-11.
                             # Obtenus via un invite code (Settings → API → Invites) échangé par
                             # scripts/beds24-setup.mjs, soit GET /authentication/setup.
                             # JAMAIS /authentication/token : il consomme le code sans montrer le token.
@@ -1166,7 +1181,7 @@ CAMERA_LIVE_BASE         # Optionnel : URL du pont vidéo local (go2rtc/Freebox)
 BEDS24_WEBHOOK_SECRET    # En-tête x-webhook-secret du webhook Beds24
 DEEPL_API_KEY            # Local seulement (scripts/translate-reviews.mjs), pas sur Vercel
 BLOB_READ_WRITE_TOKEN    # Store Vercel Blob PRIVÉ de la sauvegarde Beds24 (posé par Vercel à la liaison du store)
-LOCKED_DEVICES           # Device IDs verrouillés (comma-separated, optionnel)
+LOCKED_DEVICES           # Repli seulement (Redis injoignable) : device IDs tenus en hors-gel ; la source est Redis heatzy:locked-devices
 COZYTOUCH_EMAIL          # Email du compte Cozytouch/Atlantic
 COZYTOUCH_PASSWORD       # Mot de passe du compte Cozytouch
 INVOICE_LEGAL_NAME       # Nom du loueur affiché sur la facture

@@ -4,11 +4,13 @@ import { todayParis } from "@sejour/socle/lib/time";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { sendPricingAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 import { haltState, runPricingPush, type PushRun } from "@/lib/pricing/push";
 
 /**
  * Envoi quotidien des prix du moteur vers Beds24 — le seul appelant de `lib/pricing/push.ts`.
- * À appeler une fois par jour à 05:10 UTC (cron-job.org), **après** le relevé de 05:00.
+ * Appelée une fois par jour à **8 h 10 heure de Paris** (cron-job.org, depuis le 2026-11-15 ;
+ * 05:10 UTC auparavant), **après** le relevé `pricing-snapshot` de 05:00 UTC (Vercel).
  *
  * Tant que `PRICING_PUSH_MODE` n'est pas posé, la route ne fait rien (`off`). En `dry`, elle
  * calcule et journalise sans écrire. `?dry=1` force ce mode ponctuellement — il ne rend jamais
@@ -26,7 +28,7 @@ export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const forceDry = request.nextUrl.searchParams.get("dry") === "1";
+  const forceDry = isDryRun(request.nextUrl.searchParams);
 
   let run: PushRun;
   try {
@@ -34,13 +36,18 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[pricing-push]", message);
-    await beat("pricing-push", "error");
-    await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, message).catch(() => undefined);
+    if (!forceDry) {
+      await beat("pricing-push", "error");
+      await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, message).catch(() => undefined);
+    }
     return NextResponse.json({ error: "L'envoi des prix a échoué." }, { status: 500 });
   }
 
-  await beat("pricing-push", "ok");
-  await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, null).catch(() => undefined);
+  // Un appel à blanc (`?dry=1`) ne bat pas : il ne dit rien du passage quotidien.
+  if (!forceDry) {
+    await beat("pricing-push", "ok");
+    await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, null).catch(() => undefined);
+  }
 
   // `locked` : un autre envoi tournait, ce passage n'a rien constaté — ne pas « rétablir ».
   if (run.mode !== "off" && !forceDry && run.outcome !== "locked") {

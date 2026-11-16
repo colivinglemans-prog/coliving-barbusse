@@ -6,7 +6,9 @@ import { LE_MANS_EVENTS } from "@/lib/events";
 import { computeEnginePrices } from "@/lib/pricing/engine";
 import { ENGINE_CONFIG } from "@/lib/pricing/engine-config";
 import { lastSaleDate, pricingInsights } from "@/lib/pricing/insights";
-import { reportAlerts } from "@/lib/alert-memory";
+import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 import { sendPricingAlert } from "@/lib/alerts";
 import {
   diffSnapshots,
@@ -27,12 +29,21 @@ import {
  * appels le même jour écrasent la photo du jour : c'est voulu, la dernière fait foi.
  *
  * `?dry=1` relève, calcule et compare sans rien écrire.
+ *
+ * Battement `pricing-snapshot` et erreur suivie (`reportCronRun`, deux passages en erreur de suite,
+ * soit deux jours) à chaque passage réel : il échouait sans rien dire jusqu'au 2026-11-16, et
+ * l'envoi des prix comme le rapport du lundi lisent ses photos.
  */
+// Relevé de 365 jours de calendrier Beds24, moteur, deux écritures Redis.
+export const maxDuration = 60;
+
+const LABEL = "Relevé quotidien des prix";
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const dry = request.nextUrl.searchParams.get("dry") === "1";
+  const dry = isDryRun(request.nextUrl.searchParams);
   const today = todayParis();
 
   try {
@@ -79,6 +90,10 @@ export async function GET(request: NextRequest) {
       ).catch((e) => console.error("[pricing-snapshot] alertes de prix:", e));
     }
 
+    if (!dry) {
+      await beat("pricing-snapshot", "ok");
+      await reportCronRun("pricing-snapshot", LABEL, sendPricingAlert, null).catch(() => undefined);
+    }
     return NextResponse.json({
       insights,
       success: true,
@@ -95,6 +110,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     console.error("[pricing-snapshot]", err);
+    if (!dry) {
+      const message = err instanceof Error ? err.message : String(err);
+      await beat("pricing-snapshot", "error");
+      await reportCronRun("pricing-snapshot", LABEL, sendPricingAlert, message.slice(0, 200)).catch(() => undefined);
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
       { status: 500 },

@@ -13,12 +13,16 @@ import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
-import { readShedState } from "@/lib/heating-state";
+import { readPowerCut, readShedState } from "@/lib/heating-state";
 import { activeShedZones } from "@/lib/load-shedding";
+import { beat } from "@/lib/heartbeat";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+// Même boucle que l'automation sur 15 radiateurs, ~13 s mesurés le 2026-11-15.
+export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -27,6 +31,7 @@ export async function GET(request: NextRequest) {
 
   try {
     if (await getSummerMode()) {
+      await beat("heating-reset", "ok");
       await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, null).catch(() => {});
       return NextResponse.json({
         success: true,
@@ -115,6 +120,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Tous les radiateurs pilotés ont refusé : le passage n'a rien fait. Il répondait pourtant
+    // « succès » et remettait l'erreur suivie à zéro (2026-11-16). Partiel : `heating-health`
+    // et l'automation signalent les radiateurs en cause.
+    const attempted = actions.filter((a) => !a.endsWith("(verrouillé)")).length + failures.length;
+    if (attempted > 0 && failures.length === attempted) {
+      // Coupure de courant soupçonnée ou signalée (`lib/power-cut.ts`, comme `heating-health`) : les
+      // radiateurs refusent par force et l'alerte de coupure les nomme déjà. Pas de 502 (cron-job.org
+      // écrirait à l'hôte), pas d'alerte, battement `ok`.
+      const cut = await readPowerCut().catch(() => null);
+      if (cut) {
+        await beat("heating-reset", "ok");
+        return NextResponse.json({ success: true, skipped: "power-cut", failures, timestamp: new Date().toISOString() });
+      }
+      const message = `Les ${attempted} radiateurs ont refusé le reset (${failures[0]})`;
+      await beat("heating-reset", "error");
+      await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, message).catch(() => {});
+      return NextResponse.json({ success: false, error: message, failures, timestamp: new Date().toISOString() }, { status: 502 });
+    }
+
+    await beat("heating-reset", "ok");
     await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, null).catch(() => {});
     return NextResponse.json({
       success: true,
@@ -124,6 +149,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("heating-reset", "error");
     await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }

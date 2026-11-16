@@ -7,6 +7,10 @@ import type { Beds24Booking } from "@/lib/types";
 import { readKeypadArrivals } from "@/lib/access-sync";
 import { getRedis } from "@/lib/redis";
 import { firstNameOnly } from "@sejour/socle/lib/arrival-readiness/format";
+import { beat } from "@/lib/heartbeat";
+import { readLogSince, saveLogSince } from "@/lib/nuki-log-cursor";
+import { reportAlerts } from "@/lib/alert-memory";
+import { sendCronAlert } from "@/lib/alerts";
 
 const CHECKIN_INFO_CODE = "CHECKIN";
 const REDIS_KEY_TTL_SECONDS = 60 * 24 * 3600; // 60 jours
@@ -38,16 +42,22 @@ function nights(b: Beds24Booking): number {
   return Math.max(1, Math.round((d - a) / 86_400_000));
 }
 
+// Beds24, puis le journal de la serrure (quelques pages de 50 lignes) : < 8 s mesurés ; cron-job.org coupe à 30 s.
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   if (process.env.CHECKIN_NOTIFICATIONS_ENABLED === "false") {
+    // Coupé par décision : le planificateur, lui, est vivant.
+    await beat("checkin-notifications", "ok");
     return NextResponse.json({ skipped: "disabled" });
   }
 
   try {
+    const startedAt = new Date();
     const today = todayParis();
     // Fenêtre large : arrivées récentes (J-3) jusqu'à demain.
     // Couvre les late check-ins et le cas où l'utilisateur retape son code à J+1.
@@ -65,8 +75,10 @@ export async function GET(request: NextRequest) {
     // Beds24 → Nuki reste lu en secours, le temps que ses derniers séjours passent.
     let keypad = new Map<number, string>();
     let keypadError: string | null = null;
+    // Depuis le dernier passage réussi, avec recouvrement (`lib/nuki-log-cursor.ts`) : la page
+    // unique de 50 lignes laissait filer une arrivée un soir chargé.
     try {
-      keypad = await readKeypadArrivals();
+      keypad = await readKeypadArrivals(await readLogSince("checkin", startedAt));
     } catch (e) {
       keypadError = e instanceof Error ? e.message : String(e);
     }
@@ -83,9 +95,12 @@ export async function GET(request: NextRequest) {
       const enteredAt = keypad.get(b.id) ?? item?.createTime ?? null;
       if (!enteredAt) continue;
 
+      // Anti-doublon : la clé est **réservée** avant l'envoi (`SET NX`). En lecture, envoi, écriture,
+      // deux passages concurrents (cron-job.org qui relance, passage lent) envoyaient chacun la
+      // notification. Si l'envoi échoue, la clé est rendue pour que le passage suivant réessaie.
       const key = `checkin:notified:${b.id}`;
-      const already = await redis.get(key);
-      if (already) continue;
+      const claimed = await redis.set(key, { at: new Date().toISOString(), enteredAt }, { nx: true, ex: REDIS_KEY_TTL_SECONDS });
+      if (claimed === null) continue;
 
       const guest = formatGuest(b);
       // Instant ISO UTC : journal de la serrure, ou `createTime` de l'ancien `CHECKIN`.
@@ -115,12 +130,10 @@ export async function GET(request: NextRequest) {
           priority: 3,
           tags: ["key"],
         }, { title: "🔑 Check-in" }); // le prénom ne va pas dans le journal des 30 jours
-        // SET seulement après succès de l'envoi pour pouvoir retry au prochain tick si ntfy down
-        await redis.set(key, { at: new Date().toISOString(), enteredAt }, {
-          ex: REDIS_KEY_TTL_SECONDS,
-        });
         notified.push({ id: b.id, guest, arrivalTime });
       } catch (e) {
+        // Envoi raté : la réservation de la clé est rendue, le passage suivant réessaiera.
+        await redis.del(key).catch((err) => console.error("[checkin-notifications] libération:", err instanceof Error ? err.message : err));
         errors.push({
           id: b.id,
           error: e instanceof Error ? e.message : String(e),
@@ -128,6 +141,24 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Journal illisible : plus aucune arrivée signalée, et jusqu'au 2026-11-16 rien ne le disait.
+    // Règle commune (deux passages de suite, soit 20 min ; jamais répétée ; rétabli en 1).
+    await reportAlerts(
+      "checkin-keypad",
+      keypadError === null
+        ? []
+        : [{ id: "keypad", priority: 3, line: `Journal de la serrure illisible (${keypadError.slice(0, 160)}) : les arrivées des voyageurs ne sont plus signalées.` }],
+      sendCronAlert,
+      {
+        title: () => "Check-in : journal de la serrure illisible",
+        recoveredTitle: "Check-in : journal de la serrure de nouveau lisible",
+        recoveredBody: "Les arrivées des voyageurs sont de nouveau signalées.",
+      },
+    ).catch((e) => console.error("[checkin-notifications] alerte journal:", e instanceof Error ? e.message : e));
+
+    // La borne n'avance que si tout ce qui a été lu a été traité : un envoi raté sera relu.
+    if (keypadError === null && errors.length === 0) await saveLogSince("checkin", startedAt);
+    await beat("checkin-notifications", "ok");
     return NextResponse.json({
       success: true,
       window: { arrivalFrom, arrivalTo },
@@ -139,6 +170,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("checkin-notifications", "error");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

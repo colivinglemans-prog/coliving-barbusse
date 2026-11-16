@@ -4,6 +4,7 @@ import { sendNtfy } from "@/lib/ntfy";
 import { modes, runCron } from "@/lib/messages/engine";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { reportAlerts } from "@/lib/alert-memory";
+import { beat } from "@/lib/heartbeat";
 
 /**
  * Une alerte par réservation, modèle et motif toutes les 6 h au plus (chef-de-stand) : un code pas
@@ -36,15 +37,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { killSwitch, modes: m } = modes();
-  if (killSwitch) return NextResponse.json({ ok: true, disabled: true });
+  // Passages sautés par décision : le planificateur est vivant, le battement le dit.
+  if (killSwitch) {
+    await beat("messages-voyageurs", "ok");
+    return NextResponse.json({ ok: true, disabled: true });
+  }
   if (!Object.values(m).some((x) => x === "live" || x === "test")) {
     // Rien en réel : inutile de dépenser des crédits Beds24, l'écran de suivi calcule le plan lui-même.
+    await beat("messages-voyageurs", "ok");
     return NextResponse.json({ ok: true, live: 0 });
   }
 
   try {
     const result = await runCron();
     await clearFailures();
+    await beat("messages-voyageurs", "ok");
     // Un autre passage tient le verrou Redis : rien à faire, ce n'est pas une erreur.
     if ("locked" in result) return NextResponse.json({ ok: true, locked: true });
     const failed = result.results.filter((r) => r.outcome === "failed");
@@ -88,6 +95,7 @@ export async function GET(request: NextRequest) {
     // Règle des alertes (2026-11-10) : un échec isolé — Beds24 lent, quota de 5 min partagé avec
     // les autres crons — ne doit pas faire écrire cron-job.org. 502 seulement au 2e échec de suite :
     // une vraie panne reste signalée, 10 min plus tard. Le passage suivant rattrape tout.
+    await beat("messages-voyageurs", "error");
     const failures = await countFailure();
     return NextResponse.json({ ok: false, error: "indisponible", failures }, { status: failures >= 2 ? 502 : 200 });
   }

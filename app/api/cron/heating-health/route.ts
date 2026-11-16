@@ -6,6 +6,7 @@ import { reportAlerts, reportCronRun, type TrackedAlert } from "@/lib/alert-memo
 import { readPowerCut } from "@/lib/heating-state";
 import { todayParis, nowParis, tomorrowParis } from "@sejour/socle/lib/time";
 import { getBookingsAround, guestsAround } from "@/lib/bookings";
+import { beat } from "@/lib/heartbeat";
 
 /**
  * Connectivité des radiateurs, toutes les 30 min (cron-job.org) et à 8 h (Vercel).
@@ -25,6 +26,9 @@ import { getBookingsAround, guestsAround } from "@/lib/bookings";
  * ignorés : l'alerte de coupure les nomme déjà.
  */
 const LABEL = "Contrôle des radiateurs";
+
+// Une lecture de la liste des radiateurs et, en cas de défaut, des réservations : < 8 s mesurés.
+export const maxDuration = 30;
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -85,6 +89,7 @@ export async function GET(request: NextRequest) {
       recoveredBody: "Tous les radiateurs sont de nouveau en ligne.",
       priority: (c) => (c.length > 1 || guests !== false ? 4 : 3),
     });
+    await beat("heating-health", "ok");
     await reportCronRun("heating-health", LABEL, sendHeatingAlert, null).catch(() => {});
 
     return NextResponse.json({
@@ -99,6 +104,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("heating-health", "error");
     await reportCronRun("heating-health", LABEL, sendHeatingAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }

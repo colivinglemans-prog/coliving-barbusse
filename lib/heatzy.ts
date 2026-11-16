@@ -61,6 +61,7 @@ async function heatzyLogin(): Promise<{ token: string; expiresAt: number }> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ username: email, password, lang: "en" }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!res.ok) {
@@ -85,10 +86,18 @@ async function getHeatzyToken(): Promise<string> {
 
 // ─── Generic fetch wrapper ──────────────────────────────────
 
+/**
+ * Délai d'expiration de chaque appel Gizwits (2026-11-16) : sans lui, une API qui ne répond plus
+ * gardait le cron jusqu'au `maxDuration` de Vercel, sans erreur ni alerte. Un délai dépassé lève
+ * comme une panne ordinaire (`TimeoutError`), que l'appelant traite déjà.
+ */
+const FETCH_TIMEOUT_MS = 10_000;
+
 async function heatzyFetch<T>(
   method: "GET" | "POST",
   path: string,
   body?: Record<string, unknown>,
+  retry = true,
 ): Promise<T> {
   const token = await getHeatzyToken();
 
@@ -101,7 +110,16 @@ async function heatzyFetch<T>(
     },
     body: body ? JSON.stringify(body) : undefined,
     cache: "no-store",
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
+
+  // Jeton refusé avant son échéance supposée (7 jours) : on l'oublie, on se reconnecte et on
+  // réessaie **une** fois. Il restait en cache jusqu'au redémarrage de l'instance.
+  if (res.status === 401 && retry) {
+    cachedToken = null;
+    tokenExpiresAt = 0;
+    return heatzyFetch<T>(method, path, body, false);
+  }
 
   if (!res.ok) {
     throw new Error(`Heatzy API error: ${res.status} ${res.statusText} on ${method} ${path}`);

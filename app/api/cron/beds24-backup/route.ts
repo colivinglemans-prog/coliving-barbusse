@@ -5,6 +5,9 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import { getAllBookingsRaw } from "@/lib/beds24";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
+import { backupFloor, previousCount } from "@/lib/beds24-backup";
 
 /**
  * Sauvegarde hebdomadaire de tout le compte Beds24 vers Vercel Blob, **stockage privé**.
@@ -31,19 +34,12 @@ export const maxDuration = 60;
 const PREFIX = "beds24-backup/";
 /** 8 semaines. */
 const KEEP = 8;
-/** `beds24-backup/2026-11-08_32.json.gz` → 32. */
-const NAME = /(d{4}-d{2}-d{2})_(d+).json.gz$/;
-
-function previousCount(pathnames: string[]): number | null {
-  const last = pathnames.filter((p) => NAME.test(p)).sort().at(-1);
-  return last ? Number(last.match(NAME)![2]) : null;
-}
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const dry = request.nextUrl.searchParams.get("dry") === "1";
+  const dry = isDryRun(request.nextUrl.searchParams);
   const today = todayParis();
 
   try {
@@ -69,7 +65,7 @@ export async function GET(request: NextRequest) {
       throw new Error(`store Vercel Blob inaccessible (${why})`);
     }
     const previous = previousCount(existing);
-    const floor = previous == null ? 1 : Math.ceil(previous / 2);
+    const floor = backupFloor(previous);
     if (dry) {
       return NextResponse.json({
         success: true,
@@ -113,6 +109,7 @@ export async function GET(request: NextRequest) {
       { title: `Sauvegarde Beds24 du ${today}`, priority: 1, tags: ["floppy_disk"] },
     ).catch((e) => console.error("[beds24-backup] ntfy", e));
 
+    await beat("beds24-backup", "ok");
     return NextResponse.json({
       success: true,
       pathname,
@@ -124,6 +121,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[beds24-backup]", message);
+    if (!dry) await beat("beds24-backup", "error");
     await sendNtfy(`Échec : ${message}`, {
       title: `Sauvegarde Beds24 du ${today}`,
       priority: 4,

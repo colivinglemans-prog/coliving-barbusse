@@ -106,7 +106,7 @@ prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-rép
   non-arrivée), 5 (16h30, tardif).
 - **Redis** : `barbusse:readiness:state:<arrival:id|equipment>` (anti-répétition par séjour),
   `…:memory` (lectures ratées), `…:baseline:<id>` (températures de 12h30), `…:last-run`.
-- **`?dryRun=1`** : calcule et rend l'aperçu de la notification sans rien écrire ni envoyer
+- **`?dryRun=1` ou `?dry=1`** (les deux noms valent partout où un mode à blanc existe, `lib/cron-params.ts`, depuis le 2026-11-16 ; un `?dry=1` faisait ici un vrai passage) : calcule et rend l'aperçu de la notification sans rien écrire ni envoyer
   (`run.ts` n'appelle jamais `send` en `dryRun`, et la route lui passe une fonction qui lève).
   `&at=<ISO>` simule l'instant (refusé hors `dryRun`). Les sondes lisent toujours l'état
   **actuel** des appareils.
@@ -116,14 +116,40 @@ prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-rép
   fenêtre de ± 30 min ; le passage `late` d'une arrivée à 23 h est à 22 h, les heures de silence
   sont gérées par la route.
 
+**Crons sans mode à blanc** (`NO_DRY_MODE`, `lib/cron-params.ts`) : `?dry=1` y est **ignoré** et
+lance un vrai passage — `beds24-keepalive`, `checkin-notifications`, `heating-automation`,
+`heating-health`, `heating-reset`, `messages-voyageurs`, `water-heater-automation`,
+`water-heater-health`. Ne pas les appeler « pour voir ».
+
 ## Battement de cœur des crons (`/api/health/heartbeat`)
 
-`nuki-sync`, `heating-automation`, `water-heater-automation` et `arrival-readiness` appellent
-`beat(name, "ok" | "error")` (`lib/heartbeat.ts`, `recordHeartbeat` du socle) en fin de passage
-réel — pas en `dry`/`dryRun`. Redis `barbusse:heartbeat:<nom>` et `…:ok` (TTL 30 j).
+Tous les crons de `app/api/cron` appellent `beat(name, "ok" | "error")` (`lib/heartbeat.ts`,
+`recordHeartbeat` du socle) en fin de passage réel — jamais en `dry`/`dryRun` — sauf
+`pricing-review-reminder`, exempté avec son motif (`HEARTBEAT_EXEMPT`). Un test
+(`tests/readiness/heartbeat-coverage.test.ts`) échoue si une route n'a ni battement ni
+exemption. Un passage sauté par décision (coupe-circuit `…_ENABLED=false`, mode été, rien en
+`live`) bat `ok`. Redis `barbusse:heartbeat:<nom>` et `…:ok` (TTL 30 j).
 
-Retards acceptés (dernier passage **réussi**) : `heating-automation` 45 min, les trois autres
-150 min — fréquence réelle plus un passage manqué.
+Retards acceptés (dernier passage **réussi**, cadence réelle relevée le 2026-11-15 plus un
+passage manqué) :
+
+| Cadence | Crons | Retard |
+|---|---|---|
+| 10 min | `messages-voyageurs`, `checkin-notifications`, `camera-watch`, `cleaning-watch` | 30 min |
+| 15 min | `heating-automation`, `water-heater-automation` | 45 min |
+| 30 min | `heating-health` | 90 min |
+| 1 h | `nuki-sync`, `arrival-readiness` | 150 min |
+| 2 h | `water-heater-health` | 5 h |
+| 4 h | `heating-reset` | 10 h |
+| quotidien | `pricing-push`, `pricing-snapshot`, `indexing` | 26 h |
+| hebdomadaire | `beds24-keepalive`, `events-watch`, `beds24-backup`, `pricing-report` | 8 jours |
+
+**Délai de grâce au démarrage** (`overdueWithGrace`, 2026-11-16) : le socle compte une clé absente
+comme un retard ; un cron ajouté à la liste sortirait donc « en retard » dès le déploiement. La
+route note la première fois qu'elle voit chaque cron (`barbusse:heartbeat:<nom>:watched-since`,
+sans expiration) et ne déclare pas en retard un cron **qui n'a jamais battu** tant que cette date
+a moins que sa tolérance. Une clé `…:ok` expirée (cron mort depuis 30 jours) ne rouvre pas de
+délai : la première vue est ancienne.
 
 `GET /api/health/heartbeat` est **publique** (hors `matcher` de `proxy.ts`) : 200
 `{ ok: true, overdue: 0 }` ou 503 `{ ok: false, overdue: N }`, **jamais un nom** (« la synchro de
@@ -153,12 +179,16 @@ règle, dans [lib/alert-memory.ts](../lib/alert-memory.ts) (`reportAlerts`, `rep
 | Alerte | État Redis (`barbusse:alert:…`) | Particularités |
 |---|---|---|
 | Serrure hors ligne / clavier non appairé | `nuki-lock` | Évaluée au **cron horaire seulement**, jamais au passage lancé par le webhook Beds24 (nos propres écritures le déclenchent). Priorité 4. La pile faible n'est plus signalée par la synchro : le passage `daily` de 9 h de la préparation d'arrivée la signale. |
-| Codes du clavier (planificateur, échecs d'écriture, confirmation) | `nuki-codes` | Identifiant = type + réservation (+ étape) ; priorité 3 / 4 / 5 selon la proximité de l'arrivée. |
+| Codes du clavier (planificateur, échecs d'écriture, confirmation) | `nuki-codes` | Identifiant = type + réservation (+ étape) ; priorité 3 / 4 / 5 selon la proximité de l'arrivée. Évaluée aussi quand `NUKI_SYNC_MODE` n'est pas `live` (rien n'est écrit). |
+| Code dans Beds24 mais absent du clavier, arrivée au plus tard demain et séjour pas fini | `nuki-codes-urgent` | **Exception à la règle des deux passages** (2026-11-16) : `confirmAfter: 1`, priorité 5 (4 de 22 h à 8 h pour une arrivée demain ; gravité stockée toujours 5, pas d'escalade à minuit), évaluée aussi au passage lancé par le webhook. Le PIN est écrit dans Beds24 avant la pose : une auto-action a pu l'envoyer. Sortie de `nuki-codes` pour ne pas repartir au passage suivant. |
+| Erreur de la synchro (`catch`) | `error:nuki-sync` | Deux passages de suite (`reportCronRun`). |
 | Radiateurs hors ligne | `heating-health` | Ignorés pendant une coupure soupçonnée ou signalée. Un seul radiateur en défaut : priorité 3 si la maison est vide, 4 si des voyageurs sont là ou arrivent d'ici demain (ou si plusieurs sont en défaut). |
 | Radiateurs qui refusent leur mode | `heating-automation` | Deux passages de suite ; un radiateur vu hors ligne au même passage n'y compte pas (c'est `heating-health` qui le signale). |
 | Coupure de courant | (`barbusse:heating:power-cut`, `lib/power-cut.ts`) | Soupçonnée au 1er passage, signalée en priorité 5 au 2e (15 min) si au moins 3 des **mêmes** radiateurs manquent encore (une chute toute neuve repart en soupçon) ; « courant revenu » en priorité 1. |
 | Ballon thermodynamique | `water-heater-health` | Remplace `barbusse:water-heater:health-pending` (expire seule). |
-| Erreur d'un cron (`catch`) | `error:<cron>` | `heating-health`, `heating-automation`, `heating-reset`, `water-heater-health`, `water-heater-automation`. Identifiant fixe : un message d'erreur qui change ne relance pas l'alerte. |
+| Erreur d'un cron (`catch`) | `error:<cron>` | `heating-health`, `heating-automation`, `heating-reset`, `water-heater-health`, `water-heater-automation`, `nuki-sync`, `cleaning-watch`, `pricing-snapshot`, `pricing-push`. Identifiant fixe : un message d'erreur qui change ne relance pas l'alerte. `heating-reset` compte en erreur un passage où **tous** les radiateurs ont refusé (502). |
+| Journal de la serrure illisible (check-in) | `checkin-keypad` | Priorité 3 ; sans lui, plus aucune arrivée signalée. |
+| Garage ou porte illisibles (suivi ménage) | `cleaning-sources` | Priorité 3 ; une source sans identifiants (`no-credentials`) n'est pas une panne. |
 | Plafond des messages voyageurs | `messages-cap` | `confirmAfter: 1` (pas un état passager). |
 | Crons en retard | `heartbeat` | Rétabli en priorité 1. La surveillance déclare `heartbeat.severity: "warning"` : plus de doublon `[Crons]` + `[Surveillance]` ; une route de heartbeat illisible reste bloquante (`heartbeat.reachable`). |
 

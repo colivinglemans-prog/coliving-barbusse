@@ -54,6 +54,7 @@ async function cozytouchLogin(): Promise<string> {
       username: `GA-PRIVATEPERSON/${email}`,
       password,
     }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!tokenRes.ok) {
@@ -67,6 +68,7 @@ async function cozytouchLogin(): Promise<string> {
   // Step 2: Exchange for JWT
   const jwtRes = await fetch(ATLANTIC_JWT_URL, {
     headers: { Authorization: `Bearer ${accessToken}` },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!jwtRes.ok) {
@@ -81,6 +83,7 @@ async function cozytouchLogin(): Promise<string> {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ jwt }),
     redirect: "manual",
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   // Extract JSESSIONID from Set-Cookie header
@@ -129,6 +132,14 @@ async function getSession(fresh = false): Promise<string> {
 
 // ─── Generic fetch wrapper ──────────────────────────────────
 
+/**
+ * Délais d'expiration (2026-11-16) : 10 s par appel, 15 s pour la lecture de tout l'équipement
+ * (`/setup/…`, la plus lourde). Un délai dépassé lève une `TimeoutError`, traitée par les
+ * appelants comme toute panne d'Overkiz.
+ */
+const FETCH_TIMEOUT_MS = 10_000;
+const HEAVY_FETCH_TIMEOUT_MS = 15_000;
+
 async function cozytouchFetch<T>(
   method: "GET" | "POST",
   path: string,
@@ -146,6 +157,7 @@ async function cozytouchFetch<T>(
     },
     body: body ? JSON.stringify(body) : undefined,
     cache: "no-store",
+    signal: AbortSignal.timeout(path.startsWith("/setup") ? HEAVY_FETCH_TIMEOUT_MS : FETCH_TIMEOUT_MS),
   });
 
   if (res.status === 401 && retry) {

@@ -1,4 +1,4 @@
-import { listLog } from "@sejour/socle/lib/nuki";
+import { listLogSince } from "@sejour/socle/lib/nuki";
 import { nukiConfig } from "@/lib/access-sync";
 import { AjCloud } from "@/lib/camera/ajcloud";
 import { Intratone } from "@/lib/cleaning/intratone";
@@ -23,9 +23,13 @@ export async function garageArrivals(people: TrackedPerson[]): Promise<CleaningA
   return trackedOpenings(await client.keypadOpenings(), people);
 }
 
-export async function doorArrivals(people: TrackedPerson[]): Promise<CleaningArrival[]> {
+/**
+ * Journal lu depuis `since`, toutes pages (`listLogSince`) : `listLog` plafonne à 50 lignes et
+ * laissait filer un passage un soir chargé. Lève si le journal ne peut pas être lu en entier.
+ */
+export async function doorArrivals(people: TrackedPerson[], since: Date): Promise<CleaningArrival[]> {
   if (!process.env.NUKI_API_TOKEN || !process.env.NUKI_SMARTLOCK_ID) throw new Error("no-credentials");
-  const log = await listLog(nukiConfig(), 100);
+  const log = await listLogSince(nukiConfig(), since);
   const out: CleaningArrival[] = [];
   for (const e of log) {
     if (e.trigger !== 255 || e.state !== 0) continue;

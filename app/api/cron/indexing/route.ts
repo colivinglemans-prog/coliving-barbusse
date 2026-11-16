@@ -3,6 +3,8 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { runIndexing, type IndexingConfig } from "@sejour/socle/lib/indexing";
 import { sendNtfy } from "@/lib/ntfy";
 import { hasRedis, redisKey, stringStore } from "@/lib/redis";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 
 /**
  * Indexation automatique, une fois par jour (`vercel.json`, 05:30 UTC = 06:30 à Paris l'hiver) :
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
   if (!hasRedis()) {
     return NextResponse.json({ error: "Upstash non configuré (KV_REST_API_URL / KV_REST_API_TOKEN)." }, { status: 503 });
   }
-  const dry = request.nextUrl.searchParams.get("dry") === "1";
+  const dry = isDryRun(request.nextUrl.searchParams);
   try {
     const report = await runIndexing(CONFIG, {
       store: stringStore(),
@@ -47,11 +49,13 @@ export async function GET(request: NextRequest) {
       notify: (n) =>
         sendNtfy(n.body, { title: `[Indexation] ${n.title}`, priority: n.priority, tags: ["mag", "warning"] }),
     });
+    if (!dry) await beat("indexing", "ok");
     return NextResponse.json({ success: true, ...report });
   } catch (e) {
     // Le détail ne va qu'au journal (les erreurs du socle ne portent jamais la clé Bing) ; le
     // client reçoit un message générique.
     console.error("[indexing]", e instanceof Error ? e.message : String(e));
+    if (!dry) await beat("indexing", "error");
     return NextResponse.json({ success: false, error: "Indexation momentanément impossible." }, { status: 500 });
   }
 }

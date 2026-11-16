@@ -13,6 +13,7 @@ import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getSu
 import { getWaterHeaterStatus } from "@/lib/cozytouch";
 import { getJson, redisKey, setJson } from "@/lib/redis";
 import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 import { createHeatingProbe, type HeatingReading, type HeatingSnapshot } from "@/lib/readiness/heating-probe";
 import { createWaterHeaterProbe } from "@/lib/readiness/water-heater-probe";
 import { runArrivalReadiness, type ReadinessStore } from "@/lib/readiness/run";
@@ -29,7 +30,7 @@ import type { Beds24Booking } from "@/lib/types";
  * silence (22 h → 8 h, sauf J-1 et arrivée tardive) viennent du socle et de
  * `lib/readiness/config.ts`.
  *
- * `?dryRun=1` calcule sans rien envoyer ni écrire ; `&at=<ISO>` simule l'instant (accepté
+ * `?dryRun=1` (ou `?dry=1`, comme les autres crons) calcule sans rien envoyer ni écrire ; `&at=<ISO>` simule l'instant (accepté
  * **seulement** avec `dryRun`). Les sondes lisent toujours l'état **actuel** des appareils :
  * `at` déplace l'horloge des passages, pas celle des radiateurs.
  *
@@ -157,7 +158,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const params = request.nextUrl.searchParams;
-  const dryRun = params.get("dryRun") === "1";
+  // `dryRun=1` ou `dry=1` : un `?dry=1` faisait ici un vrai passage jusqu'au 2026-11-16.
+  const dryRun = isDryRun(params);
   const at = params.get("at");
   if (at !== null && !dryRun) {
     return NextResponse.json({ error: "`at` n'est accepté qu'avec `dryRun=1`" }, { status: 400 });
