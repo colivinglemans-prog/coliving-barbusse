@@ -36,6 +36,7 @@ export interface HeatzyDevice {
   cftTemp?: number;            // température confort actuelle du device (°C)
   ecoTemp?: number;            // température éco actuelle du device (°C)
   isLocked: boolean;            // true si verrouillé en hors-gel (ignoré par les crons)
+  lockedUntil?: string;         // jour (YYYY-MM-DD) où le verrou est levé, après la libération (lib/heating-locks.ts)
   pilotLocked: boolean;         // true si boutons physiques du Heatzy verrouillés
   presenceDetected?: boolean;   // true si capteur détecte quelqu'un (seulement en mode présence)
   expectedMode?: HeatzyMode | string;

@@ -98,7 +98,11 @@ export default function HeatingDeviceCard({
       {/* Locked badge */}
       {device.isLocked && (
         <div className="mb-3 rounded-lg bg-purple-50 border border-purple-200 px-3 py-2 text-sm text-purple-800 flex items-center justify-between">
-          <span>Verrouillé en hors-gel</span>
+          <span>
+            {device.lockedUntil
+              ? `Verrouillé en hors-gel jusqu'au départ du ${device.lockedUntil.slice(8, 10)}/${device.lockedUntil.slice(5, 7)}`
+              : "Verrouillé en hors-gel"}
+          </span>
           {role === "admin" && onToggleLock && (
             <button
               onClick={() => onToggleLock(device.did, false)}

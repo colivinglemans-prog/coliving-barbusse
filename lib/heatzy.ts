@@ -5,6 +5,7 @@ import { getRedis } from "./redis";
 import type { RadiatorReading } from "./radiator-load";
 
 const LOCKS_KEY = "heatzy:locked-devices";
+const LOCK_UNTIL_KEY = "heatzy:locked-until";
 const EXTRAS_KEY = "heatzy:extra-devices";
 const SUMMER_MODE_KEY = "heatzy:summer-mode";
 
@@ -275,8 +276,13 @@ export async function getFullZoneConfig(): Promise<HeatzyZoneConfig> {
   return config;
 }
 
-export async function getLockedDevices(): Promise<Set<string>> {
-  const cached = getCached<string[]>(LOCKS_KEY);
+/**
+ * Radiateurs verrouillés en hors-gel. `fresh` saute le cache mémoire de 60 s : à utiliser avant
+ * toute réécriture de la liste, pour ne pas effacer un verrou posé une minute plus tôt depuis le
+ * dashboard (autre instance).
+ */
+export async function getLockedDevices(opts: { fresh?: boolean } = {}): Promise<Set<string>> {
+  const cached = opts.fresh ? undefined : getCached<string[]>(LOCKS_KEY);
   if (cached) return new Set(cached);
 
   try {
@@ -297,6 +303,27 @@ export async function saveLockedDevices(devices: Set<string>) {
   const arr = [...devices];
   await getRedis().set(LOCKS_KEY, arr);
   setCached(LOCKS_KEY, arr);
+}
+
+/**
+ * Date de fin de chaque verrou (`lib/heating-locks.ts`), hachage radiateur → `YYYY-MM-DD`.
+ * Lecture qui ne lève jamais : sans elle, les verrous suivent la règle d'avant (levés au premier
+ * départ).
+ */
+export async function getLockUntil(): Promise<Record<string, string>> {
+  try {
+    const value = await getRedis().hgetall<Record<string, string>>(LOCK_UNTIL_KEY);
+    return value ?? {};
+  } catch (e) {
+    console.error("getLockUntil Redis error:", e);
+    return {};
+  }
+}
+
+/** Pose (date) ou retire (`null`) la date de fin d'un verrou. */
+export async function setLockUntil(did: string, until: string | null): Promise<void> {
+  if (until) await getRedis().hset(LOCK_UNTIL_KEY, { [did]: until });
+  else await getRedis().hdel(LOCK_UNTIL_KEY, did);
 }
 
 export async function getSummerMode(): Promise<boolean> {
