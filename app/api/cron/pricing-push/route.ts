@@ -9,7 +9,8 @@ import { haltState, runPricingPush, type PushRun } from "@/lib/pricing/push";
 
 /**
  * Envoi quotidien des prix du moteur vers Beds24 — le seul appelant de `lib/pricing/push.ts`.
- * À appeler une fois par jour à 05:10 UTC (cron-job.org), **après** le relevé de 05:00.
+ * Appelée une fois par jour à **8 h 10 heure de Paris** (cron-job.org, depuis le 2026-11-15 ;
+ * 05:10 UTC auparavant), **après** le relevé `pricing-snapshot` de 05:00 UTC (Vercel).
  *
  * Tant que `PRICING_PUSH_MODE` n'est pas posé, la route ne fait rien (`off`). En `dry`, elle
  * calcule et journalise sans écrire. `?dry=1` force ce mode ponctuellement — il ne rend jamais

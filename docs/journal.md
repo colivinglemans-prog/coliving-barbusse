@@ -599,3 +599,39 @@ exacts à régénérer pour cette voie-là.
 lecture prend le relais : le tunnel continue de fonctionner, en ayant reperdu la séparation des
 privilèges, sans que rien ne le signale à l'écran. Seul le keepalive rend cette dégradation
 visible. C'est sa vraie raison d'être, plus encore que l'expiration.
+
+### 2026-11-16 — lot « un voyageur devant la porte »
+
+Issu de l'audit de fiabilité des 13 et 15/11 : qu'aucune panne qui prive un voyageur de son code,
+d'une maison chaude ou d'une alerte ne reste muette. Branche `voyageur-devant-la-porte`.
+
+- **Alertes qui ne partaient jamais** : sans `NTFY_TOPIC`, `sendNtfy` rendait la main sans erreur
+  et `reportAlerts` notait l'alerte partie ; `heating-automation` et la route du battement
+  faisaient `alertTransition` puis `send().catch()`. Désormais l'envoi lève et tout passe par
+  `reportAlerts`, qui remet l'état si l'envoi échoue.
+- **Code dans Beds24 mais pas sur le clavier** : l'ordre Beds24 → serrure est gardé (un code qui
+  ouvre sans que le voyageur l'ait reçu est pire), mais une pose ratée pour une arrivée
+  aujourd'hui ou demain alerte dès le premier passage, priorité 5 (`nuki-codes-urgent`), aussi
+  depuis le webhook. Une synchro hors `live` alerte sans écrire. Verrou rendu par son seul
+  détenteur.
+- **Journal Nuki** : `listLog(cfg, 100)` rendait 50 lignes au plus ; `listLogSince` depuis le
+  dernier passage réussi moins 2 h (`lib/nuki-log-cursor.ts`).
+- **Battements de cœur** : 5 crons surveillés → 18 (tous sauf `pricing-review-reminder`, exempté
+  avec motif), tolérances tirées des cadences réelles relevées le 15/11, délai de grâce au
+  démarrage (`overdueWithGrace`, clé `…:watched-since`) pour ne pas alerter le jour du
+  déploiement ; `water-heater-automation` 150 → 45 min. Un test casse si une route n'a ni
+  battement ni exemption.
+- **Pannes muettes** : journal du clavier illisible (`checkin-keypad`), garage ou porte du suivi
+  ménage (`cleaning-sources`, accès Redis protégés), reset où tous les radiateurs refusent (502),
+  relevé des prix en échec (`reportCronRun`).
+- **Ballon** : chaque commande dans son `try`, l'Absence de pic toujours tentée en dernier, échecs
+  signalés (`water-heater-commands`) et réponse 502.
+- **Délais d'expiration** (10 s / 15 s) sur Heatzy, Cozytouch, AJCloud et Intratone ; Heatzy se
+  reconnecte une fois sur un 401 ; `maxDuration` sur tous les crons.
+- **Petits pièges** : `?dry=1` et `?dryRun=1` partout (un `?dry=1` sur `arrival-readiness` faisait
+  un vrai passage) ; anti-doublon du check-in réservé par `SET NX` avant l'envoi.
+- **Trouvé en route** : l'expression des noms de la sauvegarde Beds24 avait perdu ses antislash
+  (`/(d{4}-d{2}-d{2})_(d+).json.gz$/`) — le garde-fou « pas sous la moitié de la précédente » ne
+  jouait plus depuis sa création. Corrigé et testé (`lib/beds24-backup.ts`).
+- **Hors du lot** : l'heure de coupure du chauffage le jour du départ (10 h codé, 11 h annoncé),
+  reprise par un plan séparé.

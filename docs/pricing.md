@@ -120,7 +120,7 @@ est **mis en pause**, pas résilié ; résiliation après le 31/01/2027.
 ### La porte unique
 
 `lib/pricing/push.ts` est **le seul module qui écrit** dans Beds24, appelé par le seul cron
-`/api/cron/pricing-push` (cron-job.org, **05:10 UTC**, après le relevé de 05:00). Déroulé :
+`/api/cron/pricing-push` (cron-job.org, **8 h 10 heure de Paris** depuis le 2026-11-15 — 05:10 UTC auparavant —, après le relevé `pricing-snapshot` de 05:00 UTC). Déroulé :
 1. verrou Redis ;
 2. relecture **fraîche** du calendrier (`getCalendarDays(..., { fresh: true })`) ;
 3. moteur et prix forcés (`buildTargets`) ;
