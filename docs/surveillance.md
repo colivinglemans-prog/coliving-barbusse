@@ -181,7 +181,9 @@ règle, dans [lib/alert-memory.ts](../lib/alert-memory.ts) (`reportAlerts`, `rep
 | Radiateurs qui refusent leur mode | `heating-automation` | Deux passages de suite ; un radiateur vu hors ligne au même passage n'y compte pas (c'est `heating-health` qui le signale). |
 | Coupure de courant | (`barbusse:heating:power-cut`, `lib/power-cut.ts`) | Soupçonnée au 1er passage, signalée en priorité 5 au 2e (15 min) si au moins 3 des **mêmes** radiateurs manquent encore (une chute toute neuve repart en soupçon) ; « courant revenu » en priorité 1. |
 | Ballon thermodynamique | `water-heater-health` | Remplace `barbusse:water-heater:health-pending` (expire seule). |
-| Erreur d'un cron (`catch`) | `error:<cron>` | `heating-health`, `heating-automation`, `heating-reset`, `water-heater-health`, `water-heater-automation`. Identifiant fixe : un message d'erreur qui change ne relance pas l'alerte. |
+| Erreur d'un cron (`catch`) | `error:<cron>` | `heating-health`, `heating-automation`, `heating-reset`, `water-heater-health`, `water-heater-automation`, `nuki-sync`, `cleaning-watch`, `pricing-snapshot`, `pricing-push`. Identifiant fixe : un message d'erreur qui change ne relance pas l'alerte. `heating-reset` compte en erreur un passage où **tous** les radiateurs ont refusé (502). |
+| Journal de la serrure illisible (check-in) | `checkin-keypad` | Priorité 3 ; sans lui, plus aucune arrivée signalée. |
+| Garage ou porte illisibles (suivi ménage) | `cleaning-sources` | Priorité 3 ; une source sans identifiants (`no-credentials`) n'est pas une panne. |
 | Plafond des messages voyageurs | `messages-cap` | `confirmAfter: 1` (pas un état passager). |
 | Crons en retard | `heartbeat` | Rétabli en priorité 1. La surveillance déclare `heartbeat.severity: "warning"` : plus de doublon `[Crons]` + `[Surveillance]` ; une route de heartbeat illisible reste bloquante (`heartbeat.reachable`). |
 

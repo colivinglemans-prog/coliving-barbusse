@@ -117,6 +117,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Tous les radiateurs pilotés ont refusé : le passage n'a rien fait. Il répondait pourtant
+    // « succès » et remettait l'erreur suivie à zéro (2026-11-16). Partiel : `heating-health`
+    // et l'automation signalent les radiateurs en cause.
+    const attempted = actions.filter((a) => !a.endsWith("(verrouillé)")).length + failures.length;
+    if (attempted > 0 && failures.length === attempted) {
+      const message = `Les ${attempted} radiateurs ont refusé le reset (${failures[0]})`;
+      await beat("heating-reset", "error");
+      await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, message).catch(() => {});
+      return NextResponse.json({ success: false, error: message, failures, timestamp: new Date().toISOString() }, { status: 502 });
+    }
+
     await beat("heating-reset", "ok");
     await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, null).catch(() => {});
     return NextResponse.json({

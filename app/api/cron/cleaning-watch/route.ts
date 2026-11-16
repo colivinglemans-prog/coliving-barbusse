@@ -8,6 +8,8 @@ import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { beat } from "@/lib/heartbeat";
 import { isDryRun } from "@/lib/cron-params";
 import { readLogSince, saveLogSince } from "@/lib/nuki-log-cursor";
+import { reportAlerts, reportCronRun, type TrackedAlert } from "@/lib/alert-memory";
+import { sendCronAlert } from "@/lib/alerts";
 
 /**
  * Suivi des intervenants de la maison : alerte quand une personne suivie arrive (ménage Sophie,
@@ -27,7 +29,7 @@ import { readLogSince, saveLogSince } from "@/lib/nuki-log-cursor";
  * Variables : `INTRATONE_USER/PASS`, `INTRATONE_CENTRALE_ID`, `TRACKED_PEOPLE`
  * (« Sophie:ménage,Eric:dépannage »), `NUKI_API_TOKEN/SMARTLOCK_ID`, `AJCLOUD_EMAIL/PASSWORD`,
  * `NTFY_TOPIC`, `CRON_SECRET`. `CLEANING_WATCH_ENABLED=false` le coupe. `?dry=1` calcule sans
- * envoyer ni mémoriser. Cron-job.org, toutes les heures.
+ * envoyer ni mémoriser (ni alerter). Cron-job.org, toutes les 10 minutes.
  */
 
 export const dynamic = "force-dynamic";
@@ -52,80 +54,121 @@ export async function GET(request: NextRequest) {
   const people = parsePeople(process.env.TRACKED_PEOPLE?.trim() || DEFAULT_PEOPLE);
   const notes: Record<string, string> = {};
 
-  const garage = await garageArrivals(people).catch((e) => {
-    notes.garage = short(e);
-    return [] as CleaningArrival[];
-  });
-  const startedAt = new Date();
-  let doorOk = true;
-  const door = await doorArrivals(people, await readLogSince("cleaning", startedAt)).catch((e) => {
-    doorOk = false;
-    notes.porte = short(e);
-    return [] as CleaningArrival[];
-  });
-  const arrivals = mergeArrivals(garage, door);
+  try {
+    const garage = await garageArrivals(people).catch((e) => {
+      notes.garage = short(e);
+      return [] as CleaningArrival[];
+    });
+    const startedAt = new Date();
+    let doorOk = true;
+    const door = await doorArrivals(people, await readLogSince("cleaning", startedAt)).catch((e) => {
+      doorOk = false;
+      notes.porte = short(e);
+      return [] as CleaningArrival[];
+    });
+    const arrivals = mergeArrivals(garage, door);
 
-  const motions = await cameraMotions().catch((e) => {
-    notes.camera = short(e);
-    return [] as Date[];
-  });
-  const buttons = await buttonPresses().catch(() => [] as Date[]);
+    const motions = await cameraMotions().catch((e) => {
+      notes.camera = short(e);
+      return [] as Date[];
+    });
+    const buttons = await buttonPresses().catch(() => [] as Date[]);
 
-  // Toutes les venues (dédoublonnées par personne) → sessions avec la meilleure sortie que les
-  // mouvements du moment permettent. On les PERSISTE à chaque passage : la sortie se précise et
-  // se grave, elle ne se réeffacera plus (corrige la perte constatée sur « Suivi »). Amorce aussi
-  // le magasin dès le 1er passage pour que la page montre tout l'historique.
-  const allSessions = buildSessions(newArrivalsSince(arrivals, 0), motions, buttons);
-  let upserted = 0;
-  if (!dry) {
-    upserted = await upsertSessions(allSessions);
-    await pruneOldSessions();
-  }
+    // Garage ou porte illisibles : un passage de Sophie ne serait ni signalé ni journalisé. Règle
+    // commune (deux passages de suite, jamais répétée, rétabli en 1). Une source sans identifiants
+    // (`no-credentials`) est facultative par construction : pas une panne.
+    if (!dry) {
+      await reportAlerts("cleaning-sources", sourceAlerts(notes), sendCronAlert, {
+        title: (c) => (c.length === 1 ? "Suivi ménage : une source illisible" : "Suivi ménage : sources illisibles"),
+        intro: "Les passages ne sont plus vus par :",
+        recoveredTitle: "Suivi ménage : sources de nouveau lisibles",
+        recoveredBody: "Garage et porte répondent de nouveau.",
+      }).catch((e) => console.error("[cleaning-watch] alerte sources:", e instanceof Error ? e.message : e));
+    }
 
-  const redis = getRedis();
-  const stored = await redis.get<number>(LAST_KEY);
-  const lastMs = typeof stored === "number" ? stored : Number(stored ?? 0);
+    // Toutes les venues (dédoublonnées par personne) → sessions avec la meilleure sortie que les
+    // mouvements du moment permettent. On les PERSISTE à chaque passage : la sortie se précise et
+    // se grave, elle ne se réeffacera plus (corrige la perte constatée sur « Suivi »). Amorce aussi
+    // le magasin dès le 1er passage pour que la page montre tout l'historique.
+    const allSessions = buildSessions(newArrivalsSince(arrivals, 0), motions, buttons);
+    let upserted = 0;
+    if (!dry) {
+      upserted = await upsertSessions(allSessions);
+      await pruneOldSessions();
+    }
 
-  // Premier passage : magasin amorcé ci-dessus, mais pas d'alerte rétroactive.
-  if (!stored) {
-    const baseline = maxArrivalMs(arrivals, 0);
-    if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
+    const redis = getRedis();
+    const stored = await redis.get<number>(LAST_KEY);
+    const lastMs = typeof stored === "number" ? stored : Number(stored ?? 0);
+
+    // Premier passage : magasin amorcé ci-dessus, mais pas d'alerte rétroactive.
+    if (!stored) {
+      const baseline = maxArrivalMs(arrivals, 0);
+      if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
+      if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
+      if (!dry) await succeeded();
+      return NextResponse.json({ success: true, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
+    }
+
+    const fresh = newArrivalsSince(arrivals, lastMs);
+    const freshSessions = buildSessions(fresh, motions, buttons);
+
+    if (fresh.length > 0 && !dry && !process.env.NTFY_TOPIC) {
+      return NextResponse.json(
+        { error: "NTFY_TOPIC is not set: an arrival cannot be delivered" },
+        { status: 500 },
+      );
+    }
+
+    for (const s of freshSessions) {
+      if (!dry) await sendArrival(s, roleOf(s.who, people));
+    }
+    if (!dry && fresh.length > 0) {
+      await redis.set(LAST_KEY, maxArrivalMs(arrivals, lastMs));
+    }
+
     if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
-    if (!dry) await beat("cleaning-watch", "ok");
-    return NextResponse.json({ success: true, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
+    if (!dry) await succeeded();
+    return NextResponse.json({
+      success: true,
+      dry,
+      people: people.map((p) => p.name),
+      garage: garage.length,
+      porte: door.length,
+      motions: motions.length,
+      fresh: fresh.length,
+      upserted,
+      sessions: freshSessions.map(serializeSession),
+      notes,
+    });
+  } catch (error) {
+    // Redis (magasin, ligne de base) ou ntfy en panne : plus d'exception non rattrapée. Erreur
+    // suivie par la règle commune ; un passage raté ne perd rien (la ligne de base n'a pas bougé).
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[cleaning-watch]", message);
+    if (!dry) {
+      await beat("cleaning-watch", "error");
+      await reportCronRun("cleaning-watch", LABEL, sendCronAlert, message.slice(0, 160)).catch(() => {});
+    }
+    return NextResponse.json({ error: "Suivi ménage momentanément impossible." }, { status: 500 });
   }
+}
 
-  const fresh = newArrivalsSince(arrivals, lastMs);
-  const freshSessions = buildSessions(fresh, motions, buttons);
+const LABEL = "Suivi ménage";
 
-  if (fresh.length > 0 && !dry && !process.env.NTFY_TOPIC) {
-    return NextResponse.json(
-      { error: "NTFY_TOPIC is not set: an arrival cannot be delivered" },
-      { status: 500 },
-    );
+async function succeeded(): Promise<void> {
+  await beat("cleaning-watch", "ok");
+  await reportCronRun("cleaning-watch", LABEL, sendCronAlert, null).catch(() => {});
+}
+
+/** Les sources en panne (hors `no-credentials`), en constats stables pour `reportAlerts`. */
+function sourceAlerts(notes: Record<string, string>): TrackedAlert[] {
+  const out: TrackedAlert[] = [];
+  for (const [id, label] of [["garage", "le digicode du garage (Intratone)"], ["porte", "le journal de la serrure (Nuki)"]] as const) {
+    const note = notes[id];
+    if (note && note !== "no-credentials") out.push({ id, priority: 3, line: `  - ${label} : ${note}` });
   }
-
-  for (const s of freshSessions) {
-    if (!dry) await sendArrival(s, roleOf(s.who, people));
-  }
-  if (!dry && fresh.length > 0) {
-    await redis.set(LAST_KEY, maxArrivalMs(arrivals, lastMs));
-  }
-
-  if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
-  if (!dry) await beat("cleaning-watch", "ok");
-  return NextResponse.json({
-    success: true,
-    dry,
-    people: people.map((p) => p.name),
-    garage: garage.length,
-    porte: door.length,
-    motions: motions.length,
-    fresh: fresh.length,
-    upserted,
-    sessions: freshSessions.map(serializeSession),
-    notes,
-  });
+  return out;
 }
 
 function roleOf(who: string, people: TrackedPerson[]): string {

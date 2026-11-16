@@ -9,6 +9,8 @@ import { getRedis } from "@/lib/redis";
 import { firstNameOnly } from "@sejour/socle/lib/arrival-readiness/format";
 import { beat } from "@/lib/heartbeat";
 import { readLogSince, saveLogSince } from "@/lib/nuki-log-cursor";
+import { reportAlerts } from "@/lib/alert-memory";
+import { sendCronAlert } from "@/lib/alerts";
 
 const CHECKIN_INFO_CODE = "CHECKIN";
 const REDIS_KEY_TTL_SECONDS = 60 * 24 * 3600; // 60 jours
@@ -134,6 +136,21 @@ export async function GET(request: NextRequest) {
         });
       }
     }
+
+    // Journal illisible : plus aucune arrivée signalée, et jusqu'au 2026-11-16 rien ne le disait.
+    // Règle commune (deux passages de suite, soit 20 min ; jamais répétée ; rétabli en 1).
+    await reportAlerts(
+      "checkin-keypad",
+      keypadError === null
+        ? []
+        : [{ id: "keypad", priority: 3, line: `Journal de la serrure illisible (${keypadError.slice(0, 160)}) : les arrivées des voyageurs ne sont plus signalées.` }],
+      sendCronAlert,
+      {
+        title: () => "Check-in : journal de la serrure illisible",
+        recoveredTitle: "Check-in : journal de la serrure de nouveau lisible",
+        recoveredBody: "Les arrivées des voyageurs sont de nouveau signalées.",
+      },
+    ).catch((e) => console.error("[checkin-notifications] alerte journal:", e instanceof Error ? e.message : e));
 
     // La borne n'avance que si tout ce qui a été lu a été traité : un envoi raté sera relu.
     if (keypadError === null && errors.length === 0) await saveLogSince("checkin", startedAt);
