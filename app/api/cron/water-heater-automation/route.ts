@@ -40,8 +40,10 @@ import {
  * son `try` : un refus du mode n'empêche plus l'Absence (`lib/water-heater-commands.ts`). Une
  * commande refusée : alerte `water-heater-commands` (deux passages) et réponse 502.
  */
-// Cinq lectures en parallèle puis jusqu'à quatre commandes Overkiz (~2 s chacune).
-export const maxDuration = 30;
+// Lectures en parallèle puis jusqu'à quatre commandes Overkiz, 10 s chacune au pire
+// (`AbortSignal.timeout`). L'Absence de pic est la **dernière** : 30 s pouvaient la couper
+// derrière trois commandes lentes. 60 s, le plafond du plan Hobby.
+export const maxDuration = 60;
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
