@@ -356,7 +356,7 @@ Trois portes, dans cet ordre. Aucune n'est suffisante seule.
 | Porte | Où | Ce qu'elle fait |
 |---|---|---|
 | `proxy.ts` | racine | Cookie exigé sur `/dashboard` et `/api/dashboard`. **Liste blanche** des chemins ouverts à `viewer` — l'ancien middleware tenait une liste noire de quatre préfixes, et c'est ainsi que `bookings` est resté ouvert. |
-| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`. |
+| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`, `bookings/[id]/stay-hours`. Lecture ouverte au viewer : `stay-status` (identifiants et heures seulement). |
 | DTO | `@sejour/socle/lib/booking-dto` | `/api/dashboard/bookings` projette vers `BookingListItem` (15 champs) ou `AdminBookingListItem` (+`price`, `email`, `mobile`, `phone`, `country`). |
 
 **Deux protections contre la fuite des `NUKI_PIN`**, fermée le 2026-09-11 (historique et
@@ -510,7 +510,8 @@ remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki We
 | `/api/webhooks/beds24` | Webhook « Booking » de Beds24, en-tête `x-webhook-secret`. Déclenche un passage : PIN posé en quelques secondes pour une réservation de dernière minute. Le corps n'est pas lu. |
 
 **Règles de l'exploitant** : code valable de **14 h le jour d'arrivée à 14 h le jour du
-départ** ; nom `<n° de réservation>: <Prénom>` ; statuts `confirmed` et `new` seulement
+départ** (élargi par séjour en cas d'horaire convenu à partir du socle v3.26.0 : min(14 h, A − 1 h) →
+max(14 h, D + 1 h), voir « Horaires convenus par réservation ») ; nom `<n° de réservation>: <Prénom>` ; statuts `confirmed` et `new` seulement
 (`request`, `inquiry`, `black` : rien) ; annulation → code supprimé ; modification → plage
 recalée ; séjour terminé → supprimé. Une réservation `new` est **passée en `confirmed`**
 (`confirmBooking`, jeton `ecriture`) une fois son PIN dans Beds24 et son code sur la serrure. **Codes `# …` (manuels) jamais touchés** — préfixer de
@@ -537,11 +538,48 @@ ligne, PIN manquant ; `?dry=1` seul les tait), `BEDS24_WEBHOOK_SECRET`.
   réponse dans une erreur de `addNukiPin`.
 - Python (`urllib`) refuse le certificat de `api.beds24.com` : scripts en Node.
 
+## Horaires convenus par réservation (arrivée anticipée, départ tardif — 2026-11-16)
+
+Le site vend « arrivée anticipée et départ tardif sur demande » ; depuis le 2026-11-16, l'accord
+se saisit dans la **popup de la réservation** du calendrier (deux sélecteurs, admin) et pilote
+tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-régression).
+
+| Pièce | Rôle |
+|---|---|
+| [lib/stay-hours-rules.ts](lib/stay-hours-rules.ts) | Règle **pure** (importable côté navigateur) : `stayHours` (17 h / 11 h sauf accord), `withAgreedHours`, bornes `AGREED_RANGE` (arrivée 8-16 h, départ 12-23 h, heures entières), `rotationCheck`, `accessHours`, `formatHourFor`. |
+| [lib/stay-hours.ts](lib/stay-hours.ts) | Table Redis : **hachage** `barbusse:stay-hours`, un champ par réservation. `readStayHours` ne lève jamais (Redis injoignable ⇒ heures standard) ; `withStayHours(bookings)` = la jointure commune aux crons et au dashboard. |
+| `POST`/`DELETE /api/dashboard/bookings/[id]/stay-hours` | **Admin seulement** (`guard.denyNonAdmin`). 400 hors bornes, **409 si le départ convenu dépasse l'arrivée (convenue ou standard) du séjour qui arrive le même jour** (ou l'inverse), avertissement si égalité ; 503 sans Redis. |
+| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre. La phase B y ajoutera l'état du départ du jour. |
+
+| Consommateur | Standard | Arrivée convenue A / départ convenu D |
+|---|---|---|
+| Chauffage (`isOccupiedAt`, `heatingSituation`, `resetTarget`, `preheatHours`) | occupé 17 h → 10 h ; préchauffage 12 h / 15 h | occupé dès A et **jusqu'à D** ; préchauffage A − 5 h / A − 2 h (borné à la journée). Le décalage par zone ne s'applique qu'aux montées : la descente à D reste à l'heure partout. |
+| Ballon (`countGuests`) | partants jusqu'à 11 h, arrivants dès 11 h | partants jusqu'à D ; arrivants dès min(11 h, A − 6 h) |
+| Code de la serrure (`toStay`, `lib/access-sync.ts`) | 14 h → 14 h | min(14 h, A − 1 h) → max(14 h, D + 1 h) — **effectif avec le socle v3.26.0** (champs `validFromHour` / `validUntilHour` par séjour) ; en v3.24.0 le socle les ignore et la pastille du calendrier affiche la fenêtre réellement calculée. |
+| Préparation d'arrivée (`toReadinessBooking`) | `arrivalTime` de Beds24 | A en `arrivalTime`, fenêtre du code comme ci-dessus ; `earliestCheckIn: "08:00"` (`lib/readiness/config.ts`, lu à partir du socle v3.26.0). |
+| Messages voyageurs (`hourVars`, `lib/messages/engine.ts`) | « 17h », « 11h » | `heureArrivee` / `heureDepart` dans la langue du voyageur ; `departConvenu` fait dire au message de la veille « comme convenu, vous pouvez rester jusqu'à 16h ». Bouton « Départ » du dashboard aligné. |
+| Bandeau Chauffage (`getHeatingRules`, 4e argument) | — | ligne « Départ tardif convenu à 16 h » / « Arrivée anticipée à 14 h » (`agreedRule`). |
+
+- **Calendrier** : repère horloge sur la barre (infobulle « Départ tardif convenu à 16 h »), lecture
+  seule pour le viewer — la personne du ménage voit l'heure dans la popup.
+- **Alerte « serrure non verrouillée après le départ »** (`lib/departure-detection.ts`, pure ;
+  `lib/departure-lock.ts`, lectures) : dans `heating-automation` (toutes les 15 min, **aussi en
+  mode été**), le jour d'un départ et après l'heure de départ (11 h ou la plus tardive convenue),
+  serrure non verrouillée (`lockState` ≠ 1) → ntfy **priorité 4** au 2e relevé
+  (`barbusse:alert:departure-lock`, règle commune), « Serrure verrouillée » en priorité 1. **Pas
+  d'alerte** si un code du ménage (`TRACKED_PEOPLE`, entrées « # … ») ou celui des voyageurs
+  arrivant le jour même a ouvert depuis l'heure de départ (l'alerte ouverte se referme sans
+  message), ni si la serrure est hors ligne ou le journal illisible (état inchangé).
+- ⚠️ La messagerie maison étant en mode `test`, les vrais messages partent encore des auto-actions
+  Beds24, qui disent « avant 11h » : confirmer l'heure convenue au voyageur à la main.
+- Le guide d'arrivée reste générique (« Sauf accord préalable… avant 11h ») : il n'est lié à aucune
+  réservation.
+
 ## Chauffage Heatzy (ne monte jamais au socle)
 
 `lib/heatzy.ts` pilote 15 radiateurs sur 4 zones (API Gizwits, `data/heatzy-zones.json` avec le mapping Beds24) : crons `heating-automation`, `heating-reset`, `heating-health`, page `/dashboard/heating` (contrôle ouvert au `viewer`).
 - **Une seule règle** : `expectedHeatingMode` (`lib/heating-schedule.ts`), utilisée par l'automatisation, le reset, le dashboard et la préparation d'arrivée ; **la référence est l'automatisation**. `heating-reset` compte le jour d'arrivée comme occupé dès 12 h (il coupait le préchauffage avant le 2026-11-07).
-- **Occupation** (`isOccupiedAt`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). Heure toujours via `@sejour/socle/lib/time`.
+- **Occupation** (`isOccupiedAt`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). **Horaires convenus** (2026-11-16) : occupé dès l'arrivée anticipée A et jusqu'au départ tardif D, préchauffage A − 5 h / A − 2 h — voir « Horaires convenus par réservation ». Heure toujours via `@sejour/socle/lib/time`.
 - ⚠️ **Délestage (2026-11-09, coupures à 9 kVA ; 15 radiateurs ACOVA Atoll LCD 1 000 W)** :
   - **Montées en chauffe échelonnées** par zone (`staggerMinutes`, `zoneHour`) : **dernier étage −15 min, RDC et chambre RDC à l'heure, 1er +15 min** (confort du soir 19 h 45 / 20 h / 20 h 15). Les descentes (7 h, départ 10 h, arrivée 17 h) restent à l'heure partout (décision de l'hôte). Toujours passer la **minute** de Paris à `expectedHeatingMode` / `resetTarget`.
   - **Charge estimée** (`lib/radiator-load.ts`) : à fond si écart ≥ 1 °C ou `Heating_state = 1`, un tiers en régulation, **hors ligne = 100 %**. Plafond et budgets dans `lib/electrical-budget.ts` (**un chiffre à changer au passage à 12 kVA**).
@@ -957,7 +995,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 - **Contrôle** (`lib/water-heater-health.ts`) : recalcule les réglages attendus à la même heure ; Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **« PAC à l'arrêt »** (compteur immobile 2 h, hors Absence) ; un constat n'alerte que s'il était déjà là au contrôle précédent, une seule fois tant qu'il dure (règle commune, `barbusse:alert:water-heater-health`).
 - **Thermo injoignable** (`getConnectivity`, `isUnreachable`) : `available` de l'appareil et passerelle Overkiz — les états restent en cache quand le thermo n'a plus de courant (circuit du garage coupé le 10/11, maison vide). Alerte priorité 5 après deux passages de suite (`water-heater-reach`).
 - **Dashboard** : boost, Éco+ et Performance manuels **refusés (409) aux heures de pic** ; l'admin peut forcer après confirmation, mais **l'automation reprend la main au passage suivant (15 min)**.
-- **Voyageurs comptés** (`countGuests`) : bascule à **11 h** (check-out) — arrivants dès 11 h, partants jusqu'à 11 h, jamais d'éco entre deux réservations enchaînées.
+- **Voyageurs comptés** (`countGuests`) : bascule à **11 h** (check-out) — arrivants dès 11 h, partants jusqu'à 11 h, jamais d'éco entre deux réservations enchaînées. Horaires convenus : partants jusqu'au départ convenu D, arrivants dès min(11 h, A − 6 h).
 - Session Overkiz : après un 401, le second essai ouvre une session **neuve** (`getSession(true)`) — relire Redis rendait la session expirée, d'où un 401 une heure sur deux.
 - Détail (configuration physique, modes, commandes, states, profils) : [docs/cozytouch.md](docs/cozytouch.md).
 

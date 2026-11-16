@@ -635,3 +635,30 @@ d'une maison chaude ou d'une alerte ne reste muette. Branche `voyageur-devant-la
   jouait plus depuis sa création. Corrigé et testé (`lib/beds24-backup.ts`).
 - **Hors du lot** : l'heure de coupure du chauffage le jour du départ (10 h codé, 11 h annoncé),
   reprise par un plan séparé.
+
+## Horaires convenus par réservation
+
+### 2026-11-16 — phase A : arrivée anticipée et départ tardif
+
+Déclencheur : la réservation du 04 au 06/12/2026 (20 personnes) a un départ convenu le dimanche
+à 16 h, noté seulement en texte libre dans Beds24. Sans changement, ce jour-là : chauffage coupé à
+10 h (et remis en hors-gel par le reset de 12 h), ballon « maison vide » à 11 h, et **code de la
+serrure invalide à 14 h** — un voyageur sorti après 14 h ne rentrait plus.
+
+Choix tranchés :
+- **Redis plutôt que Beds24** (comme les déliements d'événement) : un hachage, un champ par
+  réservation, pour que deux saisies concurrentes ne s'écrasent pas.
+- **Bornes de saisie** : arrivée 8-16 h (8 h = `earliestCheckIn` de la préparation d'arrivée),
+  départ 12-23 h. Une valeur égale à l'heure standard n'est pas un accord.
+- **Départ convenu D = occupé jusqu'à D**, alors que l'heure standard libère la maison à 10 h pour
+  un départ annoncé à 11 h. Écart assumé (demande de l'hôte) : la phase C remplacera ces deux
+  règles par le départ constaté et une butoir à D − 15 min.
+- **Rotation** : départ convenu postérieur à l'arrivée du séjour suivant refusé (409), égalité
+  acceptée avec avertissement dans la popup.
+- **Fenêtre du code** : préparée pour le socle v3.26.0 (`validFromHour` / `validUntilHour` par
+  séjour), compilée et testée avec la v3.24.0, qui les ignore. Tant que la montée de version n'est
+  pas faite, le code d'un départ à 16 h cesse toujours d'ouvrir à 14 h.
+- **Textes voyageurs** : heures en variables ; rendu standard vérifié identique au caractère près
+  contre une fixture relevée avant modification (`tests/fixtures/messages-heures-standard.json`).
+- **Alerte de porte au départ** active dès la mise en production ; pas de fausse alerte quand le
+  ménage ou les voyageurs suivants ont ouvert, rien quand la serrure est hors ligne.
