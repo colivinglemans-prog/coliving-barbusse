@@ -2,23 +2,33 @@ import { getLockHealth, listLogSince } from "@sejour/socle/lib/nuki";
 import { countsAsSold } from "@sejour/socle/lib/booking-status";
 import { parisInstant } from "@sejour/socle/lib/time";
 import type { AlertState } from "@sejour/socle/lib/alert-state";
-import { nukiConfig } from "./access-sync";
+import { ACCESS_POLICY, isNightParis, nukiConfig } from "./access-sync";
 import { alertTransition, reportAlerts } from "./alert-memory";
 import { sendDoorAlert } from "./alerts";
 import { trackedPeople } from "./cleaning/sessions";
-import { garageArrivals } from "./cleaning/sources";
+import { garageOpenings } from "./cleaning/sources";
 import {
   DEPARTURE_LOCK_GRACE_MINUTES,
   REOCCUPY_LOOKBACK_HOURS,
+  LOCK_STATE_LOCKED,
   departureDeadlineHour,
   departureLockCheck,
   departureLockDueAt,
   departureLockTitle,
+  parisHourOf,
+  readDepartureLog,
   type DepartureLockInput,
   type DepartureLockResult,
 } from "./departure-detection";
 import { getJson, redisKey, setJson } from "./redis";
-import { AGREED_RANGE, STANDARD_HOURS, withAgreedHours } from "./stay-hours-rules";
+import {
+  AGREED_RANGE,
+  STANDARD_HOURS,
+  accessStatus,
+  departingCodesEnd,
+  withAgreedHours,
+  type AgreedHours,
+} from "./stay-hours-rules";
 import { readStayHours } from "./stay-hours";
 
 /** Ce que le passage lit d'une réservation, horaires convenus joints (`withStayHours`). */
@@ -27,13 +37,23 @@ export interface DepartureStay {
   arrival: string;
   departure: string;
   status?: string;
+  arrivalHour?: number;
   departureHour?: number;
 }
 
 export const DEPARTURE_LOCK_SCOPE = "departure-lock";
 
-/** Plafond des lectures d'un relevé (serrure, journal, garage) : le cron du chauffage n'attend pas plus. */
+/**
+ * Plafond des lectures Nuki d'un relevé (état de la serrure, puis journal) : le cron du chauffage
+ * n'attend pas plus. Un dépassement vaut « illisible ».
+ */
 export const DEPARTURE_LOCK_READ_TIMEOUT_MS = 10_000;
+
+/**
+ * Plafond **propre** à la lecture du garage (Intratone) : un portail lent ou en panne vaut « non
+ * lu », jamais « serrure illisible ».
+ */
+export const DEPARTURE_LOCK_GARAGE_TIMEOUT_MS = 8_000;
 
 /** État final de la journée : plus aucun relevé jusqu'au lendemain. */
 type FinalState = "locked" | "reoccupied";
@@ -59,15 +79,35 @@ const noneResult = (detail: string, departureHour: number | null = null): Depart
 });
 
 /**
+ * E, la fin de validité réelle du code des partants du jour, calculée sur les réservations lues
+ * avec **la** formule de la synchro (`departingCodesEnd` → `lockWindows`, `lib/stay-hours-rules.ts`).
+ * Les horaires convenus sont ceux joints aux réservations (`withStayHours`). Exporté pour les tests.
+ */
+export function departureCodeEnd(bookings: readonly DepartureStay[], departingIds: readonly number[]): Date | null {
+  const table: Record<number, AgreedHours> = {};
+  for (const b of bookings) {
+    if (b.arrivalHour === undefined && b.departureHour === undefined) continue;
+    table[b.id] = {
+      ...(b.arrivalHour !== undefined ? { arrivalHour: b.arrivalHour } : {}),
+      ...(b.departureHour !== undefined ? { departureHour: b.departureHour } : {}),
+    };
+  }
+  const stays = bookings.map((b) => ({ bookingId: b.id, arrival: b.arrival, departure: b.departure, status: accessStatus(b.status ?? "confirmed") }));
+  return departingCodesEnd(stays, departingIds, table, ACCESS_POLICY);
+}
+
+/**
  * Le relevé « serrure non verrouillée après le départ », lancé par `heating-automation` toutes
  * les 15 min. La règle est dans `departureLockCheck` (`lib/departure-detection.ts`, pure et
  * testée) ; ici, les lectures et l'état d'alerte (`barbusse:alert:departure-lock`, règle commune
  * de `lib/alert-memory.ts`).
  *
- * - Nuki et le garage ne sont interrogés que le jour d'un départ, une fois l'heure de départ plus
- *   le délai de grâce passée, et **plus du tout** une fois la journée close
- *   (`barbusse:departure-lock:<jour>` = `locked` ou `reoccupied`).
- * - Lectures plafonnées à 10 s ; un dépassement vaut « illisible » (rien n'est conclu).
+ * - Rien n'est lu avant D + 30 min, ni une fois la journée close (`barbusse:departure-lock:<jour>`
+ *   = `locked`, porte verrouillée une fois E passé, ou `reoccupied`, maison reprise en main).
+ * - Ordre des lectures, pour le coût et pour que le garage ne masque jamais la serrure : l'état de
+ *   la serrure seul ; porte verrouillée → rien de plus ; sinon le journal ; puis, seulement si le
+ *   journal ne conclut pas à une prise en main, le garage, avec son propre délai.
+ * - Lectures Nuki plafonnées à 10 s en tout ; un dépassement vaut « illisible » (rien n'est conclu).
  * - Ne lève jamais.
  */
 export async function runDepartureLockCheck(
@@ -83,61 +123,33 @@ export async function runDepartureLockCheck(
   const departureHour = departureDeadlineHour(departures);
 
   const due = departureHour !== null && now.getTime() >= departureLockDueAt(today, departureHour).getTime();
-  let final: FinalState | null = null;
   if (due) {
-    final = await getJson<FinalState>(finalKey(today)).catch(() => null);
+    const final = await getJson<FinalState>(finalKey(today)).catch(() => null);
     if (final === "locked" || final === "reoccupied") {
-      return { ...noneResult(`journée close (${final === "locked" ? "porte verrouillée" : "maison réoccupée"})`, departureHour), status: final };
+      return {
+        ...noneResult(`journée close (${final === "locked" ? "porte verrouillée" : "maison reprise en main"})`, departureHour),
+        status: final,
+        closesDay: true,
+      };
     }
   }
 
-  let lock: DepartureLockInput["lock"] = null;
-  let log: DepartureLockInput["log"] = null;
-  let garage: DepartureLockInput["garage"] = null;
-  const people = trackedPeople();
-  if (due) {
-    const since = new Date(parisInstant(today, departureHour!).getTime() - REOCCUPY_LOOKBACK_HOURS * 3600_000);
-    const read = async () => {
-      const cfg = nukiConfig();
-      const [health, entries, garageEntries] = await Promise.all([
-        getLockHealth(cfg),
-        listLogSince(cfg, since).catch((e) => {
-          console.error("[departure-lock] journal illisible :", e instanceof Error ? e.message : e);
-          return null;
-        }),
-        // Garage : facultatif (sans identifiants Intratone, ou en panne, la porte suffit).
-        garageArrivals(people).catch(() => null),
-      ]);
-      return { health, entries, garageEntries };
-    };
-    try {
-      const r = await withTimeout(read(), DEPARTURE_LOCK_READ_TIMEOUT_MS, "relevé de la serrure");
-      lock = { online: r.health.online, lockState: r.health.lockState };
-      log = r.entries;
-      garage = r.garageEntries?.map((g) => ({ who: g.who, at: g.at })) ?? null;
-    } catch (e) {
-      console.error("[departure-lock] serrure illisible :", e instanceof Error ? e.message : e);
-    }
-  }
+  const people = trackedPeople().map((p) => p.name);
+  const codeEnd = departureHour === null ? null : departureCodeEnd(sold, departures.map((d) => d.bookingId));
+  const input: DepartureLockInput = { now, today, departures, arrivals, codeEnd, lock: null, log: null, garage: null, people };
+  if (due) await readDoor(input, departureHour!);
 
-  const result = departureLockCheck({
-    now,
-    today,
-    departures,
-    arrivals,
-    lock,
-    log,
-    garage,
-    people: people.map((p) => p.name),
-  });
+  const result = departureLockCheck(input);
 
   try {
     if (result.report === "report") {
       await reportAlerts(DEPARTURE_LOCK_SCOPE, result.alerts, sendDoorAlert, {
-        title: () => departureLockTitle(result.departureHour),
+        title: () => departureLockTitle(result.departureHour, result.guestReturned === true),
         recoveredTitle: "Serrure verrouillée",
         recoveredBody: "La porte d'entrée est de nouveau verrouillée.",
         confirmAfter: 2,
+        // La nuit (départ convenu tard), priorité 3 ; la gravité stockée reste 4.
+        priority: () => (isNightParis(parisHourOf(now)) ? 3 : 4),
         now,
       });
     } else if (result.report === "close-silently") {
@@ -147,14 +159,53 @@ export async function runDepartureLockCheck(
         await alertTransition(DEPARTURE_LOCK_SCOPE, [], now);
       }
     }
-    // Journée close : plus aucun relevé (ni Nuki, ni garage) jusqu'au lendemain.
-    if (result.status === "locked" || result.status === "reoccupied") {
+    // Journée close : plus aucun relevé (ni Nuki, ni garage) jusqu'au lendemain. « Verrouillée »
+    // ne clôt qu'une fois E passé ; une prise en main clôt tout de suite.
+    if (result.closesDay && (result.status === "locked" || result.status === "reoccupied")) {
       await setJson(finalKey(today), result.status, DAY_TTL_SECONDS);
     }
   } catch (e) {
     console.error("[departure-lock] alerte :", e instanceof Error ? e.message : e);
   }
   return result;
+}
+
+/**
+ * Les lectures d'un relevé, dans l'ordre (voir `runDepartureLockCheck`), écrites dans `input`.
+ * Ne lève jamais : une lecture ratée laisse `null` (serrure ou journal illisible, garage non lu).
+ */
+async function readDoor(input: DepartureLockInput, departureHour: number): Promise<void> {
+  const deadline = Date.now() + DEPARTURE_LOCK_READ_TIMEOUT_MS;
+  const left = () => Math.max(0, deadline - Date.now());
+  let cfg: ReturnType<typeof nukiConfig> | null = null;
+  try {
+    cfg = nukiConfig();
+    const health = await withTimeout(getLockHealth(cfg), left(), "état de la serrure");
+    input.lock = { online: health.online, lockState: health.lockState };
+  } catch (e) {
+    console.error("[departure-lock] serrure illisible :", e instanceof Error ? e.message : e);
+    return;
+  }
+  if (!input.lock.online || input.lock.lockState === LOCK_STATE_LOCKED || cfg === null) {
+    input.log = undefined;
+    return;
+  }
+
+  const since = new Date(parisInstant(input.today, departureHour).getTime() - REOCCUPY_LOOKBACK_HOURS * 3600_000);
+  try {
+    input.log = await withTimeout(listLogSince(cfg, since), left(), "journal de la serrure");
+  } catch (e) {
+    console.error("[departure-lock] journal illisible :", e instanceof Error ? e.message : e);
+    input.log = null;
+    return;
+  }
+  if (readDepartureLog(input, departureHour).takeover) return;
+
+  // Garage : facultatif. Sans identifiants Intratone, en panne ou lent : non lu, la porte suffit.
+  input.garage = await withTimeout(garageOpenings(), DEPARTURE_LOCK_GARAGE_TIMEOUT_MS, "garage").catch((e) => {
+    console.error("[departure-lock] garage non lu :", e instanceof Error ? e.message : e);
+    return null;
+  });
 }
 
 /** Premier instant possible d'un relevé : départ standard (le plus tôt saisissable) + grâce. */
@@ -175,7 +226,7 @@ export async function runDepartureLockCheckSummer(
   if (parisMinutes < EARLIEST_DUE_MINUTES) return null;
   try {
     const final = await getJson<FinalState>(finalKey(today)).catch(() => null);
-    if (final === "locked" || final === "reoccupied") return { ...noneResult("journée close"), status: final };
+    if (final === "locked" || final === "reoccupied") return { ...noneResult("journée close"), status: final, closesDay: true };
     let stays = await getJson<DepartureStay[]>(dayStaysKey(today)).catch(() => null);
     if (!Array.isArray(stays)) {
       stays = (await loadBookings())

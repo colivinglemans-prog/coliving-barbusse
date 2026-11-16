@@ -1,4 +1,6 @@
 import { countsAsSold } from "@sejour/socle/lib/booking-status";
+import { stayAccessHours } from "@sejour/socle/lib/access-codes";
+import { parisInstant } from "@sejour/socle/lib/time";
 
 /**
  * **Horaires convenus par réservation** : arrivée anticipée, départ tardif (2026-11-16).
@@ -278,6 +280,73 @@ export function boundRotationWindows<T extends WindowedStay>(
     else copy.validUntilHour = until;
     return copy;
   });
+}
+
+/** Les heures de la politique du clavier (`ACCESS_POLICY` de `lib/access-sync.ts`). */
+export interface AccessPolicyHours {
+  validFromHour: number;
+  validUntilHour: number;
+}
+
+/**
+ * Statut d'un séjour pour la serrure : `confirmed` (vendu, reçoit un code : `confirmed` ou `new`
+ * dans Beds24), `cancelled`, ou `provisional` (option, demande…).
+ */
+export function accessStatus(status: string | null | undefined): "confirmed" | "cancelled" | "provisional" {
+  if (status === "cancelled") return "cancelled";
+  return status === "confirmed" || status === "new" ? "confirmed" : "provisional";
+}
+
+/** Un séjour, avec les heures de son code qui s'écartent de la politique (`accessHours`). */
+export function withAccessHours<T extends { bookingId: number }>(
+  stay: T,
+  table: StayHoursTable,
+  policy: AccessPolicyHours,
+): T & { validFromHour?: number; validUntilHour?: number } {
+  return { ...stay, ...accessHours(table[stay.bookingId] ?? {}, policy) };
+}
+
+/**
+ * **La** fenêtre du code de chaque séjour, telle que la synchro l'envoie à la serrure : les heures
+ * convenues (`accessHours`), puis le bornage d'un jour de rotation (`boundRotationWindows`). La
+ * synchro (`lib/access-sync.ts`) et le relevé de la porte au départ (`lib/departure-lock.ts`) la
+ * prennent ici : il n'y a qu'une formule.
+ */
+export function lockWindows<T extends { bookingId: number; arrival: string; departure: string; status: string }>(
+  stays: readonly T[],
+  table: StayHoursTable,
+  policy: AccessPolicyHours,
+): Array<T & { validFromHour?: number; validUntilHour?: number }> {
+  return boundRotationWindows(
+    stays.map((s) => withAccessHours(s, table, policy)),
+    policy,
+  );
+}
+
+/** Instant où le code d'un séjour cesse d'ouvrir (`stayAccessHours` du socle, comme `accessWindow`). */
+export function codeEndsAt(
+  stay: { departure: string; validFromHour?: number | null; validUntilHour?: number | null },
+  policy: AccessPolicyHours,
+): Date {
+  return parisInstant(stay.departure, stayAccessHours(stay, policy).untilHour);
+}
+
+/**
+ * Fin de validité **réelle** du code des partants du jour (E) : la plus tardive des fins de leurs
+ * codes, fenêtres calculées par `lockWindows` sur tous les séjours lus (ceux qui arrivent le même
+ * jour bornent ceux qui partent). `null` sans départ.
+ */
+export function departingCodesEnd(
+  stays: ReadonlyArray<{ bookingId: number; arrival: string; departure: string; status: string }>,
+  departingIds: Iterable<number>,
+  table: StayHoursTable,
+  policy: AccessPolicyHours,
+): Date | null {
+  const ids = new Set(departingIds);
+  const ends = lockWindows(stays, table, policy)
+    .filter((s) => ids.has(s.bookingId))
+    .map((s) => codeEndsAt(s, policy).getTime());
+  return ends.length > 0 ? new Date(Math.max(...ends)) : null;
 }
 
 /**

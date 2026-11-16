@@ -1,7 +1,9 @@
 /**
  * Alerte « serrure non verrouillée après le départ » : la règle pure (`departureLockCheck`), puis
  * le passage complet (`runDepartureLockCheck`, et sa variante du mode été) avec Nuki, le garage,
- * Redis et ntfy simulés. Données inventées : prénoms de ménage fictifs, réservations fictives.
+ * Redis et ntfy simulés. Surveillance jusqu'à E, la fin de validité réelle du code des partants
+ * (complément du 2026-11-16). Horloges injectées ; données inventées : prénoms fictifs,
+ * réservations fictives.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { NukiLogEntry } from "@sejour/socle/lib/nuki";
@@ -12,8 +14,11 @@ const h = vi.hoisted(() => ({
   sendNtfy: vi.fn(async (body: string, options: unknown) => void [body, options]),
   health: { online: true, lockState: 3 as number | null },
   log: [] as unknown[],
-  garage: [] as Array<{ source: string; at: Date; who: string }>,
+  garage: [] as Array<{ at: Date; who: string }>,
+  garageMode: "ok" as "ok" | "down" | "hang",
   nukiCalls: 0,
+  logCalls: 0,
+  garageCalls: 0,
   hang: false,
 }));
 
@@ -36,21 +41,34 @@ vi.mock("@sejour/socle/lib/nuki", async (importOriginal) => ({
     if (h.hang) await new Promise(() => {});
     return { ...h.health, keypadPaired: true, batteryCritical: false, keypadBatteryCritical: false, batteryChargePercent: 80, motorBlocked: false };
   },
-  listLogSince: async () => h.log,
+  listLogSince: async () => {
+    h.logCalls++;
+    return h.log;
+  },
 }));
-vi.mock("@/lib/cleaning/sources", () => ({ garageArrivals: async () => h.garage }));
+vi.mock("@/lib/cleaning/sources", () => ({
+  garageOpenings: async () => {
+    h.garageCalls++;
+    if (h.garageMode === "down") throw new Error("Intratone 503");
+    if (h.garageMode === "hang") await new Promise(() => {});
+    return h.garage;
+  },
+}));
 
 import {
   DEPARTURE_LOCK_GRACE_MINUTES,
   departureLockCheck,
+  departureLockTitle,
   isCleaningCode,
+  isPersonalCode,
   type DepartureLockInput,
 } from "@/lib/departure-detection";
-import { runDepartureLockCheck, runDepartureLockCheckSummer } from "@/lib/departure-lock";
+import { departureCodeEnd, runDepartureLockCheck, runDepartureLockCheckSummer, type DepartureStay } from "@/lib/departure-lock";
 
 const DAY = "2027-01-10";
 const at = (hour: number, minute = 0) => new Date(parisInstant(DAY, hour).getTime() + minute * 60_000);
-const entry = (date: Date, name: string, action = 1): NukiLogEntry => ({ date: date.toISOString(), action, trigger: 255, state: 0, name });
+const entry = (date: Date, name: string, action = 1, trigger = 255): NukiLogEntry => ({ date: date.toISOString(), action, trigger, state: 0, name });
+const LEAVING = "1000001: Test";
 
 const base: DepartureLockInput = {
   now: at(11, 30),
@@ -61,6 +79,8 @@ const base: DepartureLockInput = {
   log: [],
   people: ["Ménagère"],
 };
+/** Standard : le code des partants ouvre jusqu'à 14 h. */
+const standard = { ...base, codeEnd: at(14) };
 
 describe("departureLockCheck (pure)", () => {
   it("délai de grâce de 30 min : rien avant 11 h 30, constat à 11 h 30", () => {
@@ -71,59 +91,132 @@ describe("departureLockCheck (pure)", () => {
     expect(departureLockCheck({ ...base, now: at(11, 30) }).status).toBe("unlocked");
   });
 
-  it("verrouillée : rien à signaler", () => {
-    expect(departureLockCheck({ ...base, lock: { online: true, lockState: 1 } })).toMatchObject({ status: "locked", report: "report", alerts: [] });
+  it("verrouillée avant E : rien à signaler, mais la journée n'est pas close ; après E, elle l'est", () => {
+    const locked = { ...standard, lock: { online: true, lockState: 1 }, log: undefined };
+    expect(departureLockCheck(locked)).toMatchObject({ status: "locked", report: "report", alerts: [], closesDay: false });
+    expect(departureLockCheck({ ...locked, now: at(14, 15) })).toMatchObject({ status: "locked", closesDay: true });
+    // Sans E (ou E ≤ D + 30 min) : un seul relevé, la règle d'avant.
+    expect(departureLockCheck({ ...base, lock: { online: true, lockState: 1 } })).toMatchObject({ status: "locked", closesDay: true });
   });
 
   it("déverrouillée : constat priorité 4, identifiant du jour", () => {
-    const r = departureLockCheck(base);
+    const r = departureLockCheck(standard);
     expect(r.status).toBe("unlocked");
+    expect(r.guestReturned).toBe(false);
     expect(r.alerts).toEqual([
       expect.objectContaining({ id: `departure-lock:${DAY}`, priority: 4, line: expect.stringContaining("départ de 11 h") }),
     ]);
   });
 
-  it("ménage entré à 11 h 05, ou dès 9 h 30 (avant l'heure de départ) : pas d'alerte", () => {
-    expect(departureLockCheck({ ...base, log: [entry(at(11, 5), "# Ménagère")] })).toMatchObject({ status: "reoccupied", report: "close-silently" });
-    expect(departureLockCheck({ ...base, log: [entry(at(9, 30), "# Ménagère")] }).status).toBe("reoccupied");
+  it("ménage entré à 11 h 05, ou dès 9 h 30 (avant l'heure de départ) : prise en main, journée close", () => {
+    expect(departureLockCheck({ ...standard, log: [entry(at(11, 5), "# Ménagère")] })).toMatchObject({
+      status: "reoccupied",
+      report: "close-silently",
+      closesDay: true,
+    });
+    expect(departureLockCheck({ ...standard, log: [entry(at(9, 30), "# Ménagère")] }).status).toBe("reoccupied");
     // Avant D − 2 h : c'était un autre passage.
-    expect(departureLockCheck({ ...base, log: [entry(at(8, 30), "# Ménagère")] }).status).toBe("unlocked");
+    expect(departureLockCheck({ ...standard, log: [entry(at(8, 30), "# Ménagère")] }).status).toBe("unlocked");
   });
 
-  it("entrée du ménage par le garage (Intratone) : maison réoccupée", () => {
-    expect(departureLockCheck({ ...base, garage: [{ who: "Ménagère", at: at(10, 45) }] }).status).toBe("reoccupied");
-    expect(departureLockCheck({ ...base, garage: [{ who: "Inconnu", at: at(10, 45) }] }).status).toBe("unlocked");
+  it("code personnel : protégé (« # … ») ou personne suivie, jamais un code géré ni un code voyageur saisi à la main", () => {
+    expect(isPersonalCode("# Hôte", [])).toBe(true);
+    expect(isPersonalCode("Ménagère", ["Ménagère"])).toBe(true);
+    expect(isPersonalCode("Ami de passage", ["Ménagère"])).toBe(false);
+    expect(isPersonalCode("1000009: # Hôte", [])).toBe(false);
+    expect(isPersonalCode("", ["Ménagère"])).toBe(false);
+    expect(isPersonalCode(null, ["Ménagère"])).toBe(false);
+    // Code protégé de l'hôte : prise en main. Code non géré, sans « # », hors TRACKED_PEOPLE : non.
+    expect(departureLockCheck({ ...standard, log: [entry(at(11, 10), "# Hôte")] }).status).toBe("reoccupied");
+    expect(departureLockCheck({ ...standard, log: [entry(at(11, 10), "Ami de passage")] }).status).toBe("unlocked");
   });
 
   it("un voyageur prénommé comme la personne du ménage n'est pas le ménage", () => {
     expect(isCleaningCode("# Ménagère", ["Ménagère"])).toBe(true);
     expect(isCleaningCode("Ménagère", ["Ménagère"])).toBe(true);
     expect(isCleaningCode("1000009: Ménagère", ["Ménagère"])).toBe(false);
-    expect(departureLockCheck({ ...base, log: [entry(at(11, 10), "1000009: Ménagère")] }).status).toBe("unlocked");
+    expect(departureLockCheck({ ...standard, log: [entry(at(11, 10), "1000009: Ménagère")] }).status).toBe("unlocked");
   });
 
-  it("rotation : le code des voyageurs suivants qui ouvre vaut aussi maison occupée", () => {
+  it("garage : tout code nommé est une prise en main, même hors TRACKED_PEOPLE ; un code sans nom ou géré, non", () => {
+    expect(departureLockCheck({ ...standard, garage: [{ who: "Ménagère", at: at(10, 45) }] }).status).toBe("reoccupied");
+    expect(departureLockCheck({ ...standard, garage: [{ who: "Voisin", at: at(10, 45) }] }).status).toBe("reoccupied");
+    expect(departureLockCheck({ ...standard, garage: [{ who: "", at: at(10, 45) }] }).status).toBe("unlocked");
+    expect(departureLockCheck({ ...standard, garage: [{ who: "1000001: Motos", at: at(10, 45) }] }).status).toBe("unlocked");
+    // Garage non lu : on conclut quand même sur la serrure.
+    expect(departureLockCheck({ ...standard, garage: null }).status).toBe("unlocked");
+  });
+
+  it("l'application Nuki n'est pas une prise en main ; l'alerte le précise", () => {
+    const r = departureLockCheck({ ...standard, now: at(11, 45), log: [entry(at(11, 40), "Hôte (application)", 1, 0)] });
+    expect(r.status).toBe("unlocked");
+    expect(r.alerts[0].line).toContain("Ouverture par l'application à 11:40");
+  });
+
+  it("prise en main par l'hôte à 9 h 10, puis retour d'un voyageur à 12 h 10 : alerte, intitulée « retour »", () => {
+    const r = departureLockCheck({
+      ...standard,
+      now: at(12, 30),
+      log: [entry(at(9, 10), "# Hôte"), entry(at(12, 10), LEAVING)],
+    });
+    expect(r).toMatchObject({ status: "unlocked", guestReturned: true });
+    expect(r.alerts[0].line).toContain("revenu avec son code à 12:10");
+    expect(departureLockTitle(r.departureHour, true)).toBe("Serrure non verrouillée après le retour d'un voyageur");
+  });
+
+  it("ouverture par les partants à 10 h (avant D) : pas un retour ; le ménage d'avant ne compte plus", () => {
+    const r = departureLockCheck({ ...standard, log: [entry(at(9, 30), "# Ménagère"), entry(at(10, 0), LEAVING)] });
+    expect(r).toMatchObject({ status: "unlocked", guestReturned: false });
+    expect(departureLockTitle(11, false)).toBe("Serrure non verrouillée — départ de 11 h dépassé");
+    // Le ménage entre après eux : prise en main.
+    expect(departureLockCheck({ ...standard, log: [entry(at(10, 0), LEAVING), entry(at(10, 30), "# Ménagère")] }).status).toBe("reoccupied");
+  });
+
+  it("rotation : le code des voyageurs suivants qui ouvre vaut aussi prise en main", () => {
     const r = departureLockCheck({ ...base, now: at(17, 15), arrivals: [{ bookingId: 1000002 }], log: [entry(at(17, 2), "1000002: Test")] });
     expect(r.status).toBe("reoccupied");
     // Le code du séjour qui part ne compte pas : il est revenu chercher un sac, la porte reste à fermer.
-    expect(departureLockCheck({ ...base, now: at(11, 45), log: [entry(at(11, 20), "1000001: Test")] }).status).toBe("unlocked");
+    expect(departureLockCheck({ ...standard, now: at(11, 45), log: [entry(at(11, 20), LEAVING)] }).status).toBe("unlocked");
   });
 
   it("départ convenu 16 h : rien à 16 h 15, constat à 16 h 30", () => {
-    const late = { ...base, departures: [{ bookingId: 1000001, departureHour: 16 }] };
+    const late = { ...base, departures: [{ bookingId: 1000001, departureHour: 16 }], codeEnd: at(17) };
     expect(departureLockCheck({ ...late, now: at(16, 15) }).status).toBe("none");
     expect(departureLockCheck({ ...late, now: at(16, 30) }).alerts[0].line).toContain("départ de 16 h");
   });
 
   it("serrure hors ligne, illisible, ou journal illisible : rien n'est conclu, l'état ne bouge pas", () => {
-    expect(departureLockCheck({ ...base, lock: { online: false, lockState: 3 } })).toMatchObject({ status: "unreadable", report: "skip" });
-    expect(departureLockCheck({ ...base, lock: null })).toMatchObject({ status: "unreadable", report: "skip" });
-    expect(departureLockCheck({ ...base, log: null })).toMatchObject({ status: "unreadable", report: "skip" });
+    expect(departureLockCheck({ ...standard, lock: { online: false, lockState: 3 } })).toMatchObject({ status: "unreadable", report: "skip" });
+    expect(departureLockCheck({ ...standard, lock: null })).toMatchObject({ status: "unreadable", report: "skip" });
+    expect(departureLockCheck({ ...standard, log: null })).toMatchObject({ status: "unreadable", report: "skip" });
+  });
+});
+
+describe("departureCodeEnd (la formule de la synchro)", () => {
+  const leaving: DepartureStay = { id: 1000001, arrival: "2027-01-08", departure: DAY, status: "confirmed" };
+  const coming: DepartureStay = { id: 1000002, arrival: DAY, departure: "2027-01-12", status: "confirmed" };
+
+  it("standard : 14 h ; départ convenu 16 h : 17 h ; plusieurs départs : le plus tardif", () => {
+    expect(departureCodeEnd([leaving], [1000001])).toEqual(at(14));
+    expect(departureCodeEnd([{ ...leaving, departureHour: 16 }], [1000001])).toEqual(at(17));
+    const other = { ...leaving, id: 1000003 };
+    expect(departureCodeEnd([leaving, { ...other, departureHour: 18 }], [1000001, 1000003])).toEqual(at(19));
+  });
+
+  it("rotation, départ convenu 16 h et arrivée standard : E = 14 h, comme le code borné", () => {
+    expect(departureCodeEnd([{ ...leaving, departureHour: 16 }, coming], [1000001])).toEqual(at(14));
+    // Arrivée convenue à 15 h : le code des arrivants ouvre à 14 h (min(14, 15 − 1)), E = 14 h aussi.
+    expect(departureCodeEnd([{ ...leaving, departureHour: 16 }, { ...coming, arrivalHour: 15 }], [1000001])).toEqual(at(14));
+    // Une option qui arrive le même jour ne borne rien.
+    expect(departureCodeEnd([{ ...leaving, departureHour: 16 }, { ...coming, status: "black" }], [1000001])).toEqual(at(17));
   });
 });
 
 describe("runDepartureLockCheck (passage complet)", () => {
-  const bookings = [{ id: 1000001, arrival: "2027-01-08", departure: DAY, status: "confirmed" }];
+  const bookings: DepartureStay[] = [{ id: 1000001, arrival: "2027-01-08", departure: DAY, status: "confirmed" }];
+  const run = (minutesAfterMidnight: [number, number], list: readonly DepartureStay[] = bookings) =>
+    runDepartureLockCheck(list, DAY, at(...minutesAfterMidnight));
+  const titleOf = (i: number) => (h.sendNtfy.mock.calls[i][1] as { title: string }).title;
 
   beforeEach(() => {
     h.mem.clear();
@@ -131,7 +224,10 @@ describe("runDepartureLockCheck (passage complet)", () => {
     h.health = { online: true, lockState: 3 };
     h.log = [];
     h.garage = [];
+    h.garageMode = "ok";
     h.nukiCalls = 0;
+    h.logCalls = 0;
+    h.garageCalls = 0;
     h.hang = false;
     process.env.NUKI_API_TOKEN = "jeton-de-test";
     process.env.NUKI_SMARTLOCK_ID = "1";
@@ -139,43 +235,144 @@ describe("runDepartureLockCheck (passage complet)", () => {
     process.env.TRACKED_PEOPLE = "Ménagère:ménage";
   });
 
-  it("déverrouillée : constat à 11 h 30, alerte à 11 h 45, jamais répétée, « verrouillée » en priorité 1, puis plus de relevé", async () => {
-    await runDepartureLockCheck(bookings, DAY, at(11, 15));
+  it("déverrouillée : constat à 11 h 30, alerte à 11 h 45, jamais répétée, « verrouillée » en priorité 1, surveillance jusqu'à 14 h", async () => {
+    await run([11, 15]);
     expect(h.nukiCalls).toBe(0);
-    await runDepartureLockCheck(bookings, DAY, at(11, 30));
+    await run([11, 30]);
     expect(h.sendNtfy).not.toHaveBeenCalled();
-    await runDepartureLockCheck(bookings, DAY, at(11, 45));
+    await run([11, 45]);
     expect(h.sendNtfy).toHaveBeenCalledTimes(1);
     expect(h.sendNtfy.mock.calls[0]).toEqual([
       expect.stringContaining("n'est pas verrouillée"),
       expect.objectContaining({ title: "[Serrure] Serrure non verrouillée — départ de 11 h dépassé", priority: 4 }),
     ]);
-    await runDepartureLockCheck(bookings, DAY, at(12, 0));
+    await run([12, 0]);
     expect(h.sendNtfy).toHaveBeenCalledTimes(1);
     h.health = { online: true, lockState: 1 };
-    await runDepartureLockCheck(bookings, DAY, at(12, 15));
+    const logCalls = h.logCalls;
+    expect((await run([12, 15])).status).toBe("locked");
     expect(h.sendNtfy).toHaveBeenCalledTimes(2);
     expect(h.sendNtfy.mock.calls[1][1]).toMatchObject({ title: "[Serrure] Serrure verrouillée", priority: 1 });
-    // Journée close : plus d'appel à Nuki.
+    // Porte verrouillée : ni journal ni garage.
+    expect(h.logCalls).toBe(logCalls);
+    // Avant 14 h, la journée n'est pas close : la serrure est relue à chaque relevé.
+    expect(h.mem.has(`barbusse:departure-lock:${DAY}`)).toBe(false);
     const calls = h.nukiCalls;
-    expect((await runDepartureLockCheck(bookings, DAY, at(12, 30))).status).toBe("locked");
-    expect(h.nukiCalls).toBe(calls);
+    await run([12, 30]);
+    expect(h.nukiCalls).toBe(calls + 1);
+    // 14 h passées, porte verrouillée : journée close, plus d'appel à Nuki.
+    expect(await run([14, 0])).toMatchObject({ status: "locked", closesDay: true });
+    expect(h.mem.get(`barbusse:departure-lock:${DAY}`)).toBe("locked");
+    const closed = h.nukiCalls;
+    expect((await run([14, 15])).status).toBe("locked");
+    expect(h.nukiCalls).toBe(closed);
+  });
+
+  it("verrouillée à 11 h 30 : pas de clôture, le relevé de 11 h 45 relit la serrure ; verrouillée à 14 h 15 : journée close", async () => {
+    h.health = { online: true, lockState: 1 };
+    expect(await run([11, 30])).toMatchObject({ status: "locked", closesDay: false });
+    expect(h.mem.has(`barbusse:departure-lock:${DAY}`)).toBe(false);
+    await run([11, 45]);
+    expect(h.nukiCalls).toBe(2);
+    expect(await run([14, 15])).toMatchObject({ status: "locked", closesDay: true });
+    expect(h.mem.get(`barbusse:departure-lock:${DAY}`)).toBe("locked");
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+  });
+
+  it("retour d'un voyageur à 12 h 10, porte ouverte à 12 h 15 et 12 h 30 : alerte au 2e relevé, intitulée « retour »", async () => {
+    h.health = { online: true, lockState: 1 };
+    for (const t of [[11, 30], [11, 45], [12, 0]] as const) await run([t[0], t[1]]);
+    h.health = { online: true, lockState: 3 };
+    h.log = [entry(at(12, 10), LEAVING)];
+    await run([12, 15]);
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+    await run([12, 30]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(titleOf(0)).toBe("[Serrure] Serrure non verrouillée après le retour d'un voyageur");
+  });
+
+  it("prise en main par l'hôte à 9 h 10, puis retour d'un voyageur à 12 h 10 : alerte", async () => {
+    h.log = [entry(at(9, 10), "# Hôte"), entry(at(12, 10), LEAVING)];
+    await run([12, 15]);
+    await run([12, 30]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(titleOf(0)).toContain("retour d'un voyageur");
+  });
+
+  it("rétabli puis nouvelle ouverture le même jour : l'alerte rouvre", async () => {
+    await run([11, 30]);
+    await run([11, 45]);
+    h.health = { online: true, lockState: 1 };
+    await run([12, 0]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(2);
+    h.health = { online: true, lockState: 3 };
+    h.log = [entry(at(12, 5), LEAVING)];
+    await run([12, 15]);
+    await run([12, 30]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(3);
+    expect(h.sendNtfy.mock.calls[2][1]).toMatchObject({ priority: 4 });
+    expect(titleOf(2)).toContain("retour d'un voyageur");
   });
 
   it("le ménage entre après l'alerte : elle se referme sans message, et la journée est close", async () => {
-    await runDepartureLockCheck(bookings, DAY, at(11, 30));
-    await runDepartureLockCheck(bookings, DAY, at(11, 45));
+    await run([11, 30]);
+    await run([11, 45]);
     expect(h.sendNtfy).toHaveBeenCalledTimes(1);
     h.log = [entry(at(11, 50), "# Ménagère")];
-    await runDepartureLockCheck(bookings, DAY, at(12, 0));
+    await run([12, 0]);
     expect(h.sendNtfy).toHaveBeenCalledTimes(1);
     expect((h.mem.get("barbusse:alert:departure-lock") as { open: boolean }).open).toBe(false);
     expect(h.mem.get(`barbusse:departure-lock:${DAY}`)).toBe("reoccupied");
   });
 
+  it("ménage entré à 11 h, porte déverrouillée jusqu'à 14 h : aucune alerte, et le garage n'est pas lu", async () => {
+    h.log = [entry(at(11, 0), "# Ménagère")];
+    expect((await run([11, 30])).status).toBe("reoccupied");
+    for (let m = 45; m <= 180; m += 15) await run([11 + Math.floor(m / 60), m % 60]);
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+    expect(h.nukiCalls).toBe(1);
+    expect(h.garageCalls).toBe(0);
+  });
+
+  it("garage en panne ou lent : la serrure est relevée quand même, et l'alerte part", async () => {
+    h.garageMode = "down";
+    await run([11, 30]);
+    await run([11, 45]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+
+    h.mem.clear();
+    h.sendNtfy.mockClear();
+    h.garageMode = "hang";
+    vi.useFakeTimers();
+    try {
+      for (const m of [30, 45]) {
+        const p = run([11, m]);
+        await vi.advanceTimersByTimeAsync(8_000);
+        expect((await p).status).toBe("unlocked");
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+  });
+
+  it("entrée au garage par un code nommé absent de TRACKED_PEOPLE : prise en main", async () => {
+    h.garage = [{ who: "Voisin", at: at(11, 20) }];
+    expect((await run([11, 30])).status).toBe("reoccupied");
+    expect(h.mem.get(`barbusse:departure-lock:${DAY}`)).toBe("reoccupied");
+  });
+
+  it("ouverture par l'application Nuki : pas une prise en main", async () => {
+    h.log = [entry(at(11, 20), "Hôte (application)", 1, 0)];
+    await run([11, 30]);
+    await run([11, 45]);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(h.sendNtfy.mock.calls[0][0]).toContain("Ouverture par l'application à 11:20");
+  });
+
   it("serrure hors ligne : aucune alerte", async () => {
     h.health = { online: false, lockState: null };
-    for (const m of [30, 45, 60]) await runDepartureLockCheck(bookings, DAY, at(11, m));
+    for (const m of [30, 45, 59]) await run([11, m]);
     expect(h.sendNtfy).not.toHaveBeenCalled();
   });
 
@@ -183,7 +380,7 @@ describe("runDepartureLockCheck (passage complet)", () => {
     vi.useFakeTimers();
     try {
       h.hang = true;
-      const p = runDepartureLockCheck(bookings, DAY, at(11, 30));
+      const p = run([11, 30]);
       await vi.advanceTimersByTimeAsync(10_000);
       expect((await p).status).toBe("unreadable");
     } finally {
@@ -191,10 +388,30 @@ describe("runDepartureLockCheck (passage complet)", () => {
     }
   });
 
-  it("départ convenu (horaires joints) : l'heure suit", async () => {
+  it("départ convenu 16 h : l'heure suit, surveillance jusqu'à 17 h", async () => {
     const late = [{ ...bookings[0], departureHour: 16 }];
-    expect((await runDepartureLockCheck(late, DAY, at(11, 45))).status).toBe("none");
-    expect((await runDepartureLockCheck(late, DAY, at(16, 30))).status).toBe("unlocked");
+    expect((await run([11, 45], late)).status).toBe("none");
+    expect((await run([16, 30], late)).status).toBe("unlocked");
+    h.health = { online: true, lockState: 1 };
+    expect(await run([16, 45], late)).toMatchObject({ status: "locked", closesDay: false });
+    expect(await run([17, 0], late)).toMatchObject({ status: "locked", closesDay: true });
+  });
+
+  it("rotation, départ convenu 16 h, arrivée standard : E = 14 h, un seul relevé (verrouillée à 16 h 30 : journée close)", async () => {
+    const rotation: DepartureStay[] = [
+      { ...bookings[0], departureHour: 16 },
+      { id: 1000002, arrival: DAY, departure: "2027-01-12", status: "confirmed" },
+    ];
+    h.health = { online: true, lockState: 1 };
+    expect(await run([16, 30], rotation)).toMatchObject({ status: "locked", closesDay: true });
+  });
+
+  it("départ convenu tard : la nuit, l'alerte part en priorité 3", async () => {
+    const late = [{ ...bookings[0], departureHour: 22 }];
+    await run([22, 30], late);
+    await run([22, 45], late);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(h.sendNtfy.mock.calls[0][1]).toMatchObject({ priority: 3 });
   });
 
   it("mode été : aucun appel avant 11 h 30, Beds24 lu une fois par jour, rien sans départ", async () => {
