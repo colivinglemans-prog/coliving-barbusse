@@ -188,6 +188,7 @@ règle, dans [lib/alert-memory.ts](../lib/alert-memory.ts) (`reportAlerts`, `rep
 | Ballon thermodynamique | `water-heater-health` | Remplace `barbusse:water-heater:health-pending` (expire seule). |
 | Erreur d'un cron (`catch`) | `error:<cron>` | `heating-health`, `heating-automation`, `heating-reset`, `water-heater-health`, `water-heater-automation`, `nuki-sync`, `cleaning-watch`, `pricing-snapshot`, `pricing-push`. Identifiant fixe : un message d'erreur qui change ne relance pas l'alerte. `heating-reset` compte en erreur un passage où **tous** les radiateurs ont refusé (502). |
 | Journal de la serrure illisible (check-in) | `checkin-keypad` | Priorité 3 ; sans lui, plus aucune arrivée signalée. |
+| Serrure non verrouillée après le départ | `departure-lock` | Relevé de `heating-automation` (15 min), le jour d'un départ, de D + 30 min **jusqu'à E**, la fin de validité réelle du code des partants (même formule que la synchro, `lockWindows`). Priorité 4, **3 la nuit** (22 h – 8 h, priorité d'envoi seulement). Verrouillée avant E : rétabli, mais la journée reste surveillée (retour d'un voyageur → « Serrure non verrouillée après le retour d'un voyageur », l'alerte rouvre). **Prise en main** (code personnel `#` ou `TRACKED_PEOPLE` au clavier, code nommé au garage, code des arrivants, après la dernière ouverture des partants) : aucune alerte, fermeture sans message, journée close. Porte non verrouillée après E : surveillée jusqu'à minuit, où l'alerte se **referme sans message** (plus de départ « aujourd'hui »). Lectures : serrure seule, puis journal si elle n'est pas verrouillée, puis garage (délai propre, 8 s) si le journal ne conclut pas. Parade caméra non faite (en attente de la mesure du retard d'Intratone). |
 | Garage ou porte illisibles (suivi ménage) | `cleaning-sources` | Priorité 3 ; une source sans identifiants (`no-credentials`) n'est pas une panne. |
 | Plafond des messages voyageurs | `messages-cap` | `confirmAfter: 1` (pas un état passager). |
 | Crons en retard | `heartbeat` | Rétabli en priorité 1. La surveillance déclare `heartbeat.severity: "warning"` : plus de doublon `[Crons]` + `[Surveillance]` ; une route de heartbeat illisible reste bloquante (`heartbeat.reachable`). |
@@ -196,6 +197,17 @@ Inchangées : la préparation d'arrivée (déjà deux lectures, anti-répétitio
 le keepalive et la sauvegarde Beds24 (hebdomadaires), le webhook refusé (6 h), le devis IA. Les
 notifications d'information restent : check-in (priorité 3 depuis le 2026-11-10), rapport
 pricing, veille des événements, sauvegarde réussie.
+
+**Arrivée imminente** (2026-11-16, `lib/arrival-notice.ts`, appelée par `lib/access-sync.ts`) :
+une information, pas une panne — hors règle des deux passages. Une notification par réservation
+et jour d'arrivée (`SET NX` sur `barbusse:arrival-notice:<résa>:<jour>`), quand la synchro **a
+exécuté** la création du code d'une réservation de dernière minute (< 48 h, `isLateBooking`) ou le
+recalage d'un code dont le jour d'arrivée a changé, pour une arrivée aujourd'hui ou demain. Rien à
+blanc ni en `?dry=1`. Texte : prénom seul, nombre de voyageurs, dernier ménage enregistré (rôle
+`ménage` de `TRACKED_PEOPLE`, registre `barbusse:cleaning:log`) et dernier départ ; jamais d'heure
+d'arrivée ni « non constaté ». Priorité 4 sans ménage enregistré depuis le dernier départ, 2
+sinon, 2 la nuit pour une arrivée le lendemain. Redis injoignable : rien n'est envoyé ; envoi
+raté : la clé est retirée. Notée dans le journal sous « Arrivée imminente », sans prénom.
 
 ### Ajustements du 2026-11-14 (relecture de l'hôte)
 
