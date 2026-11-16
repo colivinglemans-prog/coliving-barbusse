@@ -95,9 +95,12 @@ export async function GET(request: NextRequest) {
       const enteredAt = keypad.get(b.id) ?? item?.createTime ?? null;
       if (!enteredAt) continue;
 
+      // Anti-doublon : la clé est **réservée** avant l'envoi (`SET NX`). En lecture, envoi, écriture,
+      // deux passages concurrents (cron-job.org qui relance, passage lent) envoyaient chacun la
+      // notification. Si l'envoi échoue, la clé est rendue pour que le passage suivant réessaie.
       const key = `checkin:notified:${b.id}`;
-      const already = await redis.get(key);
-      if (already) continue;
+      const claimed = await redis.set(key, { at: new Date().toISOString(), enteredAt }, { nx: true, ex: REDIS_KEY_TTL_SECONDS });
+      if (claimed === null) continue;
 
       const guest = formatGuest(b);
       // Instant ISO UTC : journal de la serrure, ou `createTime` de l'ancien `CHECKIN`.
@@ -127,12 +130,10 @@ export async function GET(request: NextRequest) {
           priority: 3,
           tags: ["key"],
         }, { title: "🔑 Check-in" }); // le prénom ne va pas dans le journal des 30 jours
-        // SET seulement après succès de l'envoi pour pouvoir retry au prochain tick si ntfy down
-        await redis.set(key, { at: new Date().toISOString(), enteredAt }, {
-          ex: REDIS_KEY_TTL_SECONDS,
-        });
         notified.push({ id: b.id, guest, arrivalTime });
       } catch (e) {
+        // Envoi raté : la réservation de la clé est rendue, le passage suivant réessaiera.
+        await redis.del(key).catch((err) => console.error("[checkin-notifications] libération:", err instanceof Error ? err.message : err));
         errors.push({
           id: b.id,
           error: e instanceof Error ? e.message : String(e),

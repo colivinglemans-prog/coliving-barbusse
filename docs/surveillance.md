@@ -106,7 +106,7 @@ prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-rép
   non-arrivée), 5 (16h30, tardif).
 - **Redis** : `barbusse:readiness:state:<arrival:id|equipment>` (anti-répétition par séjour),
   `…:memory` (lectures ratées), `…:baseline:<id>` (températures de 12h30), `…:last-run`.
-- **`?dryRun=1`** : calcule et rend l'aperçu de la notification sans rien écrire ni envoyer
+- **`?dryRun=1` ou `?dry=1`** (les deux noms valent pour tous les crons, `lib/cron-params.ts`, depuis le 2026-11-16 ; un `?dry=1` faisait ici un vrai passage) : calcule et rend l'aperçu de la notification sans rien écrire ni envoyer
   (`run.ts` n'appelle jamais `send` en `dryRun`, et la route lui passe une fonction qui lève).
   `&at=<ISO>` simule l'instant (refusé hors `dryRun`). Les sondes lisent toujours l'état
   **actuel** des appareils.
