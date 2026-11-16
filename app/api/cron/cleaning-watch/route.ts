@@ -36,6 +36,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const LAST_KEY = redisKey("cleaning", "last-arrival");
+/** Journal de la porte relu sur 10 h au moins : la fenêtre de sortie (8 h) plus deux passages de marge. */
+const CLEANING_LOOKBACK_MS = 10 * 3600_000;
 const DEFAULT_PEOPLE = "Sophie:ménage,Eric:dépannage";
 
 export async function GET(request: NextRequest) {
@@ -61,7 +63,12 @@ export async function GET(request: NextRequest) {
     });
     const startedAt = new Date();
     let doorOk = true;
-    const door = await doorArrivals(people, await readLogSince("cleaning", startedAt)).catch((e) => {
+    // Le curseur ne sert qu'à ne rien manquer : une venue doit rester lue tant que sa sortie peut
+    // encore progresser (8 h, `estimateExit`), sinon sa sortie se fige trop tôt et une arrivée au
+    // garage dans les 45 min devient une seconde session. D'où au moins 10 h de journal.
+    const cursor = await readLogSince("cleaning", startedAt);
+    const since = new Date(Math.min(cursor.getTime(), startedAt.getTime() - CLEANING_LOOKBACK_MS));
+    const door = await doorArrivals(people, since).catch((e) => {
       doorOk = false;
       notes.porte = short(e);
       return [] as CleaningArrival[];
