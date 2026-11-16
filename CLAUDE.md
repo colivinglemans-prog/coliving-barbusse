@@ -617,9 +617,11 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
   → verrouillée : rien de plus → sinon journal → garage seulement si le journal ne conclut pas,
   **avec son propre délai** (8 s ; panne ou lenteur = non lu, jamais « serrure illisible ») ;
   lectures Nuki plafonnées à 10 s ; en mode été, rien avant 11 h 30 et Beds24 lu une fois par jour
-  au plus. **Non fait** : la parade caméra (pas d'alerte après un mouvement de la caméra « Porte
-  d'entrée » dans les 30 min), en attente de la mesure du retard d'Intratone ; point d'extension
-  décrit dans `departureLockCheck`. Relecture du 2026-11-16 : serrure en ligne mais dans un état
+  au plus. **Parade caméra** (2026-11-16) : un mouvement **significatif** de la caméra
+  du garage (nommée « Porte d'entrée » dans l'application ; `barbusse:camera:last-real:<did>`, filtre de
+  scène de `camera-watch`) postérieur à D et vieux de moins de 30 min **reporte** le relevé
+  (`presence`, sans clore la journée) : couvre l'entrée du ménage par le garage quand Intratone
+  remonte en retard. Filtre coupé ou clé illisible : l'alerte part. Relecture du 2026-11-16 : serrure en ligne mais dans un état
   nul ou de passage (2, 4, 7, 255) → relevé « illisible », le suivant tranche ; porte non
   verrouillée et journal illisible deux relevés de suite → alerte distincte
   `barbusse:alert:departure-lock-log` (priorité 3, « impossible de savoir si le ménage est

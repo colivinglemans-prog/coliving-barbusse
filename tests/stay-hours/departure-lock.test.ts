@@ -580,3 +580,54 @@ describe("runDepartureLockCheck (passage complet)", () => {
     expect(h.nukiCalls).toBe(0);
   });
 });
+
+describe("parade caméra du garage (recentMotion)", () => {
+  it("vrai mouvement à 11 h 10 : relevé reporté à 11 h 30 (sans clore la journée), alerte à 12 h 15", () => {
+    const r = departureLockCheck({ ...standard, now: at(11, 30), recentMotion: at(11, 10) });
+    expect(r).toMatchObject({ status: "presence", report: "skip", alerts: [] });
+    expect(r.closesDay).toBeUndefined();
+    expect(departureLockCheck({ ...standard, now: at(12, 15), recentMotion: at(11, 10) }).status).toBe("unlocked");
+  });
+
+  it("mouvement avant l'heure de départ (partants qui chargent la voiture) : ne reporte rien", () => {
+    expect(departureLockCheck({ ...standard, now: at(11, 30), recentMotion: at(10, 50) }).status).toBe("unlocked");
+  });
+
+  it("aucun mouvement retenu (ignoré par le filtre, clé illisible, filtre coupé) : alerte", () => {
+    expect(departureLockCheck({ ...standard, recentMotion: null }).status).toBe("unlocked");
+    expect(departureLockCheck({ ...standard }).status).toBe("unlocked");
+  });
+
+  it("porte verrouillée : la caméra ne change rien", () => {
+    const locked = { ...standard, lock: { online: true, lockState: 1 }, log: undefined, recentMotion: at(11, 20) };
+    expect(departureLockCheck(locked).status).toBe("locked");
+  });
+
+  it("passage complet : filtre configuré mais mouvement illisible → l'alerte suit son cours", async () => {
+    h.mem.clear();
+    h.health = { online: true, lockState: 3 };
+    h.log = [];
+    h.garage = [];
+    h.garageMode = "ok";
+    h.hang = false;
+    h.logDown = false;
+    h.redis = false;
+    h.hours = {};
+    h.hoursDown = false;
+    h.getJsonDown = false;
+    process.env.NUKI_API_TOKEN = "jeton-de-test";
+    process.env.NUKI_SMARTLOCK_ID = "1";
+    process.env.NTFY_TOPIC = "https://ntfy.example.test/sujet-de-test";
+    vi.stubEnv("CAMERA_SCENE_FILTER_DIDS", "CAMERA-TEST");
+    try {
+      const r = await runDepartureLockCheck(
+        [{ id: 1000001, arrival: "2027-01-08", departure: DAY }],
+        DAY,
+        at(11, 30),
+      );
+      expect(r.status).toBe("unlocked");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+});

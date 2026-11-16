@@ -80,7 +80,16 @@ export interface DepartureLockInput {
   garage?: ReadonlyArray<{ who: string; at: Date }> | null;
   /** Personnes suivies (`TRACKED_PEOPLE`), reconnues aux codes « # Sophie »… */
   people: readonly string[];
+  /**
+   * Instant (`cts`) du dernier mouvement **significatif** de la caméra du garage
+   * (`barbusse:camera:last-real:<did>`, filtre de scène de `camera-watch`). `null` ou absent : non
+   * lu, filtre coupé, ou aucun — jamais une raison de ne pas alerter.
+   */
+  recentMotion?: Date | null;
 }
+
+/** Un mouvement du garage reporte l'alerte pendant ce délai (minutes). */
+export const MOTION_HOLD_MINUTES = 30;
 
 /**
  * - `none` : pas de départ aujourd'hui, ou heure de départ + délai de grâce pas encore passée ;
@@ -88,9 +97,11 @@ export interface DepartureLockInput {
  * - `reoccupied` : quelqu'un de la maison (code personnel, au clavier ou au garage) ou les
  *   voyageurs suivants ont pris la main après la dernière ouverture des partants ;
  * - `locked` : porte verrouillée ;
+ * - `presence` : porte non verrouillée, mais la caméra du garage a vu un vrai mouvement depuis le
+ *   départ, il y a moins de 30 min — relevé reporté, la surveillance continue ;
  * - `unlocked` : porte non verrouillée, personne n'a pris la main.
  */
-export type DepartureLockStatus = "none" | "unreadable" | "reoccupied" | "locked" | "unlocked";
+export type DepartureLockStatus = "none" | "unreadable" | "reoccupied" | "locked" | "presence" | "unlocked";
 
 /** Ce que l'appelant fait de l'état d'alerte `departure-lock`. */
 export type DepartureLockReport =
@@ -276,11 +287,12 @@ export function readDepartureLog(
  * Pas d'alerte si la serrure est hors ligne (c'est l'alerte de la synchronisation). L'identifiant
  * de l'alerte porte le jour : une alerte d'hier ne masque pas celle d'aujourd'hui.
  *
- * **Point d'extension, non fait** (à décider après la mesure du retard d'Intratone) : la parade
- * caméra — pas d'alerte tant qu'un mouvement de la caméra « Porte d'entrée » a été vu dans les
- * 30 dernières minutes après D. Elle se brancherait ici comme une entrée de plus (par exemple
- * `recentMotion?: Date | null`), testée juste avant de rendre `unlocked`, et lue par
- * `runDepartureLockCheck` après le garage, avec son propre délai.
+ * **Parade caméra** (2026-11-16) : la caméra nommée « Porte d'entrée » dans l'application filme en
+ * réalité le **garage**. Un mouvement significatif (`recentMotion`, filtre de scène : lumière
+ * allumée, scène changée — jamais du linge qui bouge) postérieur à D et vieux de moins de 30 min
+ * **reporte** le relevé (`presence`, `report: "skip"`) sans clore la journée : un partant qui
+ * traverse le garage puis laisse la porte ouverte déclenche l'alerte 30 min plus tard. C'est ce qui
+ * couvre l'entrée du ménage par le garage quand Intratone remonte en retard.
  */
 export function departureLockCheck(input: DepartureLockInput): DepartureLockResult {
   const { now, today, departures, lock, log } = input;
@@ -348,6 +360,21 @@ export function departureLockCheck(input: DepartureLockInput): DepartureLockResu
   }
   const state =
     lock.lockState === null ? "état inconnu" : (LOCK_STATE_LABEL[lock.lockState] ?? `état ${lock.lockState}`);
+  const motion = input.recentMotion ?? null;
+  const departedAt = parisInstant(today, departureHour);
+  if (
+    motion !== null &&
+    motion.getTime() >= departedAt.getTime() &&
+    now.getTime() - motion.getTime() < MOTION_HOLD_MINUTES * 60_000
+  ) {
+    return {
+      status: "presence",
+      departureHour,
+      report: "skip",
+      alerts: [],
+      detail: `porte non verrouillée (${state}), mouvement au garage à ${parisClock(motion)} : relevé reporté`,
+    };
+  }
   const returned =
     reading.guestReturned && reading.lastDepartingOpening !== null
       ? ` Un voyageur est revenu avec son code à ${parisClock(new Date(reading.lastDepartingOpening))}.`

@@ -21,7 +21,8 @@ import {
   type DepartureLockInput,
   type DepartureLockResult,
 } from "./departure-detection";
-import { getJson, redisKey, setJson } from "./redis";
+import { getJson, getRedis, redisKey, setJson } from "./redis";
+import { filteredCameras } from "./camera/scene";
 import {
   AGREED_RANGE,
   STANDARD_HOURS,
@@ -183,7 +184,11 @@ export async function runDepartureLockCheck(
   const codeEnd = departureHour === null ? null : departureCodeEnd(sold, departures.map((d) => d.bookingId));
   const input: DepartureLockInput = { now, today, departures, arrivals, codeEnd, lock: null, log: null, garage: null, people };
   // Alerte déjà ouverte : le garage n'est plus relu (coût) ; la serrure et le journal suffisent.
-  if (due) await readDoor(input, departureHour!, { garage: !alertOpen });
+  if (due) {
+    await readDoor(input, departureHour!, { garage: !alertOpen });
+    // Porte non verrouillée et journal lu : la caméra du garage peut reporter le relevé.
+    if (input.log && input.lock && input.lock.lockState !== LOCK_STATE_LOCKED) input.recentMotion = await readRecentMotion();
+  }
 
   const result = departureLockCheck(input);
 
@@ -260,6 +265,24 @@ async function readDoor(input: DepartureLockInput, departureHour: number, option
     console.error("[departure-lock] garage non lu :", errorText(e));
     return null;
   });
+}
+
+/**
+ * Dernier mouvement **significatif** de la caméra du garage (`camera-watch`, filtre de scène).
+ * `null` si le filtre est coupé (sans lui, un frémissement de linge passerait pour une présence),
+ * si la clé est absente ou illisible : l'alerte part alors normalement.
+ */
+async function readRecentMotion(): Promise<Date | null> {
+  const dids = [...filteredCameras(process.env.CAMERA_SCENE_FILTER, process.env.CAMERA_SCENE_FILTER_DIDS)];
+  if (dids.length === 0) return null;
+  try {
+    const values = await Promise.all(dids.map((did) => getRedis().get<number | string>(redisKey("camera", "last-real", did))));
+    const times = values.map((v) => Number(v)).filter((n) => Number.isFinite(n) && n > 0);
+    return times.length > 0 ? new Date(Math.max(...times)) : null;
+  } catch (e) {
+    console.error("[departure-lock] mouvement du garage non lu :", errorText(e));
+    return null;
+  }
 }
 
 /** Premier instant possible d'un relevé : départ standard (le plus tôt saisissable) + grâce. */
