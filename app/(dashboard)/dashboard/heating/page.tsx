@@ -22,6 +22,8 @@ interface HeatingData {
   summerMode: boolean;
   currentRule?: string;
   nextRule?: string;
+  /** « Départ tardif convenu à 16 h » / « Arrivée anticipée à 14 h » : horaires convenus du jour. */
+  agreedRule?: string;
   /** Charge estimée des radiateurs au dernier passage de l'automatisation (délestage). */
   load?: {
     totalW: number;
@@ -389,6 +391,9 @@ export default function HeatingPage() {
               <div className="text-sm text-blue-600 mt-1">
                 Prochain : {data.nextRule}
               </div>
+            )}
+            {data.agreedRule && (
+              <div className="text-sm font-medium text-blue-900 mt-1">{data.agreedRule}</div>
             )}
             {data.load && (
               <div className="text-sm text-blue-600 mt-1">

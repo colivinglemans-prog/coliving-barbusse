@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getLockUntil, getSummerMode } from "@/lib/heatzy";
-import { expectedHeatingMode, getHeatingRules, heatingSituation } from "@/lib/heating-schedule";
+import { expectedHeatingMode, getHeatingRules, heatingSituation, todayAgreedHours } from "@/lib/heating-schedule";
+import { withStayHours } from "@/lib/stay-hours";
 import { getBookingsWithArchive } from "@/lib/bookings";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
@@ -35,10 +36,13 @@ export async function GET(request: NextRequest) {
     // Fetch device list and active bookings in parallel
     const [rawDevices, fetchedBookings] = await Promise.all([
       getDevices(),
-      getBookingsWithArchive({
-        arrivalTo: todayParis(),
-        departureFrom: todayParis(),
-      }).catch(() => []),
+      // Horaires convenus joints, comme dans l'automatisation (`lib/stay-hours.ts`).
+      withStayHours(
+        getBookingsWithArchive({
+          arrivalTo: todayParis(),
+          departureFrom: todayParis(),
+        }).catch(() => []),
+      ),
     ]);
     // Mêmes réservations que l'automatisation : sans les statuts exclus (bloquées, annulées).
     const activeBookings = fetchedBookings.filter((b) => !isExcludedStatus(b.status));
@@ -55,7 +59,7 @@ export async function GET(request: NextRequest) {
     const nextCheckIn = activeBookings
       .filter((b) => b.arrival > today)
       .sort((a, b) => a.arrival.localeCompare(b.arrival))[0]?.arrival;
-    const rules = getHeatingRules(situation, currentHour, nextCheckIn);
+    const rules = getHeatingRules(situation, currentHour, nextCheckIn, todayAgreedHours(activeBookings, today));
     const [lockedDevices, lockUntil, summerMode] = await Promise.all([
       getLockedDevices(),
       getLockUntil(),

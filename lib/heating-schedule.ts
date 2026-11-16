@@ -18,6 +18,46 @@ import type { HeatzyMode, HeatzyZone } from "./types";
 export interface StayDates {
   arrival: string;
   departure: string;
+  /**
+   * Arrivée anticipée **convenue** (heure entière, Paris), jointe par `withAgreedHours`
+   * (`lib/stay-hours.ts`). Absente : `HEATING_HOURS.checkIn`, et tout est comme avant.
+   */
+  arrivalHour?: number;
+  /**
+   * Départ tardif **convenu**. Absent : la maison est libérée à `HEATING_HOURS.checkOut` (10 h,
+   * une heure avant le départ annoncé de 11 h). Présent : occupée **jusqu'à cette heure**.
+   */
+  departureHour?: number;
+}
+
+/** Heure à laquelle les voyageurs de ce séjour sont là le jour d'arrivée. */
+const checkInHourOf = (b: StayDates): number => b.arrivalHour ?? HEATING_HOURS.checkIn;
+/** Heure à laquelle la maison redevient libre le jour du départ de ce séjour. */
+const releaseHourOf = (b: StayDates): number => b.departureHour ?? HEATING_HOURS.checkOut;
+
+/**
+ * Préchauffage du jour : mêmes écarts qu'à l'heure standard (éco 5 h avant l'arrivée, confort
+ * 2 h avant), calés sur l'arrivée **la plus tôt** du jour, bornés à la journée. Sans arrivée
+ * convenue : 12 h et 15 h, comme avant.
+ */
+export function preheatHours(bookings: readonly StayDates[], today: string): { eco: number; cft: number; checkIn: number } {
+  const arrivals = bookings.filter((b) => b.arrival === today);
+  const checkIn = arrivals.length > 0 ? Math.min(...arrivals.map(checkInHourOf)) : HEATING_HOURS.checkIn;
+  return {
+    checkIn,
+    eco: Math.max(0, checkIn - (HEATING_HOURS.checkIn - HEATING_HOURS.preheatEco)),
+    cft: Math.max(0, checkIn - (HEATING_HOURS.checkIn - HEATING_HOURS.preheatCft)),
+  };
+}
+
+/** Les horaires convenus qui concernent **aujourd'hui** (arrivée ou départ du jour), pour l'affichage. */
+export function todayAgreedHours(bookings: readonly StayDates[], today: string): { arrivalHour?: number; departureHour?: number } {
+  const arrivals = bookings.filter((b) => b.arrival === today && b.arrivalHour !== undefined).map((b) => b.arrivalHour!);
+  const departures = bookings.filter((b) => b.departure === today && b.departureHour !== undefined).map((b) => b.departureHour!);
+  return {
+    ...(arrivals.length > 0 ? { arrivalHour: Math.min(...arrivals) } : {}),
+    ...(departures.length > 0 ? { departureHour: Math.max(...departures) } : {}),
+  };
 }
 
 /**
@@ -65,13 +105,16 @@ export function zoneHour(hour: number, minute: number, staggerMinutes = 0): numb
   return Math.floor(t / 60);
 }
 
-/** La condition historique `isCurrentlyOccupied`, inchangée. */
+/**
+ * La condition historique `isCurrentlyOccupied` ; seules les heures d'arrivée et de libération
+ * deviennent celles du séjour quand un horaire a été convenu (2026-11-16).
+ */
 export function isOccupiedAt(bookings: readonly StayDates[], today: string, hour: number): boolean {
   return bookings.some(
     (b) =>
       (b.arrival < today && b.departure > today) ||
-      (b.arrival === today && b.departure > today && hour >= HEATING_HOURS.checkIn) ||
-      (b.departure === today && hour < HEATING_HOURS.checkOut),
+      (b.arrival === today && b.departure > today && hour >= checkInHourOf(b)) ||
+      (b.departure === today && hour < releaseHourOf(b)),
   );
 }
 
@@ -82,8 +125,9 @@ export function heatingSituation(bookings: readonly StayDates[], today: string, 
   const checkOut = bookings.some((b) => b.departure === today);
   if (checkIn && checkOut) return "turnaround";
   if (checkIn) {
-    if (hour >= HEATING_HOURS.preheatCft) return "preheat-cft";
-    if (hour >= HEATING_HOURS.preheatEco) return "preheat-eco";
+    const preheat = preheatHours(bookings, today);
+    if (hour >= preheat.cft) return "preheat-cft";
+    if (hour >= preheat.eco) return "preheat-eco";
     return "arrival-morning";
   }
   if (checkOut) return "checkout";
@@ -188,7 +232,8 @@ export function expectedHeatingMode(
  *
  * - **Occupé** : le mode occupé, et les consignes ne sont remises que si le voyageur les a
  *   montées.
- * - **Jour d'arrivée à partir de 12 h** (préchauffage, ou rotation) : compte comme occupé. Le
+ * - **Jour d'arrivée à partir de 12 h** (préchauffage, ou rotation) : compte comme occupé — à
+ *   partir de l'heure du préchauffage éco, donc plus tôt pour une arrivée anticipée. Le
  *   reset impose le mode du préchauffage et ne touche les consignes que si elles ont été
  *   montées. Avant le 2026-11-07, il remettait le mode par défaut (hors-gel) aux passages de
  *   12 h et 16 h : le préchauffage, posé par l'automatisation à 12 h et 15 h, était coupé
@@ -206,33 +251,67 @@ export function resetTarget(
   const { situation, mode, hour: h } = staggered(bookings, today, hour, zone, minute);
   if (situation === "occupied") return { mode: mode!, occupied: true };
   const arrivalDayAfternoon =
-    h >= HEATING_HOURS.preheatEco &&
+    h >= preheatHours(bookings, today).eco &&
     (situation === "preheat-eco" || situation === "preheat-cft" || situation === "turnaround");
   if (arrivalDayAfternoon && mode) return { mode, occupied: true };
   return { mode: device.defaultMode, occupied: false };
 }
 
-/** Règle en cours et règle suivante, en clair, pour le bandeau du dashboard. */
+/** « Arrivée anticipée à 14 h · Départ tardif convenu à 16 h », ou `undefined` sans accord du jour. */
+export function agreedHoursLine(agreed: { arrivalHour?: number; departureHour?: number } = {}): string | undefined {
+  const parts = [
+    agreed.arrivalHour !== undefined ? `Arrivée anticipée à ${agreed.arrivalHour} h` : null,
+    agreed.departureHour !== undefined ? `Départ tardif convenu à ${agreed.departureHour} h` : null,
+  ].filter((p): p is string => p !== null);
+  return parts.length > 0 ? parts.join(" · ") : undefined;
+}
+
+/**
+ * Règle en cours et règle suivante, en clair, pour le bandeau du dashboard.
+ *
+ * `agreed` : les horaires convenus **du jour** (`todayAgreedHours`). Absent ou vide, les textes
+ * sont ceux d'avant au caractère près (`tests/heating/expected-mode.test.ts`). Présent, les heures
+ * de préchauffage suivent l'arrivée convenue, et `agreedRule` porte la ligne « Départ tardif
+ * convenu à 16 h » / « Arrivée anticipée à 14 h ».
+ */
 export function getHeatingRules(
   situation: HeatingSituation,
   hour: number,
   nextCheckIn?: string,
+  agreed: { arrivalHour?: number; departureHour?: number } = {},
+): { currentRule: string; nextRule: string; agreedRule?: string } {
+  const rules = baseRules(situation, hour, nextCheckIn, agreed);
+  const agreedRule = agreedHoursLine(agreed);
+  return agreedRule ? { ...rules, agreedRule } : rules;
+}
+
+function baseRules(
+  situation: HeatingSituation,
+  hour: number,
+  nextCheckIn: string | undefined,
+  agreed: { arrivalHour?: number; departureHour?: number },
 ): { currentRule: string; nextRule: string } {
+  const A = agreed.arrivalHour;
+  const D = agreed.departureHour;
+  const preheat = preheatHours(A === undefined ? [] : [{ arrival: "", departure: "", arrivalHour: A }], "");
   switch (situation) {
     case "arrival-morning":
       return {
         currentRule: "Arrivée aujourd'hui — Hors-gel",
-        nextRule: "À 12h → Pré-chauffage éco, à 15h → confort",
+        nextRule:
+          A === undefined
+            ? "À 12h → Pré-chauffage éco, à 15h → confort"
+            : `À ${preheat.eco}h → Pré-chauffage éco, à ${preheat.cft}h → confort (arrivée anticipée à ${A} h)`,
       };
     case "preheat-eco":
       return {
         currentRule: "Arrivée aujourd'hui — Pré-chauffage éco",
-        nextRule: "À 15h → Confort (arrivée à 17h)",
+        nextRule: A === undefined ? "À 15h → Confort (arrivée à 17h)" : `À ${preheat.cft}h → Confort (arrivée anticipée à ${A} h)`,
       };
     case "preheat-cft":
       return {
         currentRule: "Arrivée aujourd'hui — Pré-chauffage confort",
-        nextRule: "Arrivée prévue à 17h",
+        nextRule: A === undefined ? "Arrivée prévue à 17h" : `Arrivée anticipée à ${A} h`,
       };
     case "checkout":
     case "vacant":
@@ -242,12 +321,28 @@ export function getHeatingRules(
       };
     case "turnaround": {
       const mode = hour >= 9 && hour < 17 ? "Éco (entre deux réservations)" : "Hors-gel";
+      const checkIn = A ?? HEATING_HOURS.checkIn;
       return {
         currentRule: `Entre deux réservations — ${mode}`,
-        nextRule: hour < 17 ? "À 17h → Pré-chauffage confort" : "Check-in imminent",
+        nextRule:
+          hour < checkIn
+            ? A === undefined
+              ? "À 17h → Pré-chauffage confort"
+              : `Arrivée anticipée à ${A} h`
+            : "Check-in imminent",
       };
     }
     case "occupied":
+      // Jour d'un départ tardif : c'est l'échéance qui compte, avant la prochaine bascule.
+      if (D !== undefined && hour < D) {
+        const current =
+          hour >= 7 && hour < 20
+            ? "Réservation active — Présence (7h-20h)"
+            : hour < 5
+              ? "Réservation active — Nuit (RDC présence, chambres confort)"
+              : "Réservation active — Confort (5h-7h)";
+        return { currentRule: current, nextRule: `Départ tardif convenu à ${D} h` };
+      }
       if (hour >= 7 && hour < 20) {
         return { currentRule: "Réservation active — Présence (7h-20h)", nextRule: "À 20h → Confort (nuit)" };
       }
