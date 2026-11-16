@@ -10,8 +10,9 @@ import { sendNtfy, type NtfyOptions } from "./ntfy";
  *
  * Priorité 4 (haute) par défaut : ce sont des pannes ou des radiateurs injoignables, pas des
  * comptes rendus. Un troisième argument facultatif la change — un rétablissement part en 1
- * (règle commune, `lib/alert-memory.ts`), sans son ni vibration. Sans `NTFY_TOPIC`, `sendNtfy` journalise et n'envoie rien, comme
- * l'ancien code sans `ALERT_EMAIL`.
+ * (règle commune, `lib/alert-memory.ts`), sans son ni vibration. Sans `NTFY_TOPIC`, l'envoi
+ * **lève** (`lib/ntfy.ts`, 2026-11-16) : une alerte qui ne peut pas partir ne doit pas être notée
+ * comme partie.
  */
 export type AlertPriority = NonNullable<NtfyOptions["priority"]>;
 

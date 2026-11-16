@@ -13,7 +13,7 @@ import {
 import { expectedHeatingMode, type HeatingSituation } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
-import { alertTransition, failingInputs, reportCronRun } from "@/lib/alert-memory";
+import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
 import { getRedis, redisKey } from "@/lib/redis";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
@@ -317,20 +317,25 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Alerte sur les radiateurs qui n'ont pas pris leur mode — une fois par changement d'état.
-    // Pendant une coupure, ils sont hors ligne par force : l'alerte de coupure suffit.
-    const transition = cutOngoing
-      ? { action: "none" as const }
-      : await alertTransition("heating-automation", failingInputs(failedDevices), now, { confirmAfter: 2 });
-    if (transition.action === "open" || transition.action === "escalate") {
-      await sendHeatingAlert(
-        `${failedDevices.length} radiateur(s) n'ont pas pris leur mode`,
-        [`Situation : ${situation}`, "", ...alertFailures.map((f) => `  - ${f}`)].join("\n"),
-      ).catch(() => {});
-    } else if (transition.action === "recover") {
-      await sendHeatingAlert("Tous les radiateurs ont repris leur mode", "Plus aucun échec de commande.", 1).catch(
-        () => {},
-      );
+    // Alerte sur les radiateurs qui n'ont pas pris leur mode — règle commune (`reportAlerts`) :
+    // deux passages de suite, jamais répétée, rétablissement en priorité 1. Un envoi raté remet
+    // l'état tel qu'avant (l'ancien `alertTransition` + `send().catch()` le laissait « ouvert » :
+    // l'alerte était perdue). Pendant une coupure, ils sont hors ligne par force : l'alerte de
+    // coupure suffit, l'état n'avance pas.
+    if (!cutOngoing) {
+      await reportAlerts(
+        "heating-automation",
+        failedDevices.map((name, i) => ({ id: name, priority: 4, line: `  - ${alertFailures[i]}` })),
+        sendHeatingAlert,
+        {
+          title: (c) => `${c.length} radiateur(s) n'ont pas pris leur mode`,
+          intro: `Situation : ${situation}`,
+          recoveredTitle: "Tous les radiateurs ont repris leur mode",
+          recoveredBody: "Plus aucun échec de commande.",
+          confirmAfter: 2,
+          now,
+        },
+      ).catch((e) => console.error("[heating-automation] alerte:", e instanceof Error ? e.message : e));
     }
 
     await beat("heating-automation", "ok");

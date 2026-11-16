@@ -8,7 +8,12 @@ export type { NtfyOptions };
  * fois l'envoi réussi. **Tout envoi ntfy du site passe par ici**, jamais directement par le
  * socle : sans quoi la page « Alertes » sous-compterait.
  *
- * Sans `NTFY_TOPIC`, le socle journalise et n'envoie rien : rien n'est noté non plus.
+ * **Sans `NTFY_TOPIC`, l'envoi lève** (2026-11-16). Le socle, lui, journalise et rend la main
+ * sans erreur : `reportAlerts` notait alors l'alerte comme partie, l'état passait « ouvert » et,
+ * une alerte n'étant jamais répétée, elle ne repartait plus quand le sujet revenait. Une erreur
+ * fait remettre l'état tel qu'avant le passage (`lib/alert-memory.ts`) : l'alerte repart au
+ * passage suivant. Les appelants qui ne veulent pas échouer pour une notification gardent leur
+ * `.catch`.
  */
 export async function sendNtfy(
   message: string,
@@ -16,8 +21,8 @@ export async function sendNtfy(
   /** Titre noté dans le journal à la place du vrai : jamais de prénom ni de donnée personnelle. */
   log: { title?: string } = {},
 ): Promise<void> {
+  if (!process.env.NTFY_TOPIC) throw new Error("NTFY_TOPIC manquant : notification non envoyée");
   await sendSocleNtfy(message, options);
-  if (!process.env.NTFY_TOPIC) return;
   await recordNotification({
     title: log.title ?? options.title ?? "(sans titre)",
     priority: options.priority ?? 3,
