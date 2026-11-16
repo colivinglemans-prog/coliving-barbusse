@@ -81,8 +81,10 @@ export type SyncAlert = Omit<AccessAlert, "kind"> & {
  * Qui a lancé le passage. Seul le passage horaire du cron évalue et envoie les alertes : le
  * webhook Beds24 se déclenche aussi sur nos propres écritures (`NUKI_PIN`, `MSG_*`), et une
  * serrure vue hors ligne entre deux passages horaires suffisait à envoyer une priorité 5.
+ * `dashboard` (2026-11-16) : passage lancé après la saisie d'un horaire convenu, traité comme le
+ * webhook (seule l'alerte urgente peut partir).
  */
-export type SyncTrigger = "cron" | "webhook";
+export type SyncTrigger = "cron" | "webhook" | "dashboard";
 
 export const ACCESS_POLICY: AccessCodePolicy = {
   validFromHour: 14,

@@ -383,6 +383,8 @@ function StayHoursEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  // La saisie est enregistrée mais la serrure n'a pas pu être recalée tout de suite.
+  const [syncDeferred, setSyncDeferred] = useState(false);
 
   if (!editable) {
     const text = agreedLabel(hours);
@@ -422,6 +424,8 @@ function StayHoursEditor({
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `HTTP ${res.status}`);
       }
+      const data = await res.json().catch(() => ({}));
+      setSyncDeferred(Boolean(data.syncDeferred));
       onSaved(draft);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -476,6 +480,11 @@ function StayHoursEditor({
         <p className={`mt-1 text-[10px] ${check.severe ? "font-medium text-red-600" : "text-amber-700"}`}>{check.warning}</p>
       )}
       {error && <p className="mt-1 text-[10px] text-red-600">{error}</p>}
+      {syncDeferred && (
+        <p className="mt-1 text-[10px] text-amber-700">
+          Enregistré. Le code de la serrure sera recalé au prochain passage horaire de la synchronisation.
+        </p>
+      )}
       {dirty && (
         <div className="mt-2 flex justify-end gap-2">
           <button

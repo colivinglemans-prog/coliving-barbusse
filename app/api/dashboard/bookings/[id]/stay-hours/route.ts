@@ -3,6 +3,7 @@ import { guard } from "@/lib/auth";
 import { getBookingById } from "@/lib/beds24";
 import { PROPERTY_ID } from "@/lib/beds24-property";
 import { getBookingsWithArchive } from "@/lib/bookings";
+import { runAccessSync } from "@/lib/access-sync";
 import { hasRedis } from "@/lib/redis";
 import {
   clearStayHours,
@@ -31,7 +32,11 @@ import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
  * arrive le même jour est refusé (409), comme une arrivée anticipée antérieure au départ de celui
  * qui part ; l'égalité passe, avec un avertissement rendu à la popup (`severe` : moins de 3 h pour
  * le ménage). Voisins : `rotationNeighbours`, la même définition que la popup.
-
+ *
+ * **Synchro immédiate** : après l'écriture, un passage de la synchro des codes (même fonction et
+ * même verrou que le webhook Beds24, sans les alertes du cron) pose tout de suite la nouvelle
+ * fenêtre sur la serrure. S'il échoue, la saisie reste enregistrée : 200 avec `syncDeferred`, le
+ * passage horaire rattrapera.
  *
  * Écriture franche : Redis absent ⇒ 503, échec ⇒ 500. Rien de personnel dans la réponse.
  */
@@ -61,6 +66,17 @@ async function admit(req: NextRequest, params: Promise<{ id: string }>): Promise
   const id = await parseId(params);
   if (id === null) return NextResponse.json({ error: "Identifiant de réservation invalide" }, { status: 400 });
   return id;
+}
+
+/** Passage de la synchro des codes ; `true` s'il n'a pas pu poser la fenêtre tout de suite. */
+async function syncNow(): Promise<boolean> {
+  try {
+    const report = await runAccessSync({ dryRun: false, trigger: "dashboard" });
+    return report.skipped !== undefined || report.actions.some((a) => a.ok === false);
+  } catch (e) {
+    console.error("[stay-hours] synchro différée :", e instanceof Error ? e.message : e);
+    return true;
+  }
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -94,12 +110,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (check.error) return NextResponse.json({ error: check.error }, { status: 409 });
 
     await saveStayHours(id, parsed.value);
+    const syncDeferred = await syncNow();
     return NextResponse.json({
       ok: true,
       bookingId: id,
       hours: parsed.value,
       ...(check.warning ? { warning: check.warning } : {}),
       ...(check.severe ? { severe: true } : {}),
+      ...(syncDeferred ? { syncDeferred: true } : {}),
     });
   } catch (e) {
     console.error("[stay-hours] écriture impossible :", e instanceof Error ? e.message : e);
@@ -119,5 +137,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     console.error("[stay-hours] suppression impossible :", e instanceof Error ? e.message : e);
     return NextResponse.json({ error: "Suppression impossible" }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, bookingId: id, hours: {} });
+  const syncDeferred = await syncNow();
+  return NextResponse.json({ ok: true, bookingId: id, hours: {}, ...(syncDeferred ? { syncDeferred: true } : {}) });
 }

@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 const h = vi.hoisted(() => ({
   hash: new Map<string, string>(),
   booking: { id: 1000001, propertyId: 303771, arrival: "2027-01-08", departure: "2027-01-10", status: "confirmed", firstName: "Test", email: "x@exemple.fr" } as Record<string, unknown>,
+  sync: vi.fn(async (options: { dryRun: boolean; trigger: string }) => ({ options, mode: "live", actions: [] as Array<{ ok?: boolean }>, skipped: undefined as string | undefined })),
   neighbours: [] as Array<{ id: number; propertyId?: number; arrival: string; departure: string; status: string }>,
 }));
 
@@ -23,6 +24,7 @@ vi.mock("@/lib/redis", () => ({
   }),
 }));
 vi.mock("@/lib/beds24", () => ({ getBookingById: async () => h.booking }));
+vi.mock("@/lib/access-sync", () => ({ runAccessSync: h.sync }));
 vi.mock("@/lib/bookings", () => ({
   getBookingsWithArchive: async (q: { arrivalFrom?: string; departureFrom?: string }) =>
     h.neighbours.filter((b) => (q.arrivalFrom ? b.arrival === q.arrivalFrom : b.departure === q.departureFrom)),
@@ -52,6 +54,8 @@ beforeEach(() => {
   h.hash.clear();
   h.neighbours = [];
   h.booking = { ...h.booking, propertyId: 303771, status: "confirmed" };
+  h.sync.mockReset();
+  h.sync.mockImplementation(async () => ({ mode: "live", actions: [], skipped: undefined }));
   process.env.DASHBOARD_SECRET = "secret-de-test-assez-long-pour-hs256-0000";
 });
 
@@ -106,6 +110,34 @@ describe("saisie : origine, format, réservation de la maison", () => {
   it("une option qui arrive le même jour n'est pas un voisin (même règle que la popup)", async () => {
     h.neighbours = [{ id: 1000002, arrival: "2027-01-10", departure: "2027-01-12", status: "black" }];
     expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 18 } }), params)).status).toBe(200);
+  });
+});
+
+describe("synchro immédiate de la serrure après la saisie", () => {
+  const url = "/api/dashboard/bookings/1000001/stay-hours";
+
+  it("POST et DELETE relancent la synchro comme le webhook (sans alerte du cron)", async () => {
+    await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 } }), params);
+    await DELETE(await req(url, "admin", { method: "DELETE" }), params);
+    expect(h.sync.mock.calls).toEqual([[{ dryRun: false, trigger: "dashboard" }], [{ dryRun: false, trigger: "dashboard" }]]);
+  });
+
+  it("synchro en échec ou occupée : la saisie reste, 200 avec syncDeferred", async () => {
+    h.sync.mockImplementation(async () => {
+      throw new Error("Nuki injoignable");
+    });
+    const res = await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 } }), params);
+    expect(res.status).toBe(200);
+    expect((await res.json()).syncDeferred).toBe(true);
+    expect(h.hash.has("1000001")).toBe(true);
+    h.sync.mockImplementation(async () => ({ mode: "live", actions: [], skipped: "un autre passage est en cours" }));
+    expect((await (await DELETE(await req(url, "admin", { method: "DELETE" }), params)).json()).syncDeferred).toBe(true);
+  });
+
+  it("saisie refusée : pas de synchro", async () => {
+    await POST(await req(url, "viewer", { method: "POST", body: { departureHour: 16 } }), params);
+    await POST(await req(url, "admin", { method: "POST", body: { departureHour: 9 } }), params);
+    expect(h.sync).not.toHaveBeenCalled();
   });
 });
 
