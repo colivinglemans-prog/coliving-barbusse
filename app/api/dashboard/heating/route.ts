@@ -90,6 +90,15 @@ export async function GET(request: NextRequest) {
         // 2. Radiateur qui chauffe alors qu'il ne devrait pas
         // 3. Radiateur qui ne chauffe pas alors qu'il devrait
         const alerts: HeatzyDeviceAlert[] = [];
+        // Mode que l'automatisation veut pour ce radiateur à cette minute (préchauffage compris).
+        // Les alertes de chauffe se comparent à lui, pas au seul « occupé » : le jour d'une
+        // arrivée, de 12 h à 17 h, la maison n'est pas « occupée » mais doit chauffer (2026-11-16 :
+        // « Chauffe sans réservation » affiché sur tous les radiateurs en préchauffage confort).
+        const expectedMode = isLocked
+          ? "fro"
+          : (expectedHeatingMode(activeBookings, today, currentHour, deviceConfig.zone, minute).mode ??
+            deviceConfig.defaultMode);
+        const shouldHeat = expectedMode !== "fro" && expectedMode !== "stop";
 
         if (!isOnline) {
           alerts.push({
@@ -100,16 +109,18 @@ export async function GET(request: NextRequest) {
 
         // Skip heating alerts for locked devices (intentionally in hors-gel) or summer mode (everything stopped)
         if (isOnline && !isLocked && !summerMode) {
-          if (!occupied) {
-            // Pas de réservation : ne devrait PAS chauffer (sauf si temp < 7°C hors-gel)
+          if (!shouldHeat) {
+            // Hors-gel ou arrêt attendu : ne devrait PAS chauffer (sauf si temp < 7°C hors-gel)
             if (isHeating && curTemp !== undefined && curTemp > 10) {
               alerts.push({
                 level: "error",
-                message: `Chauffe sans réservation (${curTemp}°C) — vérifier le radiateur`,
+                message: occupied
+                  ? `Chauffe alors qu'il devrait être en hors-gel (${curTemp}°C) — vérifier le radiateur`
+                  : `Chauffe sans réservation (${curTemp}°C) — vérifier le radiateur`,
               });
             }
           } else {
-            // Réservation active : devrait chauffer si la température est basse
+            // Chauffe attendue (séjour ou préchauffage) : devrait chauffer si la température est basse
             if (!isHeating && curTemp !== undefined && targetTemp !== undefined && curTemp < targetTemp - 3 && baseMode !== "stop" && baseMode !== "fro") {
               alerts.push({
                 level: "error",
@@ -132,10 +143,7 @@ export async function GET(request: NextRequest) {
           temperature: curTemp,
           cftTemp: deviceCftTemp,
           ecoTemp: deviceEcoTemp,
-          expectedMode: isLocked
-            ? "fro"
-            : (expectedHeatingMode(activeBookings, today, currentHour, deviceConfig.zone, minute).mode ??
-              deviceConfig.defaultMode),
+          expectedMode,
           targetTemp,
           alerts,
         } as HeatzyDevice;
