@@ -12,6 +12,20 @@ import type { TrackedAlert } from "./alert-memory";
  * la serrure, message du voyageur) et l'état servi par `/api/dashboard/stay-status`.
  */
 
+/**
+ * Délai de grâce après l'heure de départ avant le premier relevé qui compte : un groupe qui
+ * part avec dix minutes de retard ne doit pas faire sonner le téléphone. Le premier constat est
+ * pris au relevé ≥ D + 30 min, l'alerte part au relevé suivant (deux relevés, règle commune), donc
+ * vers D + 45 min. **Valeur à arbitrer par l'hôte.**
+ */
+export const DEPARTURE_LOCK_GRACE_MINUTES = 30;
+
+/**
+ * Le ménage (ou les voyageurs suivants) peut entrer **avant** l'heure de départ : une ouverture
+ * depuis D − 2 h vaut maison de nouveau occupée.
+ */
+export const REOCCUPY_LOOKBACK_HOURS = 2;
+
 /** Ouvertures réussies : déverrouillage, ouverture (« unlatch »), déverrouillage avec ouverture. */
 const OPENING_ACTIONS: ReadonlySet<number> = new Set([1, 3, 5]);
 /** `trigger` d'une ligne du journal venue du clavier. */
@@ -38,18 +52,20 @@ export interface DepartureLockInput {
   departures: ReadonlyArray<{ bookingId: number; departureHour: number }>;
   /** Séjours qui arrivent aujourd'hui : leur code qui ouvre vaut maison de nouveau occupée. */
   arrivals: ReadonlyArray<{ bookingId: number }>;
-  /** `null` : serrure illisible (API Nuki en panne, jeton absent). */
+  /** `null` : serrure illisible (API Nuki en panne, jeton absent, délai dépassé). */
   lock: { online: boolean; lockState: number | null } | null;
-  /** Journal depuis l'heure de départ ; `null` s'il n'a pas pu être lu en entier. */
+  /** Journal depuis D − 2 h ; `null` s'il n'a pas pu être lu en entier. */
   log: readonly NukiLogEntry[] | null;
+  /** Entrées au garage (Intratone) des personnes suivies ; `null` ou absent : non lu. */
+  garage?: ReadonlyArray<{ who: string; at: Date }> | null;
   /** Personnes du ménage suivies (`TRACKED_PEOPLE`), reconnues aux codes « # Sophie »… */
   people: readonly string[];
 }
 
 /**
- * - `none` : pas de départ aujourd'hui, ou heure de départ pas encore passée ;
+ * - `none` : pas de départ aujourd'hui, ou heure de départ + délai de grâce pas encore passée ;
  * - `unreadable` : serrure hors ligne ou illisible, ou journal illisible — rien n'est conclu ;
- * - `reoccupied` : le ménage ou les voyageurs suivants ont ouvert après l'heure de départ ;
+ * - `reoccupied` : le ménage ou les voyageurs suivants sont entrés depuis D − 2 h ;
  * - `locked` : porte verrouillée ;
  * - `unlocked` : porte non verrouillée, personne n'est revenu.
  */
@@ -74,20 +90,42 @@ export interface DepartureLockResult {
   detail: string;
 }
 
-/** Ouverture réussie au clavier par le ménage ou par le code d'un séjour qui arrive aujourd'hui. */
+/** Heure de départ retenue pour la journée : la plus tardive. */
+export function departureDeadlineHour(departures: DepartureLockInput["departures"]): number | null {
+  return departures.length > 0 ? Math.max(...departures.map((d) => d.departureHour)) : null;
+}
+
+/** Instant à partir duquel un relevé compte : heure de départ + délai de grâce. */
+export function departureLockDueAt(today: string, departureHour: number): Date {
+  return new Date(parisInstant(today, departureHour).getTime() + DEPARTURE_LOCK_GRACE_MINUTES * 60_000);
+}
+
+/**
+ * Le nom d'un code est-il celui d'une personne du ménage ? Seulement pour un code **non géré**
+ * (pas « <n° de réservation>: <Prénom> ») : un voyageur prénommé comme la personne du ménage
+ * n'est pas le ménage.
+ */
+export function isCleaningCode(name: string | null | undefined, people: readonly string[]): boolean {
+  if (!name || managedBookingId(name) !== null) return false;
+  const lower = name.toLowerCase();
+  return people.some((p) => p.trim() !== "" && lower.includes(p.trim().toLowerCase()));
+}
+
+/** Entrée du ménage (porte ou garage) ou du code d'un séjour qui arrive aujourd'hui, depuis `since`. */
 function reopenedBy(
-  log: readonly NukiLogEntry[],
+  input: Pick<DepartureLockInput, "log" | "garage" | "people">,
   since: number,
-  people: readonly string[],
   arrivals: ReadonlySet<number>,
-): "ménage" | "voyageurs suivants" | null {
-  for (const e of log) {
+): "ménage" | "ménage (garage)" | "voyageurs suivants" | null {
+  for (const e of input.log ?? []) {
     if (e.state !== 0 || e.trigger !== KEYPAD_TRIGGER || !OPENING_ACTIONS.has(e.action)) continue;
     if (Date.parse(e.date) < since) continue;
-    const name = (e.name ?? "").toLowerCase();
-    if (people.some((p) => p && name.includes(p.toLowerCase()))) return "ménage";
+    if (isCleaningCode(e.name, input.people)) return "ménage";
     const id = managedBookingId(e.name ?? "");
     if (id !== null && arrivals.has(id)) return "voyageurs suivants";
+  }
+  for (const g of input.garage ?? []) {
+    if (g.at.getTime() >= since && input.people.some((p) => p.toLowerCase() === g.who.toLowerCase())) return "ménage (garage)";
   }
   return null;
 }
@@ -96,35 +134,38 @@ function reopenedBy(
  * Alerte « serrure non verrouillée après le départ » (priorité 4, scope `departure-lock`).
  *
  * Le jour d'un départ, à partir de l'heure de départ (11 h, ou la plus tardive des heures
- * convenues du jour), une porte non verrouillée alerte — confirmée sur deux relevés par la règle
- * commune, donc vers 11 h 15. Pas d'alerte si le ménage ou les voyageurs suivants ont ouvert
- * depuis (la maison est de nouveau occupée : une alerte ouverte se referme sans message), ni si
- * la serrure est hors ligne (c'est l'alerte de la synchronisation).
+ * convenues du jour) **plus le délai de grâce**, une porte non verrouillée est un constat — l'alerte
+ * part au relevé suivant (règle commune des deux relevés). Pas d'alerte si le ménage (code non
+ * géré, ou entrée au garage) ou les voyageurs suivants sont entrés **depuis D − 2 h** (la maison
+ * est de nouveau occupée : une alerte ouverte se referme sans message), ni si la serrure est hors
+ * ligne (c'est l'alerte de la synchronisation).
  *
  * L'identifiant de l'alerte porte le jour : une alerte d'hier ne masque pas celle d'aujourd'hui.
  */
 export function departureLockCheck(input: DepartureLockInput): DepartureLockResult {
-  const { now, today, departures, lock, log, people } = input;
+  const { now, today, departures, lock, log } = input;
+  const departureHour = departureDeadlineHour(departures);
   const none = (detail: string): DepartureLockResult => ({
     status: "none",
-    departureHour: departures.length > 0 ? Math.max(...departures.map((d) => d.departureHour)) : null,
+    departureHour,
     report: "close-silently",
     alerts: [],
     detail,
   });
-  if (departures.length === 0) return none("pas de départ aujourd'hui");
-  const departureHour = Math.max(...departures.map((d) => d.departureHour));
-  const deadline = parisInstant(today, departureHour).getTime();
-  if (now.getTime() < deadline) return none(`départ à ${departureHour} h, pas encore passé`);
+  if (departureHour === null) return none("pas de départ aujourd'hui");
+  if (now.getTime() < departureLockDueAt(today, departureHour).getTime()) {
+    return none(`départ à ${departureHour} h, délai de grâce de ${DEPARTURE_LOCK_GRACE_MINUTES} min pas encore passé`);
+  }
 
   const unreadable = (detail: string): DepartureLockResult => ({ status: "unreadable", departureHour, report: "skip", alerts: [], detail });
   if (lock === null) return unreadable("serrure illisible");
   if (!lock.online) return unreadable("serrure hors ligne (alerte de la synchronisation)");
   if (log === null) return unreadable("journal de la serrure illisible");
 
-  const by = reopenedBy(log, deadline, people, new Set(input.arrivals.map((a) => a.bookingId)));
+  const since = parisInstant(today, departureHour).getTime() - REOCCUPY_LOOKBACK_HOURS * 3600_000;
+  const by = reopenedBy(input, since, new Set(input.arrivals.map((a) => a.bookingId)));
   if (by) {
-    return { status: "reoccupied", departureHour, report: "close-silently", alerts: [], detail: `porte ouverte depuis par : ${by}` };
+    return { status: "reoccupied", departureHour, report: "close-silently", alerts: [], detail: `entrée depuis ${departureHour - REOCCUPY_LOOKBACK_HOURS} h : ${by}` };
   }
   if (lock.lockState === LOCK_STATE_LOCKED) {
     return { status: "locked", departureHour, report: "report", alerts: [], detail: "porte verrouillée" };
@@ -139,14 +180,14 @@ export function departureLockCheck(input: DepartureLockInput): DepartureLockResu
       {
         id: `departure-lock:${today}`,
         priority: 4,
-        line: `Le départ de ${departureHour} h est passé et la porte d'entrée n'est pas verrouillée (${state}). Ni le ménage ni les voyageurs suivants ne l'ont ouverte depuis.`,
+        line: `Le départ de ${departureHour} h est passé et la porte d'entrée n'est pas verrouillée (${state}). Ni le ménage ni les voyageurs suivants ne sont entrés depuis ${departureHour - REOCCUPY_LOOKBACK_HOURS} h.`,
       },
     ],
     detail: `porte non verrouillée (${state})`,
   };
 }
 
-/** Titres de l'alerte, pour `reportAlerts`. */
+/** Titre de l'alerte, pour `reportAlerts`. */
 export function departureLockTitle(departureHour: number | null): string {
   return `Serrure non verrouillée — départ de ${departureHour ?? 11} h dépassé`;
 }

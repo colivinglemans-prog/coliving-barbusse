@@ -16,7 +16,7 @@ import { expectedHeatingMode, type HeatingSituation } from "@/lib/heating-schedu
 import { getActiveBookings } from "@/lib/bookings";
 import { locksToRelease } from "@/lib/heating-locks";
 import { withStayHours } from "@/lib/stay-hours";
-import { runDepartureLockCheck } from "@/lib/departure-lock";
+import { runDepartureLockCheck, runDepartureLockCheckSummer } from "@/lib/departure-lock";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
@@ -120,10 +120,14 @@ export async function GET(request: NextRequest) {
   try {
     if (await getSummerMode()) {
       // La porte n'a rien à voir avec les radiateurs : le relevé du départ tourne aussi l'été.
-      // Beds24 illisible : pas de relevé, mais le passage d'été reste un succès comme avant.
-      const doorCheck = await withStayHours(getActiveBookings())
-        .then((bookings) => runDepartureLockCheck(bookings, todayParis()))
-        .catch(() => null);
+      // Rien avant 11 h 30, rien une fois la journée close ; Beds24 lu une fois par jour au plus.
+      // Ne lève jamais : le passage d'été reste un succès comme avant.
+      const summerParis = nowParis();
+      const doorCheck = await runDepartureLockCheckSummer(
+        todayParis(),
+        summerParis.getHours() * 60 + summerParis.getMinutes(),
+        () => getActiveBookings(),
+      );
       await beat("heating-automation", "ok");
       await reportCronRun("heating-automation", "Automation du chauffage", sendHeatingAlert, null).catch(() => {});
       return NextResponse.json({
