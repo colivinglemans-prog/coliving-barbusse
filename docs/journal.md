@@ -662,3 +662,5 @@ Choix tranchés :
   contre une fixture relevée avant modification (`tests/fixtures/messages-heures-standard.json`).
 - **Alerte de porte au départ** active dès la mise en production ; pas de fausse alerte quand le
   ménage ou les voyageurs suivants ont ouvert, rien quand la serrure est hors ligne.
+- **Montée au socle v3.26.0** (même jour, commit 8b409e8) : adaptateurs de type retirés, test du recalage
+  `window` par le vrai `planAccessCodes` (`tests/stay-hours/access-window.test.ts`).

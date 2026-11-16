@@ -48,14 +48,11 @@ const store: ReadinessStore = {
 };
 
 /**
- * Un séjour de la préparation, plus la fenêtre de code propre au séjour quand un horaire a été
- * convenu. `validFromHour` / `validUntilHour` sont les champs que le socle v3.26.0 ajoute à
- * `AccessStay` et que `accessWindow` lit : la sonde serrure du socle reçoit ce même objet et
- * comparera alors le code posé à la bonne fenêtre. En v3.24.0, le socle les ignore.
+ * Un séjour de la préparation, avec la fenêtre de code propre au séjour quand un horaire a été
+ * convenu (`validFromHour` / `validUntilHour`, socle v3.26.0) : la sonde serrure compare le code
+ * posé à cette fenêtre, la sonde de présence compte une entrée dès l'ouverture convenue.
  */
-type ReadinessStay = ReadinessBooking & { validFromHour?: number; validUntilHour?: number };
-
-function toReadinessBooking(b: Beds24Booking, table: StayHoursTable): ReadinessStay {
+function toReadinessBooking(b: Beds24Booking, table: StayHoursTable): ReadinessBooking {
   const agreed = table[b.id] ?? {};
   return {
     bookingId: b.id,

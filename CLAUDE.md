@@ -234,7 +234,7 @@ docs/journal.md § Conventions).
 
 ## TODO — dette technique restante (au 2026-11-07)
 
-Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0 **ce jour-là** (non revérifié depuis), CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 à l'époque (**v3.26.1** au 2026-11-16 pour Barbusse). Reste :
+Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0 **ce jour-là** (non revérifié depuis), CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 à l'époque (**v3.26.1** au 2026-11-16, Albiez et Barbusse). Reste :
 
 **À surveiller**
 - [ ] Premier passage automatique du cron `beds24-backup` : dimanche 2026-11-08, 03:00 UTC (notification ntfy priorité 1 attendue).
@@ -555,8 +555,8 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
 |---|---|---|
 | Chauffage (`isOccupiedAt`, `heatingSituation`, `resetTarget`, `preheatHours`) | occupé 17 h → 10 h ; préchauffage 12 h / 15 h | occupé dès A et **jusqu'à D** ; préchauffage A − 5 h / A − 2 h (borné à la journée). Le décalage par zone ne s'applique qu'aux montées : la descente à D reste à l'heure partout. |
 | Ballon (`countGuests`) | partants jusqu'à 11 h, arrivants dès 11 h | partants jusqu'à D ; arrivants dès min(11 h, A − 6 h) |
-| Code de la serrure (`toStay`, `lib/access-sync.ts`) | 14 h → 14 h | min(14 h, A − 1 h) → max(14 h, D + 1 h) — **effectif avec le socle v3.26.0** (champs `validFromHour` / `validUntilHour` par séjour) ; en v3.24.0 le socle les ignore et la pastille du calendrier affiche la fenêtre réellement calculée. |
-| Préparation d'arrivée (`toReadinessBooking`) | `arrivalTime` de Beds24 | A en `arrivalTime`, fenêtre du code comme ci-dessus ; `earliestCheckIn: "08:00"` (`lib/readiness/config.ts`, lu à partir du socle v3.26.0). |
+| Code de la serrure (`toStay`, `lib/access-sync.ts`) | 14 h → 14 h | min(14 h, A − 1 h) → max(14 h, D + 1 h) (champs `validFromHour` / `validUntilHour` par séjour, socle v3.26.0) : la synchro recale un code déjà posé (motif `window`) ; la pastille du calendrier affiche la fenêtre calculée par le socle. |
+| Préparation d'arrivée (`toReadinessBooking`) | `arrivalTime` de Beds24 | A en `arrivalTime`, fenêtre du code comme ci-dessus ; `earliestCheckIn: "08:00"` (`lib/readiness/config.ts`) avance les contrôles noon / preheat / final. |
 | Messages voyageurs (`hourVars`, `lib/messages/engine.ts`) | « 17h », « 11h » | `heureArrivee` / `heureDepart` dans la langue du voyageur ; `departConvenu` fait dire au message de la veille « comme convenu, vous pouvez rester jusqu'à 16h ». Bouton « Départ » du dashboard aligné. |
 | Bandeau Chauffage (`getHeatingRules`, 4e argument) | — | ligne « Départ tardif convenu à 16 h » / « Arrivée anticipée à 14 h » (`agreedRule`). |
 

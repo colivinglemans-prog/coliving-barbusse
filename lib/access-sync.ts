@@ -113,18 +113,11 @@ export function syncIsLive(): boolean {
 
 /**
  * Un séjour de la synchronisation, avec sa fenêtre propre quand un horaire a été convenu
- * (`lib/stay-hours.ts` : de min(14 h, A − 1 h) à max(14 h, D + 1 h)).
- *
- * ⚠️ **Point de branchement du socle v3.26.0.** `validFromHour` / `validUntilHour` sont les
- * champs que la v3.26.0 ajoute à `AccessStay` et que `accessWindow` lit en priorité sur la
- * politique. Tant que le site est en v3.24.0, le socle les ignore : le code reste posé de 14 h à
- * 14 h, et `lockStatus` le dit (il affiche la fenêtre que **le socle** calcule). Après la montée
- * de version, ce type se réduit à `AccessStay` (les champs y seront) et la synchro horaire recale
- * d'elle-même les codes concernés (motif `window` du plan).
+ * (`lib/stay-hours.ts` : de min(14 h, A − 1 h) à max(14 h, D + 1 h)). `validFromHour` /
+ * `validUntilHour` (socle v3.26.0) priment sur `ACCESS_POLICY` dans `accessWindow` : la synchro
+ * recale d'elle-même un code déjà posé (motif `window`). Exporté pour les tests.
  */
-type AccessStayWithHours = AccessStay & { validFromHour?: number; validUntilHour?: number };
-
-function toStay(b: Beds24Booking, table: StayHoursTable): AccessStayWithHours {
+export function toStay(b: Beds24Booking, table: StayHoursTable): AccessStay {
   const status =
     b.status === "cancelled"
       ? "cancelled"
@@ -532,8 +525,8 @@ export async function lockStatus(): Promise<LockStatus> {
 
 /**
  * « 14 h → 14 h », ou « 13 h → 17 h » pour un séjour à horaires convenus — lu dans la fenêtre que
- * **le socle** calcule (`accessWindow`), jamais déduit des horaires : en v3.24.0, qui ignore les
- * champs par séjour, la pastille dit donc toujours ce qui est réellement posé.
+ * **le socle** calcule (`accessWindow`), jamais déduit des horaires : la pastille dit donc
+ * toujours ce que la synchro pose.
  */
 function windowLabel(stay: AccessStay): string {
   const w = accessWindow(stay, ACCESS_POLICY);
