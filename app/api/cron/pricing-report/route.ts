@@ -12,6 +12,9 @@ import { buildWeeklyReport, formatWeeklyReport } from "@/lib/pricing/weekly-repo
 import { beat } from "@/lib/heartbeat";
 import { isDryRun } from "@/lib/cron-params";
 
+// Huit photos tarifaires, les séjours sur deux ans et le moteur : le plus lourd des crons du lundi.
+export const maxDuration = 60;
+
 /**
  * Rapport hebdomadaire d'évaluation du pricing, envoyé sur ntfy. À appeler le lundi matin,
  * **après** la photo du jour (`/api/cron/pricing-snapshot`).

@@ -21,6 +21,9 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Même boucle que l'automation sur 15 radiateurs, ~13 s mesurés le 2026-11-15.
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

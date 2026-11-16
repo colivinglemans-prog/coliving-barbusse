@@ -61,6 +61,7 @@ export class Intratone {
       body: form,
       headers: { Referer: BASE, "User-Agent": UA },
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     });
     this.cookie = extractCookies(res);
     const data = (await res.json()) as { error?: number; SID?: string; session?: unknown };
@@ -110,6 +111,8 @@ export class Intratone {
       },
       body,
       cache: "no-store",
+      // 15 s : la liste des événements est une page HTML entière.
+      signal: AbortSignal.timeout(15_000),
     });
     const text = await res.text();
     let json: Record<string, unknown>;

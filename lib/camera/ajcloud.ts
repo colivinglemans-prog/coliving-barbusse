@@ -281,7 +281,8 @@ export class AjCloud {
       headers["X-UAC-Signature"] = this.signature(method, url, body);
     }
 
-    const res = await fetch(url, { method, body, headers, cache: "no-store" });
+    // 15 s : `alarms-survey` rend des listes d'événements ; un délai dépassé lève comme une panne.
+    const res = await fetch(url, { method, body, headers, cache: "no-store", signal: AbortSignal.timeout(15_000) });
     const buf = Buffer.from(await res.arrayBuffer());
     const data = decodeBody(buf, res.headers.get("content-encoding") ?? "");
 

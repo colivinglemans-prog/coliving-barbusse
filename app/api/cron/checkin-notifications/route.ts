@@ -42,6 +42,9 @@ function nights(b: Beds24Booking): number {
   return Math.max(1, Math.round((d - a) / 86_400_000));
 }
 
+// Beds24, puis le journal de la serrure (quelques pages de 50 lignes) : < 8 s mesurés ; cron-job.org coupe à 30 s.
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

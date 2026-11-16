@@ -11,6 +11,9 @@ import { buildReviewAgenda } from "@/lib/pricing/review-agenda";
 import { diffSnapshots, loadSnapshots, type SnapshotDiff } from "@/lib/pricing/snapshot";
 import { isDryRun } from "@/lib/cron-params";
 
+// Lecture de quelques photos tarifaires et un envoi ntfy.
+export const maxDuration = 30;
+
 /**
  * Rappel hebdomadaire « évaluation des prix avec Claude » — chaque mardi vers 8 h (Paris, hiver),
  * par le cron Vercel `0 7 * * 2`. Choix de l'exploitant (2026-11-14) : le mardi, chaque semaine.

@@ -71,6 +71,9 @@ async function claimDailyShedNotice(today: string): Promise<boolean> {
   }
 }
 
+// 15 radiateurs pilotés un par un (commande + 100 ms), ~13 s mesurés le 2026-11-15 ; 60 s, le plafond du plan Hobby, laisse passer des appels Heatzy lents (10 s chacun au plus).
+export const maxDuration = 60;
+
 /**
  * Pilotage du chauffage, toutes les 15 min (cron-job.org) et à 7 h (Vercel).
  *

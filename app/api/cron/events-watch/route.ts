@@ -7,6 +7,9 @@ import { EVENTS_WATCH, LE_MANS_EVENTS } from "@/lib/events";
 import { beat } from "@/lib/heartbeat";
 import { isDryRun } from "@/lib/cron-params";
 
+// Calcul local et un envoi ntfy.
+export const maxDuration = 30;
+
 /**
  * Rappelle d'aller vérifier les dates d'événements qui ne sont pas encore officielles, et
  * de remplir le calendrier de l'année suivante quand le circuit l'a publié. À appeler une

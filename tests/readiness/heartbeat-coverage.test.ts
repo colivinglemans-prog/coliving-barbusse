@@ -32,6 +32,12 @@ describe("battement de cœur : couverture des crons", () => {
     expect(source(name)).toContain(`beat("${name}",`);
   });
 
+  it.each(routes)("%s : `maxDuration` déclaré (60 s au plus, plafond du plan Hobby)", (name) => {
+    const m = /export const maxDuration = (\d+);/.exec(source(name));
+    expect(m, "maxDuration absent").not.toBeNull();
+    expect(Number(m![1])).toBeLessThanOrEqual(60);
+  });
+
   it("aucun cron attendu sans route, aucune exemption orpheline", () => {
     for (const name of expected.keys()) expect(routes).toContain(name);
     for (const name of Object.keys(HEARTBEAT_EXEMPT)) expect(routes).toContain(name);

@@ -19,6 +19,9 @@ import { beat } from "@/lib/heartbeat";
  */
 const LABEL = "Contrôle du ballon";
 
+// Trois lectures (réservations, ballon, journal) : < 8 s mesurés.
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

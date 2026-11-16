@@ -27,6 +27,9 @@ import { beat } from "@/lib/heartbeat";
  */
 const LABEL = "Contrôle des radiateurs";
 
+// Une lecture de la liste des radiateurs et, en cas de défaut, des réservations : < 8 s mesurés.
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
