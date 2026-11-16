@@ -5,6 +5,8 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import { getAllBookingsRaw } from "@/lib/beds24";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 
 /**
  * Sauvegarde hebdomadaire de tout le compte Beds24 vers Vercel Blob, **stockage privé**.
@@ -43,7 +45,7 @@ export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const dry = request.nextUrl.searchParams.get("dry") === "1";
+  const dry = isDryRun(request.nextUrl.searchParams);
   const today = todayParis();
 
   try {
@@ -113,6 +115,7 @@ export async function GET(request: NextRequest) {
       { title: `Sauvegarde Beds24 du ${today}`, priority: 1, tags: ["floppy_disk"] },
     ).catch((e) => console.error("[beds24-backup] ntfy", e));
 
+    await beat("beds24-backup", "ok");
     return NextResponse.json({
       success: true,
       pathname,
@@ -124,6 +127,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[beds24-backup]", message);
+    if (!dry) await beat("beds24-backup", "error");
     await sendNtfy(`Échec : ${message}`, {
       title: `Sauvegarde Beds24 du ${today}`,
       priority: 4,

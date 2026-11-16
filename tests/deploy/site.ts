@@ -211,9 +211,12 @@ const site = {
   },
 
   /**
-   * Heartbeat des crons (Redis) : `nuki-sync`, `heating-automation`, `water-heater-automation`
-   * et `arrival-readiness` ont tous battu en production (job cron-job.org `arrival-readiness`
-   * créé le 2026-11-07). Appeler la route réévalue aussi l'alerte ntfy `barbusse:alert:heartbeat`.
+   * Heartbeat des crons (Redis) : la liste est `EXPECTED_CRONS` (`lib/heartbeat.ts`, 18 crons
+   * depuis le 2026-11-16 ; un test vérifie qu'aucune route de `app/api/cron` n'y échappe sans
+   * exemption motivée). La surveillance ne lit que le statut et le compte : 200 ou 503. Un cron
+   * qui n'a encore jamais battu a un délai de grâce égal à sa tolérance (`overdueWithGrace`) :
+   * l'ajout d'un cron ne met pas la surveillance au rouge le jour du déploiement. Appeler la
+   * route réévalue aussi l'alerte ntfy `barbusse:alert:heartbeat`.
    */
   // `warning` (socle v3.21.0) : la route envoie elle-même l'alerte `[Crons]` qui nomme les tâches
   // en retard ; la surveillance ne la double plus. Une route illisible reste bloquante

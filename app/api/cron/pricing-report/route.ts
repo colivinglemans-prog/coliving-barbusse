@@ -9,6 +9,8 @@ import { compareEngine, formatEngineComparison } from "@/lib/pricing/engine-comp
 import { ENGINE_CONFIG } from "@/lib/pricing/engine-config";
 import { loadShadows, loadSnapshots } from "@/lib/pricing/snapshot";
 import { buildWeeklyReport, formatWeeklyReport } from "@/lib/pricing/weekly-report";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 
 /**
  * Rapport hebdomadaire d'évaluation du pricing, envoyé sur ntfy. À appeler le lundi matin,
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const params = request.nextUrl.searchParams;
-  const dry = params.get("dry") === "1";
+  const dry = isDryRun(params);
   const requested = params.get("today");
   const today =
     dry && requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : todayParis();
@@ -63,9 +65,11 @@ export async function GET(request: NextRequest) {
       // URL nue : le sujet ntfy n'est pas authentifié, aucun jeton ni donnée en paramètre.
       click: "https://www.coliving-barbusse.fr/dashboard/pricing",
     });
+    await beat("pricing-report", "ok");
     return NextResponse.json({ success: true, sent: true, message });
   } catch (err) {
     console.error("[pricing-report]", err);
+    if (!dry) await beat("pricing-report", "error");
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
       { status: 500 },

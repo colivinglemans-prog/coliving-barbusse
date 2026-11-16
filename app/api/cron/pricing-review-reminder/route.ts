@@ -9,6 +9,7 @@ import { lastSaleDate, pricingInsights } from "@/lib/pricing/insights";
 import { lastPushRun } from "@/lib/pricing/push";
 import { buildReviewAgenda } from "@/lib/pricing/review-agenda";
 import { diffSnapshots, loadSnapshots, type SnapshotDiff } from "@/lib/pricing/snapshot";
+import { isDryRun } from "@/lib/cron-params";
 
 /**
  * Rappel hebdomadaire « évaluation des prix avec Claude » — chaque mardi vers 8 h (Paris, hiver),
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const dry = request.nextUrl.searchParams.get("dry") === "1";
+  const dry = isDryRun(request.nextUrl.searchParams);
   const today = todayParis();
 
   try {

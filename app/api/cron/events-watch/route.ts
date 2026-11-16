@@ -4,6 +4,8 @@ import { formatEventWatch, watchEvents } from "@sejour/socle/lib/events-watch";
 import { sendNtfy } from "@/lib/ntfy";
 import { todayParis } from "@sejour/socle/lib/time";
 import { EVENTS_WATCH, LE_MANS_EVENTS } from "@/lib/events";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 
 /**
  * Rappelle d'aller vérifier les dates d'événements qui ne sont pas encore officielles, et
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
   }
 
   const params = request.nextUrl.searchParams;
-  const dry = params.get("dry") === "1";
+  const dry = isDryRun(params);
   const requested = params.get("today");
   const today =
     dry && requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : todayParis();
@@ -41,6 +43,7 @@ export async function GET(request: NextRequest) {
   const message = formatEventWatch(alerts);
 
   if (alerts.length === 0 || dry) {
+    if (!dry) await beat("events-watch", "ok");
     return NextResponse.json({ success: true, today, alerts, message, sent: false });
   }
 
@@ -61,8 +64,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
+    await beat("events-watch", "error");
     return NextResponse.json({ error: msg, alerts }, { status: 500 });
   }
 
+  await beat("events-watch", "ok");
   return NextResponse.json({ success: true, today, alerts, message, sent: true });
 }

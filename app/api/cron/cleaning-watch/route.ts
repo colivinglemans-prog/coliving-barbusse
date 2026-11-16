@@ -5,6 +5,8 @@ import { buildSessions, mergeArrivals, maxArrivalMs, newArrivalsSince, parsePeop
 import { garageArrivals, doorArrivals, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
 import { upsertSessions, pruneOldSessions } from "@/lib/cleaning/store";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 
 /**
  * Suivi des intervenants de la maison : alerte quand une personne suivie arrive (ménage Sophie,
@@ -37,14 +39,15 @@ export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const dry = isDryRun(request.nextUrl.searchParams);
   if (process.env.CLEANING_WATCH_ENABLED === "false") {
+    if (!dry) await beat("cleaning-watch", "ok");
     return NextResponse.json({ skipped: "disabled" });
   }
   if (!hasRedis()) {
     return NextResponse.json({ skipped: "no-redis" }, { status: 500 });
   }
 
-  const dry = request.nextUrl.searchParams.get("dry") === "1";
   const people = parsePeople(process.env.TRACKED_PEOPLE?.trim() || DEFAULT_PEOPLE);
   const notes: Record<string, string> = {};
 
@@ -83,6 +86,7 @@ export async function GET(request: NextRequest) {
   if (!stored) {
     const baseline = maxArrivalMs(arrivals, 0);
     if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
+    if (!dry) await beat("cleaning-watch", "ok");
     return NextResponse.json({ success: true, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
   }
 
@@ -103,6 +107,7 @@ export async function GET(request: NextRequest) {
     await redis.set(LAST_KEY, maxArrivalMs(arrivals, lastMs));
   }
 
+  if (!dry) await beat("cleaning-watch", "ok");
   return NextResponse.json({
     success: true,
     dry,

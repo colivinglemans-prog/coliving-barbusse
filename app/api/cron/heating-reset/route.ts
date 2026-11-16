@@ -15,6 +15,7 @@ import { reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
 import { readShedState } from "@/lib/heating-state";
 import { activeShedZones } from "@/lib/load-shedding";
+import { beat } from "@/lib/heartbeat";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
 
   try {
     if (await getSummerMode()) {
+      await beat("heating-reset", "ok");
       await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, null).catch(() => {});
       return NextResponse.json({
         success: true,
@@ -115,6 +117,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    await beat("heating-reset", "ok");
     await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, null).catch(() => {});
     return NextResponse.json({
       success: true,
@@ -124,6 +127,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("heating-reset", "error");
     await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, message).catch(() => {});
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -6,6 +6,8 @@ import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { getActiveBookings, stayInProgress } from "@/lib/bookings";
 import { recordNotification } from "@/lib/notify-log";
 import { todayParis } from "@sejour/socle/lib/time";
+import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 
 /**
  * Veille de vidéosurveillance : relaie vers ntfy les nouveaux événements de mouvement des
@@ -32,7 +34,8 @@ import { todayParis } from "@sejour/socle/lib/time";
  * (un mouvement y est suspect), 2 pendant un séjour, du jour d'arrivée au jour de départ inclus
  * (chaque entrée et sortie des voyageurs ferait sonner le téléphone). Beds24 illisible → 4.
  *
- * Cron-job.org, toutes les 5 minutes.
+ * Cron-job.org, toutes les 10 minutes. Battement `camera-watch` à chaque passage réel (`ok` aussi
+ * quand la veille est coupée ou sans identifiants : sautée par décision, pas en panne).
  */
 
 export const dynamic = "force-dynamic";
@@ -45,13 +48,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const dry = isDryRun(request.nextUrl.searchParams);
   if (process.env.CAMERA_WATCH_ENABLED === "false") {
+    if (!dry) await beat("camera-watch", "ok");
     return NextResponse.json({ skipped: "disabled" });
   }
 
   const email = process.env.AJCLOUD_EMAIL;
   const password = process.env.AJCLOUD_PASSWORD;
   if (!email || !password) {
+    if (!dry) await beat("camera-watch", "ok");
     return NextResponse.json({ skipped: "no-credentials" });
   }
 
@@ -59,7 +65,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ skipped: "no-redis" }, { status: 500 });
   }
 
-  const dry = request.nextUrl.searchParams.get("dry") === "1";
   const redis = getRedis();
 
   let devices;
@@ -135,9 +140,11 @@ export async function GET(request: NextRequest) {
       if (!dry) await redis.set(key, maxCts(alarms, lastCts));
     }
 
+    if (!dry) await beat("camera-watch", "ok");
     return NextResponse.json({ success: true, dry, devices: report, sent, ...(priority ? { priority } : {}) });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
+    if (!dry) await beat("camera-watch", "error");
     return NextResponse.json({ error: msg }, { status: 502 });
   }
 }
@@ -164,7 +171,8 @@ async function sendMotion(
   priority: 2 | 4,
 ): Promise<void> {
   const topic = process.env.NTFY_TOPIC;
-  if (!topic) return;
+  // Jamais un mouvement noté envoyé alors qu'il ne l'est pas (la route vérifie le sujet avant).
+  if (!topic) throw new Error("NTFY_TOPIC manquant : notification non envoyée");
   const headers: Record<string, string> = {
     "Content-Type": "text/plain; charset=utf-8",
     Title: asciiTitle(`Mouvement - ${deviceName}`),
@@ -178,6 +186,7 @@ async function sendMotion(
     headers,
     body: `Mouvement détecté à ${when}.`,
     cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) throw new Error(`ntfy ${res.status}`);
   // Journal des 30 jours : titre et priorité seulement, jamais les liens signés.

@@ -4,6 +4,7 @@ import { todayParis } from "@sejour/socle/lib/time";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { sendPricingAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
+import { isDryRun } from "@/lib/cron-params";
 import { haltState, runPricingPush, type PushRun } from "@/lib/pricing/push";
 
 /**
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const forceDry = request.nextUrl.searchParams.get("dry") === "1";
+  const forceDry = isDryRun(request.nextUrl.searchParams);
 
   let run: PushRun;
   try {
@@ -34,13 +35,18 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[pricing-push]", message);
-    await beat("pricing-push", "error");
-    await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, message).catch(() => undefined);
+    if (!forceDry) {
+      await beat("pricing-push", "error");
+      await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, message).catch(() => undefined);
+    }
     return NextResponse.json({ error: "L'envoi des prix a échoué." }, { status: 500 });
   }
 
-  await beat("pricing-push", "ok");
-  await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, null).catch(() => undefined);
+  // Un appel à blanc (`?dry=1`) ne bat pas : il ne dit rien du passage quotidien.
+  if (!forceDry) {
+    await beat("pricing-push", "ok");
+    await reportCronRun("pricing-push", "Envoi des prix", sendPricingAlert, null).catch(() => undefined);
+  }
 
   // `locked` : un autre envoi tournait, ce passage n'a rien constaté — ne pas « rétablir ».
   if (run.mode !== "off" && !forceDry && run.outcome !== "locked") {

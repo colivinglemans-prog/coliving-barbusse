@@ -118,12 +118,33 @@ prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-rép
 
 ## Battement de cœur des crons (`/api/health/heartbeat`)
 
-`nuki-sync`, `heating-automation`, `water-heater-automation` et `arrival-readiness` appellent
-`beat(name, "ok" | "error")` (`lib/heartbeat.ts`, `recordHeartbeat` du socle) en fin de passage
-réel — pas en `dry`/`dryRun`. Redis `barbusse:heartbeat:<nom>` et `…:ok` (TTL 30 j).
+Tous les crons de `app/api/cron` appellent `beat(name, "ok" | "error")` (`lib/heartbeat.ts`,
+`recordHeartbeat` du socle) en fin de passage réel — jamais en `dry`/`dryRun` — sauf
+`pricing-review-reminder`, exempté avec son motif (`HEARTBEAT_EXEMPT`). Un test
+(`tests/readiness/heartbeat-coverage.test.ts`) échoue si une route n'a ni battement ni
+exemption. Un passage sauté par décision (coupe-circuit `…_ENABLED=false`, mode été, rien en
+`live`) bat `ok`. Redis `barbusse:heartbeat:<nom>` et `…:ok` (TTL 30 j).
 
-Retards acceptés (dernier passage **réussi**) : `heating-automation` 45 min, les trois autres
-150 min — fréquence réelle plus un passage manqué.
+Retards acceptés (dernier passage **réussi**, cadence réelle relevée le 2026-11-15 plus un
+passage manqué) :
+
+| Cadence | Crons | Retard |
+|---|---|---|
+| 10 min | `messages-voyageurs`, `checkin-notifications`, `camera-watch`, `cleaning-watch` | 30 min |
+| 15 min | `heating-automation`, `water-heater-automation` | 45 min |
+| 30 min | `heating-health` | 90 min |
+| 1 h | `nuki-sync`, `arrival-readiness` | 150 min |
+| 2 h | `water-heater-health` | 5 h |
+| 4 h | `heating-reset` | 10 h |
+| quotidien | `pricing-push`, `pricing-snapshot`, `indexing` | 26 h |
+| hebdomadaire | `beds24-keepalive`, `events-watch`, `beds24-backup`, `pricing-report` | 8 jours |
+
+**Délai de grâce au démarrage** (`overdueWithGrace`, 2026-11-16) : le socle compte une clé absente
+comme un retard ; un cron ajouté à la liste sortirait donc « en retard » dès le déploiement. La
+route note la première fois qu'elle voit chaque cron (`barbusse:heartbeat:<nom>:watched-since`,
+sans expiration) et ne déclare pas en retard un cron **qui n'a jamais battu** tant que cette date
+a moins que sa tolérance. Une clé `…:ok` expirée (cron mort depuis 30 jours) ne rouvre pas de
+délai : la première vue est ancienne.
 
 `GET /api/health/heartbeat` est **publique** (hors `matcher` de `proxy.ts`) : 200
 `{ ok: true, overdue: 0 }` ou 503 `{ ok: false, overdue: N }`, **jamais un nom** (« la synchro de

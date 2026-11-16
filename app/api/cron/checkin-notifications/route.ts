@@ -7,6 +7,7 @@ import type { Beds24Booking } from "@/lib/types";
 import { readKeypadArrivals } from "@/lib/access-sync";
 import { getRedis } from "@/lib/redis";
 import { firstNameOnly } from "@sejour/socle/lib/arrival-readiness/format";
+import { beat } from "@/lib/heartbeat";
 
 const CHECKIN_INFO_CODE = "CHECKIN";
 const REDIS_KEY_TTL_SECONDS = 60 * 24 * 3600; // 60 jours
@@ -44,6 +45,8 @@ export async function GET(request: NextRequest) {
   }
 
   if (process.env.CHECKIN_NOTIFICATIONS_ENABLED === "false") {
+    // Coupé par décision : le planificateur, lui, est vivant.
+    await beat("checkin-notifications", "ok");
     return NextResponse.json({ skipped: "disabled" });
   }
 
@@ -128,6 +131,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    await beat("checkin-notifications", "ok");
     return NextResponse.json({
       success: true,
       window: { arrivalFrom, arrivalTo },
@@ -139,6 +143,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+    await beat("checkin-notifications", "error");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
