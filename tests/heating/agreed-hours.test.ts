@@ -28,23 +28,83 @@ const stays = [
   { id: 3, arrival: "2027-01-10", departure: "2027-01-12" },
 ];
 
-describe("non-régression : une table vide ne change rien", () => {
-  it("mode attendu, reset, règles et ballon identiques, heure par heure, minutes comprises", () => {
+/*
+ * Oracles : le code **d'avant les horaires convenus**, recopié de
+ * `tests/heating/expected-mode.test.ts` (lui-même figé au commit 144c934) et de `countGuests` au
+ * commit f7f31f4. La non-régression se compare à eux, pas au code actuel.
+ */
+function oldGetOccupiedMode(zone: { nightMode?: HeatzyMode }, hour: number): HeatzyMode {
+  if (zone.nightMode && hour >= 0 && hour < 5) return zone.nightMode;
+  if (hour >= 7 && hour < 20) return "presence";
+  return "cft";
+}
+
+function oldIsOccupied(bookings: StayDates[], today: string, hour: number): boolean {
+  return bookings.some(
+    (b) =>
+      (b.arrival < today && b.departure > today) ||
+      (b.arrival === today && b.departure > today && hour >= 17) ||
+      (b.departure === today && hour < 10),
+  );
+}
+
+function oldAutomation(bookings: StayDates[], today: string, hour: number, zone: { nightMode?: HeatzyMode }): HeatzyMode | null {
+  const hasCheckInToday = bookings.some((b) => b.arrival === today);
+  const hasCheckOutToday = bookings.some((b) => b.departure === today);
+  const occupied = oldIsOccupied(bookings, today, hour);
+  const turnaround = hasCheckOutToday && hasCheckInToday;
+  if (hasCheckInToday && hour >= 15 && !occupied && !turnaround) return "cft";
+  if (hasCheckInToday && hour >= 12 && hour < 15 && !occupied && !turnaround) return "eco";
+  if (hasCheckInToday && hour < 12 && !occupied && !turnaround) return "fro";
+  if (occupied) return oldGetOccupiedMode(zone, hour);
+  if (turnaround) return hour >= 9 && hour < 17 ? "eco" : "fro";
+  if (hasCheckOutToday) return "fro";
+  return null;
+}
+
+function oldCountGuests(bookings: Array<StayDates & { numAdult: number; numChild: number }>, today: string, hour: number): number {
+  const afterSwitch = hour >= 11;
+  return bookings
+    .filter(
+      (b) =>
+        (b.arrival < today && b.departure > today) ||
+        (b.arrival === today && b.departure > today && afterSwitch) ||
+        (b.arrival < today && b.departure === today && !afterSwitch),
+    )
+    .reduce((sum, b) => sum + b.numAdult + b.numChild, 0);
+}
+
+describe("non-régression : sans horaire convenu, le comportement d'avant", () => {
+  it("mode attendu (oracle de l'automatisation d'avant), heure par heure, avec une table vide jointe", () => {
     const joined = withAgreedHours(stays, {});
     for (let day = "2027-01-03"; day <= "2027-01-13"; day = addDays(day, 1)) {
       for (const hour of HOURS) {
-        for (const minute of [0, 50]) {
-          for (const zone of zones) {
-            expect(expectedHeatingMode(joined, day, hour, zone, minute)).toEqual(expectedHeatingMode(stays, day, hour, zone, minute));
-            expect(resetTarget(joined, day, hour, zone, device, minute)).toEqual(resetTarget(stays, day, hour, zone, device, minute));
-          }
+        for (const zone of [{}, { nightMode: "presence" as HeatzyMode }]) {
+          expect(expectedHeatingMode(joined, day, hour, zone).mode, `${day} ${hour}h`).toBe(oldAutomation(stays, day, hour, zone));
         }
-        const situation = heatingSituation(joined, day, hour);
-        expect(getHeatingRules(situation, hour, undefined, todayAgreedHours(joined, day))).toEqual(getHeatingRules(situation, hour));
-        expect(getHeatingRules(situation, hour).agreedRule).toBeUndefined();
+        expect(getHeatingRules(heatingSituation(joined, day, hour), hour, undefined, todayAgreedHours(joined, day)).agreedRule).toBeUndefined();
       }
     }
     expect(preheatHours(stays, "2027-01-04")).toEqual({ checkIn: 17, eco: 12, cft: 15 });
+  });
+
+  it("ballon : countGuests égal à l'oracle d'avant, avec une table vide jointe", () => {
+    const people = stays.map((b, i) => ({ ...b, numAdult: 10 + i, numChild: i }));
+    const joined = withAgreedHours(people, {});
+    for (let day = "2027-01-03"; day <= "2027-01-13"; day = addDays(day, 1)) {
+      for (const hour of HOURS) expect(countGuests(joined, day, hour), `${day} ${hour}h`).toBe(oldCountGuests(people, day, hour));
+    }
+  });
+
+  it("reset : un horaire convenu sur un autre séjour ne change rien à celui-ci", () => {
+    const joined = withAgreedHours(stays, { 999: { departureHour: 16 } });
+    for (let day = "2027-01-03"; day <= "2027-01-13"; day = addDays(day, 1)) {
+      for (const hour of HOURS) {
+        for (const zone of zones) {
+          expect(resetTarget(joined, day, hour, zone, device, 50)).toEqual(resetTarget(stays, day, hour, zone, device, 50));
+        }
+      }
+    }
   });
 });
 

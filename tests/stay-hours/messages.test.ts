@@ -56,6 +56,17 @@ describe("sans horaire convenu, les textes ne changent pas d'un caractère", () 
     }
   });
 
+  it("bouton « Départ » sans prénom : « Bonjour, » puis le même texte", () => {
+    const greeting: Record<string, string> = { fr: "Bonjour", en: "Hello", de: "Hallo", es: "Hola", it: "Ciao" };
+    for (const locale of LOCALES) {
+      const text = buildDepartureMessage(locale, {});
+      expect(text, locale).toBe(BEFORE.bouton[locale].replace(`${greeting[locale]} Test,`, `${greeting[locale]},`));
+      expect(text.startsWith(`${greeting[locale]},
+`), locale).toBe(true);
+      expect(buildDepartureMessage(locale, { firstName: "  " }), locale).toBe(text);
+    }
+  });
+
   it("drapeaux vides sans accord", () => {
     expect(hourVars("fr", {})).toEqual({ heureArrivee: "17h", heureDepart: "11h", arriveeConvenue: undefined, departConvenu: undefined });
   });

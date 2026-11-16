@@ -30,7 +30,7 @@ import type { MessageTemplate } from "@sejour/socle/lib/guest-messaging/types";
  * - `heureArrivee`, `heureDepart` — heures du séjour dans la langue du voyageur (« 17h », « 5 pm »,
  *   « 17 Uhr », « 17:00 »), standard sauf horaire convenu (`lib/stay-hours.ts`, 2026-11-16) ;
  * - `arriveeConvenue`, `departConvenu` (facultatives) — drapeaux, **vides sans accord** : un séjour
- *   standard reçoit les textes d'avant au caractère près (`tests/stay-hours-messages.test.ts`).
+ *   standard reçoit les textes d'avant au caractère près (`tests/stay-hours/messages.test.ts`).
  *
  * Dernière minute (décision de l'hôte du 2026-11-08) : départ à partir de 2 nuits, lendemain de
  * l'arrivée à partir de 3 ; tous deux, et l'avis, sont des messages de confort (`quietHours`) qui
