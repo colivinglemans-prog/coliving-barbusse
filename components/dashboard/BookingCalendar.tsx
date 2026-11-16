@@ -172,7 +172,7 @@ interface PopupData {
   colour: string;
   nights: number;
   /** Position de la carte sur desktop, relative au conteneur ; absente sur mobile (feuille modale). */
-  anchor?: { top: number; left: number };
+  anchor?: { top: number; left: number; maxHeight?: number };
 }
 
 /* ── Component ─────────────────────────────────────────────────────── */
@@ -648,6 +648,9 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
     return { year: now.getFullYear(), month: now.getMonth() };
   });
   const [popup, setPopup] = useState<PopupData | null>(null);
+  // Messages au voyageur repliés par défaut : dépliés, ils faisaient déborder la fenêtre vers le bas
+  // (2026-11-16). Ouverts pour une seule réservation à la fois, refermés en changeant de séjour.
+  const [messagesOpenFor, setMessagesOpenFor] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close popup on click outside
@@ -808,6 +811,9 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
       anchor = {
         top: Math.min(rect.bottom - cr.top + 8, container.clientHeight - 40),
         left: Math.max(0, Math.min(rect.left - cr.left, container.clientWidth - 288)),
+        // Hauteur bornée à l'écran sous la barre (défilement interne), jamais moins de 320 px :
+        // la fenêtre débordait vers le bas, hors du cadre (2026-11-16).
+        maxHeight: Math.max(320, window.innerHeight - rect.bottom - 24),
       };
     }
     setPopup({
@@ -1155,7 +1161,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
           />
           <div
             data-popup
-            className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-5 shadow-xl lg:inset-auto lg:absolute lg:left-auto lg:top-auto lg:w-72 lg:translate-x-0 lg:translate-y-0 lg:overflow-visible lg:rounded-xl lg:p-4 lg:ring-1 lg:ring-gray-200"
+            className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-5 shadow-xl lg:inset-auto lg:absolute lg:left-auto lg:top-auto lg:w-72 lg:translate-x-0 lg:translate-y-0 lg:overflow-y-auto lg:rounded-xl lg:p-4 lg:ring-1 lg:ring-gray-200"
             style={popup.anchor}
           >
             <div className="mb-4 flex items-start justify-between gap-3">
@@ -1311,13 +1317,28 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
 
               {/* Messages automatiques de ce séjour : envoyés, prévus, bloqués. Réservations Beds24 seulement. */}
               {isAdmin && popup.booking.id > 0 && (
-                <GuestMessagesBookingPanel
-                  bookingId={popup.booking.id}
-                  accent="#334155"
-                  endpoint="/api/dashboard/messages"
-                  previewEndpoint="/api/dashboard/messages/apercu"
-                  sendEndpoint="/api/dashboard/messages/envoyer"
-                />
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setMessagesOpenFor((id) => (id === popup.booking.id ? null : popup.booking.id))}
+                    aria-expanded={messagesOpenFor === popup.booking.id}
+                    className="flex w-full items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 hover:bg-gray-50"
+                  >
+                    <span>Messages au voyageur</span>
+                    <span aria-hidden="true">{messagesOpenFor === popup.booking.id ? "▾" : "▸"}</span>
+                  </button>
+                  {messagesOpenFor === popup.booking.id && (
+                    <div className="mt-2">
+                      <GuestMessagesBookingPanel
+                        bookingId={popup.booking.id}
+                        accent="#334155"
+                        endpoint="/api/dashboard/messages"
+                        previewEndpoint="/api/dashboard/messages/apercu"
+                        sendEndpoint="/api/dashboard/messages/envoyer"
+                      />
+                    </div>
+                  )}
+                </div>
               )}
 
               {popup.booking.id > 0 && (
