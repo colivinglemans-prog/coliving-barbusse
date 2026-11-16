@@ -13,7 +13,7 @@ import { getActiveBookings } from "@/lib/bookings";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
-import { readShedState } from "@/lib/heating-state";
+import { readPowerCut, readShedState } from "@/lib/heating-state";
 import { activeShedZones } from "@/lib/load-shedding";
 import { beat } from "@/lib/heartbeat";
 
@@ -125,6 +125,14 @@ export async function GET(request: NextRequest) {
     // et l'automation signalent les radiateurs en cause.
     const attempted = actions.filter((a) => !a.endsWith("(verrouillé)")).length + failures.length;
     if (attempted > 0 && failures.length === attempted) {
+      // Coupure de courant soupçonnée ou signalée (`lib/power-cut.ts`, comme `heating-health`) : les
+      // radiateurs refusent par force et l'alerte de coupure les nomme déjà. Pas de 502 (cron-job.org
+      // écrirait à l'hôte), pas d'alerte, battement `ok`.
+      const cut = await readPowerCut().catch(() => null);
+      if (cut) {
+        await beat("heating-reset", "ok");
+        return NextResponse.json({ success: true, skipped: "power-cut", failures, timestamp: new Date().toISOString() });
+      }
       const message = `Les ${attempted} radiateurs ont refusé le reset (${failures[0]})`;
       await beat("heating-reset", "error");
       await reportCronRun("heating-reset", "Reset du chauffage", sendHeatingAlert, message).catch(() => {});

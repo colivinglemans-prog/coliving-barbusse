@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 
 const h = vi.hoisted(() => ({
   mem: new Map<string, unknown>(),
+  cut: null as null | { since: string; devices: string[] },
   sendNtfy: vi.fn(async () => {}),
   setDeviceMode: vi.fn(async (): Promise<void> => {
     throw new Error("Heatzy API error: 500");
@@ -50,7 +51,7 @@ vi.mock("@/lib/heatzy", () => ({
   getDeviceStatus: async () => ({}),
 }));
 vi.mock("@/lib/bookings", () => ({ getActiveBookings: async () => [] }));
-vi.mock("@/lib/heating-state", () => ({ readShedState: async () => null }));
+vi.mock("@/lib/heating-state", () => ({ readShedState: async () => null, readPowerCut: async () => h.cut }));
 vi.mock("@sejour/socle/lib/ntfy", () => ({ sendNtfy: h.sendNtfy }));
 
 import { GET } from "@/app/api/cron/heating-reset/route";
@@ -61,6 +62,7 @@ const call = () =>
 beforeEach(() => {
   h.mem.clear();
   h.sendNtfy.mockClear();
+  h.cut = null;
   process.env.CRON_SECRET = "secret-de-test";
   process.env.NTFY_TOPIC = "https://ntfy.example.test/sujet-de-test";
 });
@@ -81,5 +83,12 @@ describe("heating-reset — tous les radiateurs refusent", () => {
     const res = await call();
     expect(res.status).toBe(200);
     expect(h.mem.get("barbusse:heartbeat:heating-reset:ok")).toBeDefined();
+  });
+
+  it("pendant une coupure de courant : 200, battement ok, aucune alerte", async () => {
+    h.cut = { since: "2026-11-16T18:00:00Z", devices: ["Radiateur A", "Radiateur B"] };
+    for (let i = 0; i < 2; i++) expect((await call()).status).toBe(200);
+    expect(h.mem.get("barbusse:heartbeat:heating-reset:ok")).toBeDefined();
+    expect(h.sendNtfy).not.toHaveBeenCalled();
   });
 });
