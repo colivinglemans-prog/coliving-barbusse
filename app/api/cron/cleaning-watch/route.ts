@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
-import { buildSessions, mergeArrivals, maxArrivalMs, newArrivalsSince, parsePeople, type CleaningArrival, type CleaningSession, type TrackedPerson } from "@/lib/cleaning/sessions";
+import { buildSessions, mergeArrivals, maxArrivalMs, newArrivalsSince, trackedPeople, type CleaningArrival, type CleaningSession, type TrackedPerson } from "@/lib/cleaning/sessions";
 import { garageArrivals, doorArrivals, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
 import { upsertSessions, pruneOldSessions } from "@/lib/cleaning/store";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
@@ -38,7 +38,6 @@ export const maxDuration = 60;
 const LAST_KEY = redisKey("cleaning", "last-arrival");
 /** Journal de la porte relu sur 10 h au moins : la fenêtre de sortie (8 h) plus deux passages de marge. */
 const CLEANING_LOOKBACK_MS = 10 * 3600_000;
-const DEFAULT_PEOPLE = "Sophie:ménage,Eric:dépannage";
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -53,7 +52,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ skipped: "no-redis" }, { status: 500 });
   }
 
-  const people = parsePeople(process.env.TRACKED_PEOPLE?.trim() || DEFAULT_PEOPLE);
+  const people = trackedPeople();
   const notes: Record<string, string> = {};
 
   try {

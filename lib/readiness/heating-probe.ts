@@ -7,6 +7,7 @@ import type {
   Severity,
 } from "@sejour/socle/lib/arrival-readiness/types";
 import { expectedHeatingMode, type StayDates } from "@/lib/heating-schedule";
+import { withAgreedHours, type StayHoursTable } from "@/lib/stay-hours";
 import type { HeatzyMode, HeatzyZone } from "@/lib/types";
 import { HEATING_THRESHOLDS } from "./config";
 
@@ -44,6 +45,11 @@ export interface HeatingProbeDeps {
     set?: (bookingId: number, temps: Record<string, number>) => Promise<void>;
   };
   severityByPass: Record<PassKind, Severity>;
+  /**
+   * Horaires convenus (`readStayHours`), lus une fois par passage : le mode attendu est celui de
+   * l'automatisation, arrivée anticipée et départ tardif compris. Absent : heures standard.
+   */
+  stayHours?: StayHoursTable;
 }
 
 const STATUS_PASSES: ReadonlySet<PassKind> = new Set(["noon", "preheat", "final"]);
@@ -89,7 +95,7 @@ export function createHeatingProbe(deps: HeatingProbeDeps): ReadinessProbe {
       if (snap.summer) return [ok("heating:summer", "Mode été : chauffage suspendu, rien à contrôler")];
 
       const sev = deps.severityByPass[pass.kind];
-      const stays: StayDates[] = ctx.bookings.filter(isActive);
+      const stays: StayDates[] = withAgreedHours(ctx.bookings.filter(isActive), deps.stayHours ?? {}, (b) => b.bookingId);
       const hour = Math.floor(minutes / 60);
       const devices = snap.devices.filter((d) => !d.unpaired && !d.locked);
       const findings: ProbeFinding[] = [];

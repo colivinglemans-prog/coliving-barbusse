@@ -7,7 +7,7 @@ import {
   mergeArrivals,
   monthlyBuckets,
   newArrivalsSince,
-  parsePeople,
+  trackedPeople,
   parseRates,
   summarizePeople,
   type CleaningArrival,
@@ -35,14 +35,13 @@ import { loadSessions, upsertSessions } from "@/lib/cleaning/store";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const DEFAULT_PEOPLE = "Sophie:ménage,Eric:dépannage";
 const DEFAULT_RATES = "Sophie:21";
 
 export async function GET(request: NextRequest) {
   const refus = await guard.denyNonAdmin(request);
   if (refus) return refus;
 
-  const people = parsePeople(process.env.TRACKED_PEOPLE?.trim() || DEFAULT_PEOPLE);
+  const people = trackedPeople();
   const rates = parseRates(process.env.CLEANING_RATES?.trim() || DEFAULT_RATES);
   const notes: Record<string, string> = {};
 

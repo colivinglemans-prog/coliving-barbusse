@@ -19,6 +19,8 @@ import { createWaterHeaterProbe } from "@/lib/readiness/water-heater-probe";
 import { runArrivalReadiness, type ReadinessStore } from "@/lib/readiness/run";
 import { LOCK_BATTERY, NO_SHOW_SEVERITY, SEVERITY_BY_PASS } from "@/lib/readiness/config";
 import type { Beds24Booking } from "@/lib/types";
+import { accessHours, readStayHours, type StayHoursTable } from "@/lib/stay-hours";
+import { readinessArrivalTime } from "@/lib/readiness/arrival-time";
 
 /**
  * Préparation d'arrivée : serrure, radiateurs, ballon — **en lecture seule**. Aucune commande
@@ -46,23 +48,32 @@ const store: ReadinessStore = {
   set: (k, v, ttl) => setJson(k, v, ttl),
 };
 
-function toReadinessBooking(b: Beds24Booking): ReadinessBooking {
+/**
+ * Un séjour de la préparation, avec la fenêtre de code propre au séjour quand un horaire a été
+ * convenu (`validFromHour` / `validUntilHour`, socle v3.26.0) : la sonde serrure compare le code
+ * posé à cette fenêtre, la sonde de présence compte une entrée dès l'ouverture convenue.
+ */
+function toReadinessBooking(b: Beds24Booking, table: StayHoursTable): ReadinessBooking {
+  const agreed = table[b.id] ?? {};
   return {
     bookingId: b.id,
     arrival: b.arrival,
     departure: b.departure,
     guests: (b.numAdult ?? 0) + (b.numChild ?? 0),
     firstName: b.firstName ?? null,
-    arrivalTime: b.arrivalTime ?? null,
+    // Arrivée convenue en priorité ; une heure annoncée avant 17 h sans accord est ignorée, sans
+    // quoi elle avancerait les contrôles alors que le chauffage, lui, ne s'avance pas.
+    arrivalTime: readinessArrivalTime(b.arrivalTime, agreed.arrivalHour),
+    ...accessHours(agreed, ACCESS_POLICY),
     bookedAt: b.bookingTime ?? null,
     status: b.status === "cancelled" ? "cancelled" : b.status === "confirmed" || b.status === "new" ? "confirmed" : "provisional",
   };
 }
 
 /** Séjours de la maison qui touchent J-1 … J+1 : arrivées, départs (rotation) et non-arrivées. */
-async function loadBookings(day: string): Promise<ReadinessBooking[]> {
+async function loadBookings(day: string, table: StayHoursTable): Promise<ReadinessBooking[]> {
   const raw = await getBookings({ arrivalTo: addDays(day, 1), departureFrom: addDays(day, -1), fresh: true });
-  return raw.filter((b) => b.propertyId === PROPERTY_ID && !isExcludedStatus(b.status)).map(toReadinessBooking);
+  return raw.filter((b) => b.propertyId === PROPERTY_ID && !isExcludedStatus(b.status)).map((b) => toReadinessBooking(b, table));
 }
 
 async function readHeating(withStatus: boolean): Promise<HeatingSnapshot> {
@@ -112,7 +123,7 @@ async function readHeating(withStatus: boolean): Promise<HeatingSnapshot> {
   return { summer: false, devices };
 }
 
-function buildProbes(dryRun: boolean): Partial<Record<ProbeKind, ReadinessProbe>> {
+function buildProbes(dryRun: boolean, stayHours: StayHoursTable): Partial<Record<ProbeKind, ReadinessProbe>> {
   const probes: Partial<Record<ProbeKind, ReadinessProbe>> = {
     heating: createHeatingProbe({
       read: readHeating,
@@ -121,6 +132,7 @@ function buildProbes(dryRun: boolean): Partial<Record<ProbeKind, ReadinessProbe>
         ...(dryRun ? {} : { set: (id: number, temps: Record<string, number>) => setJson(key("baseline", id), temps, 2 * 24 * 3600) }),
       },
       severityByPass: SEVERITY_BY_PASS,
+      stayHours,
     }),
     waterHeater: createWaterHeaterProbe({ read: getWaterHeaterStatus, severityByPass: SEVERITY_BY_PASS }),
   };
@@ -170,12 +182,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const bookings = await loadBookings(parisClock(now).date);
+    // Horaires convenus lus une fois (ne lève jamais) : arrivée anticipée et fenêtre du code.
+    const stayHours = await readStayHours();
+    const bookings = await loadBookings(parisClock(now).date, stayHours);
     const report = await runArrivalReadiness({
       now,
       dryRun,
       bookings,
-      probes: buildProbes(dryRun),
+      probes: buildProbes(dryRun, stayHours),
       store,
       key,
       send: dryRun ? refuseSend : sendAlert,

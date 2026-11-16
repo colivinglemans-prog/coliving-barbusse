@@ -26,6 +26,10 @@ const VARS = {
   depart: "dimanche 13 décembre",
   nuits: "3",
   adultes: "12",
+  // Heures du séjour (2026-11-16, horaires convenus) : obligatoires depuis qu'elles ne sont plus
+  // écrites en dur. Valeurs standard ; les heures convenues sont dans `tests/stay-hours/`.
+  heureArrivee: "17h",
+  heureDepart: "11h",
 };
 
 describe("messages voyageurs de Barbusse", () => {

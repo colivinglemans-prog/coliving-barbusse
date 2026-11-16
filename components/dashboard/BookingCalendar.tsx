@@ -22,6 +22,14 @@ import { nightsBetween } from "@sejour/socle/lib/booking";
 import { chartEuro } from "@sejour/socle/lib/chart-theme";
 import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
 import { GuestMessagesBookingPanel } from "@sejour/socle/components/GuestMessagesDashboard";
+import {
+  AGREED_RANGE,
+  STANDARD_HOURS,
+  rotationCheck,
+  rotationNeighbours,
+  type AgreedHours,
+  type NeighbourStay,
+} from "@/lib/stay-hours-rules";
 
 /*
  * Un événement du circuit n'est pas une réservation, et ne doit pas se lire comme elle.
@@ -187,6 +195,12 @@ interface BookingCalendarProps {
    * seulement : la page ne le passe pas en vue viewer. Absent = aucune pastille.
    */
   lockStatus?: Record<number, LockCodeStatus>;
+  /**
+   * Horaires convenus par réservation (`/api/dashboard/stay-status`), **admin et viewer** : la
+   * personne du ménage doit lire « Départ tardif convenu à 16 h ». Absent = aucun accord.
+   */
+  stayHours?: Record<number, AgreedHours>;
+  onStayHoursChanged?: (bookingId: number, hours: AgreedHours) => void;
 }
 
 interface LockCodeStatus {
@@ -328,6 +342,198 @@ function NotesEditor({
   );
 }
 
+/* ── Horaires convenus (arrivée anticipée, départ tardif) ─────────── */
+/** « Arrivée anticipée à 14 h · Départ tardif convenu à 16 h », ou `null` sans accord. */
+function agreedLabel(h: AgreedHours | undefined): string | null {
+  if (!h) return null;
+  const parts = [
+    h.arrivalHour !== undefined ? `Arrivée anticipée à ${h.arrivalHour} h` : null,
+    h.departureHour !== undefined ? `Départ tardif convenu à ${h.departureHour} h` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+const hourRange = (min: number, max: number) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
+
+/**
+ * Les deux sélecteurs de la popup. **Admin** : modifiables, enregistrés par
+ * `/api/dashboard/bookings/[id]/stay-hours` (qui refuse un départ postérieur à l'arrivée du séjour
+ * suivant). **Viewer** : lecture seule, et rien du tout sans accord.
+ *
+ * L'accord change le chauffage, le ballon, la fenêtre du code de la serrure et les messages
+ * voyageurs (`lib/stay-hours.ts`).
+ */
+function StayHoursEditor({
+  stay,
+  hours,
+  neighbours,
+  table,
+  editable,
+  onSaved,
+}: {
+  stay: NeighbourStay;
+  hours: AgreedHours | undefined;
+  neighbours: NeighbourStay[];
+  table: Record<number, AgreedHours>;
+  editable: boolean;
+  onSaved: (hours: AgreedHours) => void;
+}) {
+  const [arrival, setArrival] = useState<number | undefined>(hours?.arrivalHour);
+  const [departure, setDeparture] = useState<number | undefined>(hours?.departureHour);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  // La saisie est enregistrée mais la serrure n'a pas pu être recalée tout de suite.
+  const [syncDeferred, setSyncDeferred] = useState(false);
+
+  if (!editable) {
+    const text = agreedLabel(hours);
+    if (!text) return null;
+    return (
+      <div className="col-span-2">
+        <p className="text-xs text-gray-400">Horaires convenus</p>
+        <p className="mt-0.5 rounded-lg bg-sky-50 px-3 py-2 text-xs font-medium text-sky-900">{text}</p>
+      </div>
+    );
+  }
+
+  const draft: AgreedHours = {
+    ...(arrival !== undefined ? { arrivalHour: arrival } : {}),
+    ...(departure !== undefined ? { departureHour: departure } : {}),
+  };
+  // Même contrôle que la route : refus si l'arrivée suivante (ou le départ précédent) le contredit,
+  // avertissement quand une rotation tombe le même jour (en rouge sous 3 h de ménage).
+  const check = rotationCheck(stay, draft, neighbours, table);
+  const dirty = arrival !== hours?.arrivalHour || departure !== hours?.departureHour;
+  // L'accord **enregistré** est contredit par une réservation arrivée depuis (alerte
+  // `stay-hours-conflict` côté synchro) : le dire tel quel, sans attendre une modification.
+  const contradicted = !dirty && Boolean(check.error);
+
+  async function save() {
+    setSaving(true);
+    setError("");
+    setSaved(false);
+    try {
+      const empty = arrival === undefined && departure === undefined;
+      const res = await fetch(`/api/dashboard/bookings/${stay.bookingId}/stay-hours`, {
+        method: empty ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: empty ? undefined : JSON.stringify({ arrivalHour: arrival ?? null, departureHour: departure ?? null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      const data = await res.json().catch(() => ({}));
+      setSyncDeferred(Boolean(data.syncDeferred));
+      onSaved(draft);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "erreur inconnue");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const select = (
+    value: number | undefined,
+    set: (v: number | undefined) => void,
+    hoursList: number[],
+    standard: number,
+    label: string,
+  ) => (
+    <label className="flex flex-col gap-0.5 text-xs text-gray-500">
+      {label}
+      <select
+        value={value === undefined ? "" : String(value)}
+        onChange={(e) => set(e.target.value === "" ? undefined : Number(e.target.value))}
+        onClick={(e) => e.stopPropagation()}
+        className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900"
+      >
+        <option value="">Standard ({standard} h)</option>
+        {hoursList.map((h) => (
+          <option key={h} value={h}>
+            {h} h
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+
+  return (
+    <div className="col-span-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-400">Horaires convenus</p>
+        {saved && <span className="text-[10px] text-emerald-600">✓ enregistré</span>}
+      </div>
+      <div className="mt-1 grid grid-cols-2 gap-2">
+        {select(arrival, setArrival, hourRange(AGREED_RANGE.arrival.min, AGREED_RANGE.arrival.max), STANDARD_HOURS.arrival, "Arrivée anticipée")}
+        {select(departure, setDeparture, hourRange(AGREED_RANGE.departure.min, AGREED_RANGE.departure.max), STANDARD_HOURS.departure, "Départ tardif")}
+      </div>
+      {check.error && (
+        <p className="mt-1 text-[10px] text-red-600">
+          {contradicted ? `Accord contredit par une réservation arrivée depuis : ${check.error}` : check.error}
+        </p>
+      )}
+      {!check.error && check.warning && (
+        <p className={`mt-1 text-[10px] ${check.severe ? "font-medium text-red-600" : "text-amber-700"}`}>{check.warning}</p>
+      )}
+      {error && <p className="mt-1 text-[10px] text-red-600">{error}</p>}
+      {syncDeferred && (
+        <p className="mt-1 text-[10px] text-amber-700">
+          Enregistré. Le code de la serrure sera recalé au prochain passage horaire de la synchronisation.
+        </p>
+      )}
+      {dirty && (
+        <div className="mt-2 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setArrival(hours?.arrivalHour);
+              setDeparture(hours?.departureHour);
+            }}
+            disabled={saving}
+            className="rounded-md px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              save();
+            }}
+            disabled={saving || Boolean(check.error)}
+            className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? "…" : "Enregistrer"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Repère de la barre : une petite horloge quand un horaire a été convenu. */
+function AgreedHoursMark({ label }: { label: string }) {
+  return (
+    <svg
+      className="mr-0.5 inline-block h-3 w-3 align-[-2px]"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      aria-label={label}
+      role="img"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
 /* ── Étiquette d'événement, avec sa croix de déliement ───────────── */
 /**
  * L'événement rattaché à une réservation, et de quoi démentir le rattachement.
@@ -434,7 +640,7 @@ function EventLink({
   );
 }
 
-export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated, unlinkedEvents = [], onEventLinkChanged, lockStatus }: BookingCalendarProps) {
+export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated, unlinkedEvents = [], onEventLinkChanged, lockStatus, stayHours = {}, onStayHoursChanged }: BookingCalendarProps) {
   // Un couple {année, mois} plutôt qu'une `Date` : le calendrier public du site le fait déjà,
   // et `addMonths` du socle travaille sur ce couple — plus aucun objet `Date` à promener.
   const [month, setMonth] = useState(() => {
@@ -809,6 +1015,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                       {laneBars.map((seg) => {
                         const bp = seg.source;
                         const lock = isAdmin ? lockStatus?.[bp.booking.id] : undefined;
+                        const agreed = agreedLabel(stayHours[bp.booking.id]);
                         const cellW = 100 / 7; // width of one cell in %
                         const halfCell = cellW / 2;
                         // Half-cell inset on arrival day, half-cell trim on departure day
@@ -843,12 +1050,14 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                                   : null,
                               seg.label,
                               lock ? `${LOCK_DOT[lock.state].label} — ${lock.detail}` : null,
+                              agreed,
                               bp.booking.notes ? `📝 ${bp.booking.notes}` : null,
                             ]
                               .filter(Boolean)
                               .join(" · ")}
                           >
                             {lock && <LockDot status={lock} />}
+                            {agreed && <AgreedHoursMark label={agreed} />}
                             {bp.provisional && (
                               <span
                                 className="inline font-bold"
@@ -1108,6 +1317,22 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   endpoint="/api/dashboard/messages"
                   previewEndpoint="/api/dashboard/messages/apercu"
                   sendEndpoint="/api/dashboard/messages/envoyer"
+                />
+              )}
+
+              {popup.booking.id > 0 && (
+                <StayHoursEditor
+                  key={`stay-hours-${popup.booking.id}`}
+                  stay={{ bookingId: popup.booking.id, arrival: popup.booking.arrival, departure: popup.booking.departure }}
+                  hours={stayHours[popup.booking.id]}
+                  // Même définition que la route et la synchro : voisins vendus (`countsAsSold`).
+                  neighbours={rotationNeighbours(
+                    { bookingId: popup.booking.id, arrival: popup.booking.arrival, departure: popup.booking.departure },
+                    bookings,
+                  )}
+                  table={stayHours}
+                  editable={isAdmin}
+                  onSaved={(hours) => onStayHoursChanged?.(popup.booking.id, hours)}
                 />
               )}
 

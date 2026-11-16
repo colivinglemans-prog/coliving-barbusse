@@ -1,4 +1,5 @@
 import type { GuideLocale } from "@/lib/site";
+import { formatHourFor } from "@/lib/stay-hours-rules";
 
 export interface GuestMessageParams {
   firstName?: string;
@@ -111,11 +112,11 @@ export type GuestMessageKind = "arrivee" | "depart";
 
 export const GUEST_MESSAGE_KINDS = ["arrivee", "depart"] as const;
 
-const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]> = {
-  fr: ({ name }) => [
+const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string; leave: string }) => string[]> = {
+  fr: ({ name, leave }) => [
     `Bonjour${name},`,
     "",
-    "Votre séjour se termine demain : merci de libérer la maison avant 11h (sauf accord avec nous).",
+    leave,
     "",
     "Le ménage est inclus. Il vous reste seulement quelques gestes avant de partir :",
     "",
@@ -146,10 +147,10 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "Merci, et bonne route !",
     "Alexandre",
   ],
-  en: ({ name }) => [
+  en: ({ name, leave }) => [
     `Hello${name},`,
     "",
-    "Your stay ends tomorrow: please leave the house by 11 am (unless agreed otherwise with us).",
+    leave,
     "",
     "Cleaning is included. There are just a few things left to do before you go:",
     "",
@@ -180,10 +181,10 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "Thank you, and safe travels!",
     "Alexandre",
   ],
-  it: ({ name }) => [
+  it: ({ name, leave }) => [
     `Ciao${name},`,
     "",
-    "il tuo soggiorno termina domani: ti chiediamo di lasciare la casa entro le 11:00 (salvo accordi diversi con noi).",
+    leave,
     "",
     "Le pulizie sono incluse. Restano solo pochi gesti prima di partire:",
     "",
@@ -214,10 +215,10 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "Grazie e buon viaggio!",
     "Alexandre",
   ],
-  de: ({ name }) => [
+  de: ({ name, leave }) => [
     `Hallo${name},`,
     "",
-    "Ihr Aufenthalt endet morgen: Bitte verlassen Sie das Haus bis 11 Uhr (sofern nicht anders mit uns vereinbart).",
+    leave,
     "",
     "Die Endreinigung ist inbegriffen. Vor der Abreise bleiben nur noch ein paar Handgriffe:",
     "",
@@ -248,10 +249,10 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
     "Vielen Dank und gute Heimreise!",
     "Alexandre",
   ],
-  es: ({ name }) => [
+  es: ({ name, leave }) => [
     `Hola${name},`,
     "",
-    "Tu estancia termina mañana: te pedimos que dejes la casa antes de las 11:00 (salvo acuerdo con nosotros).",
+    leave,
     "",
     "La limpieza está incluida. Solo quedan unos pocos gestos antes de irte:",
     "",
@@ -284,13 +285,44 @@ const DEPARTURE_TEMPLATES: Record<GuideLocale, (p: { name: string }) => string[]
   ],
 };
 
+/**
+ * La première phrase du rappel de départ. Sans accord, **le texte d'avant au caractère près** (il
+ * reste en dur, « 11h » compris : c'est l'heure annoncée par le site). Avec un départ tardif
+ * convenu (`lib/stay-hours.ts`), la même phrase que le gabarit `depart` du moteur
+ * (`lib/messages/templates.ts`) ; le reste du message ne change pas.
+ */
+const LEAVE_LINE: Record<GuideLocale, { standard: string; agreed: (hour: string) => string }> = {
+  fr: {
+    standard: "Votre séjour se termine demain : merci de libérer la maison avant 11h (sauf accord avec nous).",
+    agreed: (h) => `Votre séjour se termine demain : comme convenu, vous pouvez rester jusqu'à ${h}.`,
+  },
+  en: {
+    standard: "Your stay ends tomorrow: please leave the house by 11 am (unless agreed otherwise with us).",
+    agreed: (h) => `Your stay ends tomorrow: as agreed, you can stay until ${h}.`,
+  },
+  it: {
+    standard: "il tuo soggiorno termina domani: ti chiediamo di lasciare la casa entro le 11:00 (salvo accordi diversi con noi).",
+    agreed: (h) => `il tuo soggiorno termina domani: come concordato, puoi restare fino alle ${h}.`,
+  },
+  de: {
+    standard: "Ihr Aufenthalt endet morgen: Bitte verlassen Sie das Haus bis 11 Uhr (sofern nicht anders mit uns vereinbart).",
+    agreed: (h) => `Ihr Aufenthalt endet morgen: Wie vereinbart können Sie bis ${h} bleiben.`,
+  },
+  es: {
+    standard: "Tu estancia termina mañana: te pedimos que dejes la casa antes de las 11:00 (salvo acuerdo con nosotros).",
+    agreed: (h) => `Tu estancia termina mañana: como acordamos, puedes quedarte hasta las ${h}.`,
+  },
+};
+
 export function buildDepartureMessage(
   locale: GuideLocale,
-  { firstName }: { firstName?: string },
+  { firstName, departureHour }: { firstName?: string; departureHour?: number },
 ): string {
   const trimmed = firstName?.trim();
   const name = trimmed ? ` ${trimmed}` : "";
-  return DEPARTURE_TEMPLATES[locale]({ name }).join("\n");
+  const leave =
+    departureHour === undefined ? LEAVE_LINE[locale].standard : LEAVE_LINE[locale].agreed(formatHourFor(locale, departureHour));
+  return DEPARTURE_TEMPLATES[locale]({ name, leave }).join("\n");
 }
 
 /**

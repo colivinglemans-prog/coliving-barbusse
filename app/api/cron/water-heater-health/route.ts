@@ -3,6 +3,7 @@ import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { getWaterHeaterStatus, getWaterHeaterProfile, heatPumpStalled, PAC_STALL } from "@/lib/cozytouch";
 import { absenceSince, entryOlderThan, readWaterHeaterLog } from "@/lib/water-heater-log";
 import { getActiveBookings, countGuests } from "@/lib/bookings";
+import { withStayHours } from "@/lib/stay-hours";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { waterHeaterIssues } from "@/lib/water-heater-health";
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
     const [bookings, status, log] = await Promise.all([
-      getActiveBookings(),
+      withStayHours(getActiveBookings()),
       getWaterHeaterStatus(),
       readWaterHeaterLog(24),
     ]);

@@ -23,9 +23,11 @@ export async function sendNtfy(
 ): Promise<void> {
   if (!process.env.NTFY_TOPIC) throw new Error("NTFY_TOPIC manquant : notification non envoyée");
   await sendSocleNtfy(message, options);
+  // L'envoi a réussi : un journal qui lève ne doit pas le faire compter comme un échec (l'appelant
+  // renverrait, ou mettrait en file, une notification déjà partie).
   await recordNotification({
     title: log.title ?? options.title ?? "(sans titre)",
     priority: options.priority ?? 3,
     ...(options.tags?.length ? { tags: options.tags } : {}),
-  });
+  }).catch((e) => console.error("[ntfy] journal des notifications :", e instanceof Error ? e.message : e));
 }

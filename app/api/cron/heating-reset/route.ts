@@ -10,6 +10,7 @@ import {
 } from "@/lib/heatzy";
 import { resetTarget } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
+import { withStayHours } from "@/lib/stay-hours";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis } from "@sejour/socle/lib/time";
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
     const minute = paris.getMinutes();
 
     const [activeBookings, lockedDevices, shedState] = await Promise.all([
-      getActiveBookings(),
+      withStayHours(getActiveBookings()),
       getLockedDevices(),
       readShedState(),
     ]);

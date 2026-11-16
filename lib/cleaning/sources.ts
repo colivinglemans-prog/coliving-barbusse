@@ -1,4 +1,5 @@
 import { listLogSince } from "@sejour/socle/lib/nuki";
+import { managedBookingId } from "@sejour/socle/lib/access-codes";
 import { nukiConfig } from "@/lib/access-sync";
 import { AjCloud } from "@/lib/camera/ajcloud";
 import { Intratone } from "@/lib/cleaning/intratone";
@@ -22,6 +23,22 @@ export async function garageArrivals(people: TrackedPerson[]): Promise<CleaningA
   if (!client) throw new Error("no-credentials");
   await client.login();
   return trackedOpenings(await client.keypadOpenings(), people);
+}
+
+/**
+ * **Toutes** les ouvertures du digicode du garage par un code **nommé**, sans le filtre des
+ * personnes suivies (`trackedOpenings`) : les voyageurs n'ont pas de code garage, donc tout code
+ * nommé est celui d'une personne de la maison (relevé de la porte au départ,
+ * `lib/departure-lock.ts`). Un code donné un jour à un groupe (motos) se nomme avec le numéro de
+ * réservation : il est alors exclu. Même connexion que `garageArrivals`.
+ */
+export async function garageOpenings(): Promise<Array<{ at: Date; who: string }>> {
+  const client = intratoneClient();
+  if (!client) throw new Error("no-credentials");
+  await client.login();
+  return (await client.keypadOpenings())
+    .map((o) => ({ at: o.at, who: o.name.trim() }))
+    .filter((o) => o.who !== "" && managedBookingId(o.who) === null);
 }
 
 /**

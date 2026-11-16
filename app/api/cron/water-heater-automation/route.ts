@@ -13,6 +13,7 @@ import {
   setTargetTemperature,
 } from "@/lib/cozytouch";
 import { getActiveBookings, getBookingsAround, countGuests, guestsAround } from "@/lib/bookings";
+import { withStayHours } from "@/lib/stay-hours";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
 import { applyWaterHeaterCommands } from "@/lib/water-heater-commands";
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
     const hour = paris.getHours();
 
     const [bookings, status, log, connectivity] = await Promise.all([
-      getActiveBookings(),
+      withStayHours(getActiveBookings()),
       getWaterHeaterStatus(),
       readWaterHeaterLog(24),
       getConnectivity().catch(() => null),

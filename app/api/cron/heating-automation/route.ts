@@ -15,6 +15,8 @@ import {
 import { expectedHeatingMode, type HeatingSituation } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
 import { locksToRelease } from "@/lib/heating-locks";
+import { withStayHours } from "@/lib/stay-hours";
+import { runDepartureLockCheck, runDepartureLockCheckSummer } from "@/lib/departure-lock";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
@@ -96,6 +98,12 @@ export const maxDuration = 60;
  * 3. **Consignes** montées par les voyageurs : ramenées à celles de la zone à chaque passage.
  * 4. **Coupure de courant** : 3 radiateurs ou plus tombés d'un coup → alerte prioritaire
  *    (`lib/power-cut.ts`), puis « courant revenu ».
+ * 5. **Porte au départ** (2026-11-16) : le jour d'un départ, après l'heure de départ (11 h ou
+ *    convenue), une serrure non verrouillée alerte en priorité 4 au 2e relevé, sauf si le ménage
+ *    ou les voyageurs suivants ont ouvert depuis (`lib/departure-lock.ts`). Aussi en mode été.
+ *
+ * Horaires convenus (arrivée anticipée, départ tardif) joints aux réservations
+ * (`lib/stay-hours.ts`) : occupé dès l'arrivée convenue, jusqu'au départ convenu.
  *
  * La charge estimée est mémorisée pour l'automation du ballon (`lib/heating-state.ts`). Si les
  * radiateurs sont illisibles (API Heatzy en panne), les modes sont posés quand même, sans
@@ -111,11 +119,21 @@ export async function GET(request: NextRequest) {
 
   try {
     if (await getSummerMode()) {
+      // La porte n'a rien à voir avec les radiateurs : le relevé du départ tourne aussi l'été.
+      // Rien avant 11 h 30, rien une fois la journée close ; Beds24 lu une fois par jour au plus.
+      // Ne lève jamais : le passage d'été reste un succès comme avant.
+      const summerParis = nowParis();
+      const doorCheck = await runDepartureLockCheckSummer(
+        todayParis(),
+        summerParis.getHours() * 60 + summerParis.getMinutes(),
+        () => getActiveBookings(),
+      );
       await beat("heating-automation", "ok");
       await reportCronRun("heating-automation", "Automation du chauffage", sendHeatingAlert, null).catch(() => {});
       return NextResponse.json({
         success: true,
         skipped: "summer-mode",
+        departureLock: doorCheck && { status: doorCheck.status, detail: doorCheck.detail },
         actions: [],
         failures: [],
         timestamp: new Date().toISOString(),
@@ -129,7 +147,8 @@ export async function GET(request: NextRequest) {
     const currentHour = paris.getHours();
     const minute = paris.getMinutes();
 
-    const allBookings = await getActiveBookings();
+    // Horaires convenus joints (arrivée anticipée, départ tardif) : `lib/stay-hours.ts`.
+    const allBookings = await withStayHours(getActiveBookings());
 
     const actions: string[] = [];
     // Sans le cache mémoire : la liste peut être réécrite juste après (verrou posé il y a 1 min).
@@ -368,11 +387,15 @@ export async function GET(request: NextRequest) {
       ).catch((e) => console.error("[heating-automation] alerte:", e instanceof Error ? e.message : e));
     }
 
+    // Serrure non verrouillée après le départ (`lib/departure-detection.ts`) : alerte au 2e relevé.
+    const doorCheck = await runDepartureLockCheck(allBookings, today, now);
+
     await beat("heating-automation", "ok");
     await reportCronRun("heating-automation", "Automation du chauffage", sendHeatingAlert, null).catch(() => {});
     return NextResponse.json({
       success: true,
       situation,
+      departureLock: { status: doorCheck.status, detail: doorCheck.detail },
       estimatedLoadW: estimatedW,
       capW: ELECTRICAL_BUDGET.radiatorCapW,
       sheddingMode: LOAD_SHEDDING_MODE,

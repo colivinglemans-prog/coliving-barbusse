@@ -5,6 +5,7 @@ import type { BookingListEntry } from "@sejour/socle/lib/booking-dto";
 import type { DashboardRole } from "@/lib/auth";
 import type { LockStatus } from "@/lib/access-sync";
 import { eventLinkRef } from "@/lib/events";
+import type { AgreedHours } from "@/lib/stay-hours-rules";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
 
@@ -15,6 +16,8 @@ export default function CalendarPage() {
   const [unlinkedEvents, setUnlinkedEvents] = useState<string[]>([]);
   // État du code de chaque réservation sur la serrure (admin). Absent = pas de pastille.
   const [lockStatus, setLockStatus] = useState<LockStatus["bookings"] | undefined>();
+  // Horaires convenus (arrivée anticipée, départ tardif), admin et viewer : `/api/dashboard/stay-status`.
+  const [stayHours, setStayHours] = useState<Record<number, AgreedHours>>({});
   const [actualRole, setActualRole] = useState<DashboardRole>("admin");
   const [viewAsViewer, setViewAsViewer] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,6 +40,12 @@ export default function CalendarPage() {
         fetch("/api/dashboard/nuki-status")
           .then((r) => (r.ok ? r.json() : null))
           .then((data: LockStatus | null) => data && setLockStatus(data.bookings))
+          .catch(() => {});
+
+        // Non bloquant, comme les pastilles : sans la table, aucun horaire convenu affiché.
+        fetch("/api/dashboard/stay-status")
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data: { hours: Record<number, AgreedHours> } | null) => data && setStayHours(data.hours))
           .catch(() => {});
 
         const [meRes, bookingsRes, linksRes] = await Promise.all([
@@ -114,6 +123,15 @@ export default function CalendarPage() {
                 );
               }}
               unlinkedEvents={unlinkedEvents}
+              stayHours={stayHours}
+              onStayHoursChanged={(id, hours) =>
+                setStayHours((prev) => {
+                  const next = { ...prev };
+                  if (hours.arrivalHour === undefined && hours.departureHour === undefined) delete next[id];
+                  else next[id] = hours;
+                  return next;
+                })
+              }
               onEventLinkChanged={(id, eventKey, unlinked) => {
                 const ref = eventLinkRef(id, eventKey);
                 setUnlinkedEvents((prev) =>

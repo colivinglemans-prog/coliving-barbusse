@@ -34,8 +34,13 @@
  */
 
 import { randomInt, randomUUID } from "node:crypto";
-import { getRedis } from "./redis";
+import { getRedis, redisKey } from "./redis";
+import { arrivalNoticeTriggers, noticeKeyParts, retryArrivalNotices, retryKeyParts, sendArrivalNotices, type NoticeDeps } from "./arrival-notice";
+import { isCleaningRole, trackedPeople } from "./cleaning/sessions";
+import { loadSessions } from "./cleaning/store";
+import { parisHourOf } from "./departure-detection";
 import {
+  accessWindow,
   keypadArrivals,
   planAccessCodes,
   type AccessAction,
@@ -60,6 +65,7 @@ import { reportAlerts, type TrackedAlert } from "./alert-memory";
 import { currentHourParis, todayParis } from "@sejour/socle/lib/time";
 import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";
 import type { Beds24Booking } from "./types";
+import { accessStatus, agreedConflicts, lockWindows, readStayHours, withAccessHours, withAgreedHours, type StayHoursTable } from "./stay-hours";
 
 /** Les alertes du planificateur, plus celles de la serrure et de l'exécution. */
 export type SyncAlert = Omit<AccessAlert, "kind"> & {
@@ -79,8 +85,10 @@ export type SyncAlert = Omit<AccessAlert, "kind"> & {
  * Qui a lancé le passage. Seul le passage horaire du cron évalue et envoie les alertes : le
  * webhook Beds24 se déclenche aussi sur nos propres écritures (`NUKI_PIN`, `MSG_*`), et une
  * serrure vue hors ligne entre deux passages horaires suffisait à envoyer une priorité 5.
+ * `dashboard` (2026-11-16) : passage lancé après la saisie d'un horaire convenu, traité comme le
+ * webhook (seule l'alerte urgente peut partir).
  */
-export type SyncTrigger = "cron" | "webhook";
+export type SyncTrigger = "cron" | "webhook" | "dashboard";
 
 export const ACCESS_POLICY: AccessCodePolicy = {
   validFromHour: 14,
@@ -92,6 +100,9 @@ export const ACCESS_POLICY: AccessCodePolicy = {
 
 /** La maison entière : la seule propriété dont les voyageurs passent par cette porte. */
 const HOUSE_PROPERTY_ID = 303771;
+
+/** Arrivée imminente : jusqu'où remonter pour trouver le dernier départ (lecture de plus). */
+const PAST_DEPARTURES_DAYS = 60;
 
 /** Tous les statuts : sans liste, Beds24 omet les annulées, dont on doit retirer le code. */
 const ALL_STATUSES = ["confirmed", "new", "request", "inquiry", "black", "cancelled"];
@@ -109,19 +120,24 @@ export function syncIsLive(): boolean {
   return process.env.NUKI_SYNC_MODE === "live";
 }
 
-function toStay(b: Beds24Booking): AccessStay {
-  const status =
-    b.status === "cancelled"
-      ? "cancelled"
-      : b.status === "confirmed" || b.status === "new"
-        ? "confirmed"
-        : "provisional";
+/**
+ * Un séjour de la synchronisation, avec sa fenêtre propre quand un horaire a été convenu
+ * (`lib/stay-hours.ts` : de min(14 h, A − 1 h) à max(14 h, D + 1 h)). `validFromHour` /
+ * `validUntilHour` (socle v3.26.0) priment sur `ACCESS_POLICY` dans `accessWindow` : la synchro
+ * recale d'elle-même un code déjà posé (motif `window`). Exporté pour les tests.
+ */
+export function toStay(b: Beds24Booking, table: StayHoursTable): AccessStay {
+  return withAccessHours(baseStay(b), table, ACCESS_POLICY);
+}
+
+/** Le séjour sans ses heures convenues : `lockWindows` les ajoute, puis borne la rotation. */
+function baseStay(b: Beds24Booking): AccessStay {
   return {
     bookingId: b.id,
     firstName: b.firstName ?? "",
     arrival: b.arrival,
     departure: b.departure,
-    status,
+    status: accessStatus(b.status),
     pin: nukiCodeOf(b),
     phone: b.mobile || b.phone || null,
   };
@@ -190,10 +206,12 @@ async function releaseLock(owner: string): Promise<void> {
 /** Lit Beds24 et la serrure, et calcule le plan. Commun à la synchronisation et à l'état. */
 async function loadState(cfg: NukiConfig) {
   const today = todayParis();
-  const [health, auths, bookings] = await Promise.all([
+  const [health, auths, bookings, stayHours] = await Promise.all([
     getLockHealth(cfg),
     listAuths(cfg),
     getBookings({ departureFrom: addDays(today, -1), statuses: ALL_STATUSES, includeInfoItems: true, fresh: true }),
+    // Horaires convenus : ne lève jamais (Redis injoignable ⇒ fenêtre standard).
+    readStayHours(),
   ]);
   const house = bookings.filter((b) => b.propertyId === HOUSE_PROPERTY_ID);
 
@@ -210,9 +228,14 @@ async function loadState(cfg: NukiConfig) {
     if (b && b.propertyId === HOUSE_PROPERTY_ID) house.push(b);
   }
 
-  const stays = house.map(toStay);
+  // Fenêtre de chaque code : heures convenues, puis, un jour de rotation, le code des partants
+  // n'ouvre pas au-delà de l'ouverture de celui des arrivants. Même formule que le relevé de la
+  // porte au départ (`lockWindows`, `lib/stay-hours-rules.ts`).
+  const stays = lockWindows(house.map(baseStay), stayHours, ACCESS_POLICY);
   const plan = planAccessCodes({ stays, auths, today, now: new Date(), policy: ACCESS_POLICY, random: randomInt });
-  return { today, health, auths, house, stays, plan };
+  // Accords saisis que la situation contredit désormais (réservation arrivée après coup).
+  const conflicts = agreedConflicts(stayHours, house);
+  return { today, health, auths, house, stays, plan, conflicts, stayHours };
 }
 
 export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trigger: SyncTrigger }): Promise<SyncReport> {
@@ -226,7 +249,8 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
     return { mode, health: { online: false, keypadPaired: false, batteryCritical: false, keypadBatteryCritical: false, batteryChargePercent: null, lockState: null, motorBlocked: false }, stays: 0, actions: [], alerts: [], notified: 0, skipped: "un autre passage est en cours" };
   }
   try {
-    const { today, health, house, stays, plan } = await loadState(cfg);
+    const { today, health, auths, house, stays, plan, conflicts, stayHours } = await loadState(cfg);
+    if (evaluate) await reportStayHoursConflicts(conflicts);
     const alerts: SyncAlert[] = [...plan.alerts];
 
     // La pile faible n'est plus signalée ici : le passage de 9 h de la préparation d'arrivée
@@ -316,6 +340,20 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
       }
     }
 
+    // Arrivée imminente (réservation de dernière minute, arrivée déplacée à aujourd'hui ou demain) :
+    // à partir des seules actions exécutées avec succès, quel que soit le déclencheur. La file des
+    // envois ratés est retentée à chaque passage live. Ne lève pas.
+    const executed = plan.actions.filter((_, i) => actions[i]?.ok === true);
+    const noticeBookings = withAgreedHours(house, stayHours);
+    const deps = arrivalNoticeDeps(today, new Date());
+    await retryArrivalNotices(deps);
+    const notices = arrivalNoticeTriggers({ executed, auths, bookings: noticeBookings, today });
+    if (notices.length > 0) {
+      await sendArrivalNotices(notices, noticeBookings, deps).catch((e) =>
+        console.error("[access-sync] arrivée imminente :", e instanceof Error ? e.message : e),
+      );
+    }
+
     // Seul un vrai passage du cron fait avancer l'état d'alerte ordinaire ; l'alerte urgente
     // part aussi d'un passage lancé par le webhook (c'est souvent lui qui pose le code du jour).
     let notified = evaluate ? await notify(alerts) : 0;
@@ -333,6 +371,45 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
   } finally {
     if (owner !== null) await releaseLock(owner).catch(() => {});
   }
+}
+
+/** Lectures et écritures de la notification « arrivée imminente » (`lib/arrival-notice.ts`). */
+function arrivalNoticeDeps(today: string, now: Date): NoticeDeps {
+  return {
+    key: (t) => redisKey(...noticeKeyParts(t)),
+    retryKey: (t) => redisKey(...retryKeyParts(t)),
+    set: (key, value, { nx, ex }) => (nx ? redis().set(key, value, { nx: true, ex }) : redis().set(key, value, { ex })),
+    get: (key) => redis().get(key),
+    del: (key) => redis().del(key),
+    listRetryKeys: async () => {
+      const match = redisKey("arrival-notice", "retry", "*");
+      const out: string[] = [];
+      let cursor: string | number = 0;
+      for (let i = 0; i < 100; i++) {
+        const [next, keys]: [string | number, string[]] = await redis().scan(cursor, { match, count: 100 });
+        out.push(...keys);
+        cursor = next;
+        if (String(cursor) === "0") break;
+      }
+      return out;
+    },
+    loadPastBookings: async () =>
+      (
+        await getBookings({
+          departureFrom: addDays(today, -PAST_DEPARTURES_DAYS),
+          departureTo: addDays(today, 1),
+          statuses: ["confirmed", "new"],
+        })
+      ).filter((b) => b.propertyId === HOUSE_PROPERTY_ID),
+    loadCleanings: loadSessions,
+    cleaners: trackedPeople()
+      .filter((p) => isCleaningRole(p.role))
+      .map((p) => p.name),
+    send: sendNtfy,
+    now,
+    today,
+    night: isNightParis(parisHourOf(now)),
+  };
 }
 
 async function execute(cfg: NukiConfig, action: AccessAction): Promise<void> {
@@ -358,6 +435,27 @@ async function execute(cfg: NukiConfig, action: AccessAction): Promise<void> {
 }
 
 const NTFY_PRIORITY: Record<AccessSeverity, 3 | 4 | 5> = { normal: 3, high: 4, urgent: 5 };
+
+/**
+ * Horaire convenu contredit par une réservation arrivée depuis (un départ à 16 h, puis une
+ * arrivée à 14 h le même jour) : `barbusse:alert:stay-hours-conflict`, priorité 3, règle commune
+ * (deux passages horaires). Le code des partants est déjà borné (`boundRotationWindows`) ; reste à
+ * revoir l'accord avec le voyageur. La popup le dit aussi. Un échec d'envoi ne casse pas la synchro.
+ */
+async function reportStayHoursConflicts(conflicts: ReadonlyArray<{ bookingId: number; message: string }>): Promise<void> {
+  await reportAlerts(
+    "stay-hours-conflict",
+    conflicts.map((c) => ({ id: String(c.bookingId), priority: 3, line: `  - Réservation ${c.bookingId} : ${c.message}` })),
+    sendLockAlert,
+    {
+      title: (c) => (c.length === 1 ? "Horaire convenu contredit par une réservation" : `${c.length} horaires convenus contredits`),
+      intro: "Un accord saisi au dashboard n'est plus tenable (rotation le même jour) :",
+      recoveredTitle: "Horaires convenus de nouveau cohérents",
+      recoveredBody: "Plus aucun accord contredit par une réservation.",
+      confirmAfter: 2,
+    },
+  ).catch((e) => console.error("[access-sync] alerte horaires convenus :", e instanceof Error ? e.message : e));
+}
 
 const sendLockAlert = (subject: string, body: string, priority: 1 | 2 | 3 | 4 | 5) =>
   sendNtfy(body, { title: subject, priority, tags: ["lock"] });
@@ -498,7 +596,7 @@ export async function lockStatus(): Promise<LockStatus> {
         detail: `En attente du prochain passage : ${todo.map((a) => ACTION_LABEL[a.kind]).join(", ")}.`,
       };
     } else {
-      bookings[stay.bookingId] = { state: "ok", detail: "Code posé sur la serrure, 14 h → 14 h." };
+      bookings[stay.bookingId] = { state: "ok", detail: `Code posé sur la serrure, ${windowLabel(stay)}.` };
     }
   }
   if (!health.online || !health.keypadPaired) {
@@ -510,6 +608,18 @@ export async function lockStatus(): Promise<LockStatus> {
     }
   }
   return { health, bookings };
+}
+
+/**
+ * « 14 h → 14 h », ou « 13 h → 17 h » pour un séjour à horaires convenus — lu dans la fenêtre que
+ * **le socle** calcule (`accessWindow`), jamais déduit des horaires : la pastille dit donc
+ * toujours ce que la synchro pose.
+ */
+function windowLabel(stay: AccessStay): string {
+  const w = accessWindow(stay, ACCESS_POLICY);
+  const hourOf = (iso: string) =>
+    Number(new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hour12: false }));
+  return `${hourOf(w.allowedFromDate)} h → ${hourOf(w.allowedUntilDate)} h`;
 }
 
 const ACTION_LABEL: Record<AccessAction["kind"], string> = {

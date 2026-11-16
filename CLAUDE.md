@@ -234,7 +234,7 @@ docs/journal.md § Conventions).
 
 ## TODO — dette technique restante (au 2026-11-07)
 
-Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0 **ce jour-là** (non revérifié depuis), CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 à l'époque (**v3.26.1** au 2026-11-16 pour Barbusse). Reste :
+Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0 **ce jour-là** (non revérifié depuis), CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 à l'époque (**v3.26.1** au 2026-11-16, Albiez et Barbusse). Reste :
 
 **À surveiller**
 - [ ] Premier passage automatique du cron `beds24-backup` : dimanche 2026-11-08, 03:00 UTC (notification ntfy priorité 1 attendue).
@@ -356,7 +356,7 @@ Trois portes, dans cet ordre. Aucune n'est suffisante seule.
 | Porte | Où | Ce qu'elle fait |
 |---|---|---|
 | `proxy.ts` | racine | Cookie exigé sur `/dashboard` et `/api/dashboard`. **Liste blanche** des chemins ouverts à `viewer` — l'ancien middleware tenait une liste noire de quatre préfixes, et c'est ainsi que `bookings` est resté ouvert. |
-| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`. |
+| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`, `bookings/[id]/stay-hours`. Lecture ouverte au viewer : `stay-status` (identifiants et heures seulement). |
 | DTO | `@sejour/socle/lib/booking-dto` | `/api/dashboard/bookings` projette vers `BookingListItem` (15 champs) ou `AdminBookingListItem` (+`price`, `email`, `mobile`, `phone`, `country`). |
 
 **Deux protections contre la fuite des `NUKI_PIN`**, fermée le 2026-09-11 (historique et
@@ -510,11 +510,40 @@ remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki We
 | `/api/webhooks/beds24` | Webhook « Booking » de Beds24, en-tête `x-webhook-secret`. Déclenche un passage : PIN posé en quelques secondes pour une réservation de dernière minute. Le corps n'est pas lu. |
 
 **Règles de l'exploitant** : code valable de **14 h le jour d'arrivée à 14 h le jour du
-départ** ; nom `<n° de réservation>: <Prénom>` ; statuts `confirmed` et `new` seulement
+départ** (élargi par séjour en cas d'horaire convenu à partir du socle v3.26.0 : min(14 h, A − 1 h) →
+max(14 h, D + 1 h), voir « Horaires convenus par réservation ») ; nom `<n° de réservation>: <Prénom>` ; statuts `confirmed` et `new` seulement
 (`request`, `inquiry`, `black` : rien) ; annulation → code supprimé ; modification → plage
 recalée ; séjour terminé → supprimé. Une réservation `new` est **passée en `confirmed`**
 (`confirmBooking`, jeton `ecriture`) une fois son PIN dans Beds24 et son code sur la serrure. **Codes `# …` (manuels) jamais touchés** — préfixer de
 `# ` tout code saisi à la main qui doit survivre.
+
+**Un code personnel commence par `#`** (règle du 2026-11-16) : l'hôte, le ménage, le dépannage —
+toute personne de la maison — ont un code dont le nom commence par `#` (« # Sophie »). C'est ce
+qui le protège de la synchro, et c'est ce que le relevé de la porte au départ reconnaît comme une
+**prise en main de la maison** (`isPersonalCode`, `lib/departure-detection.ts` : code `#`, ou nom
+contenant une personne de `TRACKED_PEOPLE` **en mot entier**, casse et accents ignorés :
+« Frederic » n'est pas « Eric », `mentionsPerson`). Un code saisi à la main sans `#` n'en est pas un.
+
+**Arrivée imminente** (`lib/arrival-notice.ts`, 2026-11-16) : à partir des actions que la synchro
+a **réellement exécutées** (jamais à blanc, ni `?dry=1`, ni `NUKI_SYNC_MODE` ≠ `live`), quel que
+soit le déclencheur, pour une arrivée aujourd'hui ou demain : création du code d'une réservation
+faite moins de 48 h avant l'arrivée (`isLateBooking` du socle), ou recalage `window` d'un code dont
+le **jour** d'arrivée a changé → ntfy « Arrivée imminente — <Prénom> » : « Arrivée ce soir —
+réservation de dernière minute, 7 voyageurs. Dernier ménage enregistré : Sophie, 15/11 11 h 05
+(dernier départ : 15/11) ». Jamais d'heure d'arrivée, jamais « non constaté » (sinon « aucun ménage
+enregistré depuis le dernier départ ») ; seul le rôle `ménage` de `TRACKED_PEOPLE` compte (un
+dépannage n'est pas un ménage). Dernier départ : lecture Beds24 de plus (60 jours). Priorité **4**
+sans ménage enregistré depuis le dernier départ, **2** sinon, **2** la nuit pour une arrivée le
+lendemain. Anti-doublon `SET NX` sur `barbusse:arrival-notice:<résa>:<jour d'arrivée>` (pris
+avant l'envoi, posé 7 jours après un envoi réussi, retiré s'il échoue) ; Redis injoignable : rien
+n'est envoyé. Rien n'est rattrapé au déploiement. Le « dernier départ » est un départ **déjà
+passé** ; un départ encore à venir avant l'arrivée (rotation) s'écrit « départ prévu le jj/mm »
+(priorité 4) ; lecture Beds24 ratée : « dernier départ inconnu (lecture impossible) », priorité 4,
+et aucun ménage n'est alors annoncé « depuis le dernier départ ». **Envoi raté** (le déclencheur ne
+se reproduit pas) : la notification est mise en file, `barbusse:arrival-notice:retry:<résa>:<jour>`
+(texte et priorité, jusqu'au lendemain de l'arrivée), et chaque passage live de la synchro la
+retente (`retryArrivalNotices`, même anti-doublon). Un journal des notifications qui lève après un
+envoi réussi n'est pas un échec (`lib/ntfy.ts`).
 
 **Le PIN** est tiré des 6 derniers chiffres du téléphone du voyageur quand ils respectent les
 règles du clavier (1 à 9, pas « 12 » en tête) et sont libres, sinon au hasard. Il est écrit
@@ -537,11 +566,78 @@ ligne, PIN manquant ; `?dry=1` seul les tait), `BEDS24_WEBHOOK_SECRET`.
   réponse dans une erreur de `addNukiPin`.
 - Python (`urllib`) refuse le certificat de `api.beds24.com` : scripts en Node.
 
+## Horaires convenus par réservation (arrivée anticipée, départ tardif — 2026-11-16)
+
+Le site vend « arrivée anticipée et départ tardif sur demande » ; depuis le 2026-11-16, l'accord
+se saisit dans la **popup de la réservation** du calendrier (deux sélecteurs, admin) et pilote
+tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-régression).
+
+| Pièce | Rôle |
+|---|---|
+| [lib/stay-hours-rules.ts](lib/stay-hours-rules.ts) | Règle **pure** (importable côté navigateur) : `stayHours` (17 h / 11 h sauf accord), `withAgreedHours`, bornes `AGREED_RANGE` (arrivée 8-16 h, départ 12-23 h, heures entières), `rotationCheck`, `accessHours`, `formatHourFor`, et **la** fenêtre du code envoyée à la serrure (`lockWindows` : heures convenues puis `boundRotationWindows` ; `codeEndsAt`, `departingCodesEnd`), commune à la synchro et au relevé de la porte au départ. |
+| [lib/stay-hours.ts](lib/stay-hours.ts) | Table Redis : **hachage** `barbusse:stay-hours`, un champ par réservation. `readStayHours` ne lève jamais (Redis injoignable ⇒ heures standard) ; `withStayHours(bookings)` = la jointure commune aux crons et au dashboard. |
+| `POST`/`DELETE /api/dashboard/bookings/[id]/stay-hours` | **Admin seulement** (`guard.denyNonAdmin`), même origine exigée (403) et JSON pour le `POST` (415), comme `pricing/halt`. 404 hors maison (303771) ou statut exclu ; 400 hors bornes ; **409 si le départ convenu dépasse l'arrivée (convenue ou standard) du séjour vendu qui arrive le même jour** (ou l'inverse) — voisins : `rotationNeighbours`, la même définition que la popup ; avertissement si égalité, **en rouge** si l'arrivée anticipée laisse moins de 3 h au ménage ; 503 sans Redis. Après l'écriture, **synchro des codes immédiate** (`runAccessSync`, déclencheur `dashboard`, même verrou que le webhook) ; si elle échoue, 200 avec `syncDeferred` (le passage horaire rattrape). |
+| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** — et, pour le viewer, **vendues** (`countsAsSold` : ni demandes ni options, comme `/api/dashboard/bookings`, cerbere B1) (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). La phase B y ajoutera l'état du départ du jour. |
+
+| Consommateur | Standard | Arrivée convenue A / départ convenu D |
+|---|---|---|
+| Chauffage (`isOccupiedAt`, `heatingSituation`, `resetTarget`, `preheatHours`) | occupé 17 h → 10 h ; préchauffage 12 h / 15 h | occupé dès A et **jusqu'à D** ; préchauffage A − 5 h / A − 2 h (borné à la journée). Le décalage par zone ne s'applique qu'aux montées : la descente à D reste à l'heure partout. |
+| Ballon (`countGuests`) | partants jusqu'à 11 h, arrivants dès 11 h | partants jusqu'à D ; arrivants dès min(11 h, A − 6 h) |
+| Code de la serrure (`toStay`, `lib/access-sync.ts`) | 14 h → 14 h | min(14 h, A − 1 h) → max(14 h, D + 1 h) (champs `validFromHour` / `validUntilHour` par séjour, socle v3.26.0) : la synchro recale un code déjà posé (motif `window`) ; la pastille du calendrier affiche la fenêtre calculée par le socle. **Jour de rotation** : le code des partants est borné à l'ouverture de celui des arrivants confirmés (`boundRotationWindows`). Accord contredit par une réservation arrivée depuis : alerte `stay-hours-conflict` (priorité 3, deux passages du cron) et message rouge dans la popup. |
+| Préparation d'arrivée (`toReadinessBooking`) | `arrivalTime` de Beds24 **si ≥ 17:00** (une heure estimée plus tôt est ignorée : elle avancerait les contrôles sans que le chauffage s'avance) | A en `arrivalTime` (`readinessArrivalTime`), fenêtre du code comme ci-dessus ; `earliestCheckIn: "08:00"` (`lib/readiness/config.ts`) avance alors les contrôles noon / preheat / final. |
+| Messages voyageurs (`hourVars`, `lib/messages/engine.ts`) | « 17h », « 11h » | `heureArrivee` / `heureDepart` dans la langue du voyageur ; `departConvenu` fait dire au message de la veille « comme convenu, vous pouvez rester jusqu'à 16h ». Bouton « Départ » du dashboard aligné. |
+| Bandeau Chauffage (`getHeatingRules`, 4e argument) | — | ligne « Départ tardif convenu à 16 h » / « Arrivée anticipée à 14 h » (`agreedRule`). |
+
+- **Calendrier** : repère horloge sur la barre (infobulle « Départ tardif convenu à 16 h »), lecture
+  seule pour le viewer — la personne du ménage voit l'heure dans la popup.
+- **Alerte « serrure non verrouillée après le départ »** (`lib/departure-detection.ts`, pure ;
+  `lib/departure-lock.ts`, lectures) : dans `heating-automation` (toutes les 15 min, **aussi en
+  mode été**), le jour d'un départ, de l'heure de départ D (11 h ou la plus tardive convenue)
+  **+ `DEPARTURE_LOCK_GRACE_MINUTES` (30 min, validé par l'hôte)** **jusqu'à E, la fin de validité
+  réelle du code des partants** (`departingCodesEnd` → `lockWindows`, `lib/stay-hours-rules.ts` :
+  la même formule que la synchro, heures convenues puis bornage de rotation ; plusieurs départs →
+  la plus tardive ; 14 h en standard, 17 h pour un départ convenu à 16 h, 14 h un jour de
+  rotation). Serrure non verrouillée (`lockState` ≠ 1) → premier constat, ntfy **priorité 4 (3 la
+  nuit, 22 h – 8 h)** au relevé suivant (`barbusse:alert:departure-lock`, règle commune), « Serrure
+  verrouillée » en priorité 1. Une porte verrouillée **avant E ne clôt pas la journée** : un
+  voyageur peut revenir chercher un oubli (ouverture par un code des partants **après D** ; à 10 h
+  ce n'en est pas une) et repartir sans fermer → titre « Serrure non verrouillée après le retour
+  d'un voyageur » ; après un « rétabli », une nouvelle ouverture rouvre l'alerte. **Pas d'alerte**
+  après une **prise en main** : ouverture par un **code personnel** (au clavier : `#` ou
+  `TRACKED_PEOPLE` ; au garage : tout code Intratone nommé, `garageOpenings`) ou par le code des
+  voyageurs arrivant le jour même, **postérieure à la dernière ouverture par un code des
+  partants** et au plus tôt à D − 2 h ; même porte ouverte (le ménage), l'alerte ouverte se
+  referme sans message. L'application Nuki n'est pas une prise en main (l'alerte précise
+  « ouverture par l'application à HH:MM »). Ni si la serrure est hors ligne ou le journal illisible
+  (état inchangé). Un code « <n°>: <Prénom> » n'est jamais une personne de la maison. Journée close
+  (`barbusse:departure-lock:<jour>` = `reoccupied` dès la prise en main, `locked` seulement porte
+  verrouillée **et** E passé) : plus aucun relevé. Une porte non verrouillée après E reste
+  surveillée ; **à minuit**, plus de départ « aujourd'hui » : l'alerte se referme **sans message**.
+  Si E ≤ D + 30 min, un seul relevé (règle d'avant). Ordre des lectures : état de la serrure seul
+  → verrouillée : rien de plus → sinon journal → garage seulement si le journal ne conclut pas,
+  **avec son propre délai** (8 s ; panne ou lenteur = non lu, jamais « serrure illisible ») ;
+  lectures Nuki plafonnées à 10 s ; en mode été, rien avant 11 h 30 et Beds24 lu une fois par jour
+  au plus. **Parade caméra** (2026-11-16) : un mouvement **significatif** de la caméra
+  du garage (nommée « Porte d'entrée » dans l'application ; `barbusse:camera:last-real:<did>`, filtre de
+  scène de `camera-watch`) postérieur à D et vieux de moins de 30 min **reporte** le relevé
+  (`presence`, sans clore la journée) : couvre l'entrée du ménage par le garage quand Intratone
+  remonte en retard. Filtre coupé ou clé illisible : l'alerte part. Relecture du 2026-11-16 : serrure en ligne mais dans un état
+  nul ou de passage (2, 4, 7, 255) → relevé « illisible », le suivant tranche ; porte non
+  verrouillée et journal illisible deux relevés de suite → alerte distincte
+  `barbusse:alert:departure-lock-log` (priorité 3, « impossible de savoir si le ménage est
+  entré ») ; Redis illisible (horaires convenus relus par `readStayHoursStrict`, état d'alerte,
+  fin de journée) → relevé sauté sans alerte ; alerte déjà ouverte → le garage n'est plus relu ;
+  minuit passé, en hiver comme en mode été, les deux alertes se referment sans message.
+- ⚠️ La messagerie maison étant en mode `test`, les vrais messages partent encore des auto-actions
+  Beds24, qui disent « avant 11h » : confirmer l'heure convenue au voyageur à la main.
+- Le guide d'arrivée reste générique (« Sauf accord préalable… avant 11h ») : il n'est lié à aucune
+  réservation.
+
 ## Chauffage Heatzy (ne monte jamais au socle)
 
 `lib/heatzy.ts` pilote 15 radiateurs sur 4 zones (API Gizwits, `data/heatzy-zones.json` avec le mapping Beds24) : crons `heating-automation`, `heating-reset`, `heating-health`, page `/dashboard/heating` (contrôle ouvert au `viewer`).
 - **Une seule règle** : `expectedHeatingMode` (`lib/heating-schedule.ts`), utilisée par l'automatisation, le reset, le dashboard et la préparation d'arrivée ; **la référence est l'automatisation**. `heating-reset` compte le jour d'arrivée comme occupé dès 12 h (il coupait le préchauffage avant le 2026-11-07).
-- **Occupation** (`isOccupiedAt`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). Heure toujours via `@sejour/socle/lib/time`.
+- **Occupation** (`isOccupiedAt`) : réservation active à **17 h** le jour d'arrivée, maison libérée à **10 h** le jour du départ ; pré-chauffage éco 12 h puis confort 15 h (montée progressive pour ne pas faire sauter les plombs). **Horaires convenus** (2026-11-16) : occupé dès l'arrivée anticipée A et jusqu'au départ tardif D, préchauffage A − 5 h / A − 2 h — voir « Horaires convenus par réservation ». Heure toujours via `@sejour/socle/lib/time`.
 - ⚠️ **Délestage (2026-11-09, coupures à 9 kVA ; 15 radiateurs ACOVA Atoll LCD 1 000 W)** :
   - **Montées en chauffe échelonnées** par zone (`staggerMinutes`, `zoneHour`) : **dernier étage −15 min, RDC et chambre RDC à l'heure, 1er +15 min** (confort du soir 19 h 45 / 20 h / 20 h 15). Les descentes (7 h, départ 10 h, arrivée 17 h) restent à l'heure partout (décision de l'hôte). Toujours passer la **minute** de Paris à `expectedHeatingMode` / `resetTarget`.
   - **Charge estimée** (`lib/radiator-load.ts`) : à fond si écart ≥ 1 °C ou `Heating_state = 1`, un tiers en régulation, **hors ligne = 100 %**. Plafond et budgets dans `lib/electrical-budget.ts` (**un chiffre à changer au passage à 12 kVA**).
@@ -957,7 +1053,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 - **Contrôle** (`lib/water-heater-health.ts`) : recalcule les réglages attendus à la même heure ; Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **« PAC à l'arrêt »** (compteur immobile 2 h, hors Absence) ; un constat n'alerte que s'il était déjà là au contrôle précédent, une seule fois tant qu'il dure (règle commune, `barbusse:alert:water-heater-health`).
 - **Thermo injoignable** (`getConnectivity`, `isUnreachable`) : `available` de l'appareil et passerelle Overkiz — les états restent en cache quand le thermo n'a plus de courant (circuit du garage coupé le 10/11, maison vide). Alerte priorité 5 après deux passages de suite (`water-heater-reach`).
 - **Dashboard** : boost, Éco+ et Performance manuels **refusés (409) aux heures de pic** ; l'admin peut forcer après confirmation, mais **l'automation reprend la main au passage suivant (15 min)**.
-- **Voyageurs comptés** (`countGuests`) : bascule à **11 h** (check-out) — arrivants dès 11 h, partants jusqu'à 11 h, jamais d'éco entre deux réservations enchaînées.
+- **Voyageurs comptés** (`countGuests`) : bascule à **11 h** (check-out) — arrivants dès 11 h, partants jusqu'à 11 h, jamais d'éco entre deux réservations enchaînées. Horaires convenus : partants jusqu'au départ convenu D, arrivants dès min(11 h, A − 6 h).
 - Session Overkiz : après un 401, le second essai ouvre une session **neuve** (`getSession(true)`) — relire Redis rendait la session expirée, d'où un 401 une heure sur deux.
 - Détail (configuration physique, modes, commandes, states, profils) : [docs/cozytouch.md](docs/cozytouch.md).
 
@@ -1127,6 +1223,14 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
 - **Page admin `/dashboard/suivi`** : cartes par personne (passages, heures estimées, coût),
   graphe mensuel, journal des passages. Les heures/sorties ne couvrent que les visites récentes
   (historique caméra limité) — assumé, affiché « estimé ». Admin seulement (hors liste blanche viewer).
+- **Code personnel = `#`** : le code Nuki de chaque personne de la maison commence par `#`
+  (« # Sophie ») ; c'est ce qui fait de son passage une prise en main pour le relevé de la porte
+  au départ. Au garage, tout code Intratone **nommé** compte (`garageOpenings`, sans le filtre
+  `trackedOpenings` ; les voyageurs n'ont pas de code garage — un code donné un jour à un groupe se
+  nomme `<n° résa>: …` pour être exclu).
+- **Rôles** : seul le rôle `ménage` de `TRACKED_PEOPLE` est un ménage (`isCleaningRole`) ; la
+  notification « arrivée imminente » cite le dernier passage enregistré au rôle ménage, jamais un
+  dépannage.
 
 ## Redis (client unique, `lib/redis.ts`)
 

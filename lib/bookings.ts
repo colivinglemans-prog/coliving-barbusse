@@ -93,20 +93,35 @@ export async function getActiveBookings(): Promise<Beds24Booking[]> {
  *   résistance.
  * - **Réservations enchaînées le même jour** : les partants jusqu'à 10 h, les arrivants dès
  *   11 h — le compte ne tombe jamais à zéro, le ballon ne repasse jamais en éco.
+ * - **Horaires convenus** (`lib/stay-hours.ts`, 2026-11-16) : un départ tardif D compte les
+ *   partants jusqu'à D ; une arrivée anticipée A compte les arrivants dès min(11 h, A − 6 h),
+ *   pour garder les six heures de chauffe. Sans accord, rien ne change.
  */
 export const WATER_HEATER_SWITCH_HOUR = 11;
 
+/** Ce que `countGuests` lit d'une réservation, horaires convenus compris (`withAgreedHours`). */
+export type GuestCountStay = Pick<Beds24Booking, "arrival" | "departure" | "numAdult" | "numChild"> & {
+  arrivalHour?: number;
+  departureHour?: number;
+};
+
+/** Heure à partir de laquelle les arrivants du jour comptent : 11 h, ou plus tôt pour une arrivée anticipée. */
+export function waterHeaterArrivalHour(arrivalHour?: number): number {
+  if (arrivalHour === undefined) return WATER_HEATER_SWITCH_HOUR;
+  return Math.max(0, Math.min(WATER_HEATER_SWITCH_HOUR, arrivalHour - 6));
+}
+
 export function countGuests(
-  bookings: Beds24Booking[],
+  bookings: readonly GuestCountStay[],
   today: string,
   hour: number,
 ): number {
-  const afterSwitch = hour >= WATER_HEATER_SWITCH_HOUR;
   return bookings
     .filter((b) => {
       const currentlyOccupied = b.arrival < today && b.departure > today;
-      const arrivingToday = b.arrival === today && b.departure > today && afterSwitch;
-      const departingToday = b.arrival < today && b.departure === today && !afterSwitch;
+      const arrivingToday = b.arrival === today && b.departure > today && hour >= waterHeaterArrivalHour(b.arrivalHour);
+      const departingToday =
+        b.arrival < today && b.departure === today && hour < (b.departureHour ?? WATER_HEATER_SWITCH_HOUR);
       return currentlyOccupied || arrivingToday || departingToday;
     })
     .reduce((sum, b) => sum + (b.numAdult ?? 0) + (b.numChild ?? 0), 0);

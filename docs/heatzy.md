@@ -45,6 +45,15 @@ ces fonctions pour les anciens imports.
 
 **Pré-chauffage** (jour du check-in) : éco à 12h, confort à 15h (montée progressive pour éviter de faire sauter les plombs)
 
+**Horaires convenus** (2026-11-16, `lib/stay-hours.ts`) : `StayDates` porte `arrivalHour` /
+`departureHour` **seulement s'ils ont été convenus** (`withAgreedHours`). Arrivée anticipée A :
+préchauffage aux mêmes écarts (éco A − 5 h, confort A − 2 h, `preheatHours`, borné à la journée),
+occupé dès A ; `heating-reset` compte le jour comme occupé dès l'éco du préchauffage. Départ
+tardif D : occupé **jusqu'à D** (au lieu de 10 h), puis rotation ou hors-gel ; la descente reste à
+l'heure dans toutes les zones (pas de `staggerMinutes`). Le bandeau du dashboard l'écrit
+(`agreedRule` : « Départ tardif convenu à 16 h »). Tests : `tests/heating/agreed-hours.test.ts`,
+dont une non-régression complète sur table vide.
+
 ### Délestage (2026-11-09 — coupures à 9 kVA, 14 voyageurs)
 
 15 radiateurs **ACOVA Atoll LCD 1 000 W** (fluide caloporteur), 15 kW installés pour un abonnement de 9 kVA.
@@ -200,9 +209,10 @@ Depuis le 2026-11-14 :
 La condition `isCurrentlyOccupied` :
 ```
 (arrival < today && departure > today)
-|| (arrival === today && departure > today && hour >= 17)
-|| (departure === today && hour < 10)
+|| (arrival === today && departure > today && hour >= (arrivalHour ?? 17))
+|| (departure === today && hour < (departureHour ?? 10))
 ```
+(`arrivalHour` / `departureHour` : horaires convenus, absents sans accord.)
 
 Elle n'existe plus qu'une fois : `isOccupiedAt` dans `lib/heating-schedule.ts`, derrière
 `expectedHeatingMode`. Exception voulue : `heating-reset` traite le jour d'arrivée comme occupé
