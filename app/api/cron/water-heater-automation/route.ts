@@ -15,6 +15,7 @@ import {
 import { getActiveBookings, getBookingsAround, countGuests, guestsAround } from "@/lib/bookings";
 import { sendWaterHeaterAlert } from "@/lib/alerts";
 import { beat } from "@/lib/heartbeat";
+import { applyWaterHeaterCommands } from "@/lib/water-heater-commands";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { todayParis, nowParis, tomorrowParis } from "@sejour/socle/lib/time";
 import {
@@ -35,8 +36,12 @@ import {
  *
  * Ordre des commandes : boost coupé d'abord ; mode et consigne ensuite ; **l'Absence en dernier**,
  * qu'on la pose ou qu'on la lève — on ne sait pas si un changement de mode ou de consigne la fait
- * sortir d'Absence sur l'ÉGÉO, elle doit donc être la dernière commande reçue.
+ * sortir d'Absence sur l'ÉGÉO, elle doit donc être la dernière commande reçue. Chaque commande a
+ * son `try` : un refus du mode n'empêche plus l'Absence (`lib/water-heater-commands.ts`). Une
+ * commande refusée : alerte `water-heater-commands` (deux passages) et réponse 502.
  */
+// Cinq lectures en parallèle puis jusqu'à quatre commandes Overkiz (~2 s chacune).
+export const maxDuration = 30;
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -97,36 +102,47 @@ export async function GET(request: NextRequest) {
     const earlier = entryOlderThan(log, now, PAC_STALL.afterMs);
     const stalled = heatPumpStalled(status, earlier, now, absenceSince(log, earlier?.at));
 
-    const applied: string[] = [];
-    const absenceNow = status.absenceActive ?? false;
+    // Ordre voulu, une commande par `try`, Absence toujours tentée en dernier
+    // (`lib/water-heater-commands.ts`).
+    const { applied, failures } = await applyWaterHeaterCommands(status, settings, {
+      setBoostMode,
+      setDHWMode,
+      setTargetTemperature,
+      setAbsenceMode,
+    });
+    const journal = [...applied, ...failures.map((f) => `ÉCHEC ${f.label}`)];
 
-    if (status.boostActive && !settings.boost) {
-      await setBoostMode(false);
-      applied.push("boost on → off");
-    }
-    if (status.mode !== settings.mode) {
-      await setDHWMode(settings.mode);
-      applied.push(`mode ${status.mode} → ${settings.mode}`);
-    }
-    if (status.targetTemperature !== settings.targetTemperature) {
-      await setTargetTemperature(settings.targetTemperature);
-      applied.push(`consigne ${status.targetTemperature}°C → ${settings.targetTemperature}°C`);
-    }
-    if (settings.absence && !absenceNow) {
-      await setAbsenceMode(true);
-      applied.push("absence off → on (heure de pic)");
-    } else if (!settings.absence && absenceNow) {
-      await setAbsenceMode(false);
-      applied.push("absence on → off");
+    if (journal.length > 0 || (await claimHourlyLogSlot())) {
+      await appendWaterHeaterLog(logEntry(now, guests, profile, peak, status, journal));
     }
 
-    if (applied.length > 0 || (await claimHourlyLogSlot())) {
-      await appendWaterHeaterLog(logEntry(now, guests, profile, peak, status, applied));
-    }
+    // Commandes refusées : règle commune (deux passages de suite, soit 15 min). Priorité 4 si
+    // c'est l'Absence au pic (l'appoint reste actif : risque de coupure à 9 kVA), 3 sinon.
+    await reportAlerts(
+      "water-heater-commands",
+      failures.map((f) => ({
+        id: f.command,
+        priority: f.command === "absence" && settings.absence ? 4 : 3,
+        line: `  - ${f.label} : ${f.error.slice(0, 160)}`,
+      })),
+      sendWaterHeaterAlert,
+      {
+        title: (c) => (c.some((a) => a.id === "absence") ? "Ballon : Absence non posée" : "Ballon : commande refusée"),
+        intro: `Refusé par Cozytouch à deux passages de suite (${guests} personne(s), ${peak ? "heure de pic" : "hors pic"}) :`,
+        recoveredTitle: "Ballon : commandes de nouveau acceptées",
+        recoveredBody: "Cozytouch accepte de nouveau les commandes de l'automation.",
+      },
+    ).catch((e) => console.error("[water-heater-automation] alerte commandes:", e instanceof Error ? e.message : e));
+
+    // Le passage a tourné (battement `ok`, l'erreur de route n'est pas en cause) ; mais une commande
+    // refusée n'est plus un « succès » : 502, que cron-job.org voit.
     await beat("water-heater-automation", "ok");
-    await reportCronRun("water-heater-automation", "Automation de l'eau chaude", sendWaterHeaterAlert, null).catch(() => {});
+    if (failures.length === 0) {
+      await reportCronRun("water-heater-automation", "Automation de l'eau chaude", sendWaterHeaterAlert, null).catch(() => {});
+    }
     return NextResponse.json({
-      success: true,
+      success: failures.length === 0,
+      failures: failures.map((f) => ({ command: f.command, error: f.error })),
       profile,
       guests,
       connectivity,
@@ -136,7 +152,7 @@ export async function GET(request: NextRequest) {
       middleTemperature: status.middleTemperature,
       applied,
       timestamp: now.toISOString(),
-    });
+    }, { status: failures.length === 0 ? 200 : 502 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     await beat("water-heater-automation", "error");
