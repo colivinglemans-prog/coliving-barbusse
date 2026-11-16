@@ -21,7 +21,8 @@
  * **Code communiqué sans ouvrir.** Le PIN est écrit dans Beds24 **avant** la pose sur la
  * serrure (un code qui ouvre sans que le voyageur l'ait reçu est le pire) ; une auto-action
  * Beds24 peut donc l'envoyer alors que la pose échoue. Pour une arrivée aujourd'hui ou demain,
- * cet échec alerte **dès le premier passage**, en priorité 5, quel que soit le déclencheur
+ * ou pour un séjour en cours, cet échec alerte **dès le premier passage**, en priorité 5 (4 la
+ * nuit, de 22 h à 8 h, pour une arrivée demain), quel que soit le déclencheur
  * (`barbusse:alert:nuki-codes-urgent`) ; au-delà, règle commune des deux passages.
  *
  * **Un passage à la fois.** Le webhook et le cron peuvent tomber ensemble : deux passages
@@ -56,7 +57,7 @@ import {
 import { addDays } from "@sejour/socle/lib/dates";
 import { sendNtfy } from "./ntfy";
 import { reportAlerts, type TrackedAlert } from "./alert-memory";
-import { todayParis } from "@sejour/socle/lib/time";
+import { currentHourParis, todayParis } from "@sejour/socle/lib/time";
 import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";
 import type { Beds24Booking } from "./types";
 
@@ -70,6 +71,8 @@ export type SyncAlert = Omit<AccessAlert, "kind"> & {
    * le voyageur a pu recevoir un code qui n'ouvre pas. Alerte immédiate, hors règle des deux passages.
    */
   urgent?: boolean;
+  /** Alerte urgente d'une arrivée **demain** : priorité 4 la nuit (22 h – 8 h), 5 sinon. */
+  arrivesTomorrow?: boolean;
 };
 
 /**
@@ -248,8 +251,8 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
       return { mode, health, stays: stays.length, actions, alerts, notified };
     }
 
-    const arrivalOf = new Map(house.map((b) => [b.id, b.arrival]));
-    const soon = new Set([today, addDays(today, 1)]);
+    const stayOf = new Map(house.map((b) => [b.id, { arrival: b.arrival, departure: b.departure }]));
+    const tomorrow = addDays(today, 1);
 
     // Exécution, dans l'ordre du plan. Une attribution de PIN ratée bloque la pose du code
     // de cette réservation : un code qui ouvre sans que le voyageur l'ait reçu est le pire.
@@ -269,17 +272,24 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
         actions[i] = { ...actions[i], ok: false, error };
         if (action.kind === "assign-pin") blocked.add(action.bookingId);
         // Le PIN est déjà dans Beds24 (écrit avant, ou par ce passage) : une auto-action a pu
-        // l'envoyer. Arrivée aujourd'hui ou demain → on ne peut pas attendre le passage suivant.
-        const arrival = arrivalOf.get(action.bookingId);
-        const urgent = (action.kind === "create" || action.kind === "update") && arrival !== undefined && soon.has(arrival);
+        // l'envoyer. Arrivée demain au plus tard et séjour pas encore fini → on ne peut pas attendre
+        // le passage suivant. Le séjour reste urgent après minuit (pas de faux « rétabli » quand
+        // l'arrivée devient « hier » alors que la pose échoue toujours).
+        const stay = stayOf.get(action.bookingId);
+        const urgent =
+          (action.kind === "create" || action.kind === "update") &&
+          stay !== undefined &&
+          stay.arrival <= tomorrow &&
+          stay.departure >= today;
+        const when = !stay ? "" : stay.arrival === tomorrow ? "arrivée demain" : stay.arrival === today ? "arrivée aujourd'hui" : "séjour en cours";
         alerts.push({
           kind: "execution",
           step: action.kind,
           bookingId: action.bookingId,
           severity: urgent ? "urgent" : "high",
-          ...(urgent ? { urgent: true } : {}),
+          ...(urgent ? { urgent: true, ...(stay!.arrival === tomorrow ? { arrivesTomorrow: true } : {}) } : {}),
           message: urgent
-            ? `Réservation ${action.bookingId} (arrivée ${arrival === today ? "aujourd'hui" : "demain"}) : le code est dans Beds24 — le message automatique a pu le donner — mais n'a pas pu être posé sur la serrure (« ${action.kind} » — ${error}). Le poser à la main ou prévenir le voyageur.`
+            ? `Réservation ${action.bookingId} (${when}) : le code est dans Beds24 — le message automatique a pu le donner — mais n'a pas pu être posé sur la serrure (« ${action.kind} » — ${error}). Le poser à la main ou prévenir le voyageur.`
             : `Réservation ${action.bookingId} : échec de « ${action.kind} » — ${error}`,
         });
       }
@@ -367,22 +377,38 @@ export function trackSyncAlerts(alerts: readonly SyncAlert[]): {
   };
 }
 
-const URGENT_OPTIONS = {
-  title: (c: TrackedAlert[]) =>
-    c.length === 1
-      ? "Serrure Barbusse — code peut-être envoyé, mais absent du clavier"
-      : `Serrure Barbusse — ${c.length} codes peut-être envoyés, mais absents du clavier`,
-  recoveredTitle: "Serrure Barbusse — codes du jour posés",
-  recoveredBody: "Les codes des arrivées d'aujourd'hui et de demain sont sur la serrure.",
-  confirmAfter: 1,
-};
+/** La nuit, au sens de la règle de l'hôte : 22 h – 8 h, heure de Paris. */
+export function isNightParis(hour: number = currentHourParis()): boolean {
+  return hour >= 22 || hour < 8;
+}
+
+/**
+ * Options de `nuki-codes-urgent`. La gravité stockée reste 5 pour tout constat urgent (pas
+ * d'escalade à minuit quand une arrivée « demain » devient « aujourd'hui ») ; seule la priorité
+ * d'**envoi** descend à 4 la nuit quand tous les constats confirmés sont des arrivées de demain.
+ */
+function urgentOptions(alerts: readonly SyncAlert[]) {
+  const tomorrowIds = new Set(
+    alerts.filter((a) => a.urgent && a.arrivesTomorrow).map((a) => [a.kind, a.bookingId, a.step].filter((x) => x !== undefined).join(":")),
+  );
+  return {
+    title: (c: TrackedAlert[]) =>
+      c.length === 1
+        ? "Serrure Barbusse — code peut-être envoyé, mais absent du clavier"
+        : `Serrure Barbusse — ${c.length} codes peut-être envoyés, mais absents du clavier`,
+    recoveredTitle: "Serrure Barbusse — codes du jour posés",
+    recoveredBody: "Les codes des séjours d'aujourd'hui et de demain sont sur la serrure.",
+    confirmAfter: 1,
+    priority: (c: TrackedAlert[]): 4 | 5 => (isNightParis() && c.every((a) => tomorrowIds.has(a.id)) ? 4 : 5),
+  };
+}
 
 const isActed = (a: string) => a === "open" || a === "escalate" || a === "recover";
 
 /** L'alerte urgente seule — pour un passage lancé par le webhook, qui n'évalue rien d'autre. */
 async function notifyUrgent(alerts: SyncAlert[]): Promise<number> {
   const { urgent } = trackSyncAlerts(alerts);
-  return isActed(await reportAlerts("nuki-codes-urgent", urgent, sendLockAlert, URGENT_OPTIONS)) ? 1 : 0;
+  return isActed(await reportAlerts("nuki-codes-urgent", urgent, sendLockAlert, urgentOptions(alerts))) ? 1 : 0;
 }
 
 async function notify(alerts: SyncAlert[]): Promise<number> {
@@ -391,7 +417,7 @@ async function notify(alerts: SyncAlert[]): Promise<number> {
   }
   const { lock, codes, urgent } = trackSyncAlerts(alerts);
   const [lockAction, codesAction, urgentAction] = await Promise.all([
-    reportAlerts("nuki-codes-urgent", urgent, sendLockAlert, URGENT_OPTIONS),
+    reportAlerts("nuki-codes-urgent", urgent, sendLockAlert, urgentOptions(alerts)),
     reportAlerts("nuki-lock", lock, sendLockAlert, {
       title: () => "Serrure Barbusse",
       recoveredTitle: "Serrure Barbusse — de nouveau en ligne",

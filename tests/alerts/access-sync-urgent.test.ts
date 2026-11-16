@@ -59,16 +59,18 @@ vi.mock("@sejour/socle/lib/ntfy", () => ({ sendNtfy: h.sendNtfy }));
 
 import { runAccessSync } from "@/lib/access-sync";
 
-const today = todayParis();
+/** 11 h à Paris : de jour. Les tests de nuit posent leur propre heure. */
+const DAY = new Date("2026-11-16T10:00:00Z");
 
-function stay(arrivalInDays: number) {
+function stay(arrivalInDays: number, nights = 2) {
+  const today = todayParis();
   return {
     id: 7_000_001,
     propertyId: 303771,
     status: "confirmed",
     firstName: "Voyageur",
     arrival: addDays(today, arrivalInDays),
-    departure: addDays(today, arrivalInDays + 2),
+    departure: addDays(today, arrivalInDays + nights),
     mobile: "",
     phone: "",
     infoItems: [],
@@ -76,6 +78,8 @@ function stay(arrivalInDays: number) {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(DAY);
   h.store.clear();
   h.sendNtfy.mockClear();
   h.redisSet.mockClear();
@@ -87,6 +91,7 @@ beforeEach(() => {
   process.env.NUKI_SMARTLOCK_ID = "123";
   process.env.NUKI_SYNC_MODE = "live";
   process.env.NTFY_TOPIC = "https://ntfy.example.test/sujet-de-test";
+  return () => vi.useRealTimers();
 });
 
 describe("pose ratée d'un code déjà dans Beds24", () => {
@@ -131,6 +136,40 @@ describe("pose ratée d'un code déjà dans Beds24", () => {
     await runAccessSync({ dryRun: false, trigger: "cron" });
     expect(h.sendNtfy).toHaveBeenCalledTimes(2);
     expect(h.sendNtfy.mock.calls[1][1].priority).toBe(1);
+  });
+});
+
+describe("alerte urgente : minuit et nuit", () => {
+  it("pose toujours ratée après minuit : pas de faux « rétabli »", async () => {
+    vi.setSystemTime(new Date("2026-11-16T22:30:00Z")); // 23 h 30 à Paris
+    h.bookings = [stay(0)];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    vi.setSystemTime(new Date("2026-11-16T23:30:00Z")); // 0 h 30 le lendemain : l'arrivée est « hier »
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+  });
+
+  it("arrivée demain, la nuit : priorité 4 ; séjour du jour, la nuit : 5", async () => {
+    vi.setSystemTime(new Date("2026-11-16T22:00:00Z")); // 23 h à Paris
+    h.bookings = [stay(1)];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy.mock.calls[0][1].priority).toBe(4);
+
+    h.store.clear();
+    h.sendNtfy.mockClear();
+    h.bookings = [stay(0)];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy.mock.calls[0][1].priority).toBe(5);
+  });
+
+  it("arrivée demain qui devient « aujourd'hui » à minuit : pas de nouvel envoi (gravité inchangée)", async () => {
+    vi.setSystemTime(new Date("2026-11-16T22:00:00Z"));
+    h.bookings = [stay(1)];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    vi.setSystemTime(new Date("2026-11-16T23:30:00Z"));
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
   });
 });
 
