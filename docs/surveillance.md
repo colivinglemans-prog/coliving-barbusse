@@ -106,7 +106,7 @@ prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-rép
   non-arrivée), 5 (16h30, tardif).
 - **Redis** : `barbusse:readiness:state:<arrival:id|equipment>` (anti-répétition par séjour),
   `…:memory` (lectures ratées), `…:baseline:<id>` (températures de 12h30), `…:last-run`.
-- **`?dryRun=1` ou `?dry=1`** (les deux noms valent pour tous les crons, `lib/cron-params.ts`, depuis le 2026-11-16 ; un `?dry=1` faisait ici un vrai passage) : calcule et rend l'aperçu de la notification sans rien écrire ni envoyer
+- **`?dryRun=1` ou `?dry=1`** (les deux noms valent partout où un mode à blanc existe, `lib/cron-params.ts`, depuis le 2026-11-16 ; un `?dry=1` faisait ici un vrai passage) : calcule et rend l'aperçu de la notification sans rien écrire ni envoyer
   (`run.ts` n'appelle jamais `send` en `dryRun`, et la route lui passe une fonction qui lève).
   `&at=<ISO>` simule l'instant (refusé hors `dryRun`). Les sondes lisent toujours l'état
   **actuel** des appareils.
@@ -115,6 +115,11 @@ prévient par ntfy, ne répare rien. Le moteur (passages, évaluation, anti-rép
 - **Cron** à **:35**, jour et nuit (cron-job.org) : chaque passage nominal tombe une fois dans sa
   fenêtre de ± 30 min ; le passage `late` d'une arrivée à 23 h est à 22 h, les heures de silence
   sont gérées par la route.
+
+**Crons sans mode à blanc** (`NO_DRY_MODE`, `lib/cron-params.ts`) : `?dry=1` y est **ignoré** et
+lance un vrai passage — `beds24-keepalive`, `checkin-notifications`, `heating-automation`,
+`heating-health`, `heating-reset`, `messages-voyageurs`, `water-heater-automation`,
+`water-heater-health`. Ne pas les appeler « pour voir ».
 
 ## Battement de cœur des crons (`/api/health/heartbeat`)
 
