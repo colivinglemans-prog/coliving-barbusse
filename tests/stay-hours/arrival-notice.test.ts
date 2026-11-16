@@ -1,7 +1,8 @@
 /**
- * Notification « arrivée imminente » : la règle pure (déclencheur, texte, priorité), l'envoi avec
- * son anti-doublon, puis le passage de la synchro de la serrure qui la déclenche. Serrure, Beds24,
- * Redis, registre du ménage et ntfy simulés ; données inventées.
+ * Notification « arrivée imminente » : la règle pure (déclencheur, texte, priorité, dernier
+ * départ), l'envoi avec son anti-doublon et sa file de renvoi, puis le passage de la synchro de la
+ * serrure qui la déclenche. Serrure, Beds24, Redis, registre du ménage et ntfy simulés ; données
+ * inventées.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AccessAction } from "@sejour/socle/lib/access-codes";
@@ -16,6 +17,9 @@ const h = vi.hoisted(() => ({
   auths: [] as Array<Record<string, unknown>>,
   sessions: [] as Array<{ who: string; arrival: Date }>,
   getBookings: vi.fn(),
+  createKeypadCode: vi.fn(async () => {}),
+  updateKeypadCode: vi.fn(async () => {}),
+  recordFails: false,
 }));
 
 vi.mock("@/lib/redis", () => ({
@@ -30,6 +34,11 @@ vi.mock("@/lib/redis", () => ({
     del: async (key: string) => (h.kv.delete(key) ? 1 : 0),
     // Libération du verrou de la synchro : seulement par son détenteur.
     eval: async (_script: string, keys: string[], args: string[]) => (h.kv.get(keys[0]) === args[0] && h.kv.delete(keys[0]) ? 1 : 0),
+    scan: async (_cursor: string | number, options: { match: string }) => {
+      if (h.redisDown) throw new Error("Redis injoignable");
+      const prefix = options.match.slice(0, -1);
+      return ["0", [...h.kv.keys()].filter((k) => k.startsWith(prefix))];
+    },
   }),
   hasRedis: () => false,
   redisKey: (...parts: Array<string | number>) => ["barbusse", ...parts].join(":"),
@@ -59,23 +68,31 @@ vi.mock("@sejour/socle/lib/nuki", async (importOriginal) => ({
   listAuths: async () => h.auths,
   listLog: async () => [],
   listLogSince: async () => [],
-  createKeypadCode: vi.fn(async () => {}),
-  updateKeypadCode: vi.fn(async () => {}),
+  createKeypadCode: h.createKeypadCode,
+  updateKeypadCode: h.updateKeypadCode,
   deleteAuth: vi.fn(async () => {}),
 }));
 vi.mock("@/lib/cleaning/store", () => ({ loadSessions: async () => h.sessions }));
 vi.mock("@sejour/socle/lib/ntfy", () => ({ sendNtfy: h.sendNtfy }));
+vi.mock("@/lib/notify-log", () => ({
+  recordNotification: async () => {
+    if (h.recordFails) throw new Error("journal illisible");
+  },
+}));
 
 import {
   arrivalNoticeMessage,
   arrivalNoticeTriggers,
-  lastDepartureBefore,
+  departureBefore,
+  retryArrivalNotices,
   sendArrivalNotices,
+  type DepartureInfo,
   type NoticeBooking,
   type NoticeDeps,
   type NoticeTrigger,
 } from "@/lib/arrival-notice";
 import { runAccessSync } from "@/lib/access-sync";
+import { sendNtfy } from "@/lib/ntfy";
 
 const TODAY = "2026-11-16";
 /** 11 h à Paris. */
@@ -150,7 +167,7 @@ describe("arrivalNoticeMessage (pure)", () => {
   const base = {
     trigger,
     booking: late,
-    lastDeparture: "2026-11-15",
+    departure: { kind: "past", day: "2026-11-15" } as DepartureInfo,
     cleanings: [{ who: "Ménagère", arrival: new Date("2026-11-15T10:05:00Z") }],
     cleaners: ["Ménagère"],
     now: NOW,
@@ -181,6 +198,23 @@ describe("arrivalNoticeMessage (pure)", () => {
     expect(n.body).not.toContain("Dépanneur");
   });
 
+  it("dernier départ inconnu (lecture impossible) ou introuvable : priorité 4, aucun ménage annoncé « depuis le dernier départ »", () => {
+    const n = arrivalNoticeMessage({ ...base, departure: { kind: "unreadable" } });
+    expect(n.priority).toBe(4);
+    expect(n.body).toContain("Dernier ménage enregistré : Ménagère, 15/11 11 h 05 ; dernier départ inconnu (lecture impossible).");
+    expect(n.body).not.toContain("depuis le dernier départ");
+    const none = arrivalNoticeMessage({ ...base, departure: { kind: "none" } });
+    expect(none.priority).toBe(4);
+    expect(none.body).not.toContain("depuis le dernier départ");
+  });
+
+  it("départ encore à venir avant l'arrivée (rotation) : « départ prévu le », priorité 4", () => {
+    const n = arrivalNoticeMessage({ ...base, departure: { kind: "upcoming", day: TODAY } });
+    expect(n.body).toContain("départ prévu le 16/11");
+    expect(n.body).not.toContain("dernier départ");
+    expect(n.priority).toBe(4);
+  });
+
   it("la nuit, une arrivée demain part en priorité 2 ; une arrivée aujourd'hui garde la règle", () => {
     const empty = { ...base, cleanings: [] };
     expect(arrivalNoticeMessage({ ...empty, night: true, trigger: { ...trigger, when: "tomorrow" } }).priority).toBe(2);
@@ -193,31 +227,53 @@ describe("arrivalNoticeMessage (pure)", () => {
     expect(n.body.split("\n")[0]).toBe("Arrivée ce soir — date d'arrivée modifiée, 1 voyageur.");
     expect(n.body).not.toMatch(/\b1[4-9] h\b/);
   });
+});
 
-  it("dernier départ : séjours vendus autres que celui-ci, jusqu'au jour d'arrivée compris", () => {
-    const option = { ...previous, id: 7000009, departure: "2026-11-16", status: "black" };
-    expect(lastDepartureBefore([late, previous, option], late)).toBe("2026-11-15");
-    expect(lastDepartureBefore([late], late)).toBeNull();
+describe("departureBefore (pure)", () => {
+  it("dernier départ déjà passé, parmi les séjours vendus autres que celui-ci", () => {
+    const option = { ...previous, id: 7000009, departure: "2026-11-15", status: "black" };
+    expect(departureBefore([late, previous, option], late, NOW, TODAY)).toEqual({ kind: "past", day: "2026-11-15" });
+    expect(departureBefore([late], late, NOW, TODAY)).toEqual({ kind: "none" });
+    expect(departureBefore([late], late, NOW, TODAY, false)).toEqual({ kind: "unreadable" });
+  });
+
+  it("départ aujourd'hui : passé après son heure, « prévu » avant ; départ demain avant une arrivée demain : « prévu »", () => {
+    const leavingToday = { ...previous, departure: TODAY };
+    // 11 h pile (NOW) : départ standard passé.
+    expect(departureBefore([late, leavingToday], late, NOW, TODAY)).toEqual({ kind: "past", day: TODAY });
+    // Départ convenu à 16 h : pas encore passé à 11 h.
+    expect(departureBefore([late, { ...leavingToday, departureHour: 16 }], late, NOW, TODAY)).toEqual({ kind: "upcoming", day: TODAY });
+    const arrivingTomorrow = { ...late, arrival: "2026-11-17", departure: "2026-11-19" };
+    const leavingTomorrow = { ...previous, departure: "2026-11-17" };
+    expect(departureBefore([arrivingTomorrow, previous, leavingTomorrow], arrivingTomorrow, NOW, TODAY)).toEqual({ kind: "upcoming", day: "2026-11-17" });
+    // Un départ à venir est connu de la synchro elle-même : il prime même si la lecture de plus a échoué.
+    expect(departureBefore([arrivingTomorrow, leavingTomorrow], arrivingTomorrow, NOW, TODAY, false)).toEqual({ kind: "upcoming", day: "2026-11-17" });
   });
 });
 
-describe("sendArrivalNotices (anti-doublon)", () => {
+describe("sendArrivalNotices (anti-doublon, file des renvois)", () => {
   const trigger: NoticeTrigger = { bookingId: 7000001, arrival: TODAY, reason: "late-booking", when: "today" };
+  const KEY = "barbusse:arrival-notice:7000001:2026-11-16";
+  const RETRY = "barbusse:arrival-notice:retry:7000001:2026-11-16";
   let keys: Map<string, string>;
   let send: ReturnType<typeof vi.fn<NoticeDeps["send"]>>;
   const deps = (over: Partial<NoticeDeps> = {}): NoticeDeps => ({
     key: (t) => `barbusse:arrival-notice:${t.bookingId}:${t.arrival}`,
+    retryKey: (t) => `barbusse:arrival-notice:retry:${t.bookingId}:${t.arrival}`,
     set: async (key, value, { nx }) => {
       if (nx && keys.has(key)) return null;
       keys.set(key, value);
       return "OK";
     },
+    get: async (key) => keys.get(key) ?? null,
     del: async (key) => keys.delete(key),
+    listRetryKeys: async () => [...keys.keys()].filter((k) => k.includes(":retry:")),
     loadPastBookings: async () => [previous],
     loadCleanings: async () => [],
     cleaners: ["Ménagère"],
     send,
     now: NOW,
+    today: TODAY,
     night: false,
     ...over,
   });
@@ -227,31 +283,76 @@ describe("sendArrivalNotices (anti-doublon)", () => {
     send = vi.fn<NoticeDeps["send"]>(async () => {});
   });
 
-  it("une seule notification par réservation et jour d'arrivée ; la clé est posée après l'envoi", async () => {
+  it("une seule notification par réservation et jour d'arrivée ; la clé est prise avant l'envoi et confirmée après", async () => {
     expect(await sendArrivalNotices([trigger], [late], deps())).toBe(1);
-    expect(keys.get("barbusse:arrival-notice:7000001:2026-11-16")).toBe("sent");
+    expect(keys.get(KEY)).toBe("sent");
     expect(await sendArrivalNotices([trigger], [late], deps())).toBe(0);
     expect(send).toHaveBeenCalledTimes(1);
     expect(send.mock.calls[0][2]).toEqual({ title: "Arrivée imminente" });
   });
 
   it("Redis injoignable : rien n'est envoyé", async () => {
-    const down = deps({ set: async () => Promise.reject(new Error("Redis injoignable")) });
-    expect(await sendArrivalNotices([trigger], [late], down)).toBe(0);
+    expect(await sendArrivalNotices([trigger], [late], deps({ set: async () => Promise.reject(new Error("Redis injoignable")) }))).toBe(0);
+    expect(await sendArrivalNotices([trigger], [late], deps({ get: async () => Promise.reject(new Error("Redis injoignable")) }))).toBe(0);
     expect(send).not.toHaveBeenCalled();
   });
 
-  it("envoi raté : la clé est retirée, la notification pourra repartir", async () => {
+  it("envoi raté : clé retirée, notification mise en file (texte, priorité), renvoyée au passage suivant", async () => {
     send.mockRejectedValueOnce(new Error("ntfy 502"));
     expect(await sendArrivalNotices([trigger], [late], deps())).toBe(0);
-    expect(keys.size).toBe(0);
-    expect(await sendArrivalNotices([trigger], [late], deps())).toBe(1);
+    expect(keys.has(KEY)).toBe(false);
+    const queued = JSON.parse(keys.get(RETRY)!);
+    expect(queued).toMatchObject({ bookingId: 7000001, arrival: TODAY, title: "Arrivée imminente — Lucie", priority: 4 });
+    expect(await retryArrivalNotices(deps())).toBe(1);
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send.mock.calls[1][0]).toBe(queued.body);
+    expect(keys.has(RETRY)).toBe(false);
+    expect(keys.get(KEY)).toBe("sent");
+    expect(await retryArrivalNotices(deps())).toBe(0);
+  });
+
+  it("file : un nouvel échec la garde en file ; déjà partie entre-temps, elle est retirée sans renvoi", async () => {
+    send.mockRejectedValueOnce(new Error("ntfy 502"));
+    await sendArrivalNotices([trigger], [late], deps());
+    send.mockRejectedValueOnce(new Error("ntfy 502"));
+    expect(await retryArrivalNotices(deps())).toBe(0);
+    expect(keys.has(RETRY)).toBe(true);
+    keys.set(KEY, "sent");
+    expect(await retryArrivalNotices(deps())).toBe(0);
+    expect(keys.has(RETRY)).toBe(false);
+    expect(send).toHaveBeenCalledTimes(2);
+  });
+
+  it("réservations passées illisibles : « dernier départ inconnu (lecture impossible) », priorité 4", async () => {
+    await sendArrivalNotices(
+      [trigger],
+      [late],
+      deps({
+        loadPastBookings: async () => Promise.reject(new Error("Beds24 503")),
+        loadCleanings: async () => [{ who: "Ménagère", arrival: new Date("2026-11-15T10:05:00Z") }],
+      }),
+    );
+    expect(send.mock.calls[0][0]).toContain("dernier départ inconnu (lecture impossible)");
+    expect(send.mock.calls[0][0]).not.toContain("depuis le dernier départ");
+    expect(send.mock.calls[0][1].priority).toBe(4);
   });
 
   it("registre du ménage illisible : la notification part quand même, sans rien affirmer", async () => {
     await sendArrivalNotices([trigger], [late], deps({ loadCleanings: async () => Promise.reject(new Error("hgetall")) }));
     expect(send.mock.calls[0][0]).toContain("Registre du ménage illisible");
     expect(send.mock.calls[0][1].priority).toBe(4);
+  });
+});
+
+describe("sendNtfy du site", () => {
+  it("un journal des notifications qui lève après un envoi réussi n'est pas un échec", async () => {
+    process.env.NTFY_TOPIC = "https://ntfy.example.test/sujet-de-test";
+    h.recordFails = true;
+    try {
+      await expect(sendNtfy("corps", { title: "Titre" })).resolves.toBeUndefined();
+    } finally {
+      h.recordFails = false;
+    }
   });
 });
 
@@ -264,6 +365,16 @@ describe("runAccessSync déclenche la notification", () => {
     ...b,
     ...extra,
   });
+  /** Le code de la réservation déjà posé, fenêtre à jour. */
+  const posted = (arrival: string, departure: string) => ({
+    id: "auth-1",
+    type: 13,
+    name: "7000001: Lucie Test",
+    enabled: true,
+    code: 456789,
+    allowedFromDate: parisInstant(arrival, 14).toISOString(),
+    allowedUntilDate: parisInstant(departure, 14).toISOString(),
+  });
 
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
@@ -271,10 +382,13 @@ describe("runAccessSync déclenche la notification", () => {
     h.kv.clear();
     h.store.clear();
     h.redisDown = false;
-    h.sendNtfy.mockClear();
+    h.sendNtfy.mockReset();
+    h.sendNtfy.mockImplementation(async () => {});
     h.auths = [];
     h.sessions = [{ who: "Ménagère", arrival: new Date("2026-11-15T10:05:00Z") }];
     h.bookings = [beds24(late), beds24(previous)];
+    h.createKeypadCode.mockReset();
+    h.createKeypadCode.mockImplementation(async () => {});
     h.getBookings.mockReset();
     h.getBookings.mockImplementation(async () => h.bookings);
     process.env.NUKI_API_TOKEN = "jeton-de-test";
@@ -308,9 +422,7 @@ describe("runAccessSync déclenche la notification", () => {
 
   it("arrivée déplacée à aujourd'hui (code existant recalé) : « date d'arrivée modifiée »", async () => {
     h.bookings = [beds24(late, { bookingTime: "2026-10-01T08:00:00Z" }), beds24(previous)];
-    h.auths = [
-      { id: "auth-1", type: 13, name: "7000001: Lucie", enabled: true, code: 456789, allowedFromDate: parisInstant("2026-11-20", 14).toISOString(), allowedUntilDate: parisInstant("2026-11-22", 14).toISOString() },
-    ];
+    h.auths = [{ ...posted("2026-11-20", "2026-11-22"), name: "7000001: Lucie" }];
     await runAccessSync({ dryRun: false, trigger: "webhook" });
     expect(notices()).toHaveLength(1);
     expect(notices()[0][0]).toMatch(/^Arrivée ce soir — date d'arrivée modifiée/);
@@ -324,6 +436,36 @@ describe("runAccessSync déclenche la notification", () => {
       return original(...args);
     });
     await expect(runAccessSync({ dryRun: false, trigger: "webhook" })).resolves.toBeDefined();
+    expect(notices()).toHaveLength(0);
+  });
+
+  it("ntfy en panne au premier passage : la notification part au passage live suivant, une fois", async () => {
+    h.sendNtfy.mockRejectedValueOnce(new Error("ntfy 502"));
+    await runAccessSync({ dryRun: false, trigger: "webhook" });
+    expect(notices()).toHaveLength(1);
+    expect(h.kv.has("barbusse:arrival-notice:retry:7000001:2026-11-16")).toBe(true);
+    // Le code est posé : le passage suivant n'a plus d'action, seule la file renvoie.
+    h.auths = [posted(TODAY, "2026-11-18")];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(notices()).toHaveLength(2);
+    expect(h.kv.has("barbusse:arrival-notice:retry:7000001:2026-11-16")).toBe(false);
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(notices()).toHaveLength(2);
+  });
+
+  it("séjour non tardif, arrivée demain, code déjà à jour : aucune notification", async () => {
+    const tomorrow = { ...late, arrival: "2026-11-17", departure: "2026-11-19", bookingTime: "2026-10-01T08:00:00Z" };
+    h.bookings = [beds24(tomorrow), beds24(previous)];
+    h.auths = [posted("2026-11-17", "2026-11-19")];
+    const report = await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(report.actions.filter((a) => a.bookingId === 7000001)).toEqual([]);
+    expect(notices()).toHaveLength(0);
+  });
+
+  it("création du code en échec pour une réservation tardive : aucune notification", async () => {
+    h.createKeypadCode.mockRejectedValue(new Error("Nuki 502"));
+    const report = await runAccessSync({ dryRun: false, trigger: "webhook" });
+    expect(report.actions.find((a) => a.kind === "create")).toMatchObject({ ok: false });
     expect(notices()).toHaveLength(0);
   });
 });

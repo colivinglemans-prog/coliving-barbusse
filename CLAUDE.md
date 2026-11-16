@@ -521,7 +521,8 @@ recalée ; séjour terminé → supprimé. Une réservation `new` est **passée 
 toute personne de la maison — ont un code dont le nom commence par `#` (« # Sophie »). C'est ce
 qui le protège de la synchro, et c'est ce que le relevé de la porte au départ reconnaît comme une
 **prise en main de la maison** (`isPersonalCode`, `lib/departure-detection.ts` : code `#`, ou nom
-contenant une personne de `TRACKED_PEOPLE`). Un code saisi à la main sans `#` n'en est pas un.
+contenant une personne de `TRACKED_PEOPLE` **en mot entier**, casse et accents ignorés :
+« Frederic » n'est pas « Eric », `mentionsPerson`). Un code saisi à la main sans `#` n'en est pas un.
 
 **Arrivée imminente** (`lib/arrival-notice.ts`, 2026-11-16) : à partir des actions que la synchro
 a **réellement exécutées** (jamais à blanc, ni `?dry=1`, ni `NUKI_SYNC_MODE` ≠ `live`), quel que
@@ -535,7 +536,14 @@ dépannage n'est pas un ménage). Dernier départ : lecture Beds24 de plus (60 j
 sans ménage enregistré depuis le dernier départ, **2** sinon, **2** la nuit pour une arrivée le
 lendemain. Anti-doublon `SET NX` sur `barbusse:arrival-notice:<résa>:<jour d'arrivée>` (pris
 avant l'envoi, posé 7 jours après un envoi réussi, retiré s'il échoue) ; Redis injoignable : rien
-n'est envoyé. Rien n'est rattrapé au déploiement.
+n'est envoyé. Rien n'est rattrapé au déploiement. Le « dernier départ » est un départ **déjà
+passé** ; un départ encore à venir avant l'arrivée (rotation) s'écrit « départ prévu le jj/mm »
+(priorité 4) ; lecture Beds24 ratée : « dernier départ inconnu (lecture impossible) », priorité 4,
+et aucun ménage n'est alors annoncé « depuis le dernier départ ». **Envoi raté** (le déclencheur ne
+se reproduit pas) : la notification est mise en file, `barbusse:arrival-notice:retry:<résa>:<jour>`
+(texte et priorité, jusqu'au lendemain de l'arrivée), et chaque passage live de la synchro la
+retente (`retryArrivalNotices`, même anti-doublon). Un journal des notifications qui lève après un
+envoi réussi n'est pas un échec (`lib/ntfy.ts`).
 
 **Le PIN** est tiré des 6 derniers chiffres du téléphone du voyageur quand ils respectent les
 règles du clavier (1 à 9, pas « 12 » en tête) et sont libres, sinon au hasard. Il est écrit
@@ -569,7 +577,7 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
 | [lib/stay-hours-rules.ts](lib/stay-hours-rules.ts) | Règle **pure** (importable côté navigateur) : `stayHours` (17 h / 11 h sauf accord), `withAgreedHours`, bornes `AGREED_RANGE` (arrivée 8-16 h, départ 12-23 h, heures entières), `rotationCheck`, `accessHours`, `formatHourFor`, et **la** fenêtre du code envoyée à la serrure (`lockWindows` : heures convenues puis `boundRotationWindows` ; `codeEndsAt`, `departingCodesEnd`), commune à la synchro et au relevé de la porte au départ. |
 | [lib/stay-hours.ts](lib/stay-hours.ts) | Table Redis : **hachage** `barbusse:stay-hours`, un champ par réservation. `readStayHours` ne lève jamais (Redis injoignable ⇒ heures standard) ; `withStayHours(bookings)` = la jointure commune aux crons et au dashboard. |
 | `POST`/`DELETE /api/dashboard/bookings/[id]/stay-hours` | **Admin seulement** (`guard.denyNonAdmin`), même origine exigée (403) et JSON pour le `POST` (415), comme `pricing/halt`. 404 hors maison (303771) ou statut exclu ; 400 hors bornes ; **409 si le départ convenu dépasse l'arrivée (convenue ou standard) du séjour vendu qui arrive le même jour** (ou l'inverse) — voisins : `rotationNeighbours`, la même définition que la popup ; avertissement si égalité, **en rouge** si l'arrivée anticipée laisse moins de 3 h au ménage ; 503 sans Redis. Après l'écriture, **synchro des codes immédiate** (`runAccessSync`, déclencheur `dashboard`, même verrou que le webhook) ; si elle échoue, 200 avec `syncDeferred` (le passage horaire rattrape). |
-| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). La phase B y ajoutera l'état du départ du jour. |
+| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** — et, pour le viewer, **vendues** (`countsAsSold` : ni demandes ni options, comme `/api/dashboard/bookings`, cerbere B1) (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). La phase B y ajoutera l'état du départ du jour. |
 
 | Consommateur | Standard | Arrivée convenue A / départ convenu D |
 |---|---|---|
@@ -611,7 +619,13 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
   lectures Nuki plafonnées à 10 s ; en mode été, rien avant 11 h 30 et Beds24 lu une fois par jour
   au plus. **Non fait** : la parade caméra (pas d'alerte après un mouvement de la caméra « Porte
   d'entrée » dans les 30 min), en attente de la mesure du retard d'Intratone ; point d'extension
-  décrit dans `departureLockCheck`.
+  décrit dans `departureLockCheck`. Relecture du 2026-11-16 : serrure en ligne mais dans un état
+  nul ou de passage (2, 4, 7, 255) → relevé « illisible », le suivant tranche ; porte non
+  verrouillée et journal illisible deux relevés de suite → alerte distincte
+  `barbusse:alert:departure-lock-log` (priorité 3, « impossible de savoir si le ménage est
+  entré ») ; Redis illisible (horaires convenus relus par `readStayHoursStrict`, état d'alerte,
+  fin de journée) → relevé sauté sans alerte ; alerte déjà ouverte → le garage n'est plus relu ;
+  minuit passé, en hiver comme en mode été, les deux alertes se referment sans message.
 - ⚠️ La messagerie maison étant en mode `test`, les vrais messages partent encore des auto-actions
   Beds24, qui disent « avant 11h » : confirmer l'heure convenue au voyageur à la main.
 - Le guide d'arrivée reste générique (« Sauf accord préalable… avant 11h ») : il n'est lié à aucune
