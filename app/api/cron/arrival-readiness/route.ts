@@ -19,7 +19,8 @@ import { createWaterHeaterProbe } from "@/lib/readiness/water-heater-probe";
 import { runArrivalReadiness, type ReadinessStore } from "@/lib/readiness/run";
 import { LOCK_BATTERY, NO_SHOW_SEVERITY, SEVERITY_BY_PASS } from "@/lib/readiness/config";
 import type { Beds24Booking } from "@/lib/types";
-import { accessHours, clockOf, readStayHours, type StayHoursTable } from "@/lib/stay-hours";
+import { accessHours, readStayHours, type StayHoursTable } from "@/lib/stay-hours";
+import { readinessArrivalTime } from "@/lib/readiness/arrival-time";
 
 /**
  * Préparation d'arrivée : serrure, radiateurs, ballon — **en lecture seule**. Aucune commande
@@ -60,8 +61,9 @@ function toReadinessBooking(b: Beds24Booking, table: StayHoursTable): ReadinessB
     departure: b.departure,
     guests: (b.numAdult ?? 0) + (b.numChild ?? 0),
     firstName: b.firstName ?? null,
-    // Une arrivée anticipée convenue prime sur l'heure annoncée dans Beds24 (`lib/stay-hours.ts`).
-    arrivalTime: agreed.arrivalHour !== undefined ? clockOf(agreed.arrivalHour) : (b.arrivalTime ?? null),
+    // Arrivée convenue en priorité ; une heure annoncée avant 17 h sans accord est ignorée, sans
+    // quoi elle avancerait les contrôles alors que le chauffage, lui, ne s'avance pas.
+    arrivalTime: readinessArrivalTime(b.arrivalTime, agreed.arrivalHour),
     ...accessHours(agreed, ACCESS_POLICY),
     bookedAt: b.bookingTime ?? null,
     status: b.status === "cancelled" ? "cancelled" : b.status === "confirmed" || b.status === "new" ? "confirmed" : "provisional",
