@@ -26,6 +26,7 @@ import {
   AGREED_RANGE,
   STANDARD_HOURS,
   rotationCheck,
+  rotationNeighbours,
   type AgreedHours,
   type NeighbourStay,
 } from "@/lib/stay-hours-rules";
@@ -399,9 +400,12 @@ function StayHoursEditor({
     ...(departure !== undefined ? { departureHour: departure } : {}),
   };
   // Même contrôle que la route : refus si l'arrivée suivante (ou le départ précédent) le contredit,
-  // avertissement quand une rotation tombe le même jour.
+  // avertissement quand une rotation tombe le même jour (en rouge sous 3 h de ménage).
   const check = rotationCheck(stay, draft, neighbours, table);
   const dirty = arrival !== hours?.arrivalHour || departure !== hours?.departureHour;
+  // L'accord **enregistré** est contredit par une réservation arrivée depuis (alerte
+  // `stay-hours-conflict` côté synchro) : le dire tel quel, sans attendre une modification.
+  const contradicted = !dirty && Boolean(check.error);
 
   async function save() {
     setSaving(true);
@@ -463,8 +467,14 @@ function StayHoursEditor({
         {select(arrival, setArrival, hourRange(AGREED_RANGE.arrival.min, AGREED_RANGE.arrival.max), STANDARD_HOURS.arrival, "Arrivée anticipée")}
         {select(departure, setDeparture, hourRange(AGREED_RANGE.departure.min, AGREED_RANGE.departure.max), STANDARD_HOURS.departure, "Départ tardif")}
       </div>
-      {check.error && <p className="mt-1 text-[10px] text-red-600">{check.error}</p>}
-      {!check.error && check.warning && <p className="mt-1 text-[10px] text-amber-700">{check.warning}</p>}
+      {check.error && (
+        <p className="mt-1 text-[10px] text-red-600">
+          {contradicted ? `Accord contredit par une réservation arrivée depuis : ${check.error}` : check.error}
+        </p>
+      )}
+      {!check.error && check.warning && (
+        <p className={`mt-1 text-[10px] ${check.severe ? "font-medium text-red-600" : "text-amber-700"}`}>{check.warning}</p>
+      )}
       {error && <p className="mt-1 text-[10px] text-red-600">{error}</p>}
       {dirty && (
         <div className="mt-2 flex justify-end gap-2">
@@ -1306,15 +1316,11 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   key={`stay-hours-${popup.booking.id}`}
                   stay={{ bookingId: popup.booking.id, arrival: popup.booking.arrival, departure: popup.booking.departure }}
                   hours={stayHours[popup.booking.id]}
-                  neighbours={bookings
-                    .filter(
-                      (b) =>
-                        b.id !== popup.booking.id &&
-                        (b.arrival === popup.booking.departure || b.departure === popup.booking.arrival) &&
-                        // Une demande ou une option ne libère ni n'occupe la maison.
-                        provisionalKind(b.status) === null,
-                    )
-                    .map((b) => ({ bookingId: b.id, arrival: b.arrival, departure: b.departure }))}
+                  // Même définition que la route et la synchro : voisins vendus (`countsAsSold`).
+                  neighbours={rotationNeighbours(
+                    { bookingId: popup.booking.id, arrival: popup.booking.arrival, departure: popup.booking.departure },
+                    bookings,
+                  )}
                   table={stayHours}
                   editable={isAdmin}
                   onSaved={(hours) => onStayHoursChanged?.(popup.booking.id, hours)}

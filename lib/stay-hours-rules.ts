@@ -173,19 +173,24 @@ export function rotationNeighbours(
     .map((b) => ({ bookingId: b.id, arrival: b.arrival, departure: b.departure }));
 }
 
+/** En dessous, une arrivée anticipée laisse trop peu de temps au ménage : avertissement rouge. */
+export const ROTATION_TIGHT_HOURS = 3;
+
 /**
  * Rotation (départ et arrivée le même jour) : un départ convenu ne peut pas être **postérieur**
  * à l'heure d'arrivée (convenue ou standard) du séjour qui arrive ce jour-là, ni une arrivée
  * convenue **antérieure** au départ (convenu ou standard) de celui qui part. Égalité admise.
  *
- * Rend `error` (refus) ou `warning` (accepté, à dire dans la popup), ou rien.
+ * Rend `error` (refus) ou `warning` (accepté, à dire dans la popup), ou rien. `severe` : arrivée
+ * anticipée à moins de `ROTATION_TIGHT_HOURS` d'un départ le même jour (avertissement en rouge).
  */
 export function rotationCheck(
   stay: NeighbourStay,
   agreed: AgreedHours,
   neighbours: readonly NeighbourStay[],
   table: StayHoursTable,
-): { error?: string; warning?: string } {
+): { error?: string; warning?: string; severe?: boolean } {
+  let severe = false;
   const others = neighbours.filter((n) => n.bookingId !== stay.bookingId);
   const warnings: string[] = [];
   const incoming = others.find((n) => n.arrival === stay.departure);
@@ -204,9 +209,19 @@ export function rotationCheck(
     if (agreed.arrivalHour !== undefined && arrival < previousDeparture) {
       return { error: `Arrivée à ${arrival} h impossible : un départ est prévu le même jour à ${previousDeparture} h.` };
     }
-    if (agreed.arrivalHour !== undefined) warnings.push(`Un départ est prévu le même jour à ${previousDeparture} h.`);
+    if (agreed.arrivalHour !== undefined) {
+      if (arrival - previousDeparture < ROTATION_TIGHT_HOURS) {
+        severe = true;
+        warnings.push(
+          `Un départ est prévu le même jour à ${previousDeparture} h : moins de ${ROTATION_TIGHT_HOURS} h pour le ménage.`,
+        );
+      } else {
+        warnings.push(`Un départ est prévu le même jour à ${previousDeparture} h.`);
+      }
+    }
   }
-  return warnings.length > 0 ? { warning: warnings.join(" ") } : {};
+  if (warnings.length === 0) return {};
+  return severe ? { warning: warnings.join(" "), severe } : { warning: warnings.join(" ") };
 }
 
 /**

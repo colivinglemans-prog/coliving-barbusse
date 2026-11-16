@@ -7,8 +7,8 @@ import { NextRequest } from "next/server";
 
 const h = vi.hoisted(() => ({
   hash: new Map<string, string>(),
-  booking: { id: 1000001, arrival: "2027-01-08", departure: "2027-01-10", status: "confirmed", firstName: "Test", email: "x@exemple.fr" },
-  neighbours: [] as Array<{ id: number; arrival: string; departure: string; status: string }>,
+  booking: { id: 1000001, propertyId: 303771, arrival: "2027-01-08", departure: "2027-01-10", status: "confirmed", firstName: "Test", email: "x@exemple.fr" } as Record<string, unknown>,
+  neighbours: [] as Array<{ id: number; propertyId?: number; arrival: string; departure: string; status: string }>,
 }));
 
 vi.mock("@/lib/redis", () => ({
@@ -32,8 +32,13 @@ import { auth, COOKIE_NAME } from "@/lib/auth";
 import { DELETE, POST } from "@/app/api/dashboard/bookings/[id]/stay-hours/route";
 import { GET } from "@/app/api/dashboard/stay-status/route";
 
-async function req(url: string, role: "admin" | "viewer" | null, init: { method?: string; body?: unknown } = {}) {
-  const headers: Record<string, string> = { "content-type": "application/json" };
+async function req(
+  url: string,
+  role: "admin" | "viewer" | null,
+  init: { method?: string; body?: unknown; origin?: string | null; contentType?: string } = {},
+) {
+  const headers: Record<string, string> = { "content-type": init.contentType ?? "application/json" };
+  if (init.origin !== null) headers.origin = init.origin ?? "https://example.test";
   if (role) headers.cookie = `${COOKIE_NAME}=${await auth.createToken(role)}`;
   return new NextRequest(`https://example.test${url}`, {
     method: init.method ?? "GET",
@@ -46,6 +51,7 @@ const params = { params: Promise.resolve({ id: "1000001" }) };
 beforeEach(() => {
   h.hash.clear();
   h.neighbours = [];
+  h.booking = { ...h.booking, propertyId: 303771, status: "confirmed" };
   process.env.DASHBOARD_SECRET = "secret-de-test-assez-long-pour-hs256-0000";
 });
 
@@ -75,6 +81,31 @@ describe("POST/DELETE /api/dashboard/bookings/[id]/stay-hours", () => {
     expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 18 } }), params)).status).toBe(409);
     const ok = await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 } }), params);
     expect((await ok.json()).warning).toBe("Une arrivée est prévue le même jour à 17 h.");
+  });
+});
+
+describe("saisie : origine, format, réservation de la maison", () => {
+  const url = "/api/dashboard/bookings/1000001/stay-hours";
+
+  it("autre origine ou sans origine : 403 ; sans JSON : 415", async () => {
+    expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 }, origin: "https://ailleurs.test" }), params)).status).toBe(403);
+    expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 }, origin: null }), params)).status).toBe(403);
+    expect((await DELETE(await req(url, "admin", { method: "DELETE", origin: "https://ailleurs.test" }), params)).status).toBe(403);
+    expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 }, contentType: "text/plain" }), params)).status).toBe(415);
+    expect(h.hash.size).toBe(0);
+  });
+
+  it("autre propriété ou réservation annulée : 404", async () => {
+    h.booking = { ...h.booking, propertyId: 310268 };
+    expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 } }), params)).status).toBe(404);
+    h.booking = { ...h.booking, propertyId: 303771, status: "cancelled" };
+    expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 16 } }), params)).status).toBe(404);
+    expect(h.hash.size).toBe(0);
+  });
+
+  it("une option qui arrive le même jour n'est pas un voisin (même règle que la popup)", async () => {
+    h.neighbours = [{ id: 1000002, arrival: "2027-01-10", departure: "2027-01-12", status: "black" }];
+    expect((await POST(await req(url, "admin", { method: "POST", body: { departureHour: 18 } }), params)).status).toBe(200);
   });
 });
 

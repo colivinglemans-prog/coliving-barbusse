@@ -7,6 +7,7 @@ import {
   formatHourFor,
   parseAgreedHours,
   rotationCheck,
+  rotationNeighbours,
   stayHours,
   validateAgreedHours,
   withAgreedHours,
@@ -89,11 +90,33 @@ describe("rotationCheck", () => {
 
   it("arrivée anticipée avant un départ convenu le même jour : refusée", () => {
     expect(rotationCheck(coming, { arrivalHour: 15 }, [leaving], { 1000001: { departureHour: 16 } }).error).toMatch(/15 h impossible/);
-    expect(rotationCheck(coming, { arrivalHour: 12 }, [leaving], {}).warning).toBe("Un départ est prévu le même jour à 11 h.");
+    // Arrivée 14 h, départ 11 h : 3 h de ménage, avertissement ordinaire.
+    expect(rotationCheck(coming, { arrivalHour: 14 }, [leaving], {})).toEqual({ warning: "Un départ est prévu le même jour à 11 h." });
+    // Arrivée 12 h : moins de 3 h, avertissement net (rouge dans la popup).
+    expect(rotationCheck(coming, { arrivalHour: 12 }, [leaving], {})).toEqual({
+      warning: "Un départ est prévu le même jour à 11 h : moins de 3 h pour le ménage.",
+      severe: true,
+    });
   });
 
   it("sans accord, aucune remarque même en rotation", () => {
     expect(rotationCheck(leaving, {}, [coming], {})).toEqual({});
+  });
+});
+
+describe("rotationNeighbours", () => {
+  it("voisins vendus seulement, le jour de l'arrivée ou du départ", () => {
+    const stay = { bookingId: 1, arrival: "2027-01-08", departure: "2027-01-10" };
+    const n = rotationNeighbours(stay, [
+      { id: 1, arrival: "2027-01-08", departure: "2027-01-10", status: "confirmed" },
+      { id: 2, arrival: "2027-01-10", departure: "2027-01-12", status: "new" },
+      { id: 3, arrival: "2027-01-05", departure: "2027-01-08", status: "confirmed" },
+      { id: 4, arrival: "2027-01-10", departure: "2027-01-11", status: "black" },
+      { id: 5, arrival: "2027-01-10", departure: "2027-01-11", status: "request" },
+      { id: 6, arrival: "2027-01-10", departure: "2027-01-11", status: "cancelled" },
+      { id: 7, arrival: "2027-01-11", departure: "2027-01-12", status: "confirmed" },
+    ]);
+    expect(n.map((x) => x.bookingId)).toEqual([2, 3]);
   });
 });
 
