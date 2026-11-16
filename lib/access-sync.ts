@@ -176,7 +176,15 @@ async function acquireLock(): Promise<string | null> {
  * chacun un PIN pour le même séjour.
  */
 async function releaseLock(owner: string): Promise<void> {
-  await redis().eval(RELEASE_IF_OWNER, [LOCK_KEY], [owner]);
+  try {
+    await redis().eval(RELEASE_IF_OWNER, [LOCK_KEY], [owner]);
+    return;
+  } catch (e) {
+    // Script refusé ou indisponible : repli non atomique plutôt que de laisser le verrou 120 s
+    // (le webhook d'une réservation de dernière minute attendrait ou renoncerait).
+    console.error("[access-sync] libération du verrou par script impossible :", e instanceof Error ? e.message : e);
+  }
+  if ((await redis().get(LOCK_KEY)) === owner) await redis().del(LOCK_KEY);
 }
 
 /** Lit Beds24 et la serrure, et calcule le plan. Commun à la synchronisation et à l'état. */

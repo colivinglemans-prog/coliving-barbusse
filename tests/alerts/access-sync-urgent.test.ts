@@ -15,6 +15,8 @@ const h = vi.hoisted(() => ({
   online: true,
   redisSet: vi.fn<(...args: unknown[]) => Promise<string | null>>(async () => "OK"),
   redisEval: vi.fn<(...args: unknown[]) => Promise<number>>(async () => 1),
+  redisGet: vi.fn<(key: string) => Promise<unknown>>(async () => null),
+  redisDel: vi.fn<(key: string) => Promise<number>>(async () => 1),
   addNukiPin: vi.fn(async () => {}),
   confirmBooking: vi.fn(async () => {}),
   createKeypadCode: vi.fn(async (): Promise<void> => {
@@ -23,7 +25,7 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/redis", () => ({
-  getRedis: () => ({ set: h.redisSet, eval: h.redisEval, del: async () => 1 }),
+  getRedis: () => ({ set: h.redisSet, eval: h.redisEval, get: h.redisGet, del: h.redisDel }),
   hasRedis: () => false,
   redisKey: (...parts: Array<string | number>) => ["barbusse", ...parts].join(":"),
   getJson: async (key: string) => h.store.get(key) ?? null,
@@ -83,7 +85,11 @@ beforeEach(() => {
   h.store.clear();
   h.sendNtfy.mockClear();
   h.redisSet.mockClear();
-  h.redisEval.mockClear();
+  h.redisEval.mockReset();
+  h.redisEval.mockImplementation(async () => 1);
+  h.redisGet.mockReset();
+  h.redisGet.mockImplementation(async () => null);
+  h.redisDel.mockClear();
   h.addNukiPin.mockClear();
   h.createKeypadCode.mockClear();
   h.online = true;
@@ -222,5 +228,18 @@ describe("verrou", () => {
     expect(script).toContain('redis.call("get", KEYS[1]) == ARGV[1]');
     expect(keys).toEqual(["nuki:sync:lock"]);
     expect(args).toEqual([owners[0]]);
+  });
+
+  it("script refusé : repli get puis del, seulement si la valeur est toujours la nôtre", async () => {
+    h.bookings = [];
+    h.redisEval.mockRejectedValue(new Error("EVAL indisponible"));
+    h.redisGet.mockImplementation(async () => h.redisSet.mock.calls.at(-1)?.[1]);
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.redisDel).toHaveBeenCalledWith("nuki:sync:lock");
+
+    h.redisDel.mockClear();
+    h.redisGet.mockImplementation(async () => "valeur-d-un-autre-passage");
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.redisDel).not.toHaveBeenCalled();
   });
 });
