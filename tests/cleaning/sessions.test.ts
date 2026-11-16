@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { KeypadOpening } from "@/lib/cleaning/intratone";
 import { parseOpenings, parseFrenchDate } from "@/lib/cleaning/intratone";
 import {
-  trackedOpenings, matchPerson, parsePeople, mergeArrivals, newArrivalsSince,
+  trackedOpenings, matchPerson, doorLogArrivals, parsePeople, mergeArrivals, newArrivalsSince,
   maxArrivalMs, estimateExit, buildSessions, type CleaningArrival, type TrackedPerson,
 } from "@/lib/cleaning/sessions";
 
@@ -53,6 +53,28 @@ describe("matchPerson + trackedOpenings", () => {
     const g = trackedOpenings(ops, PEOPLE);
     expect(g.map((x) => x.who).sort()).toEqual(["Eric", "Sophie"]);
     expect(g.every((x) => x.source === "garage")).toBe(true);
+  });
+});
+
+describe("doorLogArrivals — journal de la porte", () => {
+  // Données inventées : numéros de réservation fictifs.
+  const entry = (date: string, name: string, extra: { trigger?: number; state?: number } = {}) =>
+    ({ date, name, action: 3, trigger: extra.trigger ?? 255, state: extra.state ?? 0 });
+
+  it("une voyageuse prénommée Sophie (code géré « <n° résa>: Sophie ») n'est pas le ménage", () => {
+    const log = [entry("2026-11-04T16:30:00Z", "90000010: Sophie"), entry("2026-11-04T16:31:00Z", "123456: sophie m")];
+    expect(doorLogArrivals(log, PEOPLE)).toEqual([]);
+  });
+  it("garde le code manuel du ménage, avec le nom canonique et la source porte", () => {
+    const log = [entry("2026-11-04T09:00:00Z", "# Sophie"), entry("2026-11-04T10:00:00Z", "90000011: Eric"), entry("2026-11-04T11:00:00Z", "Eric dépannage")];
+    const a = doorLogArrivals(log, PEOPLE);
+    expect(a.map((x) => x.who)).toEqual(["Sophie", "Eric"]);
+    expect(a.every((x) => x.source === "porte")).toBe(true);
+    expect(a[0].at.toISOString()).toBe("2026-11-04T09:00:00.000Z");
+  });
+  it("ignore ce qui n'est pas un passage réussi au clavier", () => {
+    const log = [entry("2026-11-04T09:00:00Z", "# Sophie", { trigger: 0 }), entry("2026-11-04T09:05:00Z", "# Sophie", { state: 1 })];
+    expect(doorLogArrivals(log, PEOPLE)).toEqual([]);
   });
 });
 
