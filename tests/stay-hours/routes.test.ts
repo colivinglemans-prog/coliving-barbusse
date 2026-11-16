@@ -172,4 +172,13 @@ describe("GET /api/dashboard/stay-status", () => {
     expect(await (await GET(await req("/api/dashboard/stay-status", "viewer"))).json()).toEqual({ hours: {} });
     expect((await GET(await req("/api/dashboard/stay-status", null))).status).toBe(401);
   });
+
+  it("une demande (`request`) de la maison : absente pour le viewer, présente pour l'admin", async () => {
+    h.others = [{ id: 1000005, propertyId: 303771, arrival: "2027-01-08", departure: "2027-01-10", status: "request" }];
+    h.hash.set("1000005", JSON.stringify({ arrivalHour: 14 }));
+    expect((await (await GET(await req("/api/dashboard/stay-status", "viewer"))).json()).hours).not.toHaveProperty("1000005");
+    expect((await (await GET(await req("/api/dashboard/stay-status", "admin"))).json()).hours).toEqual(
+      expect.objectContaining({ "1000005": { arrivalHour: 14 } }),
+    );
+  });
 });

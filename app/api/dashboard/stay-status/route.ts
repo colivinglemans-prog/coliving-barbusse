@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addDays } from "@sejour/socle/lib/dates";
-import { isExcludedStatus } from "@sejour/socle/lib/booking-status";
+import { countsAsSold, isExcludedStatus } from "@sejour/socle/lib/booking-status";
 import { todayParis } from "@sejour/socle/lib/time";
-import { guard } from "@/lib/auth";
+import { auth, guard } from "@/lib/auth";
 import { getBookings } from "@/lib/beds24";
 import { PROPERTY_ID } from "@/lib/beds24-property";
 import { readStayHours } from "@/lib/stay-hours";
@@ -20,12 +20,17 @@ const PAST_DAYS = 200;
  * convenu à 16 h ». Ce qui sort : l'identifiant de réservation et des heures, rien d'autre —
  * aucun nom, aucune date, aucun montant — et **seulement pour les réservations de la maison
  * (303771) non annulées ni bloquées** (cerbere, 2026-11-16) : une entrée restée dans Redis pour
- * une réservation annulée ou étrangère n'est pas servie. Beds24 illisible ⇒ `{}` (rien plutôt
+ * une réservation annulée ou étrangère n'est pas servie. Le **viewer** ne reçoit en plus que les
+ * séjours **vendus** (`countsAsSold` : ni demandes, ni options), comme `/api/dashboard/bookings`
+ * qui les lui cache (cerbere B1, 2026-11-16) ; l'admin garde tout ce qui n'est pas exclu. Beds24 illisible ⇒ `{}` (rien plutôt
  * que trop) ; table vide ⇒ aucun appel à Beds24.
  */
 export async function GET(request: NextRequest) {
   const refus = await guard.deny(request, ["admin", "viewer"]);
   if (refus) return refus;
+
+  const isAdmin = (await guard.role(request)) === auth.adminRole;
+  const visible = (status: string | undefined | null) => (isAdmin ? !isExcludedStatus(status) : countsAsSold(status));
 
   const table = await readStayHours();
   if (Object.keys(table).length === 0) return NextResponse.json({ hours: {} });
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
   let house: Set<number>;
   try {
     const bookings = await getBookings({ departureFrom: addDays(todayParis(), -PAST_DAYS) });
-    house = new Set(bookings.filter((b) => b.propertyId === PROPERTY_ID && !isExcludedStatus(b.status)).map((b) => b.id));
+    house = new Set(bookings.filter((b) => b.propertyId === PROPERTY_ID && visible(b.status)).map((b) => b.id));
   } catch (e) {
     console.error("[stay-status] réservations illisibles :", e instanceof Error ? e.message : e);
     return NextResponse.json({ hours: {} });

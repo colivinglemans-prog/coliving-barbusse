@@ -45,9 +45,10 @@ export const proxy = createDashboardProxy({
    * inscrite ici.
    *
    * `/api/dashboard/bookings` y figure parce que le calendrier s'en nourrit ; c'est la route
-   * elle-même qui décide de ce qu'elle projette selon le rôle, et ses deux sous-routes
-   * (`notes`, `nuki-code`) refusent le rôle restreint chacune de leur côté. Le proxy ouvre
-   * la porte, il ne dit pas ce qui passe dessous.
+   * elle-même qui décide de ce qu'elle projette selon le rôle, et ses cinq sous-routes
+   * (`[id]/notes`, `[id]/nuki-code`, `[id]/messages`, `[id]/stay-hours`, `[id]/event-link`)
+   * refusent le rôle restreint chacune de leur côté (`denyNonAdmin`). Le proxy
+   * ouvre la porte, il ne dit pas ce qui passe dessous.
    */
   allowedPaths: [
     "/dashboard/calendar",
