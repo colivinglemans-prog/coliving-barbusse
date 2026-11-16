@@ -180,6 +180,10 @@ const site = {
       // Ouverte au viewer en lecture (GET) le 2026-11-07 (`proxy.ts`). Règle : toute route dont
       // la garde accepte le viewer doit aussi être dans `allowedPaths` — cette porte le vérifie.
       { path: "/api/dashboard/event-links", anonymous: [401], viewer: [200] },
+      // Horaires convenus (2026-11-16) : lecture ouverte au viewer (identifiant et heures seulement),
+      // écriture admin seulement. Le POST est refusé par la garde avant toute lecture du corps.
+      { path: "/api/dashboard/stay-status", anonymous: [401], viewer: [200] },
+      { path: "/api/dashboard/bookings/1/stay-hours", method: "POST", anonymous: [401], viewer: [403] },
     ],
     cronRoutes: CRON_ROUTES,
     webhooks: [{ path: "/api/webhooks/beds24", secretHeader: "x-webhook-secret" }],

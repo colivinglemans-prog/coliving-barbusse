@@ -61,6 +61,10 @@ export const proxy = createDashboardProxy({
     "/api/dashboard/heating",
     "/api/dashboard/water-heater",
     "/api/dashboard/properties",
+    // Lecture seule (GET, 2026-11-16) : horaires convenus par réservation — identifiant et heures,
+    // aucune donnée de voyageur. La personne du ménage doit lire « Départ tardif convenu à 16 h ».
+    // L'écriture est sous `/api/dashboard/bookings/[id]/stay-hours`, refusée au viewer par la route.
+    "/api/dashboard/stay-status",
   ],
 
   protectedPaths: ["/dashboard", "/api/dashboard"],
