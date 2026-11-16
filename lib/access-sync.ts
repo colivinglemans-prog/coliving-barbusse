@@ -48,7 +48,7 @@ import {
   deleteAuth,
   getLockHealth,
   listAuths,
-  listLog,
+  listLogSince,
   updateKeypadCode,
   type NukiConfig,
   type NukiLockHealth,
@@ -406,9 +406,13 @@ async function notify(alerts: SyncAlert[]): Promise<number> {
   return [lockAction, codesAction, urgentAction].filter(isActed).length;
 }
 
-/** Première ouverture au clavier par réservation, lue dans le journal de la serrure. */
-export async function readKeypadArrivals(): Promise<Map<number, string>> {
-  return keypadArrivals(await listLog(nukiConfig(), 100));
+/**
+ * Première ouverture au clavier par réservation, lue dans le journal de la serrure **depuis
+ * `since`**, toutes pages (`listLogSince`, borne : `lib/nuki-log-cursor.ts`). Lève si le journal
+ * ne peut pas être lu en entier : jamais un journal tronqué.
+ */
+export async function readKeypadArrivals(since: Date): Promise<Map<number, string>> {
+  return keypadArrivals(await listLogSince(nukiConfig(), since));
 }
 
 /**

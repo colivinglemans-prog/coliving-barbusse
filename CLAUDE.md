@@ -1026,7 +1026,7 @@ L'invite code est à usage unique ; sa validité est courte (« ~20 min » et «
 
 Détecte l'utilisation du code Nuki par un voyageur via la serrure connectée et envoie une notification push.
 
-- **Détection** : première ouverture réussie au clavier par le code `<n° de réservation>: …`, lue dans le **journal de la serrure** (`keypadArrivals` du socle, `GET /smartlock/{id}/log`). L'ancien signal — un `infoItems[]` `CHECKIN` que déposait le connecteur Beds24 → Nuki, horodaté dans `createTime` — reste lu en secours pendant la transition ; il disparaît avec le connecteur.
+- **Détection** : première ouverture réussie au clavier par le code `<n° de réservation>: …`, lue dans le **journal de la serrure** (`keypadArrivals` du socle, `listLogSince` : toutes les pages depuis le dernier passage réussi moins 2 h, 24 h au premier passage, 48 h au plus — `lib/nuki-log-cursor.ts`, Redis `barbusse:nuki:log-since:checkin`). ⚠️ Jamais `listLog` : l'API rend 50 lignes au plus, quel que soit `limit`, et un soir chargé faisait sortir une arrivée de la page (2026-11-16). L'ancien signal — un `infoItems[]` `CHECKIN` que déposait le connecteur Beds24 → Nuki, horodaté dans `createTime` — reste lu en secours pendant la transition ; il disparaît avec le connecteur.
 - **Cron** : `/api/cron/checkin-notifications` toutes les 10 min, fenêtre arrivées J-3 → J+1.
 - **Contenu** : le **prénom seul** (`firstNameOnly` du socle), jamais le nom de famille — le sujet ntfy n'a pour secret que son nom.
 - **Anti-doublon** : Redis `checkin:notified:{bookingId}` (TTL 60 jours) — une seule notif par résa, même si le code est retapé.
@@ -1086,7 +1086,7 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
 | Source | Pièce | Rôle |
 |---|---|---|
 | **Garage** (Intratone) | [lib/cleaning/intratone.ts](lib/cleaning/intratone.ts) | Ouvertures par code clavier du digicode (le code dont le libellé contient `CLEANER_NAME`). |
-| **Porte** (Nuki) | journal de la serrure | Code manuel « # Sophie », lu via `listLog` du socle. |
+| **Porte** (Nuki) | journal de la serrure | Code manuel « # Sophie », lu via `listLogSince` du socle depuis le dernier passage réussi (`lib/nuki-log-cursor.ts`). |
 | **Caméra** (mouvement) | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Derniers mouvements, pour **estimer** l'heure de sortie. |
 
 | Pièce | Rôle |

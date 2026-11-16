@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { guard } from "@/lib/auth";
 import { garageArrivals, doorArrivals, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
+import { LOG_MAX_LOOKBACK_MS } from "@/lib/nuki-log-cursor";
 import {
   buildSessions,
   mergeArrivals,
@@ -54,7 +55,8 @@ export async function GET(request: NextRequest) {
       notes.garage = short(e);
       return [] as CleaningArrival[];
     });
-    const door = await doorArrivals(people).catch((e) => {
+    // Amorçage seulement (magasin vide) : deux jours, la limite de lecture du journal.
+    const door = await doorArrivals(people, new Date(Date.now() - LOG_MAX_LOOKBACK_MS)).catch((e) => {
       notes.porte = short(e);
       return [] as CleaningArrival[];
     });

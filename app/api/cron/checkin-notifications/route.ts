@@ -8,6 +8,7 @@ import { readKeypadArrivals } from "@/lib/access-sync";
 import { getRedis } from "@/lib/redis";
 import { firstNameOnly } from "@sejour/socle/lib/arrival-readiness/format";
 import { beat } from "@/lib/heartbeat";
+import { readLogSince, saveLogSince } from "@/lib/nuki-log-cursor";
 
 const CHECKIN_INFO_CODE = "CHECKIN";
 const REDIS_KEY_TTL_SECONDS = 60 * 24 * 3600; // 60 jours
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const startedAt = new Date();
     const today = todayParis();
     // Fenêtre large : arrivées récentes (J-3) jusqu'à demain.
     // Couvre les late check-ins et le cas où l'utilisateur retape son code à J+1.
@@ -68,8 +70,10 @@ export async function GET(request: NextRequest) {
     // Beds24 → Nuki reste lu en secours, le temps que ses derniers séjours passent.
     let keypad = new Map<number, string>();
     let keypadError: string | null = null;
+    // Depuis le dernier passage réussi, avec recouvrement (`lib/nuki-log-cursor.ts`) : la page
+    // unique de 50 lignes laissait filer une arrivée un soir chargé.
     try {
-      keypad = await readKeypadArrivals();
+      keypad = await readKeypadArrivals(await readLogSince("checkin", startedAt));
     } catch (e) {
       keypadError = e instanceof Error ? e.message : String(e);
     }
@@ -131,6 +135,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // La borne n'avance que si tout ce qui a été lu a été traité : un envoi raté sera relu.
+    if (keypadError === null && errors.length === 0) await saveLogSince("checkin", startedAt);
     await beat("checkin-notifications", "ok");
     return NextResponse.json({
       success: true,

@@ -7,6 +7,7 @@ import { upsertSessions, pruneOldSessions } from "@/lib/cleaning/store";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { beat } from "@/lib/heartbeat";
 import { isDryRun } from "@/lib/cron-params";
+import { readLogSince, saveLogSince } from "@/lib/nuki-log-cursor";
 
 /**
  * Suivi des intervenants de la maison : alerte quand une personne suivie arrive (ménage Sophie,
@@ -55,7 +56,10 @@ export async function GET(request: NextRequest) {
     notes.garage = short(e);
     return [] as CleaningArrival[];
   });
-  const door = await doorArrivals(people).catch((e) => {
+  const startedAt = new Date();
+  let doorOk = true;
+  const door = await doorArrivals(people, await readLogSince("cleaning", startedAt)).catch((e) => {
+    doorOk = false;
     notes.porte = short(e);
     return [] as CleaningArrival[];
   });
@@ -86,6 +90,7 @@ export async function GET(request: NextRequest) {
   if (!stored) {
     const baseline = maxArrivalMs(arrivals, 0);
     if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
+    if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
     if (!dry) await beat("cleaning-watch", "ok");
     return NextResponse.json({ success: true, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
   }
@@ -107,6 +112,7 @@ export async function GET(request: NextRequest) {
     await redis.set(LAST_KEY, maxArrivalMs(arrivals, lastMs));
   }
 
+  if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
   if (!dry) await beat("cleaning-watch", "ok");
   return NextResponse.json({
     success: true,
