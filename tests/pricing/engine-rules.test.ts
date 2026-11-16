@@ -15,6 +15,13 @@ describe("règles du moteur (corrections du 2026-11-14)", () => {
     expect(near["2027-06-10"].price).toBe(2_800);
   });
 
+  it("dernière minute d'hiver : jamais sous le plancher de 330 € (relevé le 2026-11-16)", () => {
+    // Mardi 12/01/2027 à J-2 : 470 × 0,97 × 0,7 ≈ 319 € avant plancher.
+    const r = computeEnginePrices({ today: "2027-01-10", nights: nights(["2027-01-12"]), events: LE_MANS_EVENTS, config: ENGINE_CONFIG });
+    expect(r["2027-01-12"].price).toBe(330);
+    expect(r["2027-01-12"].reasons.at(-1)).toBe("plancher 330 €");
+  });
+
   it("la nuit d'approche des 24 Heures prend le plancher d'approche, pas celui de la course", () => {
     const r = computeEnginePrices({ today: "2027-06-04", nights: nights(["2027-06-07", "2027-06-08"]), events: LE_MANS_EVENTS, config: ENGINE_CONFIG });
     expect(r["2027-06-07"].reasons[0]).toMatch(/nuit d'approche/);

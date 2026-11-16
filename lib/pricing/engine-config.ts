@@ -69,7 +69,9 @@ export const ENGINE_CONFIG: EngineConfig = {
   // Les week-ends se vendent un peu plus cher ; l'historique ne justifie pas davantage.
   weekdayFactor: { 0: 0.97, 1: 0.97, 2: 0.97, 3: 0.97, 4: 1, 5: 1.05, 6: 1.05 },
   defaultMinStay: 2,
-  floorByMonth: { ...uniform([1, 2, 3, 11, 12], 280), ...uniform([4, 5, 6, 7, 8, 9, 10], 300) },
+  // 330 € toute l'année, aligné sur le plancher Beyond relevé le 2026-11-16 : la dernière minute
+  // (équipes de chantier) s'est montrée peu sensible au prix (une nuit du jour même vendue 560 €).
+  floorByMonth: uniform([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 330),
   ceiling: 1_000,
   eventCeiling: 3_500,
   minorEventFactor: 1.05,

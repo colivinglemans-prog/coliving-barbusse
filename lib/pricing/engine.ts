@@ -98,7 +98,7 @@ export function computeEnginePrices(input: EngineInput): Record<string, EngineNi
     const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
     let price: number;
     let minStay = config.defaultMinStay;
-    let floor = config.floorByMonth[month] ?? 280;
+    let floor = config.floorByMonth[month] ?? 330;
     let ceiling = config.ceiling;
 
     const fixed = config.fixedPeriods.find((p) => inMonthDayRange(date, p.from, p.to));

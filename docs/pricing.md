@@ -212,6 +212,10 @@ Beyond** (décision du 2026-11-14), sans paliers d'anticipation :
   plancher, `leadInFloor` 1 560 €.
 - **Plus de paliers d'anticipation sur les grands événements**.
 - Fêtes resserrées : du 23 au 26/12 et du 30/12 au 01/01.
+- **Plancher hors événement : 330 € toute l'année** (2026-11-16, avant : 280 € de novembre à mars,
+  300 € d'avril à octobre). Il est aligné sur le prix minimum relevé dans Beyond le même jour. Ce
+  jour-là, une équipe de chantier réservée à 280 € a accepté sans discuter une nuit du jour même à
+  560 € : la dernière minute « besoin » est peu sensible au prix.
 
 ### Alertes ntfy (`sendPricingAlert`, préfixe « [Prix] »)
 
