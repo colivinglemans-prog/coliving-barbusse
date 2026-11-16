@@ -4,7 +4,9 @@ import {
   alertIgnoredDids,
   getFullZoneConfig,
   getLockedDevices,
+  getLockUntil,
   saveLockedDevices,
+  setLockUntil,
   setDeviceMode,
   setDeviceTemperatures,
   getSummerMode,
@@ -12,6 +14,7 @@ import {
 } from "@/lib/heatzy";
 import { expectedHeatingMode, type HeatingSituation } from "@/lib/heating-schedule";
 import { getActiveBookings } from "@/lib/bookings";
+import { locksToRelease } from "@/lib/heating-locks";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
@@ -36,6 +39,12 @@ import {
   saveShedState,
 } from "@/lib/heating-state";
 import type { HeatzyMode, HeatzyZone } from "@/lib/types";
+
+/** Nom d'un radiateur pour la notification, ou son identifiant s'il n'est plus configuré. */
+function radiatorName(config: { zones: Array<{ devices: Array<{ did: string; name: string }> }> }, did: string): string {
+  for (const z of config.zones) for (const d of z.devices) if (d.did === did) return d.name;
+  return did;
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -123,16 +132,34 @@ export async function GET(request: NextRequest) {
     const allBookings = await getActiveBookings();
 
     const actions: string[] = [];
-    const lockedDevices = await getLockedDevices();
+    // Sans le cache mémoire : la liste peut être réécrite juste après (verrou posé il y a 1 min).
+    const lockedDevices = await getLockedDevices({ fresh: true });
 
     const hasCheckOutToday = allBookings.some((b) => b.departure === today);
     const situation = expectedHeatingMode(allBookings, today, currentHour, {}, minute).situation;
 
-    // Fin de réservation : tous les radiateurs verrouillés sont rendus à l'automatisation.
-    if (hasCheckOutToday && situation !== "occupied" && lockedDevices.size > 0) {
-      await saveLockedDevices(new Set());
-      actions.push(`Déverrouillage de ${lockedDevices.size} device(s) (fin de réservation)`);
-      lockedDevices.clear();
+    // Fin de réservation : les verrous arrivés à leur date (ou sans date, le jour d'un départ)
+    // sont rendus à l'automatisation (`lib/heating-locks.ts`).
+    if (lockedDevices.size > 0) {
+      const release = locksToRelease({
+        locked: lockedDevices,
+        until: await getLockUntil(),
+        today,
+        hasCheckOutToday,
+        occupied: situation === "occupied",
+      });
+      if (release.length > 0) {
+        for (const did of release) lockedDevices.delete(did);
+        await saveLockedDevices(lockedDevices);
+        await Promise.all(release.map((did) => setLockUntil(did, null).catch(() => {})));
+        actions.push(`Déverrouillage de ${release.length} device(s) (fin de réservation)`);
+        const names = release.map((did) => radiatorName(config, did));
+        await sendHeatingAlert(
+          `${release.length} radiateur${release.length > 1 ? "s" : ""} déverrouillé${release.length > 1 ? "s" : ""}`,
+          `Fin de réservation : ${names.join(", ")} rendu${release.length > 1 ? "s" : ""} à l'automatisation.`,
+          2,
+        ).catch((e) => console.error("[heating-automation] notification de déverrouillage:", e));
+      }
     }
 
     let readings: RadiatorReading[] | null = null;

@@ -1080,7 +1080,7 @@ lit l'état, l'image instantanée et surtout les **événements de mouvement** (
 |---|---|
 | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Client API cloud AJCloud : login (défi NaCl Box + signature HMAC-SHA256 `X-UAC-Signature`), `device-list`, `fetch-infos` (snapshot, RTSP local, en ligne), `alarms-survey` (mouvement). `tweetnacl` pour le chiffrement. |
 | [lib/camera/watch.ts](lib/camera/watch.ts) | Logique pure : nouveaux événements depuis le dernier `cts`, mise en forme. Testée (`tests/camera/`). |
-| `/api/cron/camera-watch` | Toutes les 10 min (cron-job.org). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. |
+| `/api/cron/camera-watch` | Toutes les 10 min (cron-job.org ; 5 recommandées). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. Depuis le 2026-11-16, filtre de scène pour les caméras de `CAMERA_SCENE_FILTER_DIDS` (le garage) : un mouvement dont l'image ne change pas (linge qui bouge) est ignoré pendant un séjour, muet (priorité 1) maison vide (`lib/camera/scene.ts`, seuil `CAMERA_SCENE_THRESHOLD`, défaut 12 ; `CAMERA_SCENE_FILTER=false` le coupe ; ignorés dans `barbusse:camera:ignored`). |
 
 - **Anti-inondation** : au premier passage d'une caméra, aucune notification — on pose seulement
   la ligne de base `barbusse:camera:last-cts:<did>` (Redis). Les passages suivants ne notifient

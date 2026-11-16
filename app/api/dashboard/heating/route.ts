@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getSummerMode } from "@/lib/heatzy";
+import { getDevices, getDeviceStatus, getFullZoneConfig, getLockedDevices, getLockUntil, getSummerMode } from "@/lib/heatzy";
 import { expectedHeatingMode, getHeatingRules, heatingSituation } from "@/lib/heating-schedule";
 import { getBookingsWithArchive } from "@/lib/bookings";
 import type { HeatzyDevice, HeatzyDeviceAlert } from "@/lib/types";
@@ -56,8 +56,9 @@ export async function GET(request: NextRequest) {
       .filter((b) => b.arrival > today)
       .sort((a, b) => a.arrival.localeCompare(b.arrival))[0]?.arrival;
     const rules = getHeatingRules(situation, currentHour, nextCheckIn);
-    const [lockedDevices, summerMode] = await Promise.all([
+    const [lockedDevices, lockUntil, summerMode] = await Promise.all([
       getLockedDevices(),
+      getLockUntil(),
       getSummerMode(),
     ]);
 
@@ -138,6 +139,8 @@ export async function GET(request: NextRequest) {
           isOnline,
           isHeating,
           isLocked,
+          // Date de fin du verrou ; rien en mode été (automatisation suspendue, rien ne le lèvera).
+          lockedUntil: isLocked && !summerMode ? lockUntil[deviceConfig.did] : undefined,
           pilotLocked,
           presenceDetected,
           temperature: curTemp,

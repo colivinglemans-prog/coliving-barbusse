@@ -157,7 +157,13 @@ Depuis le 2026-11-14 :
 - **Carte device** : mode, temp actuelle → consigne, tendance ↑↓, badge "Chauffe", indicateur présence (vert/gris + durée), alertes erreur/warning, bouton lock
 - **Toggle admin/viewer** : prévisualiser la vue viewer
 - **Polling** : refresh 30s, tendance basée sur historique 5 min côté client
-- **Lock** : verrouiller un device en hors-gel (ignoré par crons), via env var `LOCKED_DEVICES`
+- **Lock** : verrouiller un device en hors-gel (ignoré par crons), liste Redis `heatzy:locked-devices`
+  (repli `LOCKED_DEVICES`). Depuis le 2026-11-16, chaque verrou porte une date de fin
+  (`heatzy:locked-until`) : le départ du séjour en cours, sinon du prochain, fixé au clic.
+  `heating-automation` le lève ce jour-là, une fois la maison libérée, et notifie en priorité 2.
+  Un jour de rotation, un verrou posé pour les arrivants n'est donc plus levé au départ des
+  partants. Un verrou sans date garde l'ancienne règle (levé au premier départ). Logique pure :
+  `lib/heating-locks.ts`. La carte affiche « jusqu'au départ du JJ/MM ».
 
 ### Présence
 

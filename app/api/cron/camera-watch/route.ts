@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
-import { AjCloud } from "@/lib/camera/ajcloud";
+import jpeg from "jpeg-js";
+import { AjCloud, type AjAlarm } from "@/lib/camera/ajcloud";
 import { maxCts, newAlarmsSince, toCameraAlert } from "@/lib/camera/watch";
+import {
+  decodeMemory,
+  encodeMemory,
+  filteredCameras,
+  judgeScene,
+  motionDecision,
+  rememberScene,
+  sceneThreshold,
+  thumbnailFromRgba,
+  type SceneMemory,
+  type SceneVerdict,
+  type Thumbnail,
+} from "@/lib/camera/scene";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { getActiveBookings, stayInProgress } from "@/lib/bookings";
 import { recordNotification } from "@/lib/notify-log";
@@ -34,7 +48,16 @@ import { isDryRun } from "@/lib/cron-params";
  * (un mouvement y est suspect), 2 pendant un séjour, du jour d'arrivée au jour de départ inclus
  * (chaque entrée et sortie des voyageurs ferait sonner le téléphone). Beds24 illisible → 4.
  *
- * Cron-job.org, toutes les 10 minutes. Battement `camera-watch` à chaque passage réel (`ok` aussi
+ * **Filtre des faux positifs** (2026-11-16, `lib/camera/scene.ts`) : pour les caméras listées dans
+ * `CAMERA_SCENE_FILTER_DIDS` (le garage), l'image du mouvement est comparée à la précédente du même
+ * mode (IR ou couleur). Sans changement (linge qui bouge), le mouvement est ignoré pendant un
+ * séjour et part en priorité 1 (muette) maison vide. Image illisible → notifié. Les mouvements
+ * ignorés vont dans `barbusse:camera:ignored` (50 derniers) ; un mouvement retenu note son `cts`
+ * dans `barbusse:camera:last-real:<did>` (lu par la surveillance de la serrure au départ).
+ * `CAMERA_SCENE_THRESHOLD` (défaut 12) règle le seuil, `CAMERA_SCENE_FILTER=false` coupe le filtre.
+ *
+ * Cron-job.org, toutes les 10 minutes ; 5 recommandées (`alarms-survey` ne rend que le dernier
+ * mouvement : à 10 min, un vrai passage suivi d'un frémissement de linge n'est vu que par le second). Battement `camera-watch` à chaque passage réel (`ok` aussi
  * quand la veille est coupée ou sans identifiants : sautée par décision, pas en panne).
  */
 
@@ -82,7 +105,12 @@ export async function GET(request: NextRequest) {
       baseline?: boolean;
     }> = [];
     let sent = 0;
+    let muted = 0;
+    let imageErrors = 0;
+    const ignored: Array<{ did: string; cts: number; diff?: number }> = [];
     let priority: 2 | 4 | undefined;
+    const filtered = filteredCameras(process.env.CAMERA_SCENE_FILTER, process.env.CAMERA_SCENE_FILTER_DIDS);
+    const threshold = sceneThreshold(process.env.CAMERA_SCENE_THRESHOLD);
 
     for (const device of devices) {
       if (!device.emcUrl) {
@@ -128,20 +156,63 @@ export async function GET(request: NextRequest) {
       }
 
       priority ??= await motionPriority();
+      const filtering = filtered.has(device.deviceId);
+      const memoryKey = redisKey("camera", "scene", device.deviceId);
+      let memory: SceneMemory = filtering ? decodeMemory(await redis.get(memoryKey).catch(() => null)) : {};
+      let memoryChanged = false;
       for (const alarm of fresh) {
         if (sent >= MAX_ALERTS_PER_RUN) break;
         const alert = toCameraAlert(alarm);
-        if (!dry) {
-          await sendMotion(device.name, alert.when, alert.imageUrl, alert.videoUrl, priority);
+
+        // Filtre de scène (caméra du garage) : un mouvement qui ne change pas l'image est ignoré
+        // pendant un séjour, muet maison vide. Image illisible → vrai mouvement (`lib/camera/scene.ts`).
+        let verdict: SceneVerdict = { significant: true, reason: "no-reference" };
+        // Une image illisible est notifiée, mais ne prouve aucune présence : elle ne reporte pas
+        // l'alerte de porte (`last-real`), sinon un AJCloud lent + du linge repousseraient l'alerte.
+        let sceneRead = !filtering;
+        if (filtering) {
+          const thumb = await readThumbnail(alarm);
+          if (thumb) {
+            verdict = judgeScene(memory, thumb, threshold);
+            memory = rememberScene(memory, thumb);
+            sceneRead = true;
+            memoryChanged = true;
+          } else {
+            verdict = { significant: true, reason: "no-reference" };
+            imageErrors += 1;
+          }
         }
+        const decision = motionDecision(verdict, priority);
+
+        if (!decision.send) {
+          ignored.push({ did: device.deviceId, cts: Number(alarm.cts), diff: verdict.diff });
+          if (!dry) await recordIgnored(redis, Number(alarm.cts), verdict.diff);
+          continue;
+        }
+        if (!dry) {
+          await sendMotion(device.name, alert.when, alert.imageUrl, alert.videoUrl, decision.priority);
+          if (verdict.significant && sceneRead) await redis.set(redisKey("camera", "last-real", device.deviceId), Number(alarm.cts));
+        }
+        if (!verdict.significant) muted += 1;
         sent += 1;
       }
 
+      if (!dry && memoryChanged) await redis.set(memoryKey, encodeMemory(memory));
       if (!dry) await redis.set(key, maxCts(alarms, lastCts));
     }
 
     if (!dry) await beat("camera-watch", "ok");
-    return NextResponse.json({ success: true, dry, devices: report, sent, ...(priority ? { priority } : {}) });
+    return NextResponse.json({
+      success: true,
+      dry,
+      devices: report,
+      sent,
+      muted,
+      ignored: ignored.map((i) => ({ cts: i.cts, diff: i.diff === undefined ? null : Math.round(i.diff * 10) / 10 })),
+      imageErrors,
+      filter: { cameras: filtered.size, threshold },
+      ...(priority ? { priority } : {}),
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     if (!dry) await beat("camera-watch", "error");
@@ -163,12 +234,52 @@ async function motionPriority(): Promise<2 | 4> {
   }
 }
 
+const IMAGE_TIMEOUT_MS = 5_000;
+const IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+const IGNORED_LOG_MAX = 50;
+
+/**
+ * Vignette de l'image d'un mouvement (l'originale, sur laquelle le seuil a été mesuré ; sinon la
+ * miniature). `null` si elle ne peut être ni téléchargée ni décodée : le mouvement est alors
+ * traité comme vrai. L'URL signée n'est jamais journalisée.
+ */
+async function readThumbnail(alarm: AjAlarm): Promise<Thumbnail | null> {
+  const images = Array.isArray(alarm.images) ? alarm.images : [];
+  const pick =
+    images.find((i) => i.url && i.tags === "original") ?? images.find((i) => i.url && i.url.length > 0);
+  if (!pick) return null;
+  try {
+    const res = await fetch(pick.url, { cache: "no-store", signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`image ${res.status}`);
+    const declared = Number(res.headers.get("content-length") ?? 0);
+    if (declared > IMAGE_MAX_BYTES) throw new Error("image trop lourde");
+    const buf = new Uint8Array(await res.arrayBuffer());
+    if (buf.length > IMAGE_MAX_BYTES) throw new Error("image trop lourde");
+    const img = jpeg.decode(buf, { useTArray: true, maxResolutionInMP: 4, maxMemoryUsageInMB: 64 });
+    return thumbnailFromRgba(img.data, img.width, img.height);
+  } catch (e) {
+    console.error("[camera-watch] image illisible:", e instanceof Error ? e.message.slice(0, 80) : "erreur");
+    return null;
+  }
+}
+
+/** Mouvements ignorés (50 derniers : instant et écart, sans URL), pour recalibrer le seuil. */
+async function recordIgnored(redis: ReturnType<typeof getRedis>, cts: number, diff?: number): Promise<void> {
+  try {
+    const key = redisKey("camera", "ignored");
+    await redis.lpush(key, JSON.stringify({ at: new Date(cts).toISOString(), diff: diff ?? null }));
+    await redis.ltrim(key, 0, IGNORED_LOG_MAX - 1);
+  } catch (e) {
+    console.error("[camera-watch] journal des mouvements ignorés:", e instanceof Error ? e.message : e);
+  }
+}
+
 async function sendMotion(
   deviceName: string,
   when: string,
   imageUrl: string | null,
   videoUrl: string | null,
-  priority: 2 | 4,
+  priority: 1 | 2 | 4,
 ): Promise<void> {
   const topic = process.env.NTFY_TOPIC;
   // Jamais un mouvement noté envoyé alors qu'il ne l'est pas (la route vérifie le sujet avant).
