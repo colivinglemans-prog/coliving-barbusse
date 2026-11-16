@@ -311,7 +311,16 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
     // Seul un vrai passage du cron fait avancer l'état d'alerte ordinaire ; l'alerte urgente
     // part aussi d'un passage lancé par le webhook (c'est souvent lui qui pose le code du jour).
     let notified = evaluate ? await notify(alerts) : 0;
-    if (!evaluate && alerts.some((a) => a.urgent)) notified += await notifyUrgent(alerts);
+    if (!evaluate && alerts.some((a) => a.urgent)) {
+      // Passage du webhook : un envoi raté (ntfy en panne) ne doit pas faire échouer le passage —
+      // le webhook sauterait la messagerie. L'état a déjà été remis par `reportAlerts` : l'alerte
+      // repartira au passage suivant.
+      try {
+        notified += await notifyUrgent(alerts);
+      } catch (e) {
+        console.error("[access-sync] alerte urgente non envoyée :", e instanceof Error ? e.message : e);
+      }
+    }
     return { mode, health, stays: stays.length, actions, alerts, notified };
   } finally {
     if (owner !== null) await releaseLock(owner).catch(() => {});

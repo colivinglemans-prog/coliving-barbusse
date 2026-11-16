@@ -173,6 +173,18 @@ describe("alerte urgente : minuit et nuit", () => {
   });
 });
 
+describe("webhook et ntfy en panne", () => {
+  it("l'envoi urgent raté ne fait pas lever le passage ; l'alerte repart au suivant", async () => {
+    h.bookings = [stay(1)];
+    h.sendNtfy.mockRejectedValueOnce(new Error("ntfy 503"));
+    const report = await runAccessSync({ dryRun: false, trigger: "webhook" });
+    expect(report.notified).toBe(0);
+    await runAccessSync({ dryRun: false, trigger: "webhook" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(2);
+    expect(h.sendNtfy.mock.calls[1][1].priority).toBe(5);
+  });
+});
+
 describe("NUKI_SYNC_MODE autre que live", () => {
   it("serrure hors ligne : alerte au 2e passage du cron, sans rien écrire ni prendre le verrou", async () => {
     process.env.NUKI_SYNC_MODE = "dry";
