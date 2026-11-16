@@ -167,11 +167,15 @@ export async function GET(request: NextRequest) {
         // Filtre de scène (caméra du garage) : un mouvement qui ne change pas l'image est ignoré
         // pendant un séjour, muet maison vide. Image illisible → vrai mouvement (`lib/camera/scene.ts`).
         let verdict: SceneVerdict = { significant: true, reason: "no-reference" };
+        // Une image illisible est notifiée, mais ne prouve aucune présence : elle ne reporte pas
+        // l'alerte de porte (`last-real`), sinon un AJCloud lent + du linge repousseraient l'alerte.
+        let sceneRead = !filtering;
         if (filtering) {
           const thumb = await readThumbnail(alarm);
           if (thumb) {
             verdict = judgeScene(memory, thumb, threshold);
             memory = rememberScene(memory, thumb);
+            sceneRead = true;
             memoryChanged = true;
           } else {
             verdict = { significant: true, reason: "no-reference" };
@@ -187,7 +191,7 @@ export async function GET(request: NextRequest) {
         }
         if (!dry) {
           await sendMotion(device.name, alert.when, alert.imageUrl, alert.videoUrl, decision.priority);
-          if (verdict.significant) await redis.set(redisKey("camera", "last-real", device.deviceId), Number(alarm.cts));
+          if (verdict.significant && sceneRead) await redis.set(redisKey("camera", "last-real", device.deviceId), Number(alarm.cts));
         }
         if (!verdict.significant) muted += 1;
         sent += 1;

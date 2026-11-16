@@ -53,6 +53,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "deviceId required" }, { status: 400 });
     }
 
+    // Date de fin d'abord (hachage écrit avant la liste) : un cron qui passerait entre les deux
+    // ne doit jamais voir le nouveau verrou sans date et le lever par l'ancienne règle.
+    let until: string | null = null;
+    try {
+      until = lock ? await untilForNewLock() : null;
+      if (lock) await setLockUntil(deviceId, until);
+    } catch (e) {
+      console.error("Lock: end date not saved for", deviceId, e);
+    }
+
     // Sans le cache mémoire : la liste est réécrite juste après.
     const current = await getLockedDevices({ fresh: true });
 
@@ -62,17 +72,9 @@ export async function POST(request: NextRequest) {
       current.delete(deviceId);
     }
 
-    // Save lock state first (most important — persists even if Heatzy API fails)
+    // Save lock state (most important — persists even if Heatzy API fails)
     await saveLockedDevices(current);
-
-    // Date de fin du verrou (rendu à l'automatisation au départ du séjour), au mieux.
-    let until: string | null = null;
-    try {
-      until = lock ? await untilForNewLock() : null;
-      await setLockUntil(deviceId, until);
-    } catch (e) {
-      console.error("Lock: end date not saved for", deviceId, e);
-    }
+    if (!lock) await setLockUntil(deviceId, null).catch((e) => console.error("Lock: end date not cleared for", deviceId, e));
 
     // Then try to set device mode (best effort)
     let modeSet = false;
