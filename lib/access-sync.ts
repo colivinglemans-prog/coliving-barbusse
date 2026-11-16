@@ -34,7 +34,11 @@
  */
 
 import { randomInt, randomUUID } from "node:crypto";
-import { getRedis } from "./redis";
+import { getRedis, redisKey } from "./redis";
+import { arrivalNoticeTriggers, noticeKeyParts, sendArrivalNotices } from "./arrival-notice";
+import { isCleaningRole, trackedPeople } from "./cleaning/sessions";
+import { loadSessions } from "./cleaning/store";
+import { parisHourOf } from "./departure-detection";
 import {
   accessWindow,
   keypadArrivals,
@@ -61,7 +65,7 @@ import { reportAlerts, type TrackedAlert } from "./alert-memory";
 import { currentHourParis, todayParis } from "@sejour/socle/lib/time";
 import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";
 import type { Beds24Booking } from "./types";
-import { accessHours, agreedConflicts, boundRotationWindows, readStayHours, type StayHoursTable } from "./stay-hours";
+import { accessStatus, agreedConflicts, lockWindows, readStayHours, withAccessHours, type StayHoursTable } from "./stay-hours";
 
 /** Les alertes du planificateur, plus celles de la serrure et de l'exécution. */
 export type SyncAlert = Omit<AccessAlert, "kind"> & {
@@ -97,6 +101,9 @@ export const ACCESS_POLICY: AccessCodePolicy = {
 /** La maison entière : la seule propriété dont les voyageurs passent par cette porte. */
 const HOUSE_PROPERTY_ID = 303771;
 
+/** Arrivée imminente : jusqu'où remonter pour trouver le dernier départ (lecture de plus). */
+const PAST_DEPARTURES_DAYS = 60;
+
 /** Tous les statuts : sans liste, Beds24 omet les annulées, dont on doit retirer le code. */
 const ALL_STATUSES = ["confirmed", "new", "request", "inquiry", "black", "cancelled"];
 
@@ -120,21 +127,19 @@ export function syncIsLive(): boolean {
  * recale d'elle-même un code déjà posé (motif `window`). Exporté pour les tests.
  */
 export function toStay(b: Beds24Booking, table: StayHoursTable): AccessStay {
-  const status =
-    b.status === "cancelled"
-      ? "cancelled"
-      : b.status === "confirmed" || b.status === "new"
-        ? "confirmed"
-        : "provisional";
+  return withAccessHours(baseStay(b), table, ACCESS_POLICY);
+}
+
+/** Le séjour sans ses heures convenues : `lockWindows` les ajoute, puis borne la rotation. */
+function baseStay(b: Beds24Booking): AccessStay {
   return {
     bookingId: b.id,
     firstName: b.firstName ?? "",
     arrival: b.arrival,
     departure: b.departure,
-    status,
+    status: accessStatus(b.status),
     pin: nukiCodeOf(b),
     phone: b.mobile || b.phone || null,
-    ...accessHours(table[b.id] ?? {}, ACCESS_POLICY),
   };
 }
 
@@ -223,9 +228,10 @@ async function loadState(cfg: NukiConfig) {
     if (b && b.propertyId === HOUSE_PROPERTY_ID) house.push(b);
   }
 
-  // Jour de rotation : le code des partants (départ convenu) n'ouvre pas au-delà de l'ouverture
-  // du code des arrivants (`boundRotationWindows`).
-  const stays = boundRotationWindows(house.map((b) => toStay(b, stayHours)), ACCESS_POLICY);
+  // Fenêtre de chaque code : heures convenues, puis, un jour de rotation, le code des partants
+  // n'ouvre pas au-delà de l'ouverture de celui des arrivants. Même formule que le relevé de la
+  // porte au départ (`lockWindows`, `lib/stay-hours-rules.ts`).
+  const stays = lockWindows(house.map(baseStay), stayHours, ACCESS_POLICY);
   const plan = planAccessCodes({ stays, auths, today, now: new Date(), policy: ACCESS_POLICY, random: randomInt });
   // Accords saisis que la situation contredit désormais (réservation arrivée après coup).
   const conflicts = agreedConflicts(stayHours, house);
@@ -243,7 +249,7 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
     return { mode, health: { online: false, keypadPaired: false, batteryCritical: false, keypadBatteryCritical: false, batteryChargePercent: null, lockState: null, motorBlocked: false }, stays: 0, actions: [], alerts: [], notified: 0, skipped: "un autre passage est en cours" };
   }
   try {
-    const { today, health, house, stays, plan, conflicts } = await loadState(cfg);
+    const { today, health, auths, house, stays, plan, conflicts } = await loadState(cfg);
     if (evaluate) await reportStayHoursConflicts(conflicts);
     const alerts: SyncAlert[] = [...plan.alerts];
 
@@ -332,6 +338,34 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
         actions.push({ kind: "confirm", bookingId: id, ok: false, error });
         alerts.push({ kind: "execution", step: "confirm", bookingId: id, severity: "normal", message: `Réservation ${id} : passage en « confirmé » impossible — ${error}` });
       }
+    }
+
+    // Arrivée imminente (réservation de dernière minute, arrivée déplacée à aujourd'hui ou demain) :
+    // à partir des seules actions exécutées avec succès, quel que soit le déclencheur. Ne lève pas.
+    const executed = plan.actions.filter((_, i) => actions[i]?.ok === true);
+    const notices = arrivalNoticeTriggers({ executed, auths, bookings: house, today });
+    if (notices.length > 0) {
+      const now = new Date();
+      await sendArrivalNotices(notices, house, {
+        key: (t) => redisKey(...noticeKeyParts(t)),
+        set: (key, value, { nx, ex }) => (nx ? redis().set(key, value, { nx: true, ex }) : redis().set(key, value, { ex })),
+        del: (key) => redis().del(key),
+        loadPastBookings: async () =>
+          (
+            await getBookings({
+              departureFrom: addDays(today, -PAST_DEPARTURES_DAYS),
+              departureTo: addDays(today, 1),
+              statuses: ["confirmed", "new"],
+            })
+          ).filter((b) => b.propertyId === HOUSE_PROPERTY_ID),
+        loadCleanings: loadSessions,
+        cleaners: trackedPeople()
+          .filter((p) => isCleaningRole(p.role))
+          .map((p) => p.name),
+        send: sendNtfy,
+        now,
+        night: isNightParis(parisHourOf(now)),
+      }).catch((e) => console.error("[access-sync] arrivée imminente :", e instanceof Error ? e.message : e));
     }
 
     // Seul un vrai passage du cron fait avancer l'état d'alerte ordinaire ; l'alerte urgente

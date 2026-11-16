@@ -232,6 +232,14 @@ export function trackedPeople(): TrackedPerson[] {
   return parsePeople(process.env.TRACKED_PEOPLE?.trim() || DEFAULT_TRACKED_PEOPLE);
 }
 
+/**
+ * Le rôle est-il celui du ménage (« ménage », accents et casse ignorés) ? Un passage de dépannage
+ * n'est pas un ménage (notification « arrivée imminente », `lib/arrival-notice.ts`).
+ */
+export function isCleaningRole(role: string): boolean {
+  return role.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase() === "menage";
+}
+
 /** Parse `"Sophie:ménage,Eric:dépannage"` (ou juste `"Sophie,Eric"`) en liste de personnes. */
 export function parsePeople(spec: string): TrackedPerson[] {
   return spec
