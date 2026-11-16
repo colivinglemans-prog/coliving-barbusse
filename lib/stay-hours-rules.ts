@@ -1,3 +1,5 @@
+import { countsAsSold } from "@sejour/socle/lib/booking-status";
+
 /**
  * **Horaires convenus par réservation** : arrivée anticipée, départ tardif (2026-11-16).
  *
@@ -148,6 +150,25 @@ export interface NeighbourStay {
 }
 
 /**
+ * **La** définition des voisins de rotation, commune à la popup, à la route d'écriture et à la
+ * synchro : séjours **vendus** (`countsAsSold` : ni annulés, ni options, ni demandes) qui partent
+ * le jour de l'arrivée ou arrivent le jour du départ.
+ */
+export function rotationNeighbours(
+  stay: NeighbourStay,
+  bookings: ReadonlyArray<{ id: number; arrival: string; departure: string; status?: string | null }>,
+): NeighbourStay[] {
+  return bookings
+    .filter(
+      (b) =>
+        b.id !== stay.bookingId &&
+        countsAsSold(b.status) &&
+        (b.arrival === stay.departure || b.departure === stay.arrival),
+    )
+    .map((b) => ({ bookingId: b.id, arrival: b.arrival, departure: b.departure }));
+}
+
+/**
  * Rotation (départ et arrivée le même jour) : un départ convenu ne peut pas être **postérieur**
  * à l'heure d'arrivée (convenue ou standard) du séjour qui arrive ce jour-là, ni une arrivée
  * convenue **antérieure** au départ (convenu ou standard) de celui qui part. Égalité admise.
@@ -200,6 +221,60 @@ export function accessHours(
   if (agreed.departureHour !== undefined) {
     const until = Math.min(23, Math.max(policy.validUntilHour, agreed.departureHour + 1));
     if (until !== policy.validUntilHour) out.validUntilHour = until;
+  }
+  return out;
+}
+
+/** Un séjour tel que la synchro des codes le voit, réduit à ce que le bornage regarde. */
+export interface WindowedStay {
+  bookingId: number;
+  arrival: string;
+  departure: string;
+  /** `confirmed` : séjour vendu, qui reçoit un code. */
+  status: string;
+  validFromHour?: number | null;
+  validUntilHour?: number | null;
+}
+
+/**
+ * Jour de rotation : le code des partants ne doit pas ouvrir après l'ouverture de celui des
+ * arrivants (cerbere, 2026-11-16). Un départ convenu à 16 h donne un code jusqu'à 17 h ; si un
+ * séjour **confirmé** arrive ce jour-là avec un code dès 14 h, le code des partants est borné à
+ * 14 h. Rend des copies ; un séjour non concerné ressort tel quel.
+ */
+export function boundRotationWindows<T extends WindowedStay>(
+  stays: readonly T[],
+  policy: { validFromHour: number; validUntilHour: number },
+): T[] {
+  return stays.map((s) => {
+    if (s.status !== "confirmed" || s.validUntilHour == null) return s;
+    const incoming = stays.filter((o) => o.bookingId !== s.bookingId && o.status === "confirmed" && o.arrival === s.departure);
+    if (incoming.length === 0) return s;
+    const opening = Math.min(...incoming.map((o) => o.validFromHour ?? policy.validFromHour));
+    const until = Math.min(s.validUntilHour, opening);
+    if (until === s.validUntilHour) return s;
+    const copy = { ...s };
+    if (until <= policy.validUntilHour) delete copy.validUntilHour;
+    else copy.validUntilHour = until;
+    return copy;
+  });
+}
+
+/**
+ * Accords saisis que la situation contredit **désormais** (une réservation arrivée après coup rend
+ * la rotation impossible) : même règle que la saisie (`rotationCheck`), sur les voisins vendus.
+ */
+export function agreedConflicts(
+  table: StayHoursTable,
+  bookings: ReadonlyArray<{ id: number; arrival: string; departure: string; status?: string | null }>,
+): Array<{ bookingId: number; message: string }> {
+  const out: Array<{ bookingId: number; message: string }> = [];
+  for (const b of bookings) {
+    const agreed = table[b.id];
+    if (!agreed || !countsAsSold(b.status)) continue;
+    const stay = { bookingId: b.id, arrival: b.arrival, departure: b.departure };
+    const check = rotationCheck(stay, agreed, rotationNeighbours(stay, bookings), table);
+    if (check.error) out.push({ bookingId: b.id, message: check.error });
   }
   return out;
 }

@@ -61,7 +61,7 @@ import { reportAlerts, type TrackedAlert } from "./alert-memory";
 import { currentHourParis, todayParis } from "@sejour/socle/lib/time";
 import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";
 import type { Beds24Booking } from "./types";
-import { accessHours, readStayHours, type StayHoursTable } from "./stay-hours";
+import { accessHours, agreedConflicts, boundRotationWindows, readStayHours, type StayHoursTable } from "./stay-hours";
 
 /** Les alertes du planificateur, plus celles de la serrure et de l'exécution. */
 export type SyncAlert = Omit<AccessAlert, "kind"> & {
@@ -221,9 +221,13 @@ async function loadState(cfg: NukiConfig) {
     if (b && b.propertyId === HOUSE_PROPERTY_ID) house.push(b);
   }
 
-  const stays = house.map((b) => toStay(b, stayHours));
+  // Jour de rotation : le code des partants (départ convenu) n'ouvre pas au-delà de l'ouverture
+  // du code des arrivants (`boundRotationWindows`).
+  const stays = boundRotationWindows(house.map((b) => toStay(b, stayHours)), ACCESS_POLICY);
   const plan = planAccessCodes({ stays, auths, today, now: new Date(), policy: ACCESS_POLICY, random: randomInt });
-  return { today, health, auths, house, stays, plan };
+  // Accords saisis que la situation contredit désormais (réservation arrivée après coup).
+  const conflicts = agreedConflicts(stayHours, house);
+  return { today, health, auths, house, stays, plan, conflicts };
 }
 
 export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trigger: SyncTrigger }): Promise<SyncReport> {
@@ -237,7 +241,8 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
     return { mode, health: { online: false, keypadPaired: false, batteryCritical: false, keypadBatteryCritical: false, batteryChargePercent: null, lockState: null, motorBlocked: false }, stays: 0, actions: [], alerts: [], notified: 0, skipped: "un autre passage est en cours" };
   }
   try {
-    const { today, health, house, stays, plan } = await loadState(cfg);
+    const { today, health, house, stays, plan, conflicts } = await loadState(cfg);
+    if (evaluate) await reportStayHoursConflicts(conflicts);
     const alerts: SyncAlert[] = [...plan.alerts];
 
     // La pile faible n'est plus signalée ici : le passage de 9 h de la préparation d'arrivée
@@ -369,6 +374,27 @@ async function execute(cfg: NukiConfig, action: AccessAction): Promise<void> {
 }
 
 const NTFY_PRIORITY: Record<AccessSeverity, 3 | 4 | 5> = { normal: 3, high: 4, urgent: 5 };
+
+/**
+ * Horaire convenu contredit par une réservation arrivée depuis (un départ à 16 h, puis une
+ * arrivée à 14 h le même jour) : `barbusse:alert:stay-hours-conflict`, priorité 3, règle commune
+ * (deux passages horaires). Le code des partants est déjà borné (`boundRotationWindows`) ; reste à
+ * revoir l'accord avec le voyageur. La popup le dit aussi. Un échec d'envoi ne casse pas la synchro.
+ */
+async function reportStayHoursConflicts(conflicts: ReadonlyArray<{ bookingId: number; message: string }>): Promise<void> {
+  await reportAlerts(
+    "stay-hours-conflict",
+    conflicts.map((c) => ({ id: String(c.bookingId), priority: 3, line: `  - Réservation ${c.bookingId} : ${c.message}` })),
+    sendLockAlert,
+    {
+      title: (c) => (c.length === 1 ? "Horaire convenu contredit par une réservation" : `${c.length} horaires convenus contredits`),
+      intro: "Un accord saisi au dashboard n'est plus tenable (rotation le même jour) :",
+      recoveredTitle: "Horaires convenus de nouveau cohérents",
+      recoveredBody: "Plus aucun accord contredit par une réservation.",
+      confirmAfter: 2,
+    },
+  ).catch((e) => console.error("[access-sync] alerte horaires convenus :", e instanceof Error ? e.message : e));
+}
 
 const sendLockAlert = (subject: string, body: string, priority: 1 | 2 | 3 | 4 | 5) =>
   sendNtfy(body, { title: subject, priority, tags: ["lock"] });
