@@ -17,8 +17,12 @@ import { firstRefusalAlert, recordWebhookCall, type WebhookResult } from "@/lib/
  *
  * Il lance aussi un passage de la messagerie voyageur (si la confirmation est en `test` ou en `live`) :
  * la confirmation part dans la minute qui suit la réservation, sans attendre le cron de 10 min.
- * Le passage est sous verrou Redis ; nos propres écritures de registre rappellent ce webhook,
- * et le passage suivant ne trouve plus rien à envoyer.
+ * Le passage est sous verrou Redis ; nos propres écritures de registre rappellent ce webhook, et
+ * le passage suivant relit le registre pour savoir ce qui est déjà parti. Depuis le socle v3.26.1,
+ * la trace est écrite **puis relue avant** l'envoi : si elle ne se relit pas (code tronqué par
+ * Beds24, registre mal branché), l'envoi s'arrête (`ledger-unreadable` : copie de test bloquée,
+ * envoi réel en échec) au lieu d'être rejoué à chaque appel — au pire un message manqué et une
+ * alerte, jamais un envoi répété.
  *
  * Authentification : en-tête `x-webhook-secret`, à poser dans le champ « Custom Header » de
  * Beds24. Absence de `BEDS24_WEBHOOK_SECRET` ⇒ refus, comme pour les crons.

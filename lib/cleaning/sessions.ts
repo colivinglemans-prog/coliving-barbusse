@@ -1,3 +1,4 @@
+import { managedBookingId } from "@sejour/socle/lib/access-codes";
 import type { KeypadOpening } from "./intratone";
 
 /**
@@ -50,6 +51,29 @@ export function trackedOpenings(openings: KeypadOpening[], people: TrackedPerson
   for (const o of openings) {
     const who = matchPerson(o.name, people);
     if (who) out.push({ source: "garage", at: o.at, who });
+  }
+  return out;
+}
+
+/**
+ * Les passages de la porte (journal Nuki) faits avec le code **manuel** d'une personne suivie
+ * (« # Sophie »…) : clavier (`trigger` 255), réussis (`state` 0).
+ *
+ * Un code **géré** (« <n° de réservation>: <Prénom> », `managedBookingId` du socle) est celui
+ * d'un séjour : une voyageuse prénommée Sophie n'est pas le ménage. Il est exclu avant la
+ * recherche du nom.
+ */
+export function doorLogArrivals(
+  log: readonly { trigger: number; state?: number; name?: string | null; date: string }[],
+  people: TrackedPerson[],
+): CleaningArrival[] {
+  const out: CleaningArrival[] = [];
+  for (const e of log) {
+    if (e.trigger !== 255 || e.state !== 0) continue;
+    const name = e.name ?? "";
+    if (managedBookingId(name) !== null) continue;
+    const who = matchPerson(name, people);
+    if (who) out.push({ source: "porte", at: new Date(e.date), who });
   }
   return out;
 }

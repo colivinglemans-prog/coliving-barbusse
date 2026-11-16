@@ -234,7 +234,7 @@ docs/journal.md § Conventions).
 
 ## TODO — dette technique restante (au 2026-11-07)
 
-Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0 **ce jour-là** (non revérifié depuis), CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 à l'époque (**v3.24.0** au 2026-11-16, Albiez et Barbusse). Reste :
+Chantier du 2026-11-07 (brief `../briefs/dette-technique.md`) : fait et déployé — Next 16.4.5, audit prod à 0 **ce jour-là** (non revérifié depuis), CI, vitest, sauvegarde Beds24 → Blob privé, alertes ntfy, socle v3.8.1 à l'époque (**v3.26.1** au 2026-11-16 pour Barbusse). Reste :
 
 **À surveiller**
 - [ ] Premier passage automatique du cron `beds24-backup` : dimanche 2026-11-08, 03:00 UTC (notification ntfy priorité 1 attendue).
@@ -741,7 +741,7 @@ l'avis du lendemain le fait déjà.
   **ombre par défaut** ; `MESSAGES_KILL_SWITCH=1` coupe tout. **`test`** (étape voulue par l'hôte
   avant de remplacer les auto-actions) : au moment où le message partirait, une copie part à
   `MESSAGES_TEST_TO`, à défaut à `SMTP_FROM` (`contact@coliving-barbusse.fr`), avec un bandeau
-  « COPIE DE TEST » ; rien au voyageur, trace `MSG_<ID>_TEST` jamais lue comme un envoi. Les
+  « COPIE DE TEST » ; rien au voyageur, trace `MSG_<ID>_T` (anciennement `_TEST`) jamais lue comme un envoi. Beds24 tronque le code d'un `infoItem` à 20 caractères : depuis socle v3.26.1, suffixes `_P` / `_T`, un identifiant de modèle trop long est refusé par `validateTemplates`, et une trace qui ne se relit pas bloque la copie au lieu de la renvoyer à chaque passage. Les
   auto-actions Beds24 continuent pendant ce temps. La copie part par le SMTP : sans `SMTP_*`,
   **tous** les modèles en `test` sont bloqués (`no-test-transport`, une alerte ntfy par
   réservation et modèle) — poser `SMTP_*` avant de passer en `test`. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
