@@ -548,15 +548,15 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
 |---|---|
 | [lib/stay-hours-rules.ts](lib/stay-hours-rules.ts) | Règle **pure** (importable côté navigateur) : `stayHours` (17 h / 11 h sauf accord), `withAgreedHours`, bornes `AGREED_RANGE` (arrivée 8-16 h, départ 12-23 h, heures entières), `rotationCheck`, `accessHours`, `formatHourFor`. |
 | [lib/stay-hours.ts](lib/stay-hours.ts) | Table Redis : **hachage** `barbusse:stay-hours`, un champ par réservation. `readStayHours` ne lève jamais (Redis injoignable ⇒ heures standard) ; `withStayHours(bookings)` = la jointure commune aux crons et au dashboard. |
-| `POST`/`DELETE /api/dashboard/bookings/[id]/stay-hours` | **Admin seulement** (`guard.denyNonAdmin`). 400 hors bornes, **409 si le départ convenu dépasse l'arrivée (convenue ou standard) du séjour qui arrive le même jour** (ou l'inverse), avertissement si égalité ; 503 sans Redis. |
-| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre. La phase B y ajoutera l'état du départ du jour. |
+| `POST`/`DELETE /api/dashboard/bookings/[id]/stay-hours` | **Admin seulement** (`guard.denyNonAdmin`), même origine exigée (403) et JSON pour le `POST` (415), comme `pricing/halt`. 404 hors maison (303771) ou statut exclu ; 400 hors bornes ; **409 si le départ convenu dépasse l'arrivée (convenue ou standard) du séjour vendu qui arrive le même jour** (ou l'inverse) — voisins : `rotationNeighbours`, la même définition que la popup ; avertissement si égalité, **en rouge** si l'arrivée anticipée laisse moins de 3 h au ménage ; 503 sans Redis. Après l'écriture, **synchro des codes immédiate** (`runAccessSync`, déclencheur `dashboard`, même verrou que le webhook) ; si elle échoue, 200 avec `syncDeferred` (le passage horaire rattrape). |
+| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). La phase B y ajoutera l'état du départ du jour. |
 
 | Consommateur | Standard | Arrivée convenue A / départ convenu D |
 |---|---|---|
 | Chauffage (`isOccupiedAt`, `heatingSituation`, `resetTarget`, `preheatHours`) | occupé 17 h → 10 h ; préchauffage 12 h / 15 h | occupé dès A et **jusqu'à D** ; préchauffage A − 5 h / A − 2 h (borné à la journée). Le décalage par zone ne s'applique qu'aux montées : la descente à D reste à l'heure partout. |
 | Ballon (`countGuests`) | partants jusqu'à 11 h, arrivants dès 11 h | partants jusqu'à D ; arrivants dès min(11 h, A − 6 h) |
-| Code de la serrure (`toStay`, `lib/access-sync.ts`) | 14 h → 14 h | min(14 h, A − 1 h) → max(14 h, D + 1 h) (champs `validFromHour` / `validUntilHour` par séjour, socle v3.26.0) : la synchro recale un code déjà posé (motif `window`) ; la pastille du calendrier affiche la fenêtre calculée par le socle. |
-| Préparation d'arrivée (`toReadinessBooking`) | `arrivalTime` de Beds24 | A en `arrivalTime`, fenêtre du code comme ci-dessus ; `earliestCheckIn: "08:00"` (`lib/readiness/config.ts`) avance les contrôles noon / preheat / final. |
+| Code de la serrure (`toStay`, `lib/access-sync.ts`) | 14 h → 14 h | min(14 h, A − 1 h) → max(14 h, D + 1 h) (champs `validFromHour` / `validUntilHour` par séjour, socle v3.26.0) : la synchro recale un code déjà posé (motif `window`) ; la pastille du calendrier affiche la fenêtre calculée par le socle. **Jour de rotation** : le code des partants est borné à l'ouverture de celui des arrivants confirmés (`boundRotationWindows`). Accord contredit par une réservation arrivée depuis : alerte `stay-hours-conflict` (priorité 3, deux passages du cron) et message rouge dans la popup. |
+| Préparation d'arrivée (`toReadinessBooking`) | `arrivalTime` de Beds24 **si ≥ 17:00** (une heure estimée plus tôt est ignorée : elle avancerait les contrôles sans que le chauffage s'avance) | A en `arrivalTime` (`readinessArrivalTime`), fenêtre du code comme ci-dessus ; `earliestCheckIn: "08:00"` (`lib/readiness/config.ts`) avance alors les contrôles noon / preheat / final. |
 | Messages voyageurs (`hourVars`, `lib/messages/engine.ts`) | « 17h », « 11h » | `heureArrivee` / `heureDepart` dans la langue du voyageur ; `departConvenu` fait dire au message de la veille « comme convenu, vous pouvez rester jusqu'à 16h ». Bouton « Départ » du dashboard aligné. |
 | Bandeau Chauffage (`getHeatingRules`, 4e argument) | — | ligne « Départ tardif convenu à 16 h » / « Arrivée anticipée à 14 h » (`agreedRule`). |
 
@@ -564,12 +564,16 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
   seule pour le viewer — la personne du ménage voit l'heure dans la popup.
 - **Alerte « serrure non verrouillée après le départ »** (`lib/departure-detection.ts`, pure ;
   `lib/departure-lock.ts`, lectures) : dans `heating-automation` (toutes les 15 min, **aussi en
-  mode été**), le jour d'un départ et après l'heure de départ (11 h ou la plus tardive convenue),
-  serrure non verrouillée (`lockState` ≠ 1) → ntfy **priorité 4** au 2e relevé
+  mode été**), le jour d'un départ, à partir de l'heure de départ (11 h ou la plus tardive
+  convenue) **+ `DEPARTURE_LOCK_GRACE_MINUTES` (30 min, valeur à arbitrer par l'hôte)**, serrure non
+  verrouillée (`lockState` ≠ 1) → premier constat, ntfy **priorité 4** au relevé suivant
   (`barbusse:alert:departure-lock`, règle commune), « Serrure verrouillée » en priorité 1. **Pas
-  d'alerte** si un code du ménage (`TRACKED_PEOPLE`, entrées « # … ») ou celui des voyageurs
-  arrivant le jour même a ouvert depuis l'heure de départ (l'alerte ouverte se referme sans
-  message), ni si la serrure est hors ligne ou le journal illisible (état inchangé).
+  d'alerte** si le ménage (`TRACKED_PEOPLE` : code **non géré** « # … », ou entrée au garage
+  Intratone) ou le code des voyageurs arrivant le jour même est entré **depuis D − 2 h** (l'alerte
+  ouverte se referme sans message), ni si la serrure est hors ligne ou le journal illisible (état
+  inchangé). Un code « <n°>: <Prénom> » n'est jamais le ménage. Journée close
+  (`barbusse:departure-lock:<jour>` = `locked` / `reoccupied`) : plus aucun relevé ; lectures
+  plafonnées à 10 s ; en mode été, rien avant 11 h 30 et Beds24 lu une fois par jour au plus.
 - ⚠️ La messagerie maison étant en mode `test`, les vrais messages partent encore des auto-actions
   Beds24, qui disent « avant 11h » : confirmer l'heure convenue au voyageur à la main.
 - Le guide d'arrivée reste générique (« Sauf accord préalable… avant 11h ») : il n'est lié à aucune

@@ -664,3 +664,8 @@ Choix tranchés :
   ménage ou les voyageurs suivants ont ouvert, rien quand la serrure est hors ligne.
 - **Montée au socle v3.26.0** (même jour, commit 8b409e8) : adaptateurs de type retirés, test du recalage
   `window` par le vrai `planAccessCodes` (`tests/stay-hours/access-window.test.ts`).
+- **Relectures cerbere et contre-relecture** (même jour) : préparation d'arrivée avancée par la seule
+  heure convenue ; codes bornés un jour de rotation et alerte d'accord contredit ; alerte de porte
+  avec délai de grâce de 30 min, ménage vu dès D − 2 h (porte et garage), journée close, relevés
+  plafonnés à 10 s ; saisie en même origine + JSON, maison seulement, synchro des codes immédiate ;
+  `stay-status` limité aux réservations de la maison non exclues.
