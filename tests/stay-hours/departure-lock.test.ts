@@ -589,6 +589,11 @@ describe("parade caméra du garage (recentMotion)", () => {
     expect(departureLockCheck({ ...standard, now: at(12, 15), recentMotion: at(11, 10) }).status).toBe("unlocked");
   });
 
+  it("au-delà de D + 2 h, un mouvement ne reporte plus rien", () => {
+    expect(departureLockCheck({ ...standard, now: at(13, 5), recentMotion: at(12, 50) }).status).toBe("unlocked");
+    expect(departureLockCheck({ ...standard, now: at(12, 55), recentMotion: at(12, 50) }).status).toBe("presence");
+  });
+
   it("mouvement avant l'heure de départ (partants qui chargent la voiture) : ne reporte rien", () => {
     expect(departureLockCheck({ ...standard, now: at(11, 30), recentMotion: at(10, 50) }).status).toBe("unlocked");
   });

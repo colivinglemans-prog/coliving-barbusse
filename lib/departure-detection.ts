@@ -90,6 +90,11 @@ export interface DepartureLockInput {
 
 /** Un mouvement du garage reporte l'alerte pendant ce délai (minutes). */
 export const MOTION_HOLD_MINUTES = 30;
+/**
+ * Au-delà de D + 2 h, la caméra ne reporte plus rien : un linge qui dépasse le seuil toutes les
+ * 25 min ne doit pas repousser l'alerte jusqu'à la fin du code (relecture Fable, 2026-11-16).
+ */
+export const MOTION_HOLD_MAX_AFTER_DEPARTURE_MINUTES = 120;
 
 /**
  * - `none` : pas de départ aujourd'hui, ou heure de départ + délai de grâce pas encore passée ;
@@ -365,7 +370,8 @@ export function departureLockCheck(input: DepartureLockInput): DepartureLockResu
   if (
     motion !== null &&
     motion.getTime() >= departedAt.getTime() &&
-    now.getTime() - motion.getTime() < MOTION_HOLD_MINUTES * 60_000
+    now.getTime() - motion.getTime() < MOTION_HOLD_MINUTES * 60_000 &&
+    now.getTime() < departedAt.getTime() + MOTION_HOLD_MAX_AFTER_DEPARTURE_MINUTES * 60_000
   ) {
     return {
       status: "presence",
