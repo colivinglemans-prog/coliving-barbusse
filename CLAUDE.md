@@ -500,7 +500,7 @@ remplacement (Smart Lock Ultra, id dans `NUKI_SMARTLOCK_ID`) n'avait pas Nuki We
 |---|---|
 | `@sejour/socle/lib/access-codes` (v3.8.0) | Planificateur pur : quoi créer, recaler, reprendre, supprimer. |
 | `@sejour/socle/lib/nuki` | Client Nuki Web, erreurs expurgées des PIN. |
-| [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, **au passage horaire du cron seulement**, règle commune : `barbusse:alert:nuki-lock` et `…:nuki-codes`, deux passages de suite). Verrou Redis `nuki:sync:lock`. |
+| [lib/access-sync.ts](lib/access-sync.ts) | Lit Beds24 + serrure, exécute dans l'ordre du plan, alerte (ntfy, **au passage horaire du cron seulement**, règle commune : `barbusse:alert:nuki-lock` et `…:nuki-codes`, deux passages de suite). **Exception** (2026-11-16) : pose (`create`/`update`) ratée pour une arrivée aujourd'hui ou demain → `…:nuki-codes-urgent`, priorité 5 **dès le premier échec**, aussi depuis le webhook (le PIN est déjà dans Beds24, une auto-action a pu l'envoyer). Verrou Redis `nuki:sync:lock` à valeur unique, rendu seulement par son détenteur. |
 | `/api/cron/nuki-sync` | Passage horaire (cron-job.org). `?dry=1` = plan sans écriture. |
 | `/api/dashboard/nuki-status` | **Admin seulement.** État du code par réservation (`ok` / `pending` / `error`), calculé à blanc par le planificateur, sans PIN. Alimente la pastille des barres du calendrier (vert / ambre / rouge) et une ligne dans la fiche. |
 | `/api/webhooks/beds24` | Webhook « Booking » de Beds24, en-tête `x-webhook-secret`. Déclenche un passage : PIN posé en quelques secondes pour une réservation de dernière minute. Le corps n'est pas lu. |
@@ -520,7 +520,8 @@ l'écriture échoue, le code n'est pas posé. Le gabarit Beds24 le lit par
 conditionnée à la présence de ce code (« All Booking Info Codes »).
 
 **Variables** : `NUKI_API_TOKEN`, `NUKI_SMARTLOCK_ID`, `NUKI_SYNC_MODE` (`live` pour écrire ;
-toute autre valeur = à blanc), `BEDS24_WEBHOOK_SECRET`.
+toute autre valeur = à blanc **mais les alertes du cron partent quand même** — serrure hors
+ligne, PIN manquant ; `?dry=1` seul les tait), `BEDS24_WEBHOOK_SECRET`.
 
 **Pièges payés le 2026-11-07** :
 - Une mise à jour Nuki (`POST …/auth/{id}`) **efface les champs non renvoyés** — un renommage

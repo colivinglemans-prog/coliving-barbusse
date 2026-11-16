@@ -13,8 +13,16 @@
  * `confirmed`, une fois son code posé) ; le PIN est tiré du téléphone du
  * voyageur quand c'est possible, et **écrit dans Beds24 avant d'être posé sur la serrure**.
  *
- * **Deux modes.** `NUKI_SYNC_MODE=live` écrit ; toute autre valeur (ou `?dry=1`) calcule le
- * plan et le rend sans rien écrire ni notifier. Le premier déploiement se fait à blanc.
+ * **Deux modes.** `NUKI_SYNC_MODE=live` écrit ; toute autre valeur calcule le plan sans rien
+ * écrire, mais **alerte** quand même au passage du cron (serrure hors ligne, PIN manquant…) :
+ * une synchro laissée à blanc ne doit pas rendre une panne muette (2026-11-16). `?dry=1` ne
+ * fait ni l'un ni l'autre.
+ *
+ * **Code communiqué sans ouvrir.** Le PIN est écrit dans Beds24 **avant** la pose sur la
+ * serrure (un code qui ouvre sans que le voyageur l'ait reçu est le pire) ; une auto-action
+ * Beds24 peut donc l'envoyer alors que la pose échoue. Pour une arrivée aujourd'hui ou demain,
+ * cet échec alerte **dès le premier passage**, en priorité 5, quel que soit le déclencheur
+ * (`barbusse:alert:nuki-codes-urgent`) ; au-delà, règle commune des deux passages.
  *
  * **Un passage à la fois.** Le webhook et le cron peuvent tomber ensemble : deux passages
  * concurrents verraient le même séjour sans PIN et en tireraient chacun un. Un verrou Redis
@@ -24,7 +32,7 @@
  * rapport rendu par `runAccessSync` n'en contient pas.
  */
 
-import { randomInt } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { getRedis } from "./redis";
 import {
   keypadArrivals,
@@ -57,6 +65,11 @@ export type SyncAlert = Omit<AccessAlert, "kind"> & {
   kind: AccessAlert["kind"] | "lock" | "execution";
   /** Ce qui a échoué (`create`, `confirm`…) pour une alerte d'exécution : fait partie de l'identifiant. */
   step?: string;
+  /**
+   * Pose ratée d'un code dont le PIN est déjà dans Beds24, pour une arrivée aujourd'hui ou demain :
+   * le voyageur a pu recevoir un code qui n'ouvre pas. Alerte immédiate, hors règle des deux passages.
+   */
+  urgent?: boolean;
 };
 
 /**
@@ -137,14 +150,30 @@ export interface SyncReport {
 
 const LOCK_KEY = "nuki:sync:lock";
 
-async function acquireLock(): Promise<boolean> {
-  // Le webhook peut attendre un passage en cours : c'est lui qui pose le code d'une
-  // réservation de dernière minute. 10 essais espacés de 2 s couvrent un passage normal.
+/** Rend le verrou seulement s'il porte encore notre valeur (atomique côté Redis). */
+const RELEASE_IF_OWNER = 'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end';
+
+/**
+ * Prend le verrou avec une valeur propre à ce passage, ou `null`. Le webhook peut attendre un
+ * passage en cours : c'est lui qui pose le code d'une réservation de dernière minute. 10 essais
+ * espacés de 2 s couvrent un passage normal.
+ */
+async function acquireLock(): Promise<string | null> {
+  const owner = randomUUID();
   for (let i = 0; i < 10; i++) {
-    if (await redis().set(LOCK_KEY, Date.now(), { nx: true, ex: 120 })) return true;
+    if (await redis().set(LOCK_KEY, owner, { nx: true, ex: 120 })) return owner;
     await new Promise((r) => setTimeout(r, 2000));
   }
-  return false;
+  return null;
+}
+
+/**
+ * Libération **conditionnelle** : un passage plus long que l'expiration (120 s) ne doit pas
+ * effacer le verrou qu'un autre passage a pris entre-temps — deux passages tireraient alors
+ * chacun un PIN pour le même séjour.
+ */
+async function releaseLock(owner: string): Promise<void> {
+  await redis().eval(RELEASE_IF_OWNER, [LOCK_KEY], [owner]);
 }
 
 /** Lit Beds24 et la serrure, et calcule le plan. Commun à la synchronisation et à l'état. */
@@ -178,12 +207,15 @@ async function loadState(cfg: NukiConfig) {
 export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trigger: SyncTrigger }): Promise<SyncReport> {
   const mode = dryRun || !syncIsLive() ? "dry" : "live";
   const cfg = nukiConfig();
+  // Alertes évaluées : au passage du cron, réel (pas `?dry=1`), quel que soit `NUKI_SYNC_MODE`.
+  const evaluate = trigger === "cron" && !dryRun;
 
-  if (mode === "live" && !(await acquireLock())) {
+  const owner = mode === "live" ? await acquireLock() : null;
+  if (mode === "live" && owner === null) {
     return { mode, health: { online: false, keypadPaired: false, batteryCritical: false, keypadBatteryCritical: false, batteryChargePercent: null, lockState: null, motorBlocked: false }, stays: 0, actions: [], alerts: [], notified: 0, skipped: "un autre passage est en cours" };
   }
   try {
-    const { health, house, stays, plan } = await loadState(cfg);
+    const { today, health, house, stays, plan } = await loadState(cfg);
     const alerts: SyncAlert[] = [...plan.alerts];
 
     // La pile faible n'est plus signalée ici : le passage de 9 h de la préparation d'arrivée
@@ -210,8 +242,14 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
 
     if (mode === "dry") {
       for (const id of toConfirm) actions.push({ kind: "confirm", bookingId: id });
-      return { mode, health, stays: stays.length, actions, alerts, notified: 0 };
+      // Rien n'est écrit, mais une serrure hors ligne ou un PIN manquant se disent quand même :
+      // une synchro restée à blanc ne doit pas taire une panne (`?dry=1` excepté).
+      const notified = evaluate ? await notify(alerts) : 0;
+      return { mode, health, stays: stays.length, actions, alerts, notified };
     }
+
+    const arrivalOf = new Map(house.map((b) => [b.id, b.arrival]));
+    const soon = new Set([today, addDays(today, 1)]);
 
     // Exécution, dans l'ordre du plan. Une attribution de PIN ratée bloque la pose du code
     // de cette réservation : un code qui ouvre sans que le voyageur l'ait reçu est le pire.
@@ -230,12 +268,19 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
         const error = err instanceof Error ? err.message : String(err);
         actions[i] = { ...actions[i], ok: false, error };
         if (action.kind === "assign-pin") blocked.add(action.bookingId);
+        // Le PIN est déjà dans Beds24 (écrit avant, ou par ce passage) : une auto-action a pu
+        // l'envoyer. Arrivée aujourd'hui ou demain → on ne peut pas attendre le passage suivant.
+        const arrival = arrivalOf.get(action.bookingId);
+        const urgent = (action.kind === "create" || action.kind === "update") && arrival !== undefined && soon.has(arrival);
         alerts.push({
           kind: "execution",
           step: action.kind,
           bookingId: action.bookingId,
-          severity: "high",
-          message: `Réservation ${action.bookingId} : échec de « ${action.kind} » — ${error}`,
+          severity: urgent ? "urgent" : "high",
+          ...(urgent ? { urgent: true } : {}),
+          message: urgent
+            ? `Réservation ${action.bookingId} (arrivée ${arrival === today ? "aujourd'hui" : "demain"}) : le code est dans Beds24 — le message automatique a pu le donner — mais n'a pas pu être posé sur la serrure (« ${action.kind} » — ${error}). Le poser à la main ou prévenir le voyageur.`
+            : `Réservation ${action.bookingId} : échec de « ${action.kind} » — ${error}`,
         });
       }
     }
@@ -253,11 +298,13 @@ export async function runAccessSync({ dryRun, trigger }: { dryRun: boolean; trig
       }
     }
 
-    // `dryRun` a déjà rendu plus haut : seul un vrai passage du cron fait avancer l'état d'alerte.
-    const notified = trigger === "cron" && !dryRun ? await notify(alerts) : 0;
+    // Seul un vrai passage du cron fait avancer l'état d'alerte ordinaire ; l'alerte urgente
+    // part aussi d'un passage lancé par le webhook (c'est souvent lui qui pose le code du jour).
+    let notified = evaluate ? await notify(alerts) : 0;
+    if (!evaluate && alerts.some((a) => a.urgent)) notified += await notifyUrgent(alerts);
     return { mode, health, stays: stays.length, actions, alerts, notified };
   } finally {
-    if (mode === "live") await redis().del(LOCK_KEY).catch(() => {});
+    if (owner !== null) await releaseLock(owner).catch(() => {});
   }
 }
 
@@ -296,8 +343,17 @@ const sendLockAlert = (subject: string, body: string, priority: 1 | 2 | 3 | 4 | 
  *
  * Un PIN qui manque à J-3 puis à J-2 puis le jour même monte de gravité : l'alerte repart à
  * chaque palier, une fois.
+ *
+ * Troisième état, `…:nuki-codes-urgent` : la pose ratée d'un code déjà dans Beds24 pour une
+ * arrivée aujourd'hui ou demain (`urgent`). Sans confirmation (`confirmAfter: 1`), jamais
+ * répétée tant qu'elle dure, « code posé » en priorité 1. Elle sort de `nuki-codes` pour ne pas
+ * repartir une seconde fois au passage suivant.
  */
-export function trackSyncAlerts(alerts: readonly SyncAlert[]): { lock: TrackedAlert[]; codes: TrackedAlert[] } {
+export function trackSyncAlerts(alerts: readonly SyncAlert[]): {
+  lock: TrackedAlert[];
+  codes: TrackedAlert[];
+  urgent: TrackedAlert[];
+} {
   const tracked = (a: SyncAlert): TrackedAlert => ({
     // Stable d'un passage à l'autre : jamais le message (qui porte une erreur, un nombre de jours).
     id: [a.kind, a.bookingId, a.step].filter((x) => x !== undefined).join(":"),
@@ -306,16 +362,36 @@ export function trackSyncAlerts(alerts: readonly SyncAlert[]): { lock: TrackedAl
   });
   return {
     lock: alerts.filter((a) => a.kind === "lock").map(tracked),
-    codes: alerts.filter((a) => a.kind !== "lock").map(tracked),
+    codes: alerts.filter((a) => a.kind !== "lock" && !a.urgent).map(tracked),
+    urgent: alerts.filter((a) => a.urgent).map(tracked),
   };
+}
+
+const URGENT_OPTIONS = {
+  title: (c: TrackedAlert[]) =>
+    c.length === 1
+      ? "Serrure Barbusse — code peut-être envoyé, mais absent du clavier"
+      : `Serrure Barbusse — ${c.length} codes peut-être envoyés, mais absents du clavier`,
+  recoveredTitle: "Serrure Barbusse — codes du jour posés",
+  recoveredBody: "Les codes des arrivées d'aujourd'hui et de demain sont sur la serrure.",
+  confirmAfter: 1,
+};
+
+const isActed = (a: string) => a === "open" || a === "escalate" || a === "recover";
+
+/** L'alerte urgente seule — pour un passage lancé par le webhook, qui n'évalue rien d'autre. */
+async function notifyUrgent(alerts: SyncAlert[]): Promise<number> {
+  const { urgent } = trackSyncAlerts(alerts);
+  return isActed(await reportAlerts("nuki-codes-urgent", urgent, sendLockAlert, URGENT_OPTIONS)) ? 1 : 0;
 }
 
 async function notify(alerts: SyncAlert[]): Promise<number> {
   if (alerts.length > 0 && !process.env.NTFY_TOPIC) {
     throw new Error("NTFY_TOPIC manquant : les alertes de serrure seraient perdues");
   }
-  const { lock, codes } = trackSyncAlerts(alerts);
-  const [lockAction, codesAction] = await Promise.all([
+  const { lock, codes, urgent } = trackSyncAlerts(alerts);
+  const [lockAction, codesAction, urgentAction] = await Promise.all([
+    reportAlerts("nuki-codes-urgent", urgent, sendLockAlert, URGENT_OPTIONS),
     reportAlerts("nuki-lock", lock, sendLockAlert, {
       title: () => "Serrure Barbusse",
       recoveredTitle: "Serrure Barbusse — de nouveau en ligne",
@@ -327,7 +403,7 @@ async function notify(alerts: SyncAlert[]): Promise<number> {
       recoveredBody: "Plus aucun défaut sur les codes du clavier.",
     }),
   ]);
-  return [lockAction, codesAction].filter((a) => a === "open" || a === "escalate" || a === "recover").length;
+  return [lockAction, codesAction, urgentAction].filter(isActed).length;
 }
 
 /** Première ouverture au clavier par réservation, lue dans le journal de la serrure. */

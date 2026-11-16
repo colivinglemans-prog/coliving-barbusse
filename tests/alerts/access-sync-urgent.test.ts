@@ -1,0 +1,175 @@
+/**
+ * Synchro de la serrure : un code posé dans Beds24 mais refusé par la serrure, pour une arrivée
+ * aujourd'hui ou demain, alerte dès le premier passage ; au-delà, règle des deux passages. Une
+ * synchro hors `live` alerte sans rien écrire. Le verrou n'est rendu que par son détenteur.
+ * Serrure, Beds24, Redis et ntfy simulés ; données inventées.
+ */
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { addDays } from "@sejour/socle/lib/dates";
+import { todayParis } from "@sejour/socle/lib/time";
+
+const h = vi.hoisted(() => ({
+  store: new Map<string, unknown>(),
+  sendNtfy: vi.fn<(body: string, options: { title?: string; priority?: number }) => Promise<void>>(async () => {}),
+  bookings: [] as Array<Record<string, unknown>>,
+  online: true,
+  redisSet: vi.fn<(...args: unknown[]) => Promise<string | null>>(async () => "OK"),
+  redisEval: vi.fn<(...args: unknown[]) => Promise<number>>(async () => 1),
+  addNukiPin: vi.fn(async () => {}),
+  confirmBooking: vi.fn(async () => {}),
+  createKeypadCode: vi.fn(async (): Promise<void> => {
+    throw new Error("Nuki 502 : création du code");
+  }),
+}));
+
+vi.mock("@/lib/redis", () => ({
+  getRedis: () => ({ set: h.redisSet, eval: h.redisEval, del: async () => 1 }),
+  hasRedis: () => false,
+  redisKey: (...parts: Array<string | number>) => ["barbusse", ...parts].join(":"),
+  getJson: async (key: string) => h.store.get(key) ?? null,
+  setJson: async (key: string, value: unknown) => {
+    h.store.set(key, JSON.parse(JSON.stringify(value)));
+  },
+}));
+vi.mock("@/lib/beds24", () => ({
+  addNukiPin: h.addNukiPin,
+  confirmBooking: h.confirmBooking,
+  getBookingById: async () => null,
+  getBookings: async () => h.bookings,
+  nukiCodeOf: () => null,
+}));
+vi.mock("@sejour/socle/lib/nuki", () => ({
+  getLockHealth: async () => ({
+    online: h.online,
+    keypadPaired: true,
+    batteryCritical: false,
+    keypadBatteryCritical: false,
+    batteryChargePercent: 80,
+    lockState: null,
+    motorBlocked: false,
+  }),
+  listAuths: async () => [],
+  listLog: async () => [],
+  listLogSince: async () => [],
+  createKeypadCode: h.createKeypadCode,
+  updateKeypadCode: vi.fn(),
+  deleteAuth: vi.fn(),
+}));
+vi.mock("@sejour/socle/lib/ntfy", () => ({ sendNtfy: h.sendNtfy }));
+
+import { runAccessSync } from "@/lib/access-sync";
+
+const today = todayParis();
+
+function stay(arrivalInDays: number) {
+  return {
+    id: 7_000_001,
+    propertyId: 303771,
+    status: "confirmed",
+    firstName: "Voyageur",
+    arrival: addDays(today, arrivalInDays),
+    departure: addDays(today, arrivalInDays + 2),
+    mobile: "",
+    phone: "",
+    infoItems: [],
+  };
+}
+
+beforeEach(() => {
+  h.store.clear();
+  h.sendNtfy.mockClear();
+  h.redisSet.mockClear();
+  h.redisEval.mockClear();
+  h.addNukiPin.mockClear();
+  h.createKeypadCode.mockClear();
+  h.online = true;
+  process.env.NUKI_API_TOKEN = "jeton-de-test";
+  process.env.NUKI_SMARTLOCK_ID = "123";
+  process.env.NUKI_SYNC_MODE = "live";
+  process.env.NTFY_TOPIC = "https://ntfy.example.test/sujet-de-test";
+});
+
+describe("pose ratée d'un code déjà dans Beds24", () => {
+  it.each([0, 1])("arrivée à J+%i : alerte priorité 5 dès le premier passage, jamais répétée", async (days) => {
+    h.bookings = [stay(days)];
+    const report = await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.addNukiPin).toHaveBeenCalledTimes(1); // l'ordre Beds24 → serrure est conservé
+    expect(h.createKeypadCode).toHaveBeenCalledTimes(1);
+    expect(report.alerts.some((a) => a.urgent)).toBe(true);
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    const [body, options] = h.sendNtfy.mock.calls[0];
+    expect(options.priority).toBe(5);
+    expect(options.title).toContain("absent du clavier");
+    expect(body).toContain(days === 0 ? "aujourd'hui" : "demain");
+
+    // Deuxième passage, même échec : ni répétée, ni doublée par l'alerte ordinaire des codes.
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+  });
+
+  it("arrivée à J+1 vue par le webhook : l'alerte urgente part aussi", async () => {
+    h.bookings = [stay(1)];
+    await runAccessSync({ dryRun: false, trigger: "webhook" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(h.sendNtfy.mock.calls[0][1].priority).toBe(5);
+  });
+
+  it("arrivée à J+5 : règle des deux passages, priorité 4", async () => {
+    h.bookings = [stay(5)];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(1);
+    expect(h.sendNtfy.mock.calls[0][1].priority).toBe(4);
+    expect(h.sendNtfy.mock.calls[0][1].title).not.toContain("absent du clavier");
+  });
+
+  it("la pose réussit au passage suivant : « codes du jour posés » en priorité 1", async () => {
+    h.bookings = [stay(0)];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    h.createKeypadCode.mockResolvedValueOnce(undefined);
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).toHaveBeenCalledTimes(2);
+    expect(h.sendNtfy.mock.calls[1][1].priority).toBe(1);
+  });
+});
+
+describe("NUKI_SYNC_MODE autre que live", () => {
+  it("serrure hors ligne : alerte au 2e passage du cron, sans rien écrire ni prendre le verrou", async () => {
+    process.env.NUKI_SYNC_MODE = "dry";
+    h.online = false;
+    h.bookings = [stay(0)];
+    const first = await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(first.mode).toBe("dry");
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    expect(h.sendNtfy).toHaveBeenCalled();
+    expect(h.sendNtfy.mock.calls.some(([, o]) => o.title === "Serrure Barbusse")).toBe(true);
+    expect(h.addNukiPin).not.toHaveBeenCalled();
+    expect(h.createKeypadCode).not.toHaveBeenCalled();
+    expect(h.confirmBooking).not.toHaveBeenCalled();
+    expect(h.redisSet).not.toHaveBeenCalled();
+  });
+
+  it("`?dry=1` : ni écriture ni alerte", async () => {
+    h.online = false;
+    for (let i = 0; i < 3; i++) await runAccessSync({ dryRun: true, trigger: "cron" });
+    expect(h.sendNtfy).not.toHaveBeenCalled();
+    expect(h.store.size).toBe(0);
+  });
+});
+
+describe("verrou", () => {
+  it("rendu seulement par son détenteur (libération conditionnelle, valeur unique)", async () => {
+    h.bookings = [];
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    await runAccessSync({ dryRun: false, trigger: "cron" });
+    const owners = h.redisSet.mock.calls.map((c) => c[1]);
+    expect(owners[0]).toMatch(/^[0-9a-f-]{36}$/);
+    expect(owners[1]).not.toBe(owners[0]);
+    expect(h.redisEval).toHaveBeenCalledTimes(2);
+    const [script, keys, args] = h.redisEval.mock.calls[0] as [string, string[], string[]];
+    expect(script).toContain('redis.call("get", KEYS[1]) == ARGV[1]');
+    expect(keys).toEqual(["nuki:sync:lock"]);
+    expect(args).toEqual([owners[0]]);
+  });
+});

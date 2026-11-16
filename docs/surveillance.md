@@ -174,7 +174,9 @@ règle, dans [lib/alert-memory.ts](../lib/alert-memory.ts) (`reportAlerts`, `rep
 | Alerte | État Redis (`barbusse:alert:…`) | Particularités |
 |---|---|---|
 | Serrure hors ligne / clavier non appairé | `nuki-lock` | Évaluée au **cron horaire seulement**, jamais au passage lancé par le webhook Beds24 (nos propres écritures le déclenchent). Priorité 4. La pile faible n'est plus signalée par la synchro : le passage `daily` de 9 h de la préparation d'arrivée la signale. |
-| Codes du clavier (planificateur, échecs d'écriture, confirmation) | `nuki-codes` | Identifiant = type + réservation (+ étape) ; priorité 3 / 4 / 5 selon la proximité de l'arrivée. |
+| Codes du clavier (planificateur, échecs d'écriture, confirmation) | `nuki-codes` | Identifiant = type + réservation (+ étape) ; priorité 3 / 4 / 5 selon la proximité de l'arrivée. Évaluée aussi quand `NUKI_SYNC_MODE` n'est pas `live` (rien n'est écrit). |
+| Code dans Beds24 mais absent du clavier, arrivée aujourd'hui ou demain | `nuki-codes-urgent` | **Exception à la règle des deux passages** (2026-11-16) : `confirmAfter: 1`, priorité 5, évaluée aussi au passage lancé par le webhook. Le PIN est écrit dans Beds24 avant la pose : une auto-action a pu l'envoyer. Sortie de `nuki-codes` pour ne pas repartir au passage suivant. |
+| Erreur de la synchro (`catch`) | `error:nuki-sync` | Deux passages de suite (`reportCronRun`). |
 | Radiateurs hors ligne | `heating-health` | Ignorés pendant une coupure soupçonnée ou signalée. Un seul radiateur en défaut : priorité 3 si la maison est vide, 4 si des voyageurs sont là ou arrivent d'ici demain (ou si plusieurs sont en défaut). |
 | Radiateurs qui refusent leur mode | `heating-automation` | Deux passages de suite ; un radiateur vu hors ligne au même passage n'y compte pas (c'est `heating-health` qui le signale). |
 | Coupure de courant | (`barbusse:heating:power-cut`, `lib/power-cut.ts`) | Soupçonnée au 1er passage, signalée en priorité 5 au 2e (15 min) si au moins 3 des **mêmes** radiateurs manquent encore (une chute toute neuve repart en soupçon) ; « courant revenu » en priorité 1. |
