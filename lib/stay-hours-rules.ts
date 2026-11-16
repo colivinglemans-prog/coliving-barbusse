@@ -97,9 +97,11 @@ export function withAgreedHours<T>(
   });
 }
 
-const isHour = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 23;
-
-/** Une valeur relue de Redis, réduite à ce qui est valide ; `null` si rien ne l'est. */
+/**
+ * Une valeur relue de Redis, réduite à ce qui est valide **selon les mêmes bornes que la saisie**
+ * (`validateAgreedHours`, `AGREED_RANGE`), champ par champ ; `null` si rien ne l'est. Une valeur
+ * écrite à la main dans Redis hors bornes (un départ à 3 h) est ignorée, pas appliquée.
+ */
 export function parseAgreedHours(raw: unknown): AgreedHours | null {
   let value = raw;
   if (typeof value === "string") {
@@ -111,9 +113,12 @@ export function parseAgreedHours(raw: unknown): AgreedHours | null {
   }
   if (!value || typeof value !== "object") return null;
   const v = value as Record<string, unknown>;
-  const out: AgreedHours = {};
-  if (isHour(v.arrivalHour)) out.arrivalHour = v.arrivalHour;
-  if (isHour(v.departureHour)) out.departureHour = v.departureHour;
+  const arrival = validateAgreedHours({ arrivalHour: v.arrivalHour });
+  const departure = validateAgreedHours({ departureHour: v.departureHour });
+  const out: AgreedHours = {
+    ...(arrival.ok ? arrival.value : {}),
+    ...(departure.ok ? departure.value : {}),
+  };
   return out.arrivalHour === undefined && out.departureHour === undefined ? null : out;
 }
 

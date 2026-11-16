@@ -62,6 +62,10 @@ describe("saisie et relecture", () => {
   it("relecture tolérante : chaîne JSON ou objet, valeurs invalides écartées", () => {
     expect(parseAgreedHours('{"departureHour":16}')).toEqual({ departureHour: 16 });
     expect(parseAgreedHours({ arrivalHour: 14, departureHour: 99 })).toEqual({ arrivalHour: 14 });
+    // Mêmes bornes que la saisie : une valeur posée à la main hors bornes est ignorée.
+    expect(parseAgreedHours({ arrivalHour: 3, departureHour: 16 })).toEqual({ departureHour: 16 });
+    expect(parseAgreedHours({ departureHour: 9 })).toBeNull();
+    expect(parseAgreedHours({ arrivalHour: 17 })).toBeNull();
     expect(parseAgreedHours("pas du json")).toBeNull();
     expect(parseAgreedHours({})).toBeNull();
   });
