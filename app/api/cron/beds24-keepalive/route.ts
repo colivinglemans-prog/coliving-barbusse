@@ -8,12 +8,13 @@ import {
   refreshBeds24PricingToken,
 } from "@/lib/beds24";
 import { sendBeds24Alert } from "@/lib/alerts";
+import { beat } from "@/lib/heartbeat";
 
 /**
  * Maintient les refresh tokens Beds24 en vie.
  *
- * Beds24 invalide un refresh token qui n'a pas servi depuis 30 jours. Le site en a **quatre**
- * depuis le 2026-09-22, et aucun ne s'entretient de façon fiable tout seul :
+ * Beds24 invalide un refresh token qui n'a pas servi depuis 30 jours. Le site en a **cinq**
+ * avec celui des tarifs (quatre depuis le 2026-09-22), et aucun ne s'entretient de façon fiable tout seul :
  *
  * - **écriture** (`BEDS24_REFRESH_TOKEN`) : ne sert qu'à poser une note sur une réservation,
  *   bien trop rare. Sans ce cron il meurt et l'écriture renvoie `401 Token not valid`.
@@ -29,9 +30,18 @@ import { sendBeds24Alert } from "@/lib/alerts";
  *   dans le calendrier. Sa mort ne se voit qu'au moment précis où l'on veut écrire au
  *   voyageur — c'est-à-dire trop tard.
  *
- * Un appel hebdomadaire suffit largement pour les quatre. Les quatre sont tentés même si le
- * premier échoue : un jeton mort ne doit pas en entraîner un second.
+ * - **tarifs** (`BEDS24_PRICING_REFRESH_TOKEN`) : l'envoi des prix ; entretenu seulement si la
+ *   variable existe.
+ *
+ * Un appel hebdomadaire (lundi 4 h, cron-job.org) suffit largement pour les cinq. Tous sont
+ * tentés même si le premier échoue : un jeton mort ne doit pas en entraîner un second.
+ *
+ * Battement `beds24-keepalive` en fin de passage : `ok` si tous les échanges ont réussi, `error`
+ * sinon. Chaque jeton mort a déjà son alerte ; le retard du battement (8 jours) rappelle une
+ * réparation oubliée, ou un cron qui ne tourne plus.
  */
+// Cinq échanges de jeton à la suite, ~1 s chacun.
+export const maxDuration = 30;
 
 type Voie = "ecriture" | "lecture" | "publique" | "messagerie" | "tarifs";
 type Resultat = { ok: true; expiresIn: number } | { ok: false; error: string };
@@ -139,6 +149,7 @@ export async function GET(request: NextRequest) {
   const tarifs = pricing ? await entretenir("tarifs", () => pricing) : null;
 
   const ok = publique.ok && lecture.ok && ecriture.ok && messagerie.ok && (tarifs?.ok ?? true);
+  await beat("beds24-keepalive", ok ? "ok" : "error");
   return NextResponse.json(
     { ok, publique, lecture, ecriture, messagerie, tarifs },
     { status: ok ? 200 : 500 },
