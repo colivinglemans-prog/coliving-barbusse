@@ -224,6 +224,14 @@ export function parseRates(spec: string): Record<string, number> {
   return out;
 }
 
+/** Valeur de `TRACKED_PEOPLE` quand la variable est absente. */
+export const DEFAULT_TRACKED_PEOPLE = "Sophie:ménage,Eric:dépannage";
+
+/** Les personnes suivies, lues dans `TRACKED_PEOPLE` (suivi ménage, alerte de porte au départ). */
+export function trackedPeople(): TrackedPerson[] {
+  return parsePeople(process.env.TRACKED_PEOPLE?.trim() || DEFAULT_TRACKED_PEOPLE);
+}
+
 /** Parse `"Sophie:ménage,Eric:dépannage"` (ou juste `"Sophie,Eric"`) en liste de personnes. */
 export function parsePeople(spec: string): TrackedPerson[] {
   return spec
