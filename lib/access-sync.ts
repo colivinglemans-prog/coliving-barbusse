@@ -36,6 +36,7 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { getRedis } from "./redis";
 import {
+  accessWindow,
   keypadArrivals,
   planAccessCodes,
   type AccessAction,
@@ -60,6 +61,7 @@ import { reportAlerts, type TrackedAlert } from "./alert-memory";
 import { currentHourParis, todayParis } from "@sejour/socle/lib/time";
 import { addNukiPin, confirmBooking, getBookingById, getBookings, nukiCodeOf } from "./beds24";
 import type { Beds24Booking } from "./types";
+import { accessHours, readStayHours, type StayHoursTable } from "./stay-hours";
 
 /** Les alertes du planificateur, plus celles de la serrure et de l'exécution. */
 export type SyncAlert = Omit<AccessAlert, "kind"> & {
@@ -109,7 +111,20 @@ export function syncIsLive(): boolean {
   return process.env.NUKI_SYNC_MODE === "live";
 }
 
-function toStay(b: Beds24Booking): AccessStay {
+/**
+ * Un séjour de la synchronisation, avec sa fenêtre propre quand un horaire a été convenu
+ * (`lib/stay-hours.ts` : de min(14 h, A − 1 h) à max(14 h, D + 1 h)).
+ *
+ * ⚠️ **Point de branchement du socle v3.26.0.** `validFromHour` / `validUntilHour` sont les
+ * champs que la v3.26.0 ajoute à `AccessStay` et que `accessWindow` lit en priorité sur la
+ * politique. Tant que le site est en v3.24.0, le socle les ignore : le code reste posé de 14 h à
+ * 14 h, et `lockStatus` le dit (il affiche la fenêtre que **le socle** calcule). Après la montée
+ * de version, ce type se réduit à `AccessStay` (les champs y seront) et la synchro horaire recale
+ * d'elle-même les codes concernés (motif `window` du plan).
+ */
+type AccessStayWithHours = AccessStay & { validFromHour?: number; validUntilHour?: number };
+
+function toStay(b: Beds24Booking, table: StayHoursTable): AccessStayWithHours {
   const status =
     b.status === "cancelled"
       ? "cancelled"
@@ -124,6 +139,7 @@ function toStay(b: Beds24Booking): AccessStay {
     status,
     pin: nukiCodeOf(b),
     phone: b.mobile || b.phone || null,
+    ...accessHours(table[b.id] ?? {}, ACCESS_POLICY),
   };
 }
 
@@ -190,10 +206,12 @@ async function releaseLock(owner: string): Promise<void> {
 /** Lit Beds24 et la serrure, et calcule le plan. Commun à la synchronisation et à l'état. */
 async function loadState(cfg: NukiConfig) {
   const today = todayParis();
-  const [health, auths, bookings] = await Promise.all([
+  const [health, auths, bookings, stayHours] = await Promise.all([
     getLockHealth(cfg),
     listAuths(cfg),
     getBookings({ departureFrom: addDays(today, -1), statuses: ALL_STATUSES, includeInfoItems: true, fresh: true }),
+    // Horaires convenus : ne lève jamais (Redis injoignable ⇒ fenêtre standard).
+    readStayHours(),
   ]);
   const house = bookings.filter((b) => b.propertyId === HOUSE_PROPERTY_ID);
 
@@ -210,7 +228,7 @@ async function loadState(cfg: NukiConfig) {
     if (b && b.propertyId === HOUSE_PROPERTY_ID) house.push(b);
   }
 
-  const stays = house.map(toStay);
+  const stays = house.map((b) => toStay(b, stayHours));
   const plan = planAccessCodes({ stays, auths, today, now: new Date(), policy: ACCESS_POLICY, random: randomInt });
   return { today, health, auths, house, stays, plan };
 }
@@ -498,7 +516,7 @@ export async function lockStatus(): Promise<LockStatus> {
         detail: `En attente du prochain passage : ${todo.map((a) => ACTION_LABEL[a.kind]).join(", ")}.`,
       };
     } else {
-      bookings[stay.bookingId] = { state: "ok", detail: "Code posé sur la serrure, 14 h → 14 h." };
+      bookings[stay.bookingId] = { state: "ok", detail: `Code posé sur la serrure, ${windowLabel(stay)}.` };
     }
   }
   if (!health.online || !health.keypadPaired) {
@@ -510,6 +528,18 @@ export async function lockStatus(): Promise<LockStatus> {
     }
   }
   return { health, bookings };
+}
+
+/**
+ * « 14 h → 14 h », ou « 13 h → 17 h » pour un séjour à horaires convenus — lu dans la fenêtre que
+ * **le socle** calcule (`accessWindow`), jamais déduit des horaires : en v3.24.0, qui ignore les
+ * champs par séjour, la pastille dit donc toujours ce qui est réellement posé.
+ */
+function windowLabel(stay: AccessStay): string {
+  const w = accessWindow(stay, ACCESS_POLICY);
+  const hourOf = (iso: string) =>
+    Number(new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hour12: false }));
+  return `${hourOf(w.allowedFromDate)} h → ${hourOf(w.allowedUntilDate)} h`;
 }
 
 const ACTION_LABEL: Record<AccessAction["kind"], string> = {

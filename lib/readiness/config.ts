@@ -13,8 +13,18 @@ import type { PassKind, Severity } from "@sejour/socle/lib/arrival-readiness/typ
  * Les heures de silence (22 h → 8 h) sont appliquées par le socle, pas par l'horaire du cron :
  * le passage `late` d'une arrivée annoncée à 23 h tombe à 22 h et doit pouvoir parler.
  */
-export const READINESS_SCHEDULE: ReadinessSchedule = {
+/**
+ * ⚠️ **Point de branchement du socle v3.26.0** : `earliestCheckIn` y entre dans
+ * `ReadinessSchedule` — une `arrivalTime` antérieure à `checkIn` mais au moins égale à
+ * `earliestCheckIn` avance les passages noon / preheat / final. Posé ici parce que le chauffage
+ * suit l'arrivée anticipée convenue (préchauffage A − 5 h / A − 2 h, `lib/heating-schedule.ts`) ;
+ * « 08:00 » est aussi la borne basse d'une arrivée anticipée saisissable (`AGREED_RANGE`,
+ * `lib/stay-hours.ts`). En v3.24.0 le champ est ignoré. Après la montée, l'intersection de type
+ * ci-dessous se réduit à `ReadinessSchedule`.
+ */
+const schedule: ReadinessSchedule & { earliestCheckIn?: string } = {
   checkIn: "17:00",
+  earliestCheckIn: "08:00",
   eve: "19:00",
   noon: "12:30",
   preheat: "15:30",
@@ -26,6 +36,8 @@ export const READINESS_SCHEDULE: ReadinessSchedule = {
   quietFrom: "22:00",
   quietUntil: "08:00",
 };
+
+export const READINESS_SCHEDULE: ReadinessSchedule = schedule;
 
 export const READINESS_POLICY: ReadinessPolicy = {
   offlineAfterMisses: 2,
