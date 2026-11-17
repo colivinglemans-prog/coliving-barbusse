@@ -101,3 +101,11 @@ describe("accueil", () => {
     expect(home.some((p) => p.supersededBy || isPastEvent(p, TODAY))).toBe(false);
   });
 });
+
+describe("série d'articles sur l'accueil", () => {
+  it("une série n'occupe qu'une place, celle de son article de tête", () => {
+    const home = homeSelection("2026-11-17");
+    const gym = home.filter((p) => p.series === "salle-de-sport");
+    expect(gym.map((p) => p.slug)).toEqual(["salle-de-sport-privee-le-mans"]);
+  });
+});

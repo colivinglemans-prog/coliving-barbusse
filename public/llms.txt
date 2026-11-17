@@ -51,7 +51,13 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Salon avec canapé d'angle et grande smart TV (entrée HDMI)
 - Véranda avec coin café et coin apéro
 - Jardin clos de 90 m², plein sud, grandes tables pour manger dehors à 20 à la belle saison
-- Salle de sport privée, indépendante de la maison (vélo elliptique, haltères, banc de musculation) et salle zen avec tapis de yoga (étirements)
+- Salle de sport privée, dans une annexe indépendante de la maison, réservée aux voyageurs, sol en dalles amortissantes en caoutchouc de 20 mm (on peut y lâcher une barre chargée de bumpers) :
+  - Force : cage à squat avec barre de traction, barres de dips, poulie haute et basse (5 poignées : poignée de tirage à prises parallèles, corde à triceps, barre large pour dorsaux, poignée simple, barre droite courte) ; barre olympique 20 kg (2,20 m) avec manchon de squat et pinces ; 165 kg de bumpers (185 kg avec la barre) ; banc de musculation réglable ; ceinture d'haltérophilie
+  - Haltères et poulie : 60 kg de disques en fonte (2 × 10, 4 × 5, 6 × 2, 8 × 1 kg)
+  - Cardio : rameur Concept2, vélo elliptique NordicTrack, corde à sauter
+  - Cross-training et mobilité : médecine-ball de 6 kg, box de saut en bois (20 à 50 cm), élastiques, bâton de mobilité, tapis de sol
+  - Sans encadrement, sous la responsabilité de chacun ; mineurs accompagnés d'un adulte
+- Salle zen avec tapis de yoga (étirements)
 - Internet par la fibre, Wi-Fi 7 ultra haut débit
 - Lave-linge et sèche-linge
 - Draps, serviettes et ménage de fin de séjour compris ; ménage en cours de séjour et changement des draps sur demande, en supplément
@@ -96,7 +102,7 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Jeunes de 10 à 17 ans acceptés sans leurs parents, sous la responsabilité de leurs encadrants majeurs
 - Arrivée possible à toute heure après la route, à partir de 17h
 - Linge de sport : lave-linge et sèche-linge. Repas d'équipe : cuisine équipée, table de 16 à 20 places.
-- Récupération : salle de sport privée, salle zen pour les étirements, jardin clos, parc du Gué de Maulny à 5 min à pied pour courir
+- Préparation physique et récupération : salle de sport privée (cage à squat, barre olympique et bumpers, poulie, rameur Concept2, vélo elliptique), salle zen pour les étirements, jardin clos, parc du Gué de Maulny à 5 min à pied pour courir
 - Accès aux sites : Antarès et MMArena en tram T1 direct (terminus) ; hippodrome des Hunaudières à environ 20 min en voiture ; Pôle européen du cheval (Yvré-l'Évêque) à environ 20 min en voiture
 - Événements sportifs du Mans : 24 Heures Rollers, 24 Heures Vélo, réunions hippiques des Hunaudières
 
@@ -131,5 +137,10 @@ Les mêmes outils (`get_property_info`, `check_availability`, `get_quote`, `find
 - Concours équestres au Pôle Européen du Cheval : https://www.coliving-barbusse.fr/fr/blog/concours-equestre-pole-europeen-du-cheval
 - Concours, salons et congrès : https://www.coliving-barbusse.fr/fr/blog/concours-salons-le-mans
 - 24 Heures Vélo 2027 : https://www.coliving-barbusse.fr/fr/blog/24-heures-velo-le-mans-2027
+- La salle de sport privée en détail : https://www.coliving-barbusse.fr/fr/blog/salle-de-sport-privee-le-mans
+- Séances d'entraînement, seul ou à plusieurs : https://www.coliving-barbusse.fr/fr/blog/entrainements-salle-de-sport-le-mans
+- Récupération après l'effort : https://www.coliving-barbusse.fr/fr/blog/recuperation-apres-effort-le-mans
+- Décrassage le lendemain d'une soirée (mariage, anniversaire, soirée en ville) : https://www.coliving-barbusse.fr/fr/blog/decrassage-lendemain-de-soiree-le-mans
+- Préparation physique par discipline : https://www.coliving-barbusse.fr/fr/blog/preparation-physique-course-automobile-le-mans (course automobile), https://www.coliving-barbusse.fr/fr/blog/preparation-physique-karting-le-mans (karting), https://www.coliving-barbusse.fr/fr/blog/preparation-physique-cyclisme-le-mans (cyclisme), https://www.coliving-barbusse.fr/fr/blog/preparation-physique-roller-le-mans (roller), https://www.coliving-barbusse.fr/fr/blog/preparation-physique-volley-ball-le-mans (volley-ball), https://www.coliving-barbusse.fr/fr/blog/preparation-physique-handball-le-mans (handball), https://www.coliving-barbusse.fr/fr/blog/preparation-physique-equitation-le-mans (équitation), https://www.coliving-barbusse.fr/fr/blog/preparation-physique-course-a-pied-le-mans (course à pied)
 - Conditions de réservation (paiement, annulation, arrivée, règles, accueil des enfants, données) : https://www.coliving-barbusse.fr/fr/conditions
 - Blog (événements du circuit, Le Mans) : https://www.coliving-barbusse.fr/fr/blog

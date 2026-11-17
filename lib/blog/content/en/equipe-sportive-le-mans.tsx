@@ -85,8 +85,10 @@ export default function Article() {
       <h2>Warm-up, stretching and recovery</h2>
       <ul>
         <li>
-          <strong>A private gym, separate from the house</strong>: elliptical trainer,
-          dumbbells, weight bench, for an activation session or a light workout.
+          <strong>A private gym, separate from the house</strong>: squat rack, Olympic bar and
+          bumper plates, cable pulley, Concept2 rower, elliptical trainer, for a morning
+          activation or a proper session (see{" "}
+          <Link href="/en/blog/salle-de-sport-privee-le-mans">the gym in detail</Link>).
         </li>
         <li>
           <strong>A zen room with yoga mats</strong> for stretching after exercise.

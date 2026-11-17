@@ -87,9 +87,10 @@ export default function Article() {
       <h2>Échauffement, étirements et récupération</h2>
       <ul>
         <li>
-          <strong>Une salle de sport privée, indépendante de la maison</strong> : vélo
-          elliptique, haltères, banc de musculation, pour un réveil musculaire ou une séance
-          légère.
+          <strong>Une salle de sport privée, indépendante de la maison</strong> : cage à
+          squat, barre olympique et bumpers, poulie, rameur Concept2, vélo elliptique, pour un
+          réveil musculaire ou une vraie séance (voir{" "}
+          <Link href="/fr/blog/salle-de-sport-privee-le-mans">la salle en détail</Link>).
         </li>
         <li>
           <strong>Une salle zen avec tapis de yoga</strong> pour les étirements après l'effort.
