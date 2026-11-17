@@ -75,7 +75,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-karting-le-mans",
     journey: ["groupe", "preparer"],
     date: "2026-11-17",
-    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-karting-le-mans.jpg",
+    imageCredit: {
+      author: "KrisMizdrak27 + Coliving Barbusse (montage)",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:KartingNSKC.jpg",
+      license: "CC BY-SA 4.0",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -144,7 +150,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-handball-le-mans",
     journey: ["groupe"],
     date: "2026-11-16",
-    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-handball-le-mans.jpg",
+    imageCredit: {
+      author: "Kryštof Zajíček + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/YN2xypsV_cM",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -213,7 +225,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-equitation-le-mans",
     journey: ["groupe"],
     date: "2026-11-15",
-    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-equitation-le-mans.jpg",
+    imageCredit: {
+      author: "Danny Zelck + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/stLCEVtTyKc",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -282,7 +300,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-volley-ball-le-mans",
     journey: ["groupe"],
     date: "2026-11-14",
-    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-volley-ball-le-mans.jpg",
+    imageCredit: {
+      author: "Daniil Kazorin + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/zcFVqlOcslk",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -351,7 +375,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-roller-le-mans",
     journey: ["groupe"],
     date: "2026-11-13",
-    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-roller-le-mans.jpg",
+    imageCredit: {
+      author: "Joao Viegas + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/v8SAatAAKJQ",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -420,7 +450,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-cyclisme-le-mans",
     journey: ["groupe"],
     date: "2026-11-12",
-    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-cyclisme-le-mans.jpg",
+    imageCredit: {
+      author: "Roy Egloff + Coliving Barbusse (montage)",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:CH.ZH.Affoltern-am-Albis_2024-03-30_road-bike-racing.jpg",
+      license: "CC BY-SA 4.0",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -489,7 +525,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "recuperation-apres-effort-le-mans",
     journey: ["sur-place"],
     date: "2026-11-11",
-    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/recuperation-apres-effort-le-mans.jpg",
+    imageCredit: {
+      author: "Alora Griffiths + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/WX7FSaiYxK8",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -558,7 +600,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-course-automobile-le-mans",
     journey: ["groupe", "preparer"],
     date: "2026-11-10",
-    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-course-automobile-le-mans.jpg",
+    imageCredit: {
+      author: "Mickael Le rouzic + Coliving Barbusse (montage)",
+      sourceUrl: "https://commons.wikimedia.org/wiki/File:2024_24_Hours_of_Le_Mans_(54093434907).jpg",
+      license: "CC BY 2.0",
+      licenseUrl: "https://creativecommons.org/licenses/by/2.0/",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -910,7 +958,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "preparation-physique-course-a-pied-le-mans",
     journey: ["groupe"],
     date: "2026-11-05",
-    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/preparation-physique-course-a-pied-le-mans.jpg",
+    imageCredit: {
+      author: "Mārtiņš Zemlickis + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/NPFu4GfFZ7E",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -1134,7 +1188,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "cross-training-le-mans",
     journey: ["groupe"],
     date: "2026-11-02",
-    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/cross-training-le-mans.jpg",
+    imageCredit: {
+      author: "Mariah Krafft + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/KaxVB5xh4Nw",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
@@ -1203,7 +1263,13 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "decrassage-lendemain-de-soiree-le-mans",
     journey: ["sur-place"],
     date: "2026-10-31",
-    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    image: "/images/blog/salle-de-sport/couvertures/decrassage-lendemain-de-soiree-le-mans.jpg",
+    imageCredit: {
+      author: "Carrie Borden + Coliving Barbusse (montage)",
+      sourceUrl: "https://unsplash.com/photos/hiZPxDI7WCg",
+      license: "Unsplash License",
+      licenseUrl: "https://unsplash.com/license",
+    },
     series: "salle-de-sport",
     locales: {
       fr: {
