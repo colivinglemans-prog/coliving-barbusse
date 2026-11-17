@@ -88,8 +88,10 @@ export default function Article() {
       <h2>Riscaldamento, stretching e recupero</h2>
       <ul>
         <li>
-          <strong>Una palestra privata, separata dalla casa</strong>: ellittica, manubri, panca
-          per pesi, per un risveglio muscolare o una seduta leggera.
+          <strong>Una palestra privata, separata dalla casa</strong>: rack per squat, bilanciere
+          olimpico e bumper, cavo con carrucola, vogatore Concept2, ellittica, per un risveglio
+          muscolare o un vero allenamento (vedi{" "}
+          <Link href="/it/blog/salle-de-sport-privee-le-mans">la palestra nel dettaglio</Link>).
         </li>
         <li>
           <strong>Una sala zen con tappetini da yoga</strong> per lo stretching dopo lo sforzo.

@@ -36,6 +36,10 @@ const T = {
     sCafeTitle: "Le café",
     sCafeBody: "La cuisine est équipée d'une machine à café à grain (De'Longhi Magnifica S) : versez les grains dans le réservoir du haut, posez votre tasse, appuyez. Le moulin fait le reste.",
     sCafeNote: "Nous laissons toujours du café en grains à disposition, mais nous ne pouvons pas garantir la quantité pour tout un séjour à plusieurs. Si vous êtes de bons buveurs de café, prévoyez un paquet — le Carrefour City sur le chemin de la gare en vend.",
+    sGymTitle: "La salle de sport",
+    sGymBody: "Au fond du jardin, dans l'annexe, la salle de sport est réservée à votre groupe : cage à squat avec poulie, barre olympique et bumpers, banc, rameur Concept2, vélo elliptique, box et médecine-ball. Le sol en dalles caoutchouc permet de lâcher une barre chargée de bumpers (jamais les disques en fonte).",
+    sGymNote: "Sans encadrement : chacun s'entraîne sous sa responsabilité, et les mineurs avec un adulte. Merci de ranger barres, disques et box après la séance.",
+    sGymIdeas: "Des idées de séances, avec une vidéo pour chaque exercice :",
     sSofaTitle: "Les deux lits d'appoint",
     sSofaBody: "Deux des neuf chambres disposent d'un canapé-lit une place, ce qui porte la capacité de la maison à 20 voyageurs. Par défaut, ils restent en position canapé.",
     sSofaNote: "Prévenez-nous avant votre arrivée si vous avez besoin de l'un ou des deux : nous les déplierons et les préparerons avec draps et serviettes, pour que tout soit prêt en arrivant.",
@@ -148,6 +152,10 @@ const T = {
     sCafeTitle: "Coffee",
     sCafeBody: "The kitchen has a bean-to-cup coffee machine (De'Longhi Magnifica S): pour the beans into the hopper on top, place your cup, press. The grinder does the rest.",
     sCafeNote: "We always leave coffee beans available, but we can't guarantee there will be enough for a whole stay with a group. If you're serious coffee drinkers, bring a bag along — the Carrefour City on the way from the station sells them.",
+    sGymTitle: "The gym",
+    sGymBody: "At the bottom of the garden, in the annexe, the gym is reserved for your group: squat rack with cable pulley, Olympic bar and bumper plates, bench, Concept2 rower, elliptical trainer, plyo box and medicine ball. The rubber-tiled floor means you can drop a bar loaded with bumper plates (never the cast-iron plates).",
+    sGymNote: "Unsupervised: everyone trains at their own risk, and minors with an adult. Please put bars, plates and the box away after your session.",
+    sGymIdeas: "Workout ideas, with a video for every exercise:",
     sSofaTitle: "The two extra beds",
     sSofaBody: "Two of the nine bedrooms have a single sofa bed, bringing the capacity of the house to 20 guests. By default they stay folded as sofas.",
     sSofaNote: "Let us know before you arrive if you need one or both: we'll unfold them and make them up with sheets and towels, so everything is ready when you get here.",
@@ -260,6 +268,10 @@ const T = {
     sCafeTitle: "Il caffè",
     sCafeBody: "La cucina è dotata di una macchina per il caffè in grani (De'Longhi Magnifica S): versa i chicchi nel contenitore in alto, metti la tazza e premi. Al resto pensa il macinacaffè.",
     sCafeNote: "Lasciamo sempre del caffè in grani a disposizione, ma non possiamo garantire che basti per un intero soggiorno di gruppo. Se bevi molto caffè, porta con te una confezione — il Carrefour City sulla strada dalla stazione lo vende.",
+    sGymTitle: "La palestra",
+    sGymBody: "In fondo al giardino, nella dépendance, la palestra è riservata al tuo gruppo: rack per squat con cavo e carrucola, bilanciere olimpico e bumper, panca, vogatore Concept2, ellittica, box e palla medica. Il pavimento in piastrelle di gomma permette di lasciar cadere un bilanciere caricato con i bumper (mai i dischi in ghisa).",
+    sGymNote: "Senza istruttore: ognuno si allena sotto la propria responsabilità, e i minorenni con un adulto. Grazie di rimettere a posto bilancieri, dischi e box dopo l'allenamento.",
+    sGymIdeas: "Qualche idea di allenamento, con un video per ogni esercizio:",
     sSofaTitle: "I due letti supplementari",
     sSofaBody: "Due delle nove camere dispongono di un divano letto singolo, che porta la capacità della casa a 20 ospiti. Di norma restano chiusi, in versione divano.",
     sSofaNote: "Avvisaci prima del tuo arrivo se hai bisogno di uno o di entrambi: li apriremo e li prepareremo con lenzuola e asciugamani, così troverai tutto pronto.",
@@ -372,6 +384,10 @@ const T = {
     sCafeTitle: "Kaffee",
     sCafeBody: "In der Küche steht ein Kaffeevollautomat (De'Longhi Magnifica S): Bohnen oben einfüllen, Tasse hinstellen, Taste drücken. Das Mahlwerk erledigt den Rest.",
     sCafeNote: "Wir stellen immer Kaffeebohnen bereit, können aber nicht garantieren, dass die Menge für einen ganzen Aufenthalt in der Gruppe reicht. Wenn Sie viel Kaffee trinken, bringen Sie gerne eine Packung mit — der Carrefour City auf dem Weg vom Bahnhof führt welche.",
+    sGymTitle: "Der Fitnessraum",
+    sGymBody: "Am Ende des Gartens, im Nebengebäude, steht der Fitnessraum nur Ihrer Gruppe zur Verfügung: Squat-Rack mit Kabelzug, Olympiastange und Bumper Plates, Hantelbank, Concept2-Rudergerät, Crosstrainer, Box und Medizinball. Auf dem Boden aus Gummimatten darf man eine mit Bumper Plates beladene Stange fallen lassen (niemals die Gusseisenscheiben).",
+    sGymNote: "Ohne Betreuung: Jeder trainiert auf eigene Verantwortung, Minderjährige mit einem Erwachsenen. Bitte räumen Sie Stangen, Scheiben und Box nach dem Training auf.",
+    sGymIdeas: "Ideen für Trainingseinheiten, mit einem Video zu jeder Übung:",
     sSofaTitle: "Die zwei Zusatzbetten",
     sSofaBody: "Zwei der neun Zimmer verfügen über ein Schlafsofa für eine Person, womit das Haus bis zu 20 Gäste beherbergt. Standardmäßig bleiben sie als Sofa zusammengeklappt.",
     sSofaNote: "Sagen Sie uns vor Ihrer Ankunft Bescheid, wenn Sie eines oder beide benötigen: Wir klappen sie aus und beziehen sie mit Bettwäsche und Handtüchern, damit bei Ihrer Ankunft alles bereit ist.",
@@ -484,6 +500,10 @@ const T = {
     sCafeTitle: "El café",
     sCafeBody: "La cocina está equipada con una cafetera automática de grano (De'Longhi Magnifica S): echa los granos en el depósito superior, coloca la taza y pulsa. El molinillo hace el resto.",
     sCafeNote: "Siempre dejamos café en grano a disposición, pero no podemos garantizar que haya suficiente para toda una estancia en grupo. Si tomas mucho café, trae un paquete — el Carrefour City de camino desde la estación los vende.",
+    sGymTitle: "El gimnasio",
+    sGymBody: "Al fondo del jardín, en el anexo, el gimnasio está reservado a tu grupo: jaula de sentadillas con polea, barra olímpica y discos bumper, banco, remo Concept2, bicicleta elíptica, cajón y balón medicinal. El suelo de losetas de caucho permite soltar una barra cargada con bumpers (nunca los discos de hierro).",
+    sGymNote: "Sin supervisión: cada uno entrena bajo su responsabilidad, y los menores con un adulto. Por favor, recoge barras, discos y cajón después de la sesión.",
+    sGymIdeas: "Ideas de sesiones, con un vídeo para cada ejercicio:",
     sSofaTitle: "Las dos camas supletorias",
     sSofaBody: "Dos de las nueve habitaciones disponen de un sofá cama de una plaza, lo que eleva la capacidad de la casa a 20 viajeros. Por defecto permanecen plegados como sofá.",
     sSofaNote: "Avísanos antes de tu llegada si necesitas una o las dos: las desplegaremos y las prepararemos con sábanas y toallas, para que todo esté listo al llegar.",
@@ -610,7 +630,15 @@ export default async function GuideArrivee({
 
   // « Découvrir Le Mans » : les articles de l'étape « sur place » (`journey`), calculés et non
   // plus listés à la main ; plus d'article de vente aux entreprises ici.
-  const featuredPosts = listedPosts().filter((p) => p.journey.includes("sur-place"));
+  const featuredPosts = listedPosts().filter(
+    (p) => p.journey.includes("sur-place") && p.series !== "salle-de-sport",
+  );
+  // La salle de sport a son propre bloc : ses articles « sur place » (séances, récupération,
+  // décrassage), jamais l'article de tête, qui se termine par « réservez » (le lien du guide
+  // part dans les fils Airbnb / Booking).
+  const gymPosts = listedPosts().filter(
+    (p) => p.series === "salle-de-sport" && p.journey.includes("sur-place"),
+  );
   // « Revenir » : les prochains événements aux dates officielles qui ont leur article.
   const today = todayInParis();
   const upcoming = sortForList(listedPosts(), today).filter((p) => isUpcomingOfficial(p, today));
@@ -925,6 +953,44 @@ export default async function GuideArrivee({
           <div>
             <p className="text-sm text-secondary">{t.sCafeBody}</p>
             <p className="mt-3 text-sm text-secondary">{t.sCafeNote}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6.ter Salle de sport */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-bold text-foreground">🏋️ {t.sGymTitle}</h2>
+        <div className="mt-5 grid gap-5 sm:grid-cols-[200px_1fr] sm:items-start">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <Image
+              src="/images/blog/salle-de-sport/cage-squat-maison.jpg"
+              alt={t.sGymTitle}
+              width={1920}
+              height={1280}
+              className="h-auto w-full object-cover"
+              sizes="(max-width: 640px) 100vw, 200px"
+            />
+          </div>
+          <div>
+            <p className="text-sm text-secondary">{t.sGymBody}</p>
+            <p className="mt-3 text-sm text-secondary">{t.sGymNote}</p>
+            {gymPosts.length > 0 && (
+              <>
+                <p className="mt-3 text-sm text-secondary">{t.sGymIdeas}</p>
+                <ul className="mt-2 space-y-1 text-sm">
+                  {gymPosts.map((post) => (
+                    <li key={post.slug}>
+                      <Link
+                        href={`/${locale}/blog/${post.slug}`}
+                        className="font-medium text-primary hover:text-primary-dark"
+                      >
+                        {getLocalizedPost(post, locale).title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         </div>
       </section>

@@ -60,10 +60,638 @@ export interface BlogPostMeta {
    * le rôle de `event`, pour l'article consacré à un seul événement.
    */
   events?: string[];
+  /**
+   * Série d'articles apparentés (ex. `salle-de-sport`) : l'accueil n'en montre qu'un à la fois
+   * parmi les séjours de groupe, pour qu'une série ne prenne pas toute la place.
+   */
+  series?: string;
+  /** L'article qui représente sa série sur l'accueil (un seul par série). */
+  seriesLead?: boolean;
   locales: Record<Locale, LocalizedPost>;
 }
 
 export const BLOG_POSTS: BlogPostMeta[] = [
+  {
+    slug: "preparation-physique-karting-le-mans",
+    journey: ["groupe", "preparer"],
+    date: "2026-11-17",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Préparation physique karting : cou, poigne et cardio",
+          "description": "Cou, avant-bras, gainage, cardio : la préparation physique des pilotes de karting au circuit international du Mans, jeunes pilotes compris.",
+          "excerpt": "Ni direction assistée ni suspension : la séance du pilote de karting, l'activation du matin de course et les règles pour les jeunes pilotes.",
+          "keywords": [
+            "préparation physique karting",
+            "musculation cou pilote karting",
+            "entraînement pilote karting",
+            "hébergement équipe karting Le Mans",
+            "SWS Karting Finals logement"
+          ]
+        },
+      en: {
+          "title": "Karting Fitness Training: Neck, Grip and Cardio",
+          "description": "Neck, forearms, core, cardio: fitness training for karting drivers at the Le Mans international karting circuit, young drivers included.",
+          "excerpt": "No power steering, no suspension: the karting driver's session, the race-morning activation and the rules for young drivers.",
+          "keywords": [
+            "karting fitness training",
+            "neck exercises for karting",
+            "kart driver workout",
+            "karting team accommodation le mans",
+            "sws karting finals accommodation"
+          ]
+        },
+      it: {
+          "title": "Preparazione atletica kart: collo, presa e cardio",
+          "description": "Collo, avambracci, core, cardio: la preparazione atletica dei piloti di kart al circuito internazionale di Le Mans, giovani piloti compresi.",
+          "excerpt": "Né servosterzo né sospensioni: l'allenamento del pilota di kart, l'attivazione della mattina di gara e le regole per i giovani piloti.",
+          "keywords": [
+            "preparazione atletica kart",
+            "allenamento collo pilota kart",
+            "esercizi per piloti di kart",
+            "palestra per kartisti",
+            "alloggio squadra kart Le Mans"
+          ]
+        },
+      de: {
+          "title": "Fitnesstraining Kartsport: Nacken, Griffkraft, Ausdauer",
+          "description": "Nacken, Unterarme, Rumpf, Ausdauer: das Athletiktraining für Kartfahrer auf der internationalen Kartbahn von Le Mans, junge Fahrer inklusive.",
+          "excerpt": "Weder Servolenkung noch Federung: die Einheit für Kartfahrer, die Aktivierung am Rennmorgen und die Regeln für junge Fahrer.",
+          "keywords": [
+            "Fitnesstraining Kartfahrer",
+            "Nackentraining Kart",
+            "Training Kartsport",
+            "Unterkunft Kartteam Le Mans",
+            "SWS Karting Finals Unterkunft"
+          ]
+        },
+      es: {
+          "title": "Preparación física para karting: cuello, agarre y cardio",
+          "description": "Cuello, antebrazos, core, cardio: la preparación física de los pilotos de karting en el circuito internacional de Le Mans, pilotos jóvenes incluidos.",
+          "excerpt": "Sin dirección asistida ni suspensión: la sesión del piloto de karting, la activación de la mañana de carrera y las normas para los pilotos jóvenes.",
+          "keywords": [
+            "preparación física karting",
+            "ejercicios de cuello karting",
+            "entrenamiento piloto de karting",
+            "alojamiento equipo karting Le Mans",
+            "alojamiento SWS Karting Finals"
+          ]
+        },
+    },
+  },
+  {
+    slug: "preparation-physique-handball-le-mans",
+    journey: ["groupe"],
+    date: "2026-11-16",
+    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Préparation physique handball : explosivité et prévention",
+          "description": "Explosivité, genoux, épaule du tireur, circuit d'équipe : la préparation physique d'une équipe de handball en tournoi ou en stage au Mans.",
+          "excerpt": "Sprints, duels, tirs en suspension : la séance de force et d'explosivité, la prévention avant chaque séance, et le week-end de tournoi à la maison.",
+          "keywords": [
+            "préparation physique handball",
+            "musculation handballeur",
+            "prévention blessures handball",
+            "hébergement équipe handball Le Mans",
+            "stage handball Le Mans logement"
+          ]
+        },
+      en: {
+          "title": "Handball Fitness Training: Power and Injury Prevention",
+          "description": "Explosive power, knees, the throwing shoulder, team circuit: fitness training for a handball team at a tournament or camp in Le Mans.",
+          "excerpt": "Sprints, duels, jump shots: the strength and power session, the prehab before every session, and a tournament weekend at the house.",
+          "keywords": [
+            "handball strength and conditioning",
+            "handball gym workout",
+            "handball injury prevention",
+            "handball team accommodation le mans",
+            "handball training camp france"
+          ]
+        },
+      it: {
+          "title": "Preparazione atletica pallamano: esplosività e prevenzione",
+          "description": "Esplosività, ginocchia, spalla del tiratore, circuito di squadra: la preparazione atletica di una squadra di pallamano in torneo o ritiro a Le Mans.",
+          "excerpt": "Scatti, duelli, tiri in sospensione: l'allenamento di forza ed esplosività, la prevenzione prima di ogni seduta e il weekend di torneo in casa.",
+          "keywords": [
+            "preparazione atletica pallamano",
+            "esercizi palestra pallamano",
+            "prevenzione infortuni pallamano",
+            "allenamento esplosività",
+            "alloggio squadra pallamano Le Mans"
+          ]
+        },
+      de: {
+          "title": "Fitnesstraining Handball: Explosivität und Prävention",
+          "description": "Explosivität, Knie, Wurfschulter, Teamzirkel: das Athletiktraining einer Handballmannschaft beim Turnier oder im Trainingslager in Le Mans.",
+          "excerpt": "Sprints, Zweikämpfe, Sprungwürfe: die Kraft- und Explosivitätseinheit, die Prävention vor jeder Einheit und das Turnierwochenende im Haus.",
+          "keywords": [
+            "Athletiktraining Handball",
+            "Krafttraining Handball",
+            "Verletzungsprävention Handball",
+            "Unterkunft Handballteam Le Mans",
+            "Trainingslager Handball Frankreich"
+          ]
+        },
+      es: {
+          "title": "Preparación física para balonmano: explosividad y prevención",
+          "description": "Explosividad, rodillas, hombro de lanzador, circuito de equipo: la preparación física de un equipo de balonmano en torneo o concentración en Le Mans.",
+          "excerpt": "Sprints, duelos, lanzamientos en suspensión: la sesión de fuerza y explosividad, la prevención antes de cada sesión y el fin de semana de torneo en la casa.",
+          "keywords": [
+            "preparación física balonmano",
+            "gimnasio para jugadores de balonmano",
+            "prevención lesiones balonmano",
+            "alojamiento equipo balonmano Le Mans",
+            "concentración balonmano Francia alojamiento"
+          ]
+        },
+    },
+  },
+  {
+    slug: "preparation-physique-equitation-le-mans",
+    journey: ["groupe"],
+    date: "2026-11-15",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Préparation physique du cavalier : gainage et posture",
+          "description": "Gainage, adducteurs, mobilité du bassin, posture : la préparation physique des cavaliers en concours, près du Pôle européen du cheval.",
+          "excerpt": "Un cavalier tient une posture pendant des heures : la séance pour monter mieux et ménager son dos, et la routine du jour de concours.",
+          "keywords": [
+            "préparation physique cavalier",
+            "renforcement musculaire équitation",
+            "gainage cavalier",
+            "hébergement cavaliers Pôle européen du cheval",
+            "logement concours équestre Le Mans"
+          ]
+        },
+      en: {
+          "title": "Fitness Training for Riders: Core and Posture",
+          "description": "Core, adductors, pelvic mobility, posture: fitness training for riders at competitions, near the Pôle Européen du Cheval.",
+          "excerpt": "A rider holds a posture for hours: the session to ride better and look after your back, and the competition-day routine.",
+          "keywords": [
+            "fitness training for horse riders",
+            "exercises for equestrians",
+            "core workout for riders",
+            "accommodation near pole europeen du cheval",
+            "equestrian competition accommodation le mans"
+          ]
+        },
+      it: {
+          "title": "Preparazione atletica del cavaliere: core e postura",
+          "description": "Core, adduttori, mobilità del bacino, postura: la preparazione atletica dei cavalieri in concorso, vicino al Pôle européen du cheval.",
+          "excerpt": "Un cavaliere mantiene una postura per ore: l'allenamento per montare meglio e risparmiare la schiena, e la routine del giorno di concorso.",
+          "keywords": [
+            "preparazione atletica equitazione",
+            "esercizi per cavalieri",
+            "rinforzo muscolare equitazione",
+            "core stability cavaliere",
+            "alloggio concorso Pôle européen du cheval"
+          ]
+        },
+      de: {
+          "title": "Fitnesstraining für Reiter: Rumpf und Haltung",
+          "description": "Rumpfstabilität, Adduktoren, Beckenmobilität, Haltung: das Athletiktraining für Reiter auf Turnieren, nahe dem Pôle Européen du Cheval.",
+          "excerpt": "Ein Reiter hält stundenlang eine Haltung: die Einheit, um besser zu reiten und den Rücken zu schonen, und die Routine am Turniertag.",
+          "keywords": [
+            "Fitnesstraining für Reiter",
+            "Krafttraining Reiten",
+            "Rumpftraining Reiter",
+            "Unterkunft Pôle Européen du Cheval",
+            "Unterkunft Reitturnier Le Mans"
+          ]
+        },
+      es: {
+          "title": "Preparación física del jinete: core y postura",
+          "description": "Core, aductores, movilidad de pelvis, postura: la preparación física de los jinetes de concurso, cerca del Pôle européen du cheval.",
+          "excerpt": "Un jinete mantiene una postura durante horas: la sesión para montar mejor y cuidar la espalda, y la rutina del día de concurso.",
+          "keywords": [
+            "preparación física jinete",
+            "ejercicios para jinetes",
+            "core para equitación",
+            "alojamiento jinetes Pôle européen du cheval",
+            "alojamiento concurso hípico Le Mans"
+          ]
+        },
+    },
+  },
+  {
+    slug: "preparation-physique-volley-ball-le-mans",
+    journey: ["groupe"],
+    date: "2026-11-14",
+    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Préparation physique volley-ball : détente et épaules",
+          "description": "Box jumps, squat, prévention des épaules, circuit d'équipe : la préparation physique d'une équipe de volley en tournoi au Mans.",
+          "excerpt": "Détente, réceptions, épaules de l'attaquant : les séances à faire avant et pendant un tournoi de volley, dans la salle de sport de la maison.",
+          "keywords": [
+            "préparation physique volley-ball",
+            "travail de détente volley",
+            "prévention épaule volleyeur",
+            "hébergement équipe volley Le Mans",
+            "tournoi volley Le Mans logement"
+          ]
+        },
+      en: {
+          "title": "Volleyball Fitness Training: Vertical Jump and Shoulders",
+          "description": "Box jumps, squats, shoulder prehab, team circuit: fitness training for a volleyball team at a tournament in Le Mans.",
+          "excerpt": "Vertical jump, landings, the attacker's shoulders: the sessions to do before and during a volleyball tournament, in the house gym.",
+          "keywords": [
+            "volleyball strength training",
+            "vertical jump training volleyball",
+            "volleyball shoulder injury prevention",
+            "volleyball team accommodation le mans",
+            "volleyball tournament le mans"
+          ]
+        },
+      it: {
+          "title": "Preparazione atletica pallavolo: elevazione e spalle",
+          "description": "Box jump, squat, prevenzione per le spalle, circuito di squadra: la preparazione atletica di una squadra di pallavolo in torneo a Le Mans.",
+          "excerpt": "Elevazione, atterraggi, spalle dell'attaccante: gli allenamenti da fare prima e durante un torneo di pallavolo, nella palestra della casa.",
+          "keywords": [
+            "preparazione atletica pallavolo",
+            "esercizi per elevazione pallavolo",
+            "prevenzione spalla pallavolo",
+            "allenamento salto verticale",
+            "alloggio squadra pallavolo torneo Francia"
+          ]
+        },
+      de: {
+          "title": "Fitnesstraining Volleyball: Sprungkraft und Schultern",
+          "description": "Box Jumps, Kniebeuge, Schulterprävention, Teamzirkel: das Athletiktraining einer Volleyballmannschaft beim Turnier in Le Mans.",
+          "excerpt": "Sprungkraft, Landungen, die Schultern des Angreifers: die Einheiten vor und während eines Volleyballturniers, im Fitnessraum des Hauses.",
+          "keywords": [
+            "Athletiktraining Volleyball",
+            "Sprungkrafttraining Volleyball",
+            "Schulterprävention Volleyball",
+            "Unterkunft Volleyballteam Le Mans",
+            "Volleyballturnier Le Mans Unterkunft"
+          ]
+        },
+      es: {
+          "title": "Preparación física para voleibol: salto y hombros",
+          "description": "Box jumps, sentadilla, prevención de hombro, circuito de equipo: la preparación física de un equipo de voleibol en torneo en Le Mans.",
+          "excerpt": "Salto, aterrizajes, hombros del atacante: las sesiones para antes y durante un torneo de voleibol, en el gimnasio de la casa.",
+          "keywords": [
+            "preparación física voleibol",
+            "ejercicios para saltar más voleibol",
+            "prevención lesiones hombro voleibol",
+            "alojamiento equipo voleibol Le Mans",
+            "torneo voleibol Le Mans alojamiento"
+          ]
+        },
+    },
+  },
+  {
+    slug: "preparation-physique-roller-le-mans",
+    journey: ["groupe"],
+    date: "2026-11-13",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Préparation physique roller : 24 Heures Rollers",
+          "description": "Fessiers, adducteurs, équilibre, endurance sur l'elliptique : la préparation physique des patineurs et des équipes des 24 Heures Rollers du Mans.",
+          "excerpt": "En roller, tout part des hanches : la séance du rolleur, l'endurance sans rouler, et l'organisation d'une équipe en relais aux 24 Heures Rollers.",
+          "keywords": [
+            "préparation physique roller",
+            "musculation roller vitesse",
+            "24 Heures Rollers hébergement équipe",
+            "renforcement patineur",
+            "logement 24h rollers Le Mans"
+          ]
+        },
+      en: {
+          "title": "Inline Skating Fitness: the 24 Heures Rollers",
+          "description": "Glutes, adductors, balance, endurance on the elliptical: fitness training for skaters and teams at the 24 Heures Rollers in Le Mans.",
+          "excerpt": "In inline skating, everything starts from the hips: the skater's session, endurance without skating, and how a relay team gets organised for the 24 Heures Rollers.",
+          "keywords": [
+            "inline skating fitness training",
+            "speed skating strength workout",
+            "24 heures rollers team accommodation",
+            "dryland training for skaters",
+            "24h rollers le mans accommodation"
+          ]
+        },
+      it: {
+          "title": "Preparazione atletica pattinaggio: 24 Heures Rollers",
+          "description": "Glutei, adduttori, equilibrio, resistenza sull'ellittica: la preparazione atletica dei pattinatori e delle squadre della 24 Heures Rollers di Le Mans.",
+          "excerpt": "Nel pattinaggio in linea tutto parte dalle anche: l'allenamento del pattinatore, la resistenza senza pattinare e una squadra a staffetta alla 24 Heures Rollers.",
+          "keywords": [
+            "preparazione atletica pattinaggio in linea",
+            "esercizi pattinaggio di velocità",
+            "allenamento palestra pattinatori",
+            "24 Heures Rollers Le Mans",
+            "alloggio squadra pattinaggio Le Mans"
+          ]
+        },
+      de: {
+          "title": "Fitnesstraining Inlineskaten: 24 Heures Rollers",
+          "description": "Gesäß, Adduktoren, Gleichgewicht, Ausdauer auf dem Crosstrainer: das Athletiktraining für Skater und Teams der 24 Heures Rollers in Le Mans.",
+          "excerpt": "Beim Inlineskaten geht alles von den Hüften aus: die Einheit für Skater, Ausdauer ohne Skates und die Organisation eines Staffelteams bei den 24 Heures Rollers.",
+          "keywords": [
+            "Krafttraining Inlineskaten",
+            "Speedskating Training",
+            "24 Stunden Inline Le Mans Unterkunft",
+            "Athletiktraining Skater",
+            "Unterkunft 24h Rollers Le Mans"
+          ]
+        },
+      es: {
+          "title": "Preparación física para patinaje: 24 Horas Rollers",
+          "description": "Glúteos, aductores, equilibrio, resistencia en la elíptica: la preparación física de patinadores y equipos de las 24 Horas Rollers de Le Mans.",
+          "excerpt": "En patinaje, todo sale de las caderas: la sesión del patinador, la resistencia sin patinar y la organización de un equipo de relevos en las 24 Horas Rollers.",
+          "keywords": [
+            "preparación física patinaje",
+            "ejercicios patinaje de velocidad",
+            "alojamiento equipo 24 Horas Rollers",
+            "fortalecimiento para patinadores",
+            "alojamiento 24h Rollers Le Mans"
+          ]
+        },
+    },
+  },
+  {
+    slug: "preparation-physique-cyclisme-le-mans",
+    journey: ["groupe"],
+    date: "2026-11-12",
+    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Musculation du cycliste : se préparer au Mans",
+          "description": "Squat, gainage, rameur : la préparation physique des cyclistes et des équipes des 24 Heures Vélo, dans la salle de sport de notre maison au Mans.",
+          "excerpt": "Des jambes plus fortes, un tronc qui tient la position : la séance de force du cycliste, et l'organisation d'une équipe en relais aux 24 Heures Vélo.",
+          "keywords": [
+            "musculation cycliste",
+            "préparation physique 24 Heures Vélo",
+            "hébergement équipe cyclisme Le Mans",
+            "renforcement musculaire vélo",
+            "logement 24h vélo Le Mans"
+          ]
+        },
+      en: {
+          "title": "Strength Training for Cyclists: Preparing in Le Mans",
+          "description": "Squats, core, rowing: fitness training for cyclists and 24 Heures Vélo teams, in the gym of our house in Le Mans.",
+          "excerpt": "Stronger legs and a core that holds the position: the cyclist's strength session, and how a relay team gets organised for the 24 Heures Vélo.",
+          "keywords": [
+            "strength training for cyclists",
+            "24 heures velo le mans",
+            "cycling team accommodation le mans",
+            "gym workout for cyclists",
+            "24h velo le mans accommodation"
+          ]
+        },
+      it: {
+          "title": "Palestra per ciclisti: prepararsi a Le Mans",
+          "description": "Squat, core, vogatore: la preparazione atletica dei ciclisti e delle squadre della 24 Heures Vélo, nella palestra della nostra casa a Le Mans.",
+          "excerpt": "Gambe più forti, un tronco che tiene la posizione: l'allenamento di forza del ciclista e l'organizzazione di una squadra a staffetta alla 24 Heures Vélo.",
+          "keywords": [
+            "palestra per ciclisti",
+            "esercizi pesi ciclismo",
+            "preparazione atletica ciclismo",
+            "allenamento forza ciclista",
+            "alloggio 24 Heures Vélo Le Mans"
+          ]
+        },
+      de: {
+          "title": "Krafttraining für Radfahrer: Vorbereitung in Le Mans",
+          "description": "Kniebeuge, Rumpf, Rudergerät: das Athletiktraining für Radfahrer und Teams der 24 Heures Vélo, im Fitnessraum unseres Hauses in Le Mans.",
+          "excerpt": "Stärkere Beine, ein Rumpf, der die Position hält: die Krafteinheit für Radfahrer und die Organisation eines Staffelteams bei den 24 Heures Vélo.",
+          "keywords": [
+            "Krafttraining Radfahrer",
+            "24 Stunden Radrennen Le Mans",
+            "Unterkunft Radteam Le Mans",
+            "Krafttraining Rennrad",
+            "Unterkunft 24h Vélo Le Mans"
+          ]
+        },
+      es: {
+          "title": "Musculación para ciclistas: prepararse en Le Mans",
+          "description": "Sentadilla, core, remo: la preparación física de los ciclistas y de los equipos de las 24 Heures Vélo, en el gimnasio de nuestra casa en Le Mans.",
+          "excerpt": "Piernas más fuertes, un tronco que aguanta la posición: la sesión de fuerza del ciclista y la organización de un equipo de relevos en las 24 Heures Vélo.",
+          "keywords": [
+            "gimnasio para ciclistas",
+            "preparación física 24 Heures Vélo",
+            "alojamiento equipo ciclista Le Mans",
+            "fuerza para ciclismo",
+            "alojamiento 24 horas ciclismo Le Mans"
+          ]
+        },
+    },
+  },
+  {
+    slug: "recuperation-apres-effort-le-mans",
+    journey: ["sur-place"],
+    date: "2026-11-11",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Récupérer après l'effort : la routine à la maison",
+          "description": "Retour au calme, mobilité, repas d'équipe, sommeil au noir complet : la routine de récupération après un match, une course ou un stage au Mans.",
+          "excerpt": "Ce que vous faites dans les heures qui suivent un match ou une course compte autant que l'effort : une routine simple avec la salle de sport et la salle zen.",
+          "keywords": [
+            "récupération après effort",
+            "routine mobilité après match",
+            "récupération sportive équipe",
+            "étirements après course",
+            "hébergement équipe sportive Le Mans"
+          ]
+        },
+      en: {
+          "title": "Post-Exercise Recovery: Your Routine at the House",
+          "description": "Cool-down, mobility, team meal, sleep in total darkness: the recovery routine after a match, a race or a training camp in Le Mans.",
+          "excerpt": "What you do in the hours after a match or a race matters as much as the effort itself: a simple routine using the gym and the zen room.",
+          "keywords": [
+            "post workout recovery routine",
+            "mobility routine after a match",
+            "sports team recovery",
+            "stretching after a race",
+            "sports team accommodation le mans"
+          ]
+        },
+      it: {
+          "title": "Recupero dopo lo sforzo: la routine in casa",
+          "description": "Defaticamento, mobilità, pasto di squadra, sonno al buio completo: la routine di recupero dopo una partita, una gara o un ritiro a Le Mans.",
+          "excerpt": "Quello che fate nelle ore dopo una partita o una gara conta quanto lo sforzo: una routine semplice con la palestra e la sala zen.",
+          "keywords": [
+            "recupero dopo allenamento",
+            "routine di mobilità dopo la partita",
+            "recupero muscolare dopo gara",
+            "stretching dopo lo sforzo",
+            "recupero tra due partite torneo"
+          ]
+        },
+      de: {
+          "title": "Regeneration nach der Belastung: die Routine im Haus",
+          "description": "Cool-down, Mobilität, Teamessen, Schlaf in völliger Dunkelheit: die Regenerationsroutine nach einem Spiel, Rennen oder Trainingslager in Le Mans.",
+          "excerpt": "Was Sie in den Stunden nach einem Spiel oder Rennen tun, zählt so viel wie die Belastung selbst: eine einfache Routine mit Fitnessraum und Zen-Raum.",
+          "keywords": [
+            "Regeneration nach dem Sport",
+            "Mobilitätsroutine nach dem Spiel",
+            "Regeneration Sportmannschaft",
+            "Dehnen nach dem Laufen",
+            "Unterkunft Sportteam Le Mans"
+          ]
+        },
+      es: {
+          "title": "Recuperar después del esfuerzo: la rutina en la casa",
+          "description": "Vuelta a la calma, movilidad, comida de equipo, sueño a oscuras: la rutina de recuperación tras un partido, una carrera o una concentración en Le Mans.",
+          "excerpt": "Lo que hace en las horas siguientes a un partido o una carrera cuenta tanto como el esfuerzo: una rutina sencilla con el gimnasio y la sala zen.",
+          "keywords": [
+            "recuperación después del ejercicio",
+            "rutina de movilidad después del partido",
+            "recuperación deportiva en equipo",
+            "estiramientos después de correr",
+            "alojamiento equipo deportivo Le Mans"
+          ]
+        },
+    },
+  },
+  {
+    slug: "preparation-physique-course-automobile-le-mans",
+    journey: ["groupe", "preparer"],
+    date: "2026-11-10",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Préparation physique du pilote automobile au Mans",
+          "description": "Cou, gainage, avant-bras, cardio : la préparation physique des pilotes et des mécaniciens pour les 24 Heures du Mans et les courses du circuit.",
+          "excerpt": "Pilotes et mécaniciens logés à la maison pendant une course au Mans : la séance type, la veille, l'activation du matin de course et la récupération.",
+          "keywords": [
+            "préparation physique pilote automobile",
+            "musculation cou pilote",
+            "hébergement écurie 24 Heures du Mans",
+            "entraînement pilote endurance",
+            "logement pilotes Le Mans Classic"
+          ]
+        },
+      en: {
+          "title": "Racing Driver Fitness Training in Le Mans",
+          "description": "Neck, core, forearms, cardio: fitness training for drivers and mechanics during the 24 Hours of Le Mans and other races at the circuit.",
+          "excerpt": "Drivers and mechanics staying at the house during a race in Le Mans: the typical session, the day before, the race-morning activation and recovery.",
+          "keywords": [
+            "racing driver fitness training",
+            "neck training for racing drivers",
+            "24 hours of le mans team accommodation",
+            "endurance racing driver workout",
+            "le mans classic driver accommodation"
+          ]
+        },
+      it: {
+          "title": "Preparazione atletica del pilota automobilistico a Le Mans",
+          "description": "Collo, core, avambracci, cardio: la preparazione atletica di piloti e meccanici per la 24 Ore di Le Mans e le gare del circuito.",
+          "excerpt": "Piloti e meccanici ospiti della casa durante una gara a Le Mans: l'allenamento tipo, la vigilia, l'attivazione della mattina di gara e il recupero.",
+          "keywords": [
+            "preparazione atletica pilota automobilistico",
+            "allenamento collo pilota",
+            "esercizi collo per piloti",
+            "allenamento pilota endurance",
+            "alloggio team 24 Ore di Le Mans"
+          ]
+        },
+      de: {
+          "title": "Fitnesstraining für Rennfahrer in Le Mans",
+          "description": "Nacken, Rumpf, Unterarme, Ausdauer: das Athletiktraining für Fahrer und Mechaniker bei den 24 Stunden von Le Mans und den Rennen an der Strecke.",
+          "excerpt": "Fahrer und Mechaniker im Haus während eines Rennens in Le Mans: die typische Einheit, der Vortag, die Aktivierung am Rennmorgen und die Regeneration.",
+          "keywords": [
+            "Fitnesstraining Rennfahrer",
+            "Nackentraining Rennfahrer",
+            "Unterkunft Rennteam 24h Le Mans",
+            "Training Langstreckenfahrer",
+            "Unterkunft Fahrer Le Mans Classic"
+          ]
+        },
+      es: {
+          "title": "Preparación física del piloto de carreras en Le Mans",
+          "description": "Cuello, core, antebrazos, cardio: la preparación física de pilotos y mecánicos para las 24 Horas de Le Mans y las carreras del circuito.",
+          "excerpt": "Pilotos y mecánicos alojados en la casa durante una carrera en Le Mans: la sesión tipo, la víspera, la activación de la mañana de carrera y la recuperación.",
+          "keywords": [
+            "preparación física piloto de carreras",
+            "ejercicios de cuello para pilotos",
+            "alojamiento escudería 24 Horas de Le Mans",
+            "entrenamiento piloto de resistencia",
+            "alojamiento pilotos Le Mans Classic"
+          ]
+        },
+    },
+  },
+  {
+    slug: "entrainements-salle-de-sport-le-mans",
+    journey: ["sur-place"],
+    date: "2026-11-09",
+    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Séances de sport à la maison : seul ou à plusieurs",
+          "description": "Force, prise de muscle, cardio, perte de poids, circuit d'équipe, relais au rameur : des séances prêtes à suivre dans la salle de sport de la maison.",
+          "excerpt": "Des séances de 20 à 60 minutes, seul ou en groupe, pour la force, le muscle, le cardio ou la remise en route, avec les points clés de chaque exercice.",
+          "keywords": [
+            "programme musculation salle de sport",
+            "séance cross-training en groupe",
+            "entraînement rameur fractionné",
+            "circuit training en équipe",
+            "séance de sport en déplacement"
+          ]
+        },
+      en: {
+          "title": "Gym Workouts at the House: Solo or as a Group",
+          "description": "Strength, muscle gain, cardio, weight loss, team circuit, rowing relay: ready-made sessions to follow in the house gym in Le Mans.",
+          "excerpt": "Sessions of 20 to 60 minutes, solo or as a group, for strength, muscle, cardio or getting back into it, with the key points for every exercise.",
+          "keywords": [
+            "gym workout plan",
+            "group cross-training workout",
+            "rowing machine interval workout",
+            "team circuit training",
+            "workout while travelling"
+          ]
+        },
+      it: {
+          "title": "Allenamenti in palestra a casa: da soli o in gruppo",
+          "description": "Forza, massa muscolare, cardio, dimagrimento, circuito di squadra, staffetta al vogatore: allenamenti pronti da seguire nella palestra della casa.",
+          "excerpt": "Allenamenti da 20 a 60 minuti, da soli o in gruppo, per forza, massa, cardio o ripresa, con i punti chiave di ogni esercizio.",
+          "keywords": [
+            "scheda allenamento palestra",
+            "allenamento cross training di gruppo",
+            "allenamento in viaggio palestra",
+            "circuito a stazioni di squadra",
+            "allenamento vogatore Concept2"
+          ]
+        },
+      de: {
+          "title": "Training im Haus: Einheiten allein oder in der Gruppe",
+          "description": "Kraft, Muskelaufbau, Cardio, Abnehmen, Teamzirkel, Staffel auf dem Rudergerät: fertige Trainingseinheiten für den Fitnessraum des Hauses.",
+          "excerpt": "Einheiten von 20 bis 60 Minuten, allein oder in der Gruppe, für Kraft, Muskeln, Ausdauer oder den Wiedereinstieg, mit den wichtigsten Punkten jeder Übung.",
+          "keywords": [
+            "Trainingsplan Fitnessstudio",
+            "Cross-Training Workout Gruppe",
+            "Rudergerät Intervalltraining",
+            "Zirkeltraining im Team",
+            "Training auf Reisen"
+          ]
+        },
+      es: {
+          "title": "Entrenamientos en el gimnasio de la casa: solo o en grupo",
+          "description": "Fuerza, hipertrofia, cardio, pérdida de peso, circuito en equipo, relevos en el remo: sesiones listas para seguir en el gimnasio de la casa en Le Mans.",
+          "excerpt": "Sesiones de 20 a 60 minutos, solo o en grupo, para la fuerza, el músculo, el cardio o volver a entrenar, con los puntos clave de cada ejercicio.",
+          "keywords": [
+            "rutina de gimnasio",
+            "entrenamiento cross-training en grupo",
+            "series en remo ergómetro",
+            "circuito de entrenamiento en equipo",
+            "entrenar de viaje"
+          ]
+        },
+    },
+  },
   {
     slug: "concours-salons-le-mans",
     journey: ["groupe"],
@@ -140,6 +768,76 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     },
   },
   {
+    slug: "salle-de-sport-privee-le-mans",
+    journey: ["groupe", "preparer"],
+    date: "2026-11-07",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    seriesLead: true,
+    locales: {
+      fr: {
+          "title": "Une salle de sport privée dans la maison, au Mans",
+          "description": "Cage à squat, barre olympique et 185 kg de bumpers, poulie, rameur Concept2, elliptique : la salle de sport privée de notre maison de groupe au Mans.",
+          "excerpt": "Au fond du jardin, une vraie salle de musculation et de cross-training réservée à votre groupe : l'équipement zone par zone, ce qu'on peut y faire, et pour qui.",
+          "keywords": [
+            "location maison avec salle de sport Le Mans",
+            "hébergement groupe salle de musculation Le Mans",
+            "gîte avec salle de sport Sarthe",
+            "logement équipe sportive avec salle de sport",
+            "maison de groupe rameur Concept2"
+          ]
+        },
+      en: {
+          "title": "A Private Gym in Our Group House in Le Mans",
+          "description": "Squat rack, Olympic bar and 185 kg of bumpers, cable pulley, Concept2 rower, elliptical: the private gym in our group house in Le Mans.",
+          "excerpt": "At the bottom of the garden, a proper strength and cross-training gym reserved for your group: the equipment zone by zone, what you can do there, and who it's for.",
+          "keywords": [
+            "house rental with gym le mans",
+            "group accommodation with gym le mans",
+            "holiday home with gym france",
+            "sports team accommodation with gym",
+            "accommodation with concept2 rower"
+          ]
+        },
+      it: {
+          "title": "Una palestra privata nella casa, a Le Mans",
+          "description": "Rack per squat, bilanciere olimpico e 185 kg di bumper, cavo, vogatore Concept2, ellittica: la palestra privata della nostra casa per gruppi a Le Mans.",
+          "excerpt": "In fondo al giardino, una vera sala pesi e di cross training riservata al vostro gruppo: l'attrezzatura zona per zona, cosa ci si può fare e per chi.",
+          "keywords": [
+            "casa vacanze con palestra Le Mans",
+            "alloggio con palestra privata Francia",
+            "casa per gruppi con palestra Le Mans",
+            "affitto casa intera con sala pesi",
+            "alloggio squadra sportiva con palestra Le Mans"
+          ]
+        },
+      de: {
+          "title": "Ein privater Fitnessraum im Haus, in Le Mans",
+          "description": "Squat-Rack, Olympiastange, 185 kg Bumper Plates, Kabelzug, Concept2-Rudergerät, Crosstrainer: der private Fitnessraum unseres Gruppenhauses in Le Mans.",
+          "excerpt": "Am Ende des Gartens ein echter Kraft- und Cross-Training-Raum nur für Ihre Gruppe: die Ausstattung Bereich für Bereich, was man dort machen kann und für wen.",
+          "keywords": [
+            "Ferienhaus mit Fitnessraum Le Mans",
+            "Gruppenunterkunft mit Kraftraum Frankreich",
+            "Ferienhaus mit Gym Sarthe",
+            "Unterkunft Sportmannschaft mit Fitnessraum",
+            "Gruppenhaus Concept2 Rudergerät"
+          ]
+        },
+      es: {
+          "title": "Casa con gimnasio privado en Le Mans",
+          "description": "Jaula de sentadillas, barra olímpica y 185 kg de bumpers, polea, remo Concept2, elíptica: el gimnasio privado de nuestra casa para grupos en Le Mans.",
+          "excerpt": "Al fondo del jardín, un auténtico gimnasio de musculación y cross-training reservado a su grupo: el equipamiento zona por zona, qué se puede hacer y para quién.",
+          "keywords": [
+            "casa con gimnasio Le Mans",
+            "alojamiento grupo con gimnasio Francia",
+            "casa rural con gimnasio Sarthe",
+            "alojamiento equipo deportivo con gimnasio",
+            "alquiler casa grupo con gimnasio privado"
+          ]
+        },
+    },
+  },
+  {
     slug: "fetes-fin-annee-le-mans",
     journey: ["groupe"],
     date: "2026-11-06",
@@ -206,6 +904,75 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "casa rural grupos Navidad Sarthe"
         ]
       },
+    },
+  },
+  {
+    slug: "preparation-physique-course-a-pied-le-mans",
+    journey: ["groupe"],
+    date: "2026-11-05",
+    image: "/images/blog/entrainement-salle-de-sport.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Renforcement musculaire du coureur, au Mans",
+          "description": "Squat, mollets, hanches, gainage, séance croisée sans impact : le renforcement du coureur, avec le parc du Gué de Maulny à 5 minutes à pied.",
+          "excerpt": "Courir plus longtemps sans se blesser : la séance de renforcement, la séance croisée sans impact et un week-end de stage type pour un club de course.",
+          "keywords": [
+            "renforcement musculaire course à pied",
+            "musculation coureur",
+            "stage course à pied Le Mans",
+            "hébergement club de running Le Mans",
+            "préparation marathon musculation"
+          ]
+        },
+      en: {
+          "title": "Strength Training for Runners, in Le Mans",
+          "description": "Squats, calves, hips, core, low-impact cross-training: strength work for runners, with Gué de Maulny park a 5-minute walk away.",
+          "excerpt": "Run for longer without getting injured: the strength session, the low-impact cross-training session and a typical training-camp weekend for a running club.",
+          "keywords": [
+            "strength training for runners",
+            "gym workout for runners",
+            "running training camp france",
+            "running club accommodation le mans",
+            "marathon strength training"
+          ]
+        },
+      it: {
+          "title": "Rinforzo muscolare per la corsa, a Le Mans",
+          "description": "Squat, polpacci, anche, core, allenamento incrociato senza impatto: il rinforzo del runner, con il parco del Gué de Maulny a 5 minuti a piedi.",
+          "excerpt": "Correre più a lungo senza infortuni: l'allenamento di rinforzo, l'allenamento incrociato senza impatto e un weekend di ritiro tipo per un club di corsa.",
+          "keywords": [
+            "esercizi di rinforzo per la corsa",
+            "palestra per runner",
+            "forza per podisti",
+            "prevenzione infortuni corsa",
+            "ritiro club di corsa Francia"
+          ]
+        },
+      de: {
+          "title": "Krafttraining für Läufer, in Le Mans",
+          "description": "Kniebeuge, Waden, Hüften, Rumpf, Alternativtraining ohne Stoßbelastung: Krafttraining für Läufer, mit dem Park Gué de Maulny 5 Gehminuten entfernt.",
+          "excerpt": "Länger laufen ohne Verletzungen: die Krafteinheit, das Alternativtraining ohne Stoßbelastung und ein typisches Trainingslager-Wochenende für einen Laufverein.",
+          "keywords": [
+            "Krafttraining für Läufer",
+            "Kraftübungen Laufen",
+            "Trainingslager Laufen Frankreich",
+            "Unterkunft Lauftreff Le Mans",
+            "Krafttraining Marathonvorbereitung"
+          ]
+        },
+      es: {
+          "title": "Fuerza para corredores, en Le Mans",
+          "description": "Sentadilla, gemelos, caderas, core, sesión cruzada sin impacto: el fortalecimiento del corredor, con el parque del Gué de Maulny a 5 minutos a pie.",
+          "excerpt": "Correr más tiempo sin lesionarse: la sesión de fortalecimiento, la sesión cruzada sin impacto y un fin de semana de concentración tipo para un club de running.",
+          "keywords": [
+            "ejercicios de fuerza para corredores",
+            "gimnasio para runners",
+            "concentración running Francia",
+            "alojamiento club de running Le Mans",
+            "musculación para maratón"
+          ]
+        },
     },
   },
   {
@@ -361,6 +1128,144 @@ export const BLOG_POSTS: BlogPostMeta[] = [
           "carrera ciclista 24 horas circuito Bugatti"
         ]
       },
+    },
+  },
+  {
+    slug: "cross-training-le-mans",
+    journey: ["groupe"],
+    date: "2026-11-02",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Cross-training au Mans : six WOD dans la salle de la maison",
+          "description": "Barre olympique, bumpers, sol amortissant, rameur Concept2, médecine-ball, box : six WOD de cross-training, seul ou en équipe, dans notre maison au Mans.",
+          "excerpt": "Tout le matériel d'une box dans la salle de la maison : six WOD pensés pour cette salle, du « for time » au team WOD, et les bonnes pratiques.",
+          "keywords": [
+            "cross-training Le Mans",
+            "WOD à la maison",
+            "location maison avec salle CrossFit",
+            "séjour box cross-training",
+            "team WOD"
+          ]
+        },
+      en: {
+          "title": "Cross-Training in Le Mans: Six WODs in the House Gym",
+          "description": "Olympic bar, bumpers, rubber floor, Concept2 rower, medicine ball, plyo box: six cross-training WODs, solo or as a team, in our house in Le Mans.",
+          "excerpt": "All the equipment of a box in the house gym: six WODs designed for this gym, from “for time” to a team WOD, plus good practice.",
+          "keywords": [
+            "crossfit le mans",
+            "home gym wod",
+            "house rental with crossfit gym",
+            "crossfit trip france",
+            "team wod ideas"
+          ]
+        },
+      it: {
+          "title": "Cross training a Le Mans: sei WOD nella palestra della casa",
+          "description": "Bilanciere olimpico, bumper, pavimento antishock, vogatore Concept2, palla medica, box: sei WOD di cross training, da soli o in squadra, a Le Mans.",
+          "excerpt": "Tutta l'attrezzatura di un box nella palestra della casa: sei WOD pensati per questa palestra, dal «for time» al team WOD, e le buone pratiche.",
+          "keywords": [
+            "cross training Le Mans",
+            "WOD da fare a casa",
+            "allenamento CrossFit in vacanza",
+            "team WOD in squadra",
+            "box CrossFit Le Mans"
+          ]
+        },
+      de: {
+          "title": "Cross-Training in Le Mans: sechs WODs im Fitnessraum",
+          "description": "Olympiastange, Bumper Plates, Dämpfungsboden, Concept2-Rudergerät, Medizinball, Box: sechs WODs, allein oder im Team, in unserem Haus in Le Mans.",
+          "excerpt": "Die ganze Ausstattung einer Box im Fitnessraum des Hauses: sechs WODs für diesen Raum, von „For Time“ bis zum Team-WOD, und die wichtigsten Regeln.",
+          "keywords": [
+            "CrossFit Le Mans",
+            "WOD ohne Box",
+            "Ferienhaus mit CrossFit Gym",
+            "Cross-Training Urlaub Frankreich",
+            "Team WOD"
+          ]
+        },
+      es: {
+          "title": "Cross-training en Le Mans: seis WOD en el gimnasio de la casa",
+          "description": "Barra olímpica, bumpers, suelo amortiguador, remo Concept2, balón medicinal, cajón: seis WOD de cross-training, solo o en equipo, en nuestra casa en Le Mans.",
+          "excerpt": "Todo el material de un box en el gimnasio de la casa: seis WOD pensados para este espacio, del «for time» al team WOD, y las buenas prácticas.",
+          "keywords": [
+            "cross-training Le Mans",
+            "WOD en casa",
+            "casa con box de CrossFit",
+            "WOD sin kettlebell",
+            "team WOD"
+          ]
+        },
+    },
+  },
+  {
+    slug: "decrassage-lendemain-de-soiree-le-mans",
+    journey: ["sur-place"],
+    date: "2026-10-31",
+    image: "/images/blog/salle-de-sport-le-mans.jpg",
+    series: "salle-de-sport",
+    locales: {
+      fr: {
+          "title": "Le lendemain d'une soirée : la séance de décrassage",
+          "description": "Mariage, anniversaire, soirée en ville : une séance de décrassage douce le lendemain, à l'elliptique, sur le tapis ou en marchant au parc voisin.",
+          "excerpt": "Jambes lourdes et tête aussi ? Une séance douce de 30 minutes pour se remettre en route le lendemain d'une soirée, seul ou en groupe, et ce qu'elle ne fait pas.",
+          "keywords": [
+            "séance décrassage lendemain de soirée",
+            "sport lendemain de mariage",
+            "récupération après une soirée",
+            "hébergement invités mariage Le Mans",
+            "décrassage en groupe"
+          ]
+        },
+      en: {
+          "title": "The Morning After a Party: A Gentle Recovery Session",
+          "description": "Wedding, birthday, night out in town: a gentle recovery session the next day, on the elliptical, on the mat or with a walk in the nearby park.",
+          "excerpt": "Heavy legs and a heavy head? A gentle 30-minute session to get going again the morning after a party, solo or as a group, and what it can't do.",
+          "keywords": [
+            "workout the morning after drinking",
+            "exercise after a wedding",
+            "hangover recovery workout",
+            "wedding guest accommodation le mans",
+            "group recovery session"
+          ]
+        },
+      it: {
+          "title": "Il giorno dopo una festa: la seduta di defaticamento",
+          "description": "Matrimonio, compleanno, serata in città: una seduta di defaticamento leggera il giorno dopo, all'ellittica, sul tappetino o camminando nel parco vicino.",
+          "excerpt": "Gambe pesanti e testa pure? Una seduta leggera di 30 minuti per rimettersi in moto il giorno dopo una serata, da soli o in gruppo, e cosa non fa.",
+          "keywords": [
+            "allenamento il giorno dopo una festa",
+            "sport dopo un matrimonio",
+            "defaticamento dopo una serata",
+            "allenamento leggero dopo una sbornia",
+            "camminata di recupero mattina dopo"
+          ]
+        },
+      de: {
+          "title": "Am Morgen nach der Feier: die Auflockerungseinheit",
+          "description": "Hochzeit, Geburtstag, Abend in der Stadt: eine sanfte Auflockerungseinheit am nächsten Morgen, auf dem Crosstrainer, auf der Matte oder im nahen Park.",
+          "excerpt": "Schwere Beine und schwerer Kopf? Eine sanfte 30-minütige Einheit, um am Morgen nach der Feier wieder in Gang zu kommen, allein oder in der Gruppe, und was sie nicht kann.",
+          "keywords": [
+            "Sport nach dem Feiern",
+            "Sport am Tag nach der Hochzeit",
+            "Regeneration nach einer Party",
+            "Unterkunft Hochzeitsgäste Le Mans",
+            "Training mit Kater"
+          ]
+        },
+      es: {
+          "title": "El día después de una fiesta: la sesión regenerativa",
+          "description": "Boda, cumpleaños, noche en la ciudad: una sesión regenerativa suave al día siguiente, en la elíptica, en la esterilla o caminando por el parque cercano.",
+          "excerpt": "¿Piernas pesadas y cabeza también? Una sesión suave de 30 minutos para ponerse en marcha el día después de una fiesta, solo o en grupo, y lo que no hace.",
+          "keywords": [
+            "ejercicio después de una fiesta",
+            "deporte con resaca",
+            "recuperarse después de una boda",
+            "alojamiento invitados boda Le Mans",
+            "entrenamiento regenerativo en grupo"
+          ]
+        },
     },
   },
   {

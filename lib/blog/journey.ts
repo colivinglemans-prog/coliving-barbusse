@@ -102,8 +102,19 @@ export function sortForList(posts: readonly BlogPostMeta[], today: string): Blog
 export function homeSelection(today: string, posts: readonly BlogPostMeta[] = BLOG_POSTS): BlogPostMeta[] {
   const listed = listedPosts(posts);
   const events = sortForList(listed.filter((p) => isUpcomingOfficial(p, today)), today).slice(0, 3);
+  // Une série (ex. les articles de la salle de sport) n'occupe qu'une place parmi les séjours de groupe.
+  // Quand la série a un article de tête (`seriesLead`), c'est lui qui la représente.
+  const led = new Set(listed.filter((p) => p.seriesLead && p.series).map((p) => p.series));
+  const seenSeries = new Set<string>();
   const groups = listed
     .filter((p) => p.journey.includes("groupe") && !events.includes(p))
+    .filter((p) => {
+      if (!p.series) return true;
+      if (led.has(p.series) && !p.seriesLead) return false;
+      if (seenSeries.has(p.series)) return false;
+      seenSeries.add(p.series);
+      return true;
+    })
     .slice(0, 6 - events.length);
   return [...events, ...groups];
 }

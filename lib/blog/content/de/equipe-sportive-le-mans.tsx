@@ -88,8 +88,10 @@ export default function Article() {
       <h2>Aufwärmen, Dehnen und Regeneration</h2>
       <ul>
         <li>
-          <strong>Ein privater Fitnessraum, separat vom Haus</strong>: Crosstrainer, Hanteln,
-          Trainingsbank, für die Aktivierung am Morgen oder eine leichte Einheit.
+          <strong>Ein privater Fitnessraum, separat vom Haus</strong>: Squat-Rack, Olympiastange
+          und Bumper Plates, Kabelzug, Concept2-Rudergerät, Crosstrainer, für die Aktivierung am
+          Morgen oder eine richtige Trainingseinheit (siehe{" "}
+          <Link href="/de/blog/salle-de-sport-privee-le-mans">den Fitnessraum im Detail</Link>).
         </li>
         <li>
           <strong>Ein Zen-Raum mit Yogamatten</strong> zum Dehnen nach der Belastung.

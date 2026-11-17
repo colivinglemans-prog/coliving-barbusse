@@ -87,8 +87,10 @@ export default function Article() {
       <h2>Calentamiento, estiramientos y recuperación</h2>
       <ul>
         <li>
-          <strong>Un gimnasio privado, independiente de la casa</strong>: bicicleta elíptica,
-          mancuernas, banco de musculación, para una activación muscular o una sesión suave.
+          <strong>Un gimnasio privado, independiente de la casa</strong>: jaula de sentadillas,
+          barra olímpica y discos bumper, polea, remo Concept2, bicicleta elíptica, para una
+          activación muscular o un verdadero entrenamiento (vea{" "}
+          <Link href="/es/blog/salle-de-sport-privee-le-mans">el gimnasio en detalle</Link>).
         </li>
         <li>
           <strong>Una sala zen con esterillas de yoga</strong> para los estiramientos después
