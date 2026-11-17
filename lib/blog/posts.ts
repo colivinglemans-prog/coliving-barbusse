@@ -67,13 +67,15 @@ export interface BlogPostMeta {
   series?: string;
   /** L'article qui représente sa série sur l'accueil (un seul par série). */
   seriesLead?: boolean;
+  /** Listé dans le bloc « La salle de sport » du guide d'arrivée (séances à faire sur place). */
+  inArrivalGuide?: boolean;
   locales: Record<Locale, LocalizedPost>;
 }
 
 export const BLOG_POSTS: BlogPostMeta[] = [
   {
     slug: "preparation-physique-karting-le-mans",
-    journey: ["groupe", "preparer"],
+    journey: ["sport"],
     date: "2026-11-17",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-karting-le-mans.jpg",
     imageCredit: {
@@ -148,7 +150,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "preparation-physique-handball-le-mans",
-    journey: ["groupe"],
+    journey: ["sport"],
     date: "2026-11-16",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-handball-le-mans.jpg",
     imageCredit: {
@@ -223,7 +225,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "preparation-physique-equitation-le-mans",
-    journey: ["groupe"],
+    journey: ["sport"],
     date: "2026-11-15",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-equitation-le-mans.jpg",
     imageCredit: {
@@ -298,7 +300,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "preparation-physique-volley-ball-le-mans",
-    journey: ["groupe"],
+    journey: ["sport"],
     date: "2026-11-14",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-volley-ball-le-mans.jpg",
     imageCredit: {
@@ -373,7 +375,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "preparation-physique-roller-le-mans",
-    journey: ["groupe"],
+    journey: ["sport"],
     date: "2026-11-13",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-roller-le-mans.jpg",
     imageCredit: {
@@ -448,7 +450,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "preparation-physique-cyclisme-le-mans",
-    journey: ["groupe"],
+    journey: ["sport"],
     date: "2026-11-12",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-cyclisme-le-mans.jpg",
     imageCredit: {
@@ -523,7 +525,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "recuperation-apres-effort-le-mans",
-    journey: ["sur-place"],
+    journey: ["sport"],
     date: "2026-11-11",
     image: "/images/blog/salle-de-sport/couvertures/recuperation-apres-effort-le-mans.jpg",
     imageCredit: {
@@ -533,6 +535,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       licenseUrl: "https://unsplash.com/license",
     },
     series: "salle-de-sport",
+    inArrivalGuide: true,
     locales: {
       fr: {
           "title": "Récupérer après l'effort : la routine à la maison",
@@ -598,7 +601,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "preparation-physique-course-automobile-le-mans",
-    journey: ["groupe", "preparer"],
+    journey: ["sport"],
     date: "2026-11-10",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-course-automobile-le-mans.jpg",
     imageCredit: {
@@ -673,10 +676,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "entrainements-salle-de-sport-le-mans",
-    journey: ["sur-place"],
+    journey: ["sport"],
     date: "2026-11-09",
     image: "/images/blog/entrainement-salle-de-sport.jpg",
     series: "salle-de-sport",
+    inArrivalGuide: true,
     locales: {
       fr: {
           "title": "Séances de sport à la maison : seul ou à plusieurs",
@@ -817,7 +821,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "salle-de-sport-privee-le-mans",
-    journey: ["groupe", "preparer"],
+    journey: ["sport"],
     date: "2026-11-07",
     image: "/images/blog/salle-de-sport-le-mans.jpg",
     series: "salle-de-sport",
@@ -956,7 +960,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "preparation-physique-course-a-pied-le-mans",
-    journey: ["groupe"],
+    journey: ["sport"],
     date: "2026-11-05",
     image: "/images/blog/salle-de-sport/couvertures/preparation-physique-course-a-pied-le-mans.jpg",
     imageCredit: {
@@ -1186,7 +1190,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "cross-training-le-mans",
-    journey: ["groupe"],
+    journey: ["sport"],
     date: "2026-11-02",
     image: "/images/blog/salle-de-sport/couvertures/cross-training-le-mans.jpg",
     imageCredit: {
@@ -1196,6 +1200,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       licenseUrl: "https://unsplash.com/license",
     },
     series: "salle-de-sport",
+    inArrivalGuide: true,
     locales: {
       fr: {
           "title": "Cross-training au Mans : six WOD dans la salle de la maison",
@@ -1261,7 +1266,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
   },
   {
     slug: "decrassage-lendemain-de-soiree-le-mans",
-    journey: ["sur-place"],
+    journey: ["sport"],
     date: "2026-10-31",
     image: "/images/blog/salle-de-sport/couvertures/decrassage-lendemain-de-soiree-le-mans.jpg",
     imageCredit: {
@@ -1271,6 +1276,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       licenseUrl: "https://unsplash.com/license",
     },
     series: "salle-de-sport",
+    inArrivalGuide: true,
     locales: {
       fr: {
           "title": "Le lendemain d'une soirée : la séance de décrassage",
