@@ -19,15 +19,17 @@ import { BLOG_POSTS, type BlogPostMeta } from "./posts";
  * « Passé » se **calcule** à partir de la date de fin de l'événement de l'article : il n'y a
  * rien à cocher à la main quand une édition se termine.
  */
-export type Journey = "evenement" | "groupe" | "preparer" | "sur-place";
+export type Journey = "evenement" | "groupe" | "preparer" | "sur-place" | "sport";
 
-export type FilterKey = "tous" | "evenements" | "groupes" | "pendant-le-sejour";
+export type FilterKey = "tous" | "evenements" | "groupes" | "pendant-le-sejour" | "salle-de-sport";
 
 /** Étapes couvertes par chaque pastille. `tous` couvre tout. */
 export const FILTERS: Record<Exclude<FilterKey, "tous">, readonly Journey[]> = {
   evenements: ["evenement"],
   groupes: ["groupe"],
   "pendant-le-sejour": ["preparer", "sur-place"],
+  // La série salle de sport (13 articles) : sa propre pastille, hors des deux précédentes.
+  "salle-de-sport": ["sport"],
 };
 
 /** Une pastille n'apparaît que si elle compte au moins autant d'articles. */
@@ -107,7 +109,7 @@ export function homeSelection(today: string, posts: readonly BlogPostMeta[] = BL
   const led = new Set(listed.filter((p) => p.seriesLead && p.series).map((p) => p.series));
   const seenSeries = new Set<string>();
   const groups = listed
-    .filter((p) => p.journey.includes("groupe") && !events.includes(p))
+    .filter((p) => (p.journey.includes("groupe") || p.seriesLead) && !events.includes(p))
     .filter((p) => {
       if (!p.series) return true;
       if (led.has(p.series) && !p.seriesLead) return false;

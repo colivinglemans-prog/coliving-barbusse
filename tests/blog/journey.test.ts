@@ -97,7 +97,7 @@ describe("accueil", () => {
       "motogp-france-le-mans-2027",
       "ou-se-loger-24h-du-mans-2027",
     ]);
-    expect(home.slice(3).every((p) => p.journey.includes("groupe"))).toBe(true);
+    expect(home.slice(3).every((p) => p.journey.includes("groupe") || p.seriesLead)).toBe(true);
     expect(home.some((p) => p.supersededBy || isPastEvent(p, TODAY))).toBe(false);
   });
 });
@@ -107,5 +107,15 @@ describe("série d'articles sur l'accueil", () => {
     const home = homeSelection("2026-11-17");
     const gym = home.filter((p) => p.series === "salle-de-sport");
     expect(gym.map((p) => p.slug)).toEqual(["salle-de-sport-privee-le-mans"]);
+  });
+});
+
+describe("pastille salle de sport", () => {
+  it("regroupe toute la série, et elle seule, hors des séjours de groupe et de « pendant votre séjour »", () => {
+    const gym = BLOG_POSTS.filter((p) => p.series === "salle-de-sport");
+    expect(gym.length).toBeGreaterThanOrEqual(3);
+    for (const p of gym) expect(filterKeysOf(p), p.slug).toEqual(["salle-de-sport"]);
+    for (const p of BLOG_POSTS.filter((p) => p.series !== "salle-de-sport"))
+      expect(filterKeysOf(p), p.slug).not.toContain("salle-de-sport");
   });
 });

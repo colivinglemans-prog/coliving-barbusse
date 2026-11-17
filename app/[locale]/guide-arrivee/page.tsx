@@ -633,12 +633,10 @@ export default async function GuideArrivee({
   const featuredPosts = listedPosts().filter(
     (p) => p.journey.includes("sur-place") && p.series !== "salle-de-sport",
   );
-  // La salle de sport a son propre bloc : ses articles « sur place » (séances, récupération,
-  // décrassage), jamais l'article de tête, qui se termine par « réservez » (le lien du guide
+  // La salle de sport a son propre bloc : les articles `inArrivalGuide` (séances, cross-training,
+  // récupération, décrassage), jamais l'article de tête, qui se termine par « réservez » (le lien du guide
   // part dans les fils Airbnb / Booking).
-  const gymPosts = listedPosts().filter(
-    (p) => p.series === "salle-de-sport" && p.journey.includes("sur-place"),
-  );
+  const gymPosts = listedPosts().filter((p) => p.inArrivalGuide);
   // « Revenir » : les prochains événements aux dates officielles qui ont leur article.
   const today = todayInParis();
   const upcoming = sortForList(listedPosts(), today).filter((p) => isUpcomingOfficial(p, today));

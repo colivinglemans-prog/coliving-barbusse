@@ -16,11 +16,11 @@ import type { Locale } from "@/lib/i18n";
  * sont fixes dans les 5 langues et ne se renomment jamais ; une ancre inconnue retombe sur « tous ».
  */
 const LABELS: Record<Locale, { aria: string } & Record<FilterKey, string>> = {
-  fr: { aria: "Filtrer les articles", tous: "Tous", evenements: "Grands événements", groupes: "Séjours de groupe", "pendant-le-sejour": "Pendant votre séjour" },
-  en: { aria: "Filter articles", tous: "All", evenements: "Major events", groupes: "Group stays", "pendant-le-sejour": "During your stay" },
-  it: { aria: "Filtra gli articoli", tous: "Tutti", evenements: "Grandi eventi", groupes: "Soggiorni di gruppo", "pendant-le-sejour": "Durante il tuo soggiorno" },
-  de: { aria: "Artikel filtern", tous: "Alle", evenements: "Große Events", groupes: "Gruppenaufenthalte", "pendant-le-sejour": "Während Ihres Aufenthalts" },
-  es: { aria: "Filtrar los artículos", tous: "Todos", evenements: "Grandes eventos", groupes: "Estancias de grupo", "pendant-le-sejour": "Durante tu estancia" },
+  fr: { aria: "Filtrer les articles", tous: "Tous", evenements: "Grands événements", groupes: "Séjours de groupe", "pendant-le-sejour": "Pendant votre séjour", "salle-de-sport": "Salle de sport" },
+  en: { aria: "Filter articles", tous: "All", evenements: "Major events", groupes: "Group stays", "pendant-le-sejour": "During your stay", "salle-de-sport": "Gym" },
+  it: { aria: "Filtra gli articoli", tous: "Tutti", evenements: "Grandi eventi", groupes: "Soggiorni di gruppo", "pendant-le-sejour": "Durante il tuo soggiorno", "salle-de-sport": "Palestra" },
+  de: { aria: "Artikel filtern", tous: "Alle", evenements: "Große Events", groupes: "Gruppenaufenthalte", "pendant-le-sejour": "Während Ihres Aufenthalts", "salle-de-sport": "Fitnessraum" },
+  es: { aria: "Filtrar los artículos", tous: "Todos", evenements: "Grandes eventos", groupes: "Estancias de grupo", "pendant-le-sejour": "Durante tu estancia", "salle-de-sport": "Gimnasio" },
 };
 
 export default function BlogListFilter({
