@@ -1041,7 +1041,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     familyDates: true,
     locales: {
       fr: {
-        title: "Réunir toute la famille au Mans : une maison avec une table de 16 à 20 places",
+        title: "Réunion de famille au Mans : une maison avec table de 16 à 20",
         description:
           "Noël, anniversaire, mariage, baptême : une maison entière au Mans pour réunir jusqu'à 20 proches, avec une grande table de 16 places (20 avec la véranda) et 9 chambres avec salle de douche privative.",
         excerpt:
@@ -1055,7 +1055,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       en: {
-        title: "Bringing the whole family together in Le Mans: a house with a table for 16 to 20",
+        title: "Family reunion in Le Mans: a house with a table for 16 to 20",
         description:
           "Christmas, birthday, wedding, christening: a whole house in Le Mans to gather up to 20 relatives, with a 16-seat table (20 with the veranda) and 9 bedrooms with en-suite shower rooms.",
         excerpt:
@@ -1069,7 +1069,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Riunire tutta la famiglia a Le Mans: una casa con un tavolo da 16 a 20 posti",
+        title: "Riunione di famiglia a Le Mans: una casa con tavolo da 16 a 20",
         description:
           "Natale, compleanno, matrimonio, battesimo: una casa intera a Le Mans per riunire fino a 20 persone, con un grande tavolo da 16 posti (20 con la veranda) e 9 camere con doccia privata.",
         excerpt:
@@ -1083,7 +1083,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Die ganze Familie in Le Mans vereinen: ein Haus mit einem Tisch für 16 bis 20",
+        title: "Familientreffen in Le Mans: ein Haus mit Tisch für 16 bis 20",
         description:
           "Weihnachten, Geburtstag, Hochzeit, Taufe: ein ganzes Haus in Le Mans für bis zu 20 Angehörige, mit einem großen Tisch für 16 (20 mit dem Wintergarten) und 9 Zimmern mit eigenem Duschbad.",
         excerpt:
@@ -1097,7 +1097,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Reunir a toda la familia en Le Mans: una casa con una mesa de 16 a 20 plazas",
+        title: "Reunión familiar en Le Mans: casa con mesa de 16 a 20 plazas",
         description:
           "Navidad, cumpleaños, boda, bautizo: una casa entera en Le Mans para reunir hasta 20 personas, con una gran mesa de 16 plazas (20 con la galería) y 9 habitaciones con ducha privada.",
         excerpt:
@@ -1839,7 +1839,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "MotoGP Frankreich 2027 in Le Mans: Unterkunft und praktische Tipps",
+        title: "MotoGP Frankreich 2027 in Le Mans: Unterkunft und Tipps",
         description:
           "Frankreich-Grand-Prix MotoGP 2027 auf dem Circuit Bugatti (14.-16. Mai), Unterkunftspreise, Anreise, Tipps für ein gelungenes Wochenende mit Familie oder Freunden.",
         excerpt:
@@ -1853,7 +1853,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "MotoGP de Francia 2027 en Le Mans: alojamiento y consejos prácticos",
+        title: "MotoGP de Francia 2027 en Le Mans: alojamiento y consejos",
         description:
           "Gran Premio de Francia MotoGP 2027 en el Circuito Bugatti (14-16 de mayo), tarifas de alojamiento, transporte, consejos para un fin de semana logrado en familia o entre amigos.",
         excerpt:
@@ -1951,7 +1951,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     },
     locales: {
       fr: {
-        title: "Porsche Sprint Challenge au Mans : où se loger avec son équipage ?",
+        title: "Porsche Sprint Challenge au Mans : où loger avec son équipage ?",
         description:
           "Porsche Sprint Challenge France sur le circuit Bugatti du Mans : format monotype, profil des équipages, où se loger. Maison entière de 9 suites pour 20 personnes à 20 min du circuit.",
         excerpt:
@@ -1981,7 +1981,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Porsche Sprint Challenge a Le Mans: dove alloggiare con l'equipaggio",
+        title: "Porsche Sprint Challenge a Le Mans: alloggio per l'equipaggio",
         description:
           "Porsche Sprint Challenge France sul circuito Bugatti di Le Mans: format monomarca, profilo degli equipaggi, dove alloggiare. Casa intera di 9 suite per 20 persone a 20 min dal circuito.",
         excerpt:
@@ -1996,7 +1996,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Porsche Sprint Challenge in Le Mans: wo wohnen mit der Mannschaft?",
+        title: "Porsche Sprint Challenge in Le Mans: Unterkunft fürs Team",
         description:
           "Porsche Sprint Challenge France auf dem Bugatti-Circuit in Le Mans: Markenpokal-Format, Profil der Mannschaften, Unterkunft. Ganzes Haus mit 9 Suiten für 20 Personen, 20 Min. von der Strecke.",
         excerpt:
@@ -2034,7 +2034,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/le-mans-classic.jpg",
     locales: {
       fr: {
-        title: "Le Mans Classic : guide du rassemblement mondial des voitures anciennes",
+        title: "Le Mans Classic : guide du rassemblement de voitures anciennes",
         description:
           "Le Mans Classic, plus grand rassemblement mondial de voitures de course anciennes : dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
         excerpt:
@@ -2048,7 +2048,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       en: {
-        title: "Le Mans Classic: a guide to the world's largest vintage racing gathering",
+        title: "Le Mans Classic: the world's largest vintage racing gathering",
         description:
           "Le Mans Classic, the world's largest gathering of vintage racing cars: dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
         excerpt:
@@ -2062,7 +2062,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Le Mans Classic: guida al più grande raduno mondiale di auto d'epoca",
+        title: "Le Mans Classic: il più grande raduno mondiale di auto d'epoca",
         description:
           "Le Mans Classic, il più grande raduno mondiale di auto da corsa d'epoca: date, programma, alloggio e consigli pratici per appassionati e club.",
         excerpt:
@@ -2090,7 +2090,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Le Mans Classic: guía del mayor encuentro mundial de coches clásicos de carreras",
+        title: "Le Mans Classic: el mayor encuentro mundial de coches clásicos",
         description:
           "Le Mans Classic, el mayor encuentro mundial de coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
         excerpt:
@@ -2115,7 +2115,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/jardin-securise-le-mans.jpg",
     locales: {
       fr: {
-        title: "Jardin clos et sécurisé au Mans : un espace extérieur pour vos séjours en groupe",
+        title: "Jardin clos et sécurisé au Mans pour vos séjours en groupe",
         description:
           "Profitez de notre jardin privatif de 90 m², clos et sécurisé, en plein cœur du Mans : salon de jardin 8 places, grandes tables pour 20 personnes, exposition plein sud.",
         excerpt:
@@ -2129,7 +2129,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       en: {
-        title: "Enclosed, secure garden in Le Mans: an outdoor space for group stays",
+        title: "Enclosed, secure garden in Le Mans for your group stays",
         description:
           "Enjoy our 90 m² private garden, fully enclosed and secure, in the heart of Le Mans: 8-seater lounge, large tables for 20, south-facing all day long.",
         excerpt:
@@ -2143,7 +2143,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Giardino recintato e sicuro a Le Mans: uno spazio esterno per soggiorni di gruppo",
+        title: "Giardino recintato e sicuro a Le Mans per soggiorni di gruppo",
         description:
           "Godetevi il nostro giardino privato di 90 m², recintato e sicuro, nel cuore di Le Mans: salotto da 8 posti, grandi tavoli per 20 persone, esposizione a sud.",
         excerpt:
@@ -2157,7 +2157,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Umschlossener, sicherer Garten in Le Mans: ein Außenbereich für Gruppenaufenthalte",
+        title: "Umschlossener, sicherer Garten in Le Mans für Gruppenreisen",
         description:
           "Genießen Sie unseren 90 m² großen Privatgarten, umschlossen und gesichert, im Herzen von Le Mans: Gartensofa für 8, große Tische für 20, südausgerichtet.",
         excerpt:
@@ -2171,7 +2171,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Jardín cerrado y seguro en Le Mans: un espacio exterior para estancias en grupo",
+        title: "Jardín cerrado y seguro en Le Mans para estancias en grupo",
         description:
           "Disfrute de nuestro jardín privado de 90 m², cerrado y seguro, en pleno corazón de Le Mans: salón de 8 plazas, grandes mesas para 20 personas, orientación sur.",
         excerpt:
@@ -2366,7 +2366,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     nextEdition: "2027",
     locales: {
       fr: {
-        title: "Où se loger pour les SWS Karting Finals au Mans (20-23 mai 2026) ?",
+        title: "SWS Karting Finals au Mans (20-23 mai 2026) : où se loger ?",
         description:
           "SWS International Finals 2026 au Le Mans Karting Circuit : dates, format (dont 24h endurance inédite), hébergement pour équipes. Notre maison à moins de 5 km du circuit.",
         excerpt:
@@ -2381,7 +2381,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       en: {
-        title: "Where to stay for the SWS Karting Finals in Le Mans (20-23 May 2026)?",
+        title: "SWS Karting Finals in Le Mans (20-23 May 2026): where to stay",
         description:
           "SWS International Finals 2026 at Le Mans Karting Circuit: dates, format (including a new 24h endurance race), accommodation for teams. Our house less than 5 km from the circuit.",
         excerpt:
@@ -2396,7 +2396,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Dove alloggiare per le SWS Karting Finals a Le Mans (20-23 mag 2026)?",
+        title: "SWS Karting Finals a Le Mans (20-23 mag 2026): dove alloggiare",
         description:
           "SWS International Finals 2026 al Le Mans Karting Circuit: date, format (inclusa una 24h endurance inedita), alloggio per i team. La nostra casa a meno di 5 km dal circuito.",
         excerpt:
@@ -2411,7 +2411,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Wo wohnen für die SWS Karting Finals in Le Mans (20.-23. Mai 2026)?",
+        title: "SWS Karting Finals in Le Mans (20.-23. Mai 2026): Unterkunft",
         description:
           "SWS International Finals 2026 auf dem Le Mans Karting Circuit: Daten, Format (inklusive eines neuen 24h-Langstreckenrennens), Unterkunft für Teams. Unser Haus weniger als 5 km vom Circuit.",
         excerpt:
@@ -2426,7 +2426,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "¿Dónde alojarse para las SWS Karting Finals en Le Mans (20-23 may 2026)?",
+        title: "SWS Karting Finals en Le Mans (20-23 may 2026): alojamiento",
         description:
           "SWS International Finals 2026 en el Le Mans Karting Circuit: fechas, formato (incluida una 24h de resistencia inédita), alojamiento para equipos. Nuestra casa a menos de 5 km del circuito.",
         excerpt:
@@ -2449,7 +2449,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/seminaire.jpg",
     locales: {
       fr: {
-        title: "Séminaire d'entreprise au Mans : maison entière pour 10 à 20 personnes",
+        title: "Séminaire d'entreprise au Mans : maison pour 10 à 20 personnes",
         description:
           "Organiser un séminaire de 10 à 20 personnes au Mans : 9 chambres avec salle de douche privative, 11 couchages sans partager de lit, grande table de 16 à 20 places, écran HDMI, team-building au Circuit Bugatti. Programme type 2 jours et budget.",
         excerpt:
@@ -2513,7 +2513,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Seminario de empresa en Le Mans: una casa entera para 10 a 20 personas",
+        title: "Seminario de empresa en Le Mans: casa para 10 a 20 personas",
         description:
           "Organizar un seminario para 10 a 20 personas en Le Mans: 9 habitaciones con ducha privada, 11 plazas sin compartir cama, gran mesa de 16 a 20 plazas, pantalla HDMI, team-building en el Circuito Bugatti. Programa de 2 días y presupuesto.",
         excerpt:
@@ -2537,7 +2537,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/hippodrome.jpg",
     locales: {
       fr: {
-        title: "Hippodrome des Hunaudières : courses, programme et événements au Mans",
+        title: "Hippodrome des Hunaudières au Mans : courses et événements",
         description:
           "Hippodrome des Hunaudières au Mans : 13 réunions hippiques en 2026, courses de trot et galop, soirées nocturnes. Notre maison à 20 min de l'hippodrome pour votre week-end.",
         excerpt:
@@ -2579,7 +2579,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Pferderennbahn Hunaudières: Rennen, Programm und Events in Le Mans",
+        title: "Pferderennbahn Hunaudières in Le Mans: Rennen und Events",
         description:
           "Pferderennbahn Hunaudières in Le Mans: 13 Renntage 2026, Trab- und Galopprennen, Abendveranstaltungen. Unser Haus 20 Min von der Rennbahn für Ihr Wochenende.",
         excerpt:
@@ -2593,7 +2593,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Hippodrome des Hunaudières: carreras, programa y eventos en Le Mans",
+        title: "Hippodrome des Hunaudières en Le Mans: carreras y eventos",
         description:
           "Hippodrome des Hunaudières en Le Mans: 13 reuniones hípicas en 2026, carreras al trote y al galope, veladas nocturnas. Nuestra casa a 20 min del hipódromo para su fin de semana.",
         excerpt:
@@ -2775,7 +2775,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/entreprises.jpg",
     locales: {
       fr: {
-        title: "Coliving pro au Mans : entreprises proches et atouts pour vos séjours d'affaires",
+        title: "Coliving pro au Mans : entreprises proches et séjours d'affaires",
         description:
           "Séjour d'affaires ou séminaire au Mans ? Notre maison est proche de MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor et du technopôle Novaxis/Novaxud.",
         excerpt:
@@ -2790,7 +2790,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       en: {
-        title: "Business coliving in Le Mans: nearby companies and highlights for corporate stays",
+        title: "Business coliving in Le Mans: nearby companies for work stays",
         description:
           "Business trip or seminar in Le Mans? Our house is close to MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor and the Novaxis/Novaxud business park.",
         excerpt:
@@ -2805,7 +2805,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Coliving business a Le Mans: aziende vicine e vantaggi per i soggiorni di lavoro",
+        title: "Coliving business a Le Mans: aziende vicine e trasferte",
         description:
           "Trasferta di lavoro o seminario a Le Mans? La nostra casa è vicina a MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor e al polo tecnologico Novaxis/Novaxud.",
         excerpt:
@@ -2820,7 +2820,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Business-Coliving in Le Mans: nahe Unternehmen und Vorzüge für Geschäftsreisen",
+        title: "Business-Coliving in Le Mans: nahe Unternehmen, Geschäftsreisen",
         description:
           "Geschäftsreise oder Seminar in Le Mans? Unser Haus liegt nahe MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor und dem Technologiepark Novaxis/Novaxud.",
         excerpt:
@@ -2835,7 +2835,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Coliving profesional en Le Mans: empresas cercanas y ventajas para sus viajes de negocios",
+        title: "Coliving en Le Mans: empresas cercanas y viajes de negocios",
         description:
           "¿Viaje de negocios o seminario en Le Mans? Nuestra casa está cerca de MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor y del tecnopolo Novaxis/Novaxud.",
         excerpt:
@@ -2984,7 +2984,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "MotoGP Frankreich 2026 in Le Mans: Unterkunft und praktische Tipps",
+        title: "MotoGP Frankreich 2026 in Le Mans: Unterkunft und Tipps",
         description:
           "Frankreich-Grand-Prix MotoGP 2026 auf dem Circuit Bugatti: Daten, Unterkunftspreise, Anreise, Tipps für ein gelungenes Wochenende mit Familie oder Freunden.",
         excerpt:
@@ -2998,7 +2998,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "MotoGP de Francia 2026 en Le Mans: alojamiento y consejos prácticos",
+        title: "MotoGP de Francia 2026 en Le Mans: alojamiento y consejos",
         description:
           "Gran Premio de Francia MotoGP 2026 en el Circuito Bugatti: fechas, tarifas de alojamiento, transporte, consejos para un fin de semana logrado en familia o entre amigos.",
         excerpt:
