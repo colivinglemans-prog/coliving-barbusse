@@ -17,6 +17,20 @@ export const BEFORE_MS = 30 * 60 * 1000;
 export const AFTER_MS = 10 * 60 * 1000;
 export const CHAIN_MS = 30 * 60 * 1000;
 
+/**
+ * Priorité d'un mouvement au garage (2026-11-18, décision de l'hôte) : le garage n'est pas un
+ * espace des voyageurs, donc 4 même pendant un séjour — sauf la nuit (22 h-8 h, heure de Paris
+ * du mouvement), où un séjour le ramène à 2, sans son, le temps de recalibrer le filtre d'image de
+ * nuit (un faux positif IR est passé le 17/11 à 22 h 51). Maison vide : toujours 4.
+ */
+export const GARAGE_NIGHT = { from: 22, to: 8 } as const;
+
+export function garagePriority(stayInProgress: boolean, parisHour: number): 2 | 4 {
+  if (!stayInProgress) return 4;
+  const night = parisHour >= GARAGE_NIGHT.from || parisHour < GARAGE_NIGHT.to;
+  return night ? 2 : 4;
+}
+
 export interface HouseholdVerdict {
   /** Le mouvement est celui d'une personne de la maison : pas d'alerte. */
   quiet: boolean;

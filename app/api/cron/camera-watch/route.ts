@@ -17,7 +17,7 @@ import {
   type Thumbnail,
 } from "@/lib/camera/scene";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
-import { householdVerdict } from "@/lib/camera/household";
+import { garagePriority, householdVerdict } from "@/lib/camera/household";
 import { garageOpenings } from "@/lib/cleaning/sources";
 import { getActiveBookings, stayInProgress } from "@/lib/bookings";
 import { recordNotification } from "@/lib/notify-log";
@@ -60,7 +60,8 @@ import { isDryRun } from "@/lib/cron-params";
  *
  * **Caméra du garage** (2026-11-18, décision de l'hôte) : les caméras listées dans
  * `CAMERA_SCENE_FILTER_DIDS` sont celles du garage, qui **n'est pas un espace des voyageurs** —
- * leur priorité ne dépend donc pas du séjour (4, même pendant un séjour). En revanche, un mouvement
+ * priorité 4 même pendant un séjour, sauf la nuit (22 h-8 h, 2 pendant un séjour, le temps de
+ * recalibrer le filtre de nuit) — `garagePriority`. En revanche, un mouvement
  * qui suit une ouverture du digicode par un code **nommé** de la maison (Perso, Sophie, Eric…) est
  * expliqué et ne notifie rien, tant que l'activité continue (`lib/camera/household.ts`, échéance
  * dans `barbusse:camera:household-until:<did>`) ; il compte quand même comme présence réelle
@@ -171,8 +172,8 @@ export async function GET(request: NextRequest) {
       }
 
       const isGarage = garage.has(device.deviceId);
-      // Le garage n'est pas un espace des voyageurs : priorité 4 même pendant un séjour.
-      const presence: 2 | 4 = isGarage ? 4 : (priority ??= await motionPriority());
+      // Garage : pas un espace des voyageurs → 4 même pendant un séjour, sauf la nuit (2).
+      const stayPriority = (priority ??= await motionPriority());
       if (isGarage) openings ??= await readGarageOpenings();
       const untilKey = redisKey("camera", "household-until", device.deviceId);
       let until: number | null = isGarage ? Number((await redis.get(untilKey).catch(() => null)) ?? 0) || null : null;
@@ -218,6 +219,7 @@ export async function GET(request: NextRequest) {
             imageErrors += 1;
           }
         }
+        const presence = isGarage ? garagePriority(stayPriority === 2, parisHourOf(Number(alarm.cts))) : stayPriority;
         const decision = motionDecision(verdict, presence);
 
         if (!decision.send) {
@@ -384,6 +386,11 @@ async function sendMotion(
   if (!res.ok) throw new Error(`ntfy ${res.status}`);
   // Journal des 30 jours : titre et priorité seulement, jamais les liens signés.
   await recordNotification({ title: `Mouvement - ${deviceName}`, priority, tags: ["camera"] });
+}
+
+/** Heure de Paris (0-23) d'un instant en millisecondes. */
+function parisHourOf(ms: number): number {
+  return Number(new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" }).format(new Date(ms)));
 }
 
 /** Replie les accents du titre (en-têtes ntfy en ASCII) sans dépendre de la table complète. */

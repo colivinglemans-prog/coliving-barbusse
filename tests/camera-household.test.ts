@@ -1,6 +1,16 @@
 /** Caméra du garage : un mouvement expliqué par un code de la maison (Perso…). Données inventées. */
 import { describe, expect, it } from "vitest";
-import { AFTER_MS, BEFORE_MS, CHAIN_MS, householdVerdict } from "@/lib/camera/household";
+import { AFTER_MS, BEFORE_MS, CHAIN_MS, garagePriority, householdVerdict } from "@/lib/camera/household";
+
+describe("garagePriority", () => {
+  it("maison vide : toujours 4 ; séjour : 4 le jour, 2 la nuit (22 h-8 h)", () => {
+    expect(garagePriority(false, 23)).toBe(4);
+    expect(garagePriority(true, 14)).toBe(4);
+    expect(garagePriority(true, 8)).toBe(4);
+    expect(garagePriority(true, 22)).toBe(2);
+    expect(garagePriority(true, 3)).toBe(2);
+  });
+});
 
 const t = (hhmm: string) => new Date(`2026-11-17T${hhmm}:00+01:00`).getTime();
 const perso = [{ at: new Date(t("09:00")) }];
