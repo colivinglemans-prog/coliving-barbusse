@@ -17,6 +17,8 @@ import {
   type Thumbnail,
 } from "@/lib/camera/scene";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
+import { householdVerdict } from "@/lib/camera/household";
+import { garageOpenings } from "@/lib/cleaning/sources";
 import { getActiveBookings, stayInProgress } from "@/lib/bookings";
 import { recordNotification } from "@/lib/notify-log";
 import { todayParis } from "@sejour/socle/lib/time";
@@ -55,6 +57,15 @@ import { isDryRun } from "@/lib/cron-params";
  * ignorés vont dans `barbusse:camera:ignored` (50 derniers) ; un mouvement retenu note son `cts`
  * dans `barbusse:camera:last-real:<did>` (lu par la surveillance de la serrure au départ).
  * `CAMERA_SCENE_THRESHOLD` (défaut 12) règle le seuil, `CAMERA_SCENE_FILTER=false` coupe le filtre.
+ *
+ * **Caméra du garage** (2026-11-18, décision de l'hôte) : les caméras listées dans
+ * `CAMERA_SCENE_FILTER_DIDS` sont celles du garage, qui **n'est pas un espace des voyageurs** —
+ * leur priorité ne dépend donc pas du séjour (4, même pendant un séjour). En revanche, un mouvement
+ * qui suit une ouverture du digicode par un code **nommé** de la maison (Perso, Sophie, Eric…) est
+ * expliqué et ne notifie rien, tant que l'activité continue (`lib/camera/household.ts`, échéance
+ * dans `barbusse:camera:household-until:<did>`) ; il compte quand même comme présence réelle
+ * (`last-real`). Journal Intratone illisible (6 s) → règle normale. Les caméras d'entrée et du
+ * jardin, à venir, garderont la priorité selon la présence.
  *
  * Cron-job.org, toutes les 10 minutes ; 5 recommandées (`alarms-survey` ne rend que le dernier
  * mouvement : à 10 min, un vrai passage suivi d'un frémissement de linge n'est vu que par le second). Battement `camera-watch` à chaque passage réel (`ok` aussi
@@ -110,6 +121,10 @@ export async function GET(request: NextRequest) {
     const ignored: Array<{ did: string; cts: number; diff?: number }> = [];
     let priority: 2 | 4 | undefined;
     const filtered = filteredCameras(process.env.CAMERA_SCENE_FILTER, process.env.CAMERA_SCENE_FILTER_DIDS);
+    // Caméras du garage : la même liste, que le filtre de scène soit actif ou coupé.
+    const garage = filteredCameras(undefined, process.env.CAMERA_SCENE_FILTER_DIDS);
+    let openings: Array<{ at: Date }> | null = null;
+    let household = 0;
     const threshold = sceneThreshold(process.env.CAMERA_SCENE_THRESHOLD);
 
     for (const device of devices) {
@@ -155,7 +170,13 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      priority ??= await motionPriority();
+      const isGarage = garage.has(device.deviceId);
+      // Le garage n'est pas un espace des voyageurs : priorité 4 même pendant un séjour.
+      const presence: 2 | 4 = isGarage ? 4 : (priority ??= await motionPriority());
+      if (isGarage) openings ??= await readGarageOpenings();
+      const untilKey = redisKey("camera", "household-until", device.deviceId);
+      let until: number | null = isGarage ? Number((await redis.get(untilKey).catch(() => null)) ?? 0) || null : null;
+      const untilBefore = until;
       const filtering = filtered.has(device.deviceId);
       const memoryKey = redisKey("camera", "scene", device.deviceId);
       let memory: SceneMemory = filtering ? decodeMemory(await redis.get(memoryKey).catch(() => null)) : {};
@@ -163,6 +184,21 @@ export async function GET(request: NextRequest) {
       for (const alarm of fresh) {
         if (sent >= MAX_ALERTS_PER_RUN) break;
         const alert = toCameraAlert(alarm);
+
+        // Garage : une personne de la maison est entrée avec son code (Perso, Sophie…) → rien.
+        if (isGarage) {
+          const h = householdVerdict(Number(alarm.cts), openings ?? [], until);
+          until = h.until;
+          if (h.quiet) {
+            household += 1;
+            ignored.push({ did: device.deviceId, cts: Number(alarm.cts) });
+            if (!dry) {
+              await recordIgnored(redis, Number(alarm.cts), undefined, "household");
+              await redis.set(redisKey("camera", "last-real", device.deviceId), Number(alarm.cts));
+            }
+            continue;
+          }
+        }
 
         // Filtre de scène (caméra du garage) : un mouvement qui ne change pas l'image est ignoré
         // pendant un séjour, muet maison vide. Image illisible → vrai mouvement (`lib/camera/scene.ts`).
@@ -182,7 +218,7 @@ export async function GET(request: NextRequest) {
             imageErrors += 1;
           }
         }
-        const decision = motionDecision(verdict, priority);
+        const decision = motionDecision(verdict, presence);
 
         if (!decision.send) {
           ignored.push({ did: device.deviceId, cts: Number(alarm.cts), diff: verdict.diff });
@@ -191,6 +227,9 @@ export async function GET(request: NextRequest) {
         }
         if (!dry) {
           await sendMotion(device.name, alert.when, alert.imageUrl, alert.videoUrl, decision.priority);
+          // Écart de l'image des mouvements envoyés : avec celui des ignorés, de quoi recalibrer le
+          // seuil (un faux positif de nuit passé à 22 h 51 le 17/11 n'avait laissé aucune trace).
+          if (filtering) await recordSent(redis, Number(alarm.cts), verdict.diff, decision.priority);
           if (verdict.significant && sceneRead) await redis.set(redisKey("camera", "last-real", device.deviceId), Number(alarm.cts));
         }
         if (!verdict.significant) muted += 1;
@@ -198,6 +237,7 @@ export async function GET(request: NextRequest) {
       }
 
       if (!dry && memoryChanged) await redis.set(memoryKey, encodeMemory(memory));
+      if (!dry && until !== null && until !== untilBefore) await redis.set(untilKey, until, { px: Math.max(1, until - Date.now()) + 60_000 });
       if (!dry) await redis.set(key, maxCts(alarms, lastCts));
     }
 
@@ -210,6 +250,7 @@ export async function GET(request: NextRequest) {
       muted,
       ignored: ignored.map((i) => ({ cts: i.cts, diff: i.diff === undefined ? null : Math.round(i.diff * 10) / 10 })),
       imageErrors,
+      household,
       filter: { cameras: filtered.size, threshold },
       ...(priority ? { priority } : {}),
     });
@@ -263,11 +304,52 @@ async function readThumbnail(alarm: AjAlarm): Promise<Thumbnail | null> {
   }
 }
 
-/** Mouvements ignorés (50 derniers : instant et écart, sans URL), pour recalibrer le seuil. */
-async function recordIgnored(redis: ReturnType<typeof getRedis>, cts: number, diff?: number): Promise<void> {
+/** Mouvements envoyés (50 derniers : instant, écart, priorité, sans URL), `barbusse:camera:sent`. */
+async function recordSent(
+  redis: ReturnType<typeof getRedis>,
+  cts: number,
+  diff: number | undefined,
+  priority: number,
+): Promise<void> {
+  try {
+    const key = redisKey("camera", "sent");
+    await redis.lpush(key, JSON.stringify({ at: new Date(cts).toISOString(), diff: diff ?? null, priority }));
+    await redis.ltrim(key, 0, IGNORED_LOG_MAX - 1);
+  } catch (e) {
+    console.error("[camera-watch] journal des mouvements envoyés:", e instanceof Error ? e.message : e);
+  }
+}
+
+/**
+ * Ouvertures du digicode du garage par un code nommé de la maison, ou `[]` si le journal Intratone
+ * ne se lit pas à temps : le mouvement suit alors la règle normale (une alerte de trop plutôt
+ * qu'une de moins).
+ */
+async function readGarageOpenings(): Promise<Array<{ at: Date }>> {
+  try {
+    return await Promise.race([
+      garageOpenings(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("délai dépassé")), 6_000)),
+    ]);
+  } catch (e) {
+    console.error("[camera-watch] journal du garage illisible:", e instanceof Error ? e.message : e);
+    return [];
+  }
+}
+
+/**
+ * Mouvements ignorés (50 derniers : instant, écart, motif, sans URL), pour recalibrer le seuil.
+ * `why` : `scene` (image sans changement) ou `household` (code de la maison au garage).
+ */
+async function recordIgnored(
+  redis: ReturnType<typeof getRedis>,
+  cts: number,
+  diff?: number,
+  why: "scene" | "household" = "scene",
+): Promise<void> {
   try {
     const key = redisKey("camera", "ignored");
-    await redis.lpush(key, JSON.stringify({ at: new Date(cts).toISOString(), diff: diff ?? null }));
+    await redis.lpush(key, JSON.stringify({ at: new Date(cts).toISOString(), diff: diff ?? null, why }));
     await redis.ltrim(key, 0, IGNORED_LOG_MAX - 1);
   } catch (e) {
     console.error("[camera-watch] journal des mouvements ignorés:", e instanceof Error ? e.message : e);
