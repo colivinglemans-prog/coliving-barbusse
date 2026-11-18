@@ -161,7 +161,7 @@ export default function Article() {
       </p>
       <p>
         Siehe auch:{" "}
-        <Link href="/de/blog/ou-se-loger-24h-du-mans-2026">
+        <Link href="/de/blog/ou-se-loger-24h-du-mans-2027">
           Wo Sie zu den 24 Stunden von Le Mans wohnen können
         </Link>
         {" "}oder{" "}

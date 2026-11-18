@@ -93,6 +93,11 @@ export default function Article() {
         </li>
       </ol>
 
+      <p>
+        Autre grand rendez-vous du circuit en 2027 : les 24 Heures du Mans, du 9 au 13 juin. Tout est dans notre guide :{" "}
+        <Link href="/fr/blog/ou-se-loger-24h-du-mans-2027">Où se loger pour les 24 Heures du Mans 2027</Link>.
+      </p>
+
       <h2>Réserver votre séjour</h2>
       <p>
         Consultez les <Link href="/fr#disponibilite">dates disponibles</Link> pour les 24 Heures

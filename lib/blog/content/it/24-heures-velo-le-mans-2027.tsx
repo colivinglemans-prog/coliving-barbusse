@@ -197,6 +197,11 @@ export default function Article() {
         <Link href="/it/blog/24-heures-rollers-le-mans">24 Heures Rollers di Le Mans</Link>.
       </p>
 
+      <p>
+        Altro grande appuntamento del circuito nel 2027: la 24 Ore di Le Mans, dal 9 al 13 giugno. Tutto nella nostra guida:{" "}
+        <Link href="/it/blog/ou-se-loger-24h-du-mans-2027">Dove alloggiare per la 24 Ore di Le Mans 2027</Link>.
+      </p>
+
       <h2>Prenotate per il weekend della 24 Heures Vélo 2027</h2>
       <p>
         Il weekend del 28 e 29 agosto 2027 si prenota presto, come i pettorali. Consultate le

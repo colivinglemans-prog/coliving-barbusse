@@ -95,6 +95,11 @@ export default function Article() {
         </li>
       </ol>
 
+      <p>
+        Altro grande appuntamento del circuito nel 2027: la 24 Ore di Le Mans, dal 9 al 13 giugno. Tutto nella nostra guida:{" "}
+        <Link href="/it/blog/ou-se-loger-24h-du-mans-2027">Dove alloggiare per la 24 Ore di Le Mans 2027</Link>.
+      </p>
+
       <h2>Prenotare il tuo soggiorno</h2>
       <p>
         Consulta le <Link href="/it#disponibilite">date disponibili</Link> per la 24 Ore

@@ -201,6 +201,11 @@ export default function Article() {
         <Link href="/de/blog/24-heures-rollers-le-mans">24 Heures Rollers in Le Mans</Link>.
       </p>
 
+      <p>
+        Ein weiterer Höhepunkt an der Strecke 2027: die 24 Stunden von Le Mans, vom 9. bis 13. Juni. Mehr dazu in unserem Leitfaden:{" "}
+        <Link href="/de/blog/ou-se-loger-24h-du-mans-2027">Wo wohnen für die 24 Stunden von Le Mans 2027</Link>.
+      </p>
+
       <h2>Buchen Sie für das Wochenende der 24 Heures Vélo 2027</h2>
       <p>
         Das Wochenende vom 28. und 29. August 2027 ist früh ausgebucht, genau wie die

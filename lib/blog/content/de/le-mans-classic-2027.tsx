@@ -124,6 +124,11 @@ export default function Article() {
         </li>
       </ol>
 
+      <p>
+        Ein weiterer Höhepunkt an der Strecke 2027: die 24 Stunden von Le Mans, vom 9. bis 13. Juni. Mehr dazu in unserem Leitfaden:{" "}
+        <Link href="/de/blog/ou-se-loger-24h-du-mans-2027">Wo wohnen für die 24 Stunden von Le Mans 2027</Link>.
+      </p>
+
       <h2>Buchen Sie Ihren Aufenthalt zu Le Mans Classic</h2>
       <p>
         Wir haben noch Verfügbarkeiten für Le Mans Classic, vom <strong>1. bis 4. Juli
