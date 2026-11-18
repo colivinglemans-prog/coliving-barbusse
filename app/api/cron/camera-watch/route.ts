@@ -64,8 +64,9 @@ import { isDryRun } from "@/lib/cron-params";
  * recalibrer le filtre de nuit) — `garagePriority`. En revanche, un mouvement
  * qui suit une ouverture du digicode par un code **nommé** de la maison (Perso, Sophie, Eric…) est
  * expliqué et ne notifie rien, tant que l'activité continue (`lib/camera/household.ts`, échéance
- * dans `barbusse:camera:household-until:<did>`) ; il compte quand même comme présence réelle
- * (`last-real`). Journal Intratone illisible (6 s) → règle normale. Les caméras d'entrée et du
+ * dans `barbusse:camera:household-until:<did>`, jugée après le filtre de scène : seul un mouvement
+ * significatif prolonge la présence, 12 h au plus après la dernière ouverture ; `last-real` garde
+ * sa condition). Journal Intratone illisible (6 s) → règle normale. Les caméras d'entrée et du
  * jardin, à venir, garderont la priorité selon la présence.
  *
  * Cron-job.org, toutes les 10 minutes ; 5 recommandées (`alarms-survey` ne rend que le dernier
@@ -186,21 +187,6 @@ export async function GET(request: NextRequest) {
         if (sent >= MAX_ALERTS_PER_RUN) break;
         const alert = toCameraAlert(alarm);
 
-        // Garage : une personne de la maison est entrée avec son code (Perso, Sophie…) → rien.
-        if (isGarage) {
-          const h = householdVerdict(Number(alarm.cts), openings ?? [], until);
-          until = h.until;
-          if (h.quiet) {
-            household += 1;
-            ignored.push({ did: device.deviceId, cts: Number(alarm.cts) });
-            if (!dry) {
-              await recordIgnored(redis, Number(alarm.cts), undefined, "household");
-              await redis.set(redisKey("camera", "last-real", device.deviceId), Number(alarm.cts));
-            }
-            continue;
-          }
-        }
-
         // Filtre de scène (caméra du garage) : un mouvement qui ne change pas l'image est ignoré
         // pendant un séjour, muet maison vide. Image illisible → vrai mouvement (`lib/camera/scene.ts`).
         let verdict: SceneVerdict = { significant: true, reason: "no-reference" };
@@ -217,6 +203,22 @@ export async function GET(request: NextRequest) {
           } else {
             verdict = { significant: true, reason: "no-reference" };
             imageErrors += 1;
+          }
+        }
+        // Garage : une personne de la maison est entrée avec son code (Perso, Sophie…) → rien. Jugé
+        // APRÈS le filtre de scène : seul un mouvement significatif prolonge la présence, et
+        // `last-real` garde sa condition (jamais du linge qui bouge).
+        if (isGarage) {
+          const h = householdVerdict(Number(alarm.cts), openings ?? [], until, verdict.significant && sceneRead);
+          until = h.until;
+          if (h.quiet) {
+            household += 1;
+            ignored.push({ did: device.deviceId, cts: Number(alarm.cts), diff: verdict.diff });
+            if (!dry) {
+              await recordIgnored(redis, Number(alarm.cts), verdict.diff, "household");
+              if (verdict.significant && sceneRead) await redis.set(redisKey("camera", "last-real", device.deviceId), Number(alarm.cts));
+            }
+            continue;
           }
         }
         const presence = isGarage ? garagePriority(stayPriority === 2, parisHourOf(Number(alarm.cts))) : stayPriority;
@@ -328,14 +330,19 @@ async function recordSent(
  * qu'une de moins).
  */
 async function readGarageOpenings(): Promise<Array<{ at: Date }>> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       garageOpenings(),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("délai dépassé")), 6_000)),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("délai dépassé")), 6_000);
+      }),
     ]);
   } catch (e) {
     console.error("[camera-watch] journal du garage illisible:", e instanceof Error ? e.message : e);
     return [];
+  } finally {
+    clearTimeout(timer);
   }
 }
 

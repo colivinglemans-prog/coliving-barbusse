@@ -5,17 +5,23 @@
  * Les voyageurs n'ont pas de code garage : toute ouverture par un code **nommé** (Perso, Sophie,
  * Eric… — `garageOpenings`, qui écarte déjà les codes nommés par un numéro de réservation) est
  * celle d'une personne de la maison. Un mouvement est alors **expliqué** :
- * - s'il suit une telle ouverture de moins de `BEFORE_MS`, ou la précède de moins de `AFTER_MS`
- *   (la caméra voit la personne arriver avant que le journal Intratone ne soit lu) ;
- * - ou s'il suit de moins de `CHAIN_MS` un mouvement déjà expliqué : la personne travaille au
- *   garage, chaque mouvement prolonge la présence (le 17/11, de 9 h à 18 h d'une seule entrée).
+ * - s'il suit une telle ouverture de moins de `AFTER_OPENING_MS`, ou la précède de moins de
+ *   `BEFORE_OPENING_MS` ;
+ * - ou s'il tombe avant l'échéance de la **chaîne** : la personne travaille au garage (le 17/11,
+ *   de 9 h à 18 h d'une seule entrée).
+ *
+ * La chaîne ne se prolonge (`CHAIN_MS` après le mouvement) que sur un mouvement **significatif**
+ * au sens du filtre de scène — du linge qui bouge ne garde jamais le garage « habité » — et jamais
+ * au-delà de `MAX_AFTER_OPENING_MS` après la dernière ouverture connue : une chaîne ne survit pas
+ * à la journée, un intrus qui viendrait des heures après n'est jamais couvert. Journal Intratone
+ * illisible : aucune ouverture connue, la chaîne ne se prolonge plus.
  *
  * Fonction pure ; l'échéance de la chaîne vit dans Redis (`barbusse:camera:household-until:<did>`).
- * Journal Intratone illisible : aucune ouverture connue, le mouvement suit la règle normale (alerte).
  */
-export const BEFORE_MS = 30 * 60 * 1000;
-export const AFTER_MS = 10 * 60 * 1000;
+export const AFTER_OPENING_MS = 30 * 60 * 1000;
+export const BEFORE_OPENING_MS = 10 * 60 * 1000;
 export const CHAIN_MS = 30 * 60 * 1000;
+export const MAX_AFTER_OPENING_MS = 12 * 3600 * 1000;
 
 /**
  * Priorité d'un mouvement au garage (2026-11-18, décision de l'hôte) : le garage n'est pas un
@@ -38,16 +44,30 @@ export interface HouseholdVerdict {
   until: number | null;
 }
 
+/**
+ * @param significant le mouvement a changé l'image (filtre de scène) : seul un tel mouvement
+ *   prolonge la chaîne.
+ */
 export function householdVerdict(
   motionMs: number,
   openings: ReadonlyArray<{ at: Date }>,
   until: number | null,
+  significant: boolean,
 ): HouseholdVerdict {
-  const explained =
-    (until !== null && motionMs <= until) ||
-    openings.some((o) => {
-      const t = o.at.getTime();
-      return motionMs >= t - AFTER_MS && motionMs <= t + BEFORE_MS;
-    });
-  return explained ? { quiet: true, until: Math.max(until ?? 0, motionMs + CHAIN_MS) } : { quiet: false, until };
+  const nearOpening = openings.some((o) => {
+    const t = o.at.getTime();
+    return motionMs >= t - BEFORE_OPENING_MS && motionMs <= t + AFTER_OPENING_MS;
+  });
+  const inChain = until !== null && motionMs <= until;
+  if (!nearOpening && !inChain) return { quiet: false, until };
+  if (!significant) return { quiet: true, until };
+
+  // Plafond : 12 h après la dernière ouverture connue avant ce mouvement.
+  const last = openings.reduce((m, o) => {
+    const t = o.at.getTime();
+    return t <= motionMs + BEFORE_OPENING_MS && t > m ? t : m;
+  }, 0);
+  if (last === 0) return { quiet: true, until };
+  const extended = Math.min(motionMs + CHAIN_MS, last + MAX_AFTER_OPENING_MS);
+  return { quiet: true, until: Math.max(until ?? 0, extended) };
 }
