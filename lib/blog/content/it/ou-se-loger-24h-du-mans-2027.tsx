@@ -202,7 +202,7 @@ export default function Article() {
       <blockquote className="my-6 border-l-4 border-primary pl-4 italic">
         « Group of us were in Le Mans for a race event and had difficulty finding suitable
         accommodation to host all of us. Alexandre's place is perfect for large groups and has
-        everything you need » — Paul, maggio 2026
+        everything you need […] » — Paul, maggio 2026
       </blockquote>
 
       <h2>Consigli per prenotare bene</h2>
@@ -217,8 +217,9 @@ export default function Article() {
           data è indicata nel calendario.
         </li>
         <li>
-          <strong>Verifica le condizioni di parcheggio</strong>: una casa situata in una
-          via residenziale tranquilla, lontana dal circuito, resta la miglior opzione.
+          <strong>Verifica le condizioni di parcheggio</strong>: da noi è gratuito in strada,
+          ma senza posto riservato né garantito, e le strade si riempiono durante l'evento.
+          Meglio il treno, il tram o il car sharing.
         </li>
         <li>
           <strong>Confronta il costo a persona</strong>: una grande casa batte spesso
@@ -227,8 +228,7 @@ export default function Article() {
         <li>
           <strong>Anticipa il traffico</strong>: parti 2 ore prima dell'inizio della gara
           il sabato, o meglio ancora: prendi il <strong>tram T1</strong> dalla stazione di
-          Le Mans (~20 min fino all'ingresso Est del circuito, tram ogni 4-5 minuti il
-          giorno della gara). È la soluzione più affidabile.
+          Le Mans fino al circuito (capolinea Antarès / MMArena). È la soluzione più affidabile.
         </li>
       </ol>
 

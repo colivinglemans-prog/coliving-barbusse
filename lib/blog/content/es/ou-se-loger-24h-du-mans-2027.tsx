@@ -204,7 +204,7 @@ export default function Article() {
       <blockquote className="my-6 border-l-4 border-primary pl-4 italic">
         « Group of us were in Le Mans for a race event and had difficulty finding suitable
         accommodation to host all of us. Alexandre's place is perfect for large groups and has
-        everything you need » — Paul, mayo de 2026
+        everything you need […] » — Paul, mayo de 2026
       </blockquote>
 
       <h2>Consejos para reservar bien</h2>
@@ -219,9 +219,9 @@ export default function Article() {
           fecha aparece en el calendario.
         </li>
         <li>
-          <strong>Comprueba las condiciones de aparcamiento</strong>: una casa situada
-          en una calle residencial tranquila, lejos del circuito, sigue siendo la mejor
-          opción.
+          <strong>Comprueba las condiciones de aparcamiento</strong>: en nuestra casa es gratuito
+          en la calle, pero sin plaza reservada ni garantizada, y las calles se llenan durante
+          el evento. Mejor el tren, el tranvía o el coche compartido.
         </li>
         <li>
           <strong>Compara el coste por persona</strong>: una gran casa suele ganar al
@@ -230,8 +230,7 @@ export default function Article() {
         <li>
           <strong>Anticipa los atascos</strong>: sal 2 h antes del inicio de la carrera
           el sábado o, mejor aún, coge el <strong>tranvía T1</strong> desde la estación
-          de Le Mans (~20 min hasta la entrada Este del circuito, tranvías cada 4-5 min
-          el día de carrera). Es la solución más fiable.
+          de Le Mans hasta el circuito (terminal Antarès / MMArena). Es la solución más fiable.
         </li>
       </ol>
 
@@ -242,7 +241,7 @@ export default function Article() {
         de antelación, y las casas para un grupo entero son las primeras en irse.
       </p>
 
-      <h3>¿Dónde dormir 15 o 20 personas para las 24 Horas de Le Mans?</h3>
+      <h3>¿Dónde alojarse con un grupo de 15 o 20 personas para las 24 Horas de Le Mans?</h3>
       <p>
         En una casa entera mejor que en varios hoteles. La nuestra acoge hasta 20 personas en
         9 habitaciones con baño privado con ducha, a 4,7 km del circuito.

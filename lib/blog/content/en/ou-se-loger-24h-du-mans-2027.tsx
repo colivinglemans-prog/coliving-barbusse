@@ -42,7 +42,7 @@ export default function Article() {
         a 3 to 5 night stay.
       </p>
 
-      <h2>When to book your accommodation (and why so early)?</h2>
+      <h2>When should you book your accommodation (and why so early)?</h2>
       <p>
         The 24 Hours is the busiest week of the year in Le Mans. Three reasons not to wait
         until spring:
@@ -113,7 +113,7 @@ export default function Article() {
         with 15 or 20 people, that is what makes the difference in the morning.
       </p>
 
-      <h3>The right sum: cost per person</h3>
+      <h3>Do the maths: cost per person</h3>
       <p>
         The more of you, the lower the per-person cost. A large house shared by 15 often
         comes out cheaper than the same number of hotel rooms, and the price of each night is
@@ -195,7 +195,7 @@ export default function Article() {
       <blockquote className="my-6 border-l-4 border-primary pl-4 italic">
         "Group of us were in Le Mans for a race event and had difficulty finding suitable
         accommodation to host all of us. Alexandre's place is perfect for large groups and has
-        everything you need" — Paul, May 2026
+        everything you need […]" — Paul, May 2026
       </blockquote>
 
       <h2>Tips for booking</h2>
@@ -208,8 +208,9 @@ export default function Article() {
           one-night stays. With us, the minimum stay for each date is shown in the calendar.
         </li>
         <li>
-          <strong>Check the parking situation</strong>: a house in a quiet residential
-          street, far from the circuit, remains the best bet.
+          <strong>Check the parking situation</strong>: at our house it is free on the street,
+          but with no reserved or guaranteed space, and streets fill up during the event.
+          Train, tram or car-sharing are the better choice.
         </li>
         <li>
           <strong>Compare per-person cost</strong>: a large house often beats hotels from 6
@@ -218,8 +219,7 @@ export default function Article() {
         <li>
           <strong>Plan for traffic</strong>: leave 2 hours before the race start on
           Saturday, or even better: take the <strong>T1 tram</strong> from Le Mans
-          station (~20 min to the East entrance of the circuit, trams every 4-5 min on
-          race day). The most reliable option.
+          station to the circuit (Antarès / MMArena terminus). The most reliable option.
         </li>
       </ol>
 

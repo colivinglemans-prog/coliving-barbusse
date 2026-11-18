@@ -79,7 +79,7 @@ export default function Article() {
         kosten Sie die Staus viel Zeit.
       </p>
 
-      <h3>Stadt Le Mans (20 Minuten außerhalb der Veranstaltung, 45-60 Minuten an Renntagen)</h3>
+      <h3>Stadt Le Mans (20 Minuten zur Strecke, an Renntagen 45-60 Minuten)</h3>
       <p>
         Der beste Kompromiss. Sie genießen die historische Altstadt (Cité Plantagenêt,
         Kathedrale, Restaurants) und erreichen die Strecke außerhalb der Stoßzeiten in
@@ -100,7 +100,7 @@ export default function Article() {
       <p>
         Unglaubliche Atmosphäre, aber kurze Nächte. Die Stellflächen werden über den
         offiziellen Ticketverkauf der 24 Stunden gebucht (Rubrik „Dormez au cœur de la
-        course"), mit eigenem Zelt oder eigener Ausrüstung. Für Fans, die das Rennen rund um
+        course“), mit eigenem Zelt oder eigener Ausrüstung. Für Fans, die das Rennen rund um
         die Uhr erleben wollen und weder Ruhe noch eine richtige Dusche nach der Rennnacht
         suchen.
       </p>
@@ -205,7 +205,7 @@ export default function Article() {
       <blockquote className="my-6 border-l-4 border-primary pl-4 italic">
         „Group of us were in Le Mans for a race event and had difficulty finding suitable
         accommodation to host all of us. Alexandre's place is perfect for large groups and has
-        everything you need" — Paul, Mai 2026
+        everything you need […]“ — Paul, Mai 2026
       </blockquote>
 
       <h2>Tipps für die Buchung</h2>
@@ -219,8 +219,9 @@ export default function Article() {
           Kalender die Mindestaufenthaltsdauer jedes Datums.
         </li>
         <li>
-          <strong>Prüfen Sie die Parkmöglichkeiten</strong>: Ein Haus in einer ruhigen
-          Wohnstraße, abseits der Strecke, bleibt die beste Wahl.
+          <strong>Prüfen Sie die Parkmöglichkeiten</strong>: Bei uns parken Sie kostenlos auf
+          der Straße, aber ohne reservierten oder garantierten Platz, und die Straßen füllen
+          sich während der Veranstaltung. Nehmen Sie lieber Zug, Straßenbahn oder eine Fahrgemeinschaft.
         </li>
         <li>
           <strong>Vergleichen Sie die Kosten pro Person</strong>: Ein großes Haus schlägt
@@ -229,8 +230,8 @@ export default function Article() {
         <li>
           <strong>Rechnen Sie mit Staus</strong>: Fahren Sie am Samstag 2 Stunden vor
           Rennbeginn los, oder besser: Nehmen Sie die <strong>Straßenbahn T1</strong> ab
-          dem Bahnhof Le Mans (~20 Min. bis zum Osteingang der Strecke, am Renntag alle
-          4-5 Min.). Das ist die zuverlässigste Lösung.
+          dem Bahnhof Le Mans bis zur Strecke (Endhaltestelle Antarès / MMArena). Das ist die
+          zuverlässigste Lösung.
         </li>
       </ol>
 

@@ -1722,7 +1722,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         description:
           "24 Heures du Mans 2027 (9-13 juin) : quand réserver, camping, hôtel ou maison, accès au circuit. Notre maison à 4,7 km accueille jusqu'à 20 personnes.",
         excerpt:
-          "Où dormir pendant les 24h du Mans ? Zones, tarifs, disponibilités — tout ce qu'il faut savoir pour réserver son hébergement avant que tout soit pris.",
+          "Où dormir pendant les 24h du Mans ? Zones, camping, hôtel ou maison — tout ce qu'il faut savoir pour réserver son hébergement avant que tout soit pris.",
         keywords: [
           "24 Heures du Mans 2027",
           "hébergement 24h du Mans",
@@ -1736,7 +1736,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         description:
           "24 Hours of Le Mans 2027 (9-13 June): when to book, campsite, hotel or house, getting to the circuit. Our house 4.7 km away sleeps up to 20 guests.",
         excerpt:
-          "Where to sleep during the 24 Hours of Le Mans? Areas, prices, availability — everything you need to book before it's all taken.",
+          "Where to sleep during the 24 Hours of Le Mans? Areas, campsite, hotel or house — everything you need to book before it's all taken.",
         keywords: [
           "24 Hours of Le Mans 2027",
           "24h Le Mans accommodation",
@@ -1750,7 +1750,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         description:
           "24 Ore di Le Mans 2027 (9-13 giugno): quando prenotare, campeggio, hotel o casa, accesso al circuito. La nostra casa a 4,7 km ospita fino a 20 persone.",
         excerpt:
-          "Dove dormire durante la 24h di Le Mans? Zone, tariffe, disponibilità — tutto quello che c'è da sapere per prenotare prima che sia tutto esaurito.",
+          "Dove dormire durante la 24h di Le Mans? Zone, campeggio, hotel o casa — tutto quello che c'è da sapere per prenotare prima che sia tutto esaurito.",
         keywords: [
           "24 Ore di Le Mans 2027",
           "alloggio 24h di Le Mans",
@@ -1764,7 +1764,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         description:
           "24 Stunden von Le Mans 2027 (9.-13. Juni): wann buchen, Camping, Hotel oder Haus, Weg zur Strecke. Unser Haus, 4,7 km entfernt, für bis zu 20 Personen.",
         excerpt:
-          "Wo schlafen während der 24 Stunden von Le Mans? Zonen, Preise, Verfügbarkeit — alles was Sie wissen müssen, um zu buchen, bevor alles weg ist.",
+          "Wo schlafen während der 24 Stunden von Le Mans? Zonen, Camping, Hotel oder Haus — alles was Sie wissen müssen, um zu buchen, bevor alles weg ist.",
         keywords: [
           "24 Stunden von Le Mans 2027",
           "Unterkunft 24h Le Mans",
@@ -1778,7 +1778,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         description:
           "24 Horas de Le Mans 2027 (9-13 de junio): cuándo reservar, camping, hotel o casa, cómo llegar al circuito. Nuestra casa a 4,7 km acoge hasta 20 personas.",
         excerpt:
-          "¿Dónde dormir durante las 24 Horas de Le Mans? Zonas, tarifas, disponibilidad: todo lo que hay que saber para reservar antes de que se agote.",
+          "¿Dónde dormir durante las 24 Horas de Le Mans? Zonas, camping, hotel o casa: todo lo que hay que saber para reservar antes de que se agote.",
         keywords: [
           "24 Horas de Le Mans 2027",
           "alojamiento 24h de Le Mans",
