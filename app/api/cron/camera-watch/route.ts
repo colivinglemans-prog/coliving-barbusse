@@ -66,7 +66,8 @@ import { isDryRun } from "@/lib/cron-params";
  * expliqué et ne notifie rien, tant que l'activité continue (`lib/camera/household.ts`, échéance
  * dans `barbusse:camera:household-until:<did>`, jugée après le filtre de scène : seul un mouvement
  * significatif prolonge la présence, 12 h au plus après la dernière ouverture ; `last-real` garde
- * sa condition). Journal Intratone illisible (6 s) → règle normale. Les caméras d'entrée et du
+ * sa condition). Journal Intratone illisible (6 s) → règle normale, sauf pendant une chaîne déjà
+ * ouverte : silence jusqu'à son échéance (30 min au plus), sans la prolonger. Les caméras d'entrée et du
  * jardin, à venir, garderont la priorité selon la présence.
  *
  * Cron-job.org, toutes les 10 minutes ; 5 recommandées (`alarms-survey` ne rend que le dernier
