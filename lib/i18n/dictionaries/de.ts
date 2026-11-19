@@ -216,6 +216,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     paymentText:
       "Sofortbuchung online, Zahlung per Karte auf der sicheren Seite. Unternehmen: Buchung auf Rechnung, 30 % Anzahlung, Restzahlung vor der Anreise, per Überweisung oder Karte — kontaktieren Sie uns.",
     conditions: "Buchungsbedingungen",
+    prices: "Preise und Verfügbarkeit",
     legal: "Impressum",
   },
   gallery: {

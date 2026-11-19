@@ -216,6 +216,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     paymentText:
       "Réservation en ligne instantanée, payée par carte sur la page sécurisée. Entreprises : réservation sur facture, acompte de 30 % puis solde avant l'arrivée, par virement ou carte — contactez-nous.",
     conditions: "Conditions de réservation",
+    prices: "Tarifs et disponibilités",
     legal: "Mentions légales",
   },
   gallery: {

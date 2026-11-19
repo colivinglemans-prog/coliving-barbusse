@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { cancellationText } from "@sejour/socle/lib/quote-labels";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { CANCELLATION_POLICY, PAYMENT_POLICY, PROPERTY_INFO } from "@/lib/property-info";
-import { alternatesFor, conditionsPath, pageOpenGraph, pageTwitter } from "@/lib/seo";
+import Link from "next/link";
+import { pricesContent } from "../tarifs/content";
+import { alternatesFor, conditionsPath, pageOpenGraph, pageTwitter, pricesPath } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 
 /**
@@ -178,7 +180,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function ConditionsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: raw } = await params;
-  const c = content(asLocale(raw));
+  const locale = asLocale(raw);
+  const c = content(locale);
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
       <h1 className="text-2xl font-semibold text-foreground">{c.title}</h1>
@@ -193,6 +196,11 @@ export default async function ConditionsPage({ params }: { params: Promise<{ loc
           </ul>
         </section>
       ))}
+      <p className="text-sm">
+        <Link href={pricesPath(locale)} className="font-medium text-foreground underline underline-offset-2">
+          {pricesContent(locale).title}
+        </Link>
+      </p>
     </div>
   );
 }

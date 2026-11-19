@@ -147,6 +147,8 @@ export interface Dictionary {
     paymentTitle: string;
     paymentText: string;
     conditions: string;
+    /** Lien vers la page « Tarifs » (grille des prix exacts). */
+    prices: string;
     legal: string;
   };
   gallery: {

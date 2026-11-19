@@ -216,6 +216,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     paymentText:
       "Prenotazione online immediata, pagata con carta sulla pagina sicura. Aziende: prenotazione con fattura, acconto del 30% e saldo prima dell'arrivo, con bonifico o carta: contattaci.",
     conditions: "Condizioni di prenotazione",
+    prices: "Prezzi e disponibilità",
     legal: "Note legali",
   },
   gallery: {

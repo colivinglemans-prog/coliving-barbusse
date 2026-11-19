@@ -216,6 +216,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     paymentText:
       "Reserva en línea inmediata, pagada con tarjeta en la página segura. Empresas: reserva con factura, depósito del 30 % y saldo antes de la llegada, por transferencia o tarjeta: contáctanos.",
     conditions: "Condiciones de reserva",
+    prices: "Precios y disponibilidad",
     legal: "Aviso legal",
   },
   gallery: {

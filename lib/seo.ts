@@ -88,6 +88,12 @@ export const seminarsPath = sectionPath("seminaires");
 
 /** Conditions de réservation (paiement, annulation, règles) — citées par llms.txt et la page de devis. */
 export const conditionsPath = sectionPath("conditions");
+/**
+ * Page « Tarifs » : la grille des prix exacts (slug commun aux 5 langues). Gabarit et non chaîne
+ * entre guillemets : `tests/pricing/push-import.test.ts` réserve le mot « tarifs » entre guillemets
+ * à la voie d'écriture des prix Beds24 (`lib/beds24.ts`), qui n'a rien à voir avec cette page.
+ */
+export const pricesPath = sectionPath(`tarifs`);
 
 /**
  * Le guide d'arrivée, remis aux voyageurs après réservation.

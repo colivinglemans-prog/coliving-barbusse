@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { alternatesFor, pageOpenGraph, pageTwitter, seminarsPath } from "@/lib/seo";
+import { alternatesFor, pageOpenGraph, pageTwitter, pricesPath, seminarsPath } from "@/lib/seo";
+import { pricesContent } from "../tarifs/content";
 import { SITE_URL } from "@/lib/site";
 import { PROPERTY_INFO } from "@/lib/property-info";
 import { aggregateRatingJsonLd } from "@/lib/reviews";
@@ -569,6 +570,9 @@ export default async function Seminaires({
       <section className="mt-12 rounded-xl border border-border p-6">
         <h2 className="text-xl font-semibold text-foreground">{t.pricingTitle}</h2>
         <p className="mt-3 text-sm text-secondary">{t.pricingBody}</p>
+        <Link href={pricesPath(locale)} className="mt-3 inline-block text-sm font-medium text-foreground underline underline-offset-2">
+          {pricesContent(locale).title} →
+        </Link>
       </section>
 
       {/* FAQ */}

@@ -6,6 +6,7 @@ import {
   blogPostPath,
   conditionsPath,
   homePath,
+  pricesPath,
   hreflangMap,
   roomsPath,
   seminarsPath,
@@ -35,6 +36,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { pathFor: seminarsPath, changeFrequency: "monthly", priority: 0.85 },
     { pathFor: blogPath, changeFrequency: "weekly", priority: 0.7 },
     { pathFor: conditionsPath, changeFrequency: "monthly", priority: 0.4 },
+    // Tarifs : la grille des prix exacts, lue par les assistants IA (qui ne lisent pas le
+    // calendrier). Sans `lastModified`, comme les autres pages statiques.
+    { pathFor: pricesPath, changeFrequency: "weekly", priority: 0.8 },
   ];
 
   const staticPages: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
