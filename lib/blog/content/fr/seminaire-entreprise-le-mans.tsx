@@ -192,25 +192,27 @@ export default function Article() {
         <li><strong>12h30</strong> : déjeuner au Terminus Gourmand (terrasse face à la gare)</li>
         <li><strong>14h-16h</strong> : <strong>baptême de piste</strong> ou <strong>visite du Musée des 24h</strong></li>
         <li><strong>16h-17h</strong> : retour à la maison, debrief final dans le salon</li>
-        <li><strong>17h-18h</strong> : check-out, marche jusqu'à la gare, départ TGV</li>
+        <li><strong>17h-18h</strong> : marche jusqu'à la gare, départ TGV (le départ est à 11h ; un départ tardif comme ici se demande à la réservation, selon disponibilité et avec supplément)</li>
       </ul>
 
       <h2>Budget et logistique</h2>
 
       <h3>Tarif indicatif hébergement</h3>
       <p>
-        Location de la maison entière pour une équipe de 10 à 12, 2 nuits :{" "}
-        <strong>~150-250 €/nuit/personne selon la période</strong> (hors activités
-        circuit et restauration). À comparer à 10 chambres d'hôtel 3-4★ équivalentes,
-        auxquelles il faut encore ajouter la location d'une salle de réunion — ici,
-        l'espace de travail vient avec la maison.
+        Location de la maison entière, en semaine hors événements du circuit :{" "}
+        <strong>environ 65 €/nuit/personne à 10, 55 € à 12, 40 € à 20, tout compris</strong>{" "}
+        (draps, ménage, taxe de séjour), hors activités et restauration. Le prix exact pour
+        vos dates s'affiche en ligne :{" "}
+        <Link href="/fr#disponibilite">voir le calendrier et les disponibilités</Link>. À
+        comparer à 10 chambres d'hôtel 3-4★, auxquelles il faut encore ajouter la location
+        d'une salle de réunion — ici, l'espace de travail vient avec la maison.
       </p>
 
       <h3>Services pour professionnels</h3>
       <ul>
         <li><strong>Facture professionnelle</strong> sur demande (compatible LMNP, TVA n/a)</li>
         <li><strong>Paiement par virement bancaire</strong> accepté</li>
-        <li><strong>Arrivée autonome dès 17h</strong> avec serrure connectée, ou <strong>early check-in dès 9h30</strong> sous réserve de disponibilité (idéal pour démarrer la journée de séminaire dès la descente du TGV)</li>
+        <li><strong>Arrivée autonome dès 17h</strong> avec serrure connectée, ou <strong>early check-in dès 9h30</strong> sur demande, selon disponibilité et avec supplément (idéal pour démarrer la journée de séminaire dès la descente du TGV)</li>
         <li><strong>Contact WhatsApp 7j/7</strong> pour toute demande spécifique</li>
       </ul>
 

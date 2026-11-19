@@ -199,25 +199,27 @@ export default function Article() {
         <li><strong>12:30</strong>: pranzo al Terminus Gourmand (terrazza di fronte alla stazione)</li>
         <li><strong>14:00-16:00</strong>: <strong>battesimo della pista</strong> o <strong>visita del Museo delle 24h</strong></li>
         <li><strong>16:00-17:00</strong>: rientro a casa, debriefing finale nel soggiorno</li>
-        <li><strong>17:00-18:00</strong>: check-out, passeggiata fino alla stazione, partenza TGV</li>
+        <li><strong>17:00-18:00</strong>: passeggiata fino alla stazione, partenza TGV (la partenza è alle 11:00; una partenza posticipata come questa si chiede alla prenotazione, secondo disponibilità e con supplemento)</li>
       </ul>
 
       <h2>Budget e logistica</h2>
 
       <h3>Tariffa indicativa alloggio</h3>
       <p>
-        Affitto della casa intera per un team da 10 a 12, 2 notti:{" "}
-        <strong>~150-250 €/notte/persona a seconda del periodo</strong>{" "}
-        (escluse attività al circuito e ristorazione). Da confrontare con 10
-        camere d'hotel 3-4★ equivalenti, a cui va ancora aggiunto l'affitto di
-        una sala riunioni — qui lo spazio di lavoro arriva con la casa.
+        Affitto della casa intera, in settimana fuori dagli eventi del circuito:{" "}
+        <strong>circa 65 €/notte/persona per 10, 55 € per 12, 40 € per 20, tutto incluso</strong>{" "}
+        (biancheria, pulizie, tassa di soggiorno), escluse attività e ristorazione. Il prezzo
+        esatto per le vostre date è online:{" "}
+        <Link href="/it#disponibilite">vedere il calendario e la disponibilità</Link>. Da
+        confrontare con 10 camere d'hotel 3-4★, a cui va ancora aggiunto l'affitto di una
+        sala riunioni — qui lo spazio di lavoro arriva con la casa.
       </p>
 
       <h3>Servizi per professionisti</h3>
       <ul>
         <li><strong>Fattura professionale</strong> su richiesta (compatibile LMNP, IVA n/a)</li>
         <li><strong>Pagamento con bonifico bancario</strong> accettato</li>
-        <li><strong>Arrivo autonomo dalle 17:00</strong> con serratura connessa, o <strong>early check-in dalle 9:30</strong> previa disponibilità (ideale per iniziare la giornata di seminario direttamente dopo la discesa dal TGV)</li>
+        <li><strong>Arrivo autonomo dalle 17:00</strong> con serratura connessa, o <strong>early check-in dalle 9:30</strong> su richiesta, secondo disponibilità e con supplemento (ideale per iniziare la giornata di seminario direttamente dopo la discesa dal TGV)</li>
         <li><strong>Contatto WhatsApp 7 giorni su 7</strong> per qualsiasi richiesta specifica</li>
       </ul>
 

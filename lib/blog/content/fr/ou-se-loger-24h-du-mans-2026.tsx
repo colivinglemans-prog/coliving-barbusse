@@ -70,6 +70,9 @@ export default function Article() {
         <li>Grande maison pour groupe (10-20 pers.) : 1 500-3 500 €/nuit</li>
       </ul>
       <p>
+        Ce sont des prix constatés sur le marché pendant l'événement, pas les nôtres : pour notre maison (9 suites, jusqu'à 20 personnes), le prix exact pour vos dates s'affiche sur <Link href="/fr#disponibilite">le calendrier de réservation</Link>.
+      </p>
+      <p>
         Astuce : plus vous êtes nombreux, plus le coût par personne baisse. Une grande maison
         partagée à 15 revient souvent moins cher qu'un hôtel individuel.
       </p>

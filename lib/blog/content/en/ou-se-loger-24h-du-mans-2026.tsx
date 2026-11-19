@@ -68,6 +68,9 @@ export default function Article() {
         <li>Large group house (10-20 people): €1,500-3,500/night</li>
       </ul>
       <p>
+        These are market prices seen during the event, not ours: for our house (9 suites, up to 20 people), the exact price for your dates is shown on <Link href="/en#disponibilite">the booking calendar</Link>.
+      </p>
+      <p>
         Tip: the more of you, the lower the per-person cost. A shared house at 15 often
         comes out cheaper than individual hotel rooms.
       </p>

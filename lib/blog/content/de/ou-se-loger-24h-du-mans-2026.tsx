@@ -73,6 +73,9 @@ export default function Article() {
         <li>Großes Haus für Gruppen (10-20 Personen): 1.500-3.500 € pro Nacht</li>
       </ul>
       <p>
+        Das sind während der Veranstaltung beobachtete Marktpreise, nicht unsere: Für unser Haus (9 Suiten, bis zu 20 Personen) zeigt <Link href="/de#disponibilite">der Buchungskalender</Link> den genauen Preis für Ihre Daten.
+      </p>
+      <p>
         Tipp: Je mehr Sie sind, desto niedriger werden die Kosten pro Person. Ein großes,
         zu 15 geteiltes Haus ist oft günstiger als ein einzelnes Hotel.
       </p>

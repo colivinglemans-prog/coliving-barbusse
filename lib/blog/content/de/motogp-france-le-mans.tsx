@@ -63,6 +63,9 @@ export default function Article() {
         <li>Großes Gruppenhaus (15-20 Personen): 2.000 bis 3.500 € pro Nacht</li>
       </ul>
       <p>
+        Das sind während der Veranstaltung beobachtete Marktpreise, nicht unsere: Für unser Haus (9 Suiten, bis zu 20 Personen) zeigt <Link href="/de#disponibilite">der Buchungskalender</Link> den genauen Preis für Ihre Daten.
+      </p>
+      <p>
         Für eine Gruppe ab 15 Personen ist die Miete eines großen Hauses wirtschaftlich
         unschlagbar und deutlich geselliger als eine Reihe von Hotelzimmern.
       </p>

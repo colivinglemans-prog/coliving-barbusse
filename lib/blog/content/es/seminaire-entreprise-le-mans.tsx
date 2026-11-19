@@ -204,26 +204,27 @@ export default function Article() {
         <li><strong>12:30</strong>: almuerzo en el Terminus Gourmand (terraza frente a la estación)</li>
         <li><strong>14-16 h</strong>: <strong>bautismo de pista</strong> o <strong>visita al Museo de las 24h</strong></li>
         <li><strong>16-17 h</strong>: regreso a la casa, debriefing final en el salón</li>
-        <li><strong>17-18 h</strong>: check-out, caminata hasta la estación, salida en TGV</li>
+        <li><strong>17-18 h</strong>: caminata hasta la estación, salida en TGV (la salida es a las 11 h; una salida tardía como esta se pide al reservar, según disponibilidad y con suplemento)</li>
       </ul>
 
       <h2>Presupuesto y logística</h2>
 
       <h3>Tarifa orientativa de alojamiento</h3>
       <p>
-        Alquiler de la casa entera para un equipo de 10 a 12, 2 noches:{" "}
-        <strong>~150-250 €/noche/persona según la temporada</strong>{" "}
-        (excluyendo actividades en el circuito y restauración). Compáralo con 10
-        habitaciones de hotel de 3-4★ equivalentes, a las que hay que sumar el
-        alquiler de una sala de reuniones — aquí el espacio de trabajo viene con
-        la casa.
+        Alquiler de la casa entera, entre semana fuera de los eventos del circuito:{" "}
+        <strong>unos 65 €/noche/persona para 10, 55 € para 12, 40 € para 20, todo incluido</strong>{" "}
+        (ropa de cama, limpieza, tasa turística), sin actividades ni restauración. El precio
+        exacto para sus fechas aparece en línea:{" "}
+        <Link href="/es#disponibilite">ver el calendario y la disponibilidad</Link>.
+        Compáralo con 10 habitaciones de hotel 3-4★, a las que hay que sumar el alquiler de
+        una sala de reuniones — aquí el espacio de trabajo viene con la casa.
       </p>
 
       <h3>Servicios para profesionales</h3>
       <ul>
         <li><strong>Factura profesional</strong> bajo petición (compatible LMNP, IVA no aplicable)</li>
         <li><strong>Pago por transferencia bancaria</strong> aceptado</li>
-        <li><strong>Llegada autónoma desde las 17 h</strong> con cerradura conectada, o <strong>early check-in desde las 9:30</strong> sujeto a disponibilidad (ideal para arrancar la jornada de seminario nada más bajar del TGV)</li>
+        <li><strong>Llegada autónoma desde las 17 h</strong> con cerradura conectada, o <strong>early check-in desde las 9:30</strong> bajo petición, según disponibilidad y con suplemento (ideal para arrancar la jornada de seminario nada más bajar del TGV)</li>
         <li><strong>Contacto WhatsApp 7 días/7</strong> para cualquier solicitud específica</li>
       </ul>
 

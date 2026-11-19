@@ -189,25 +189,27 @@ export default function Article() {
         <li><strong>12.30 pm</strong>: lunch at Le Terminus Gourmand (terrace opposite the station)</li>
         <li><strong>2-4 pm</strong>: <strong>track baptism</strong> or <strong>24 Hours Museum visit</strong></li>
         <li><strong>4-5 pm</strong>: return to the house, final debrief in the living room</li>
-        <li><strong>5-6 pm</strong>: check-out, walk to the station, TGV departure</li>
+        <li><strong>5-6 pm</strong>: walk to the station, TGV departure (check-out is at 11 am; a late departure like this one is requested at booking, subject to availability and at extra cost)</li>
       </ul>
 
       <h2>Budget and logistics</h2>
 
       <h3>Indicative accommodation rate</h3>
       <p>
-        Whole-house rental for a team of 10 to 12, 2 nights:{" "}
-        <strong>~€150-250/night/person depending on season</strong> (excl. circuit
-        activities and catering). Compare that with 10 equivalent 3-4★ hotel rooms, on
-        top of which you still have to rent a meeting room — here the workspace comes
-        with the house.
+        Whole-house rental, midweek outside circuit events:{" "}
+        <strong>about €65/night/person for 10, €55 for 12, €40 for 20, all included</strong>{" "}
+        (linen, cleaning, tourist tax), excluding activities and catering. The exact price
+        for your dates is shown online:{" "}
+        <Link href="/en#disponibilite">see the calendar and availability</Link>. Compare
+        that with 10 3-4★ hotel rooms, on top of which you still have to rent a meeting
+        room — here the workspace comes with the house.
       </p>
 
       <h3>Services for professionals</h3>
       <ul>
         <li><strong>Professional invoice</strong> on request (LMNP-compatible, no VAT)</li>
         <li><strong>Bank transfer payment</strong> accepted</li>
-        <li><strong>Self check-in from 5 pm</strong> with smart lock, or <strong>early check-in from 9.30 am</strong> subject to availability (perfect to kick off the seminar right off the TGV)</li>
+        <li><strong>Self check-in from 5 pm</strong> with smart lock, or <strong>early check-in from 9.30 am</strong> on request, subject to availability and at extra cost (perfect to kick off the seminar right off the TGV)</li>
         <li><strong>WhatsApp contact 7 days a week</strong> for any specific request</li>
       </ul>
 

@@ -72,6 +72,9 @@ export default function Article() {
         <li>Gran casa para grupo (10-20 pers.): 1.500-3.500 €/noche</li>
       </ul>
       <p>
+        Son precios observados en el mercado durante el evento, no los nuestros: para nuestra casa (9 suites, hasta 20 personas), el precio exacto para sus fechas aparece en <Link href="/es#disponibilite">el calendario de reservas</Link>.
+      </p>
+      <p>
         Truco: cuantos más seáis, menor será el coste por persona. Una gran casa
         compartida entre 15 suele salir más barata que un hotel individual.
       </p>

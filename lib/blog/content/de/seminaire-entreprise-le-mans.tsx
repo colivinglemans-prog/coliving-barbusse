@@ -195,25 +195,27 @@ export default function Article() {
         <li><strong>12:30 Uhr</strong>: Mittagessen im Terminus Gourmand (Terrasse gegenüber dem Bahnhof)</li>
         <li><strong>14-16 Uhr</strong>: <strong>Mitfahrt auf der Rennstrecke</strong> oder <strong>Besuch des 24h-Museums</strong></li>
         <li><strong>16-17 Uhr</strong>: Rückkehr zum Haus, abschließendes Debrief im Wohnzimmer</li>
-        <li><strong>17-18 Uhr</strong>: Check-out, Spaziergang zum Bahnhof, TGV-Abfahrt</li>
+        <li><strong>17-18 Uhr</strong>: Spaziergang zum Bahnhof, TGV-Abfahrt (Abreise ist um 11 Uhr; eine spätere Abreise wie hier wird bei der Buchung angefragt, je nach Verfügbarkeit und gegen Aufpreis)</li>
       </ul>
 
       <h2>Budget und Logistik</h2>
 
       <h3>Indikativer Unterkunftspreis</h3>
       <p>
-        Vermietung des gesamten Hauses für ein Team von 10 bis 12, 2 Nächte:{" "}
-        <strong>~150-250 €/Nacht/Person je nach Saison</strong> (ohne
-        Rennstreckenaktivitäten und Verpflegung). Zum Vergleich: 10 gleichwertige
-        3-4-Sterne-Hotelzimmer, zu denen noch die Miete eines Konferenzraums
-        kommt — hier gehört der Arbeitsbereich zum Haus.
+        Vermietung des gesamten Hauses, unter der Woche außerhalb der Rennstrecken-Events:{" "}
+        <strong>etwa 65 €/Nacht/Person bei 10, 55 € bei 12, 40 € bei 20, alles inklusive</strong>{" "}
+        (Wäsche, Reinigung, Kurtaxe), ohne Aktivitäten und Verpflegung. Den genauen Preis für
+        Ihre Daten sehen Sie online:{" "}
+        <Link href="/de#disponibilite">Kalender und Verfügbarkeit ansehen</Link>. Zum
+        Vergleich: 10 Hotelzimmer der Kategorie 3-4★, zu denen noch die Miete eines
+        Konferenzraums kommt — hier gehört der Arbeitsbereich zum Haus.
       </p>
 
       <h3>Services für Geschäftskunden</h3>
       <ul>
         <li><strong>Geschäftsrechnung</strong> auf Anfrage (LMNP-kompatibel, MwSt. n. a.)</li>
         <li><strong>Zahlung per Banküberweisung</strong> akzeptiert</li>
-        <li><strong>Selbständige Anreise ab 17 Uhr</strong> mit smartem Schloss, oder <strong>Early Check-in ab 9:30 Uhr</strong> vorbehaltlich Verfügbarkeit (ideal, um den Seminartag direkt nach der TGV-Ankunft zu starten)</li>
+        <li><strong>Selbständige Anreise ab 17 Uhr</strong> mit smartem Schloss, oder <strong>Early Check-in ab 9:30 Uhr</strong> auf Anfrage, je nach Verfügbarkeit und gegen Aufpreis (ideal, um den Seminartag direkt nach der TGV-Ankunft zu starten)</li>
         <li><strong>WhatsApp-Kontakt 7 Tage/Woche</strong> für jede besondere Anfrage</li>
       </ul>
 

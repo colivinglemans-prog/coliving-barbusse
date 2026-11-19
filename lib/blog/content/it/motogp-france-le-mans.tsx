@@ -63,6 +63,9 @@ export default function Article() {
         <li>Grande casa per gruppo (15-20 pers.): da 2.000 a 3.500 €/notte</li>
       </ul>
       <p>
+        Sono prezzi osservati sul mercato durante l'evento, non i nostri: per la nostra casa (9 suite, fino a 20 persone), il prezzo esatto per le vostre date è sul <Link href="/it#disponibilite">calendario delle prenotazioni</Link>.
+      </p>
+      <p>
         Per un gruppo di 15+ persone, affittare una grande casa è economicamente
         imbattibile e molto più conviviale di una serie di camere d'albergo.
       </p>
