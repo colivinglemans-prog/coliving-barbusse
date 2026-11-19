@@ -205,7 +205,7 @@ export default function Article() {
         Vermietung des gesamten Hauses, unter der Woche außerhalb der Rennstrecken-Events:{" "}
         <strong>etwa 65 €/Nacht/Person bei 10, 55 € bei 12, 40 € bei 20, alles inklusive</strong>{" "}
         (Wäsche, Reinigung, Kurtaxe), ohne Aktivitäten und Verpflegung. Den genauen Preis für
-        Ihre Daten sehen Sie online:{" "}
+        Ihre Reisedaten sehen Sie online:{" "}
         <Link href="/de#disponibilite">Kalender und Verfügbarkeit ansehen</Link>. Zum
         Vergleich: 10 Hotelzimmer der Kategorie 3-4★, zu denen noch die Miete eines
         Konferenzraums kommt — hier gehört der Arbeitsbereich zum Haus.

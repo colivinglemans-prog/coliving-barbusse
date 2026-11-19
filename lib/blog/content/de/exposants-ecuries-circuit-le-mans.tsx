@@ -187,7 +187,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Sofort der genaue Preis, ohne auf ein Angebot zu warten</strong>: Klicken Sie
-          auf <em>Buchen</em>, wählen Sie Ihre Daten und geben Sie Ihre Kontaktdaten und den
+          auf <em>Buchen</em>, wählen Sie Ihre Reisedaten und geben Sie Ihre Kontaktdaten und den
           Namen Ihres Unternehmens an. Der Gesamtpreis wird sofort angezeigt, und die Rechnung
           auf den Namen des Unternehmens wird auf Grundlage Ihrer Buchung erstellt.
         </li>

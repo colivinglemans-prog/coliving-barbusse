@@ -216,7 +216,7 @@ export default function Article() {
         (ropa de cama, limpieza, tasa turística), sin actividades ni restauración. El precio
         exacto para sus fechas aparece en línea:{" "}
         <Link href="/es#disponibilite">ver el calendario y la disponibilidad</Link>.
-        Compáralo con 10 habitaciones de hotel 3-4★, a las que hay que sumar el alquiler de
+        Compárelo con 10 habitaciones de hotel 3-4★, a las que hay que sumar el alquiler de
         una sala de reuniones — aquí el espacio de trabajo viene con la casa.
       </p>
 
@@ -228,7 +228,7 @@ export default function Article() {
         <li><strong>Contacto WhatsApp 7 días/7</strong> para cualquier solicitud específica</li>
       </ul>
 
-      <h3>Proveedores locales para completar tu estancia</h3>
+      <h3>Proveedores locales para completar su estancia</h3>
       <p>
         No organizamos estos servicios nosotros, pero profesionales locales pueden
         encargarse directamente:
