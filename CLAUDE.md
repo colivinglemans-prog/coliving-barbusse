@@ -713,7 +713,7 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
 | [lib/stay-hours-rules.ts](lib/stay-hours-rules.ts) | Règle **pure** (importable côté navigateur) : `stayHours` (17 h / 11 h sauf accord), `withAgreedHours`, bornes `AGREED_RANGE` (arrivée 8-16 h, départ 12-23 h, heures entières), `rotationCheck`, `accessHours`, `formatHourFor`, et **la** fenêtre du code envoyée à la serrure (`lockWindows` : heures convenues puis `boundRotationWindows` ; `codeEndsAt`, `departingCodesEnd`), commune à la synchro et au relevé de la porte au départ. |
 | [lib/stay-hours.ts](lib/stay-hours.ts) | Table Redis : **hachage** `barbusse:stay-hours`, un champ par réservation. `readStayHours` ne lève jamais (Redis injoignable ⇒ heures standard) ; `withStayHours(bookings)` = la jointure commune aux crons et au dashboard. |
 | `POST`/`DELETE /api/dashboard/bookings/[id]/stay-hours` | **Admin seulement** (`guard.denyNonAdmin`), même origine exigée (403) et JSON pour le `POST` (415), comme `pricing/halt`. 404 hors maison (303771) ou statut exclu ; 400 hors bornes ; **409 si le départ convenu dépasse l'arrivée (convenue ou standard) du séjour vendu qui arrive le même jour** (ou l'inverse) — voisins : `rotationNeighbours`, la même définition que la popup ; avertissement si égalité, **en rouge** si l'arrivée anticipée laisse moins de 3 h au ménage ; 503 sans Redis. Après l'écriture, **synchro des codes immédiate** (`runAccessSync`, déclencheur `dashboard`, même verrou que le webhook) ; si elle échoue, 200 avec `syncDeferred` (le passage horaire rattrape). |
-| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** — et, pour le viewer, **vendues** (`countsAsSold` : ni demandes ni options, comme `/api/dashboard/bookings`, cerbere B1) (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). La phase B y ajoutera l'état du départ du jour. |
+| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** — et, pour le viewer, **vendues** (`countsAsSold` : ni demandes ni options, comme `/api/dashboard/bookings`, cerbere B1) (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). Depuis la phase B : `departures: { <id>: { icon: "gone" \| "present" \| "unlocked", line } }`, une icône et une phrase toutes faites (`departureBadge`), jamais le texte d'un message ni le journal de la serrure ; Beds24 relu seulement s'il y a une table ou un état de départ. |
 
 | Consommateur | Standard | Arrivée convenue A / départ convenu D |
 |---|---|---|
@@ -764,6 +764,28 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
   entré ») ; Redis illisible (horaires convenus relus par `readStayHoursStrict`, état d'alerte,
   fin de journée) → relevé sauté sans alerte ; alerte déjà ouverte → le garage n'est plus relu ;
   minuit passé, en hiver comme en mode été, les deux alertes se referment sans message.
+- **Détection du départ, phase B en observation** (2026-11-20, `lib/departure-detection.ts` pur,
+  `lib/departure-observation.ts` lectures) : dans `heating-automation`, **après** la pose des modes,
+  le jour d'un départ **de 5 h à D + 30 min** (ensuite le relevé de la porte prend le relais, son
+  résultat est reporté par `recordDoorCheck` sans relire). Par passage : présence des radiateurs
+  **déjà lus** (seul le palier `cft` vaut présence ; `cft1`/`cft2` journalisés pour trancher ;
+  hors radiateurs verrouillés et `alerts: false`), état de la serrure (1 appel Nuki), journal
+  depuis la veille 18 h (1 appel) **seulement porte verrouillée ou départ déjà constaté**, fil
+  Beds24 (`getBookingMessages`) **un passage sur deux au plus** (25 min), jamais une fois le
+  message reçu ou le départ constaté. « Vide » = porte verrouillée sans ouverture depuis le
+  dernier verrouillage **et** (3 passages sans présence **ou** message de départ du voyageur,
+  mots-clés 5 langues, texte jamais gardé). Code du séjour (ou ouverture à la main) après le
+  constat → `returned`. État `barbusse:departure:<id>` (7 j), journal
+  `barbusse:departure-journal:<jour>` (14 j, une entrée par passage, catégorie du code et jamais
+  son nom) relu par `node --env-file=.env.local scripts/departure-journal.mjs AAAA-MM-JJ`.
+  Notifications priorité 2, **une fois par réservation** (`SET NX barbusse:departure-notified:*`) :
+  « Départ estimé à 8 h 42 (observation : chauffage non modifié) », et « message de départ, porte
+  non verrouillée ». Serrure ou radiateurs illisibles : rien. **Interrupteur `DEPARTURE_DETECTION`
+  = `observe` (défaut) | `live` | `off`** ; `live` n'est pas codé (TODO phase C, se comporte comme
+  `observe`) : **le chauffage ne change jamais**. Pas en mode été. Calendrier : icône au bout de la
+  barre (porte + coche verte « partis », horloge orange « encore présents » le jour même, porte
+  ouverte rouge « partis sans verrouiller ») et ligne « … (estimation) » dans la fiche, admin et
+  viewer.
 - ⚠️ La messagerie maison étant en mode `test`, les vrais messages partent encore des auto-actions
   Beds24, qui disent « avant 11h » : confirmer l'heure convenue au voyageur à la main.
 - Le guide d'arrivée reste générique (« Sauf accord préalable… avant 11h ») : il n'est lié à aucune
