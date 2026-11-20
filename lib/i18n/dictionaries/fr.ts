@@ -62,6 +62,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     features: "Lit fait à l'arrivée · Couette et 2 oreillers · Table de nuit · Salle de douche privative · Sèche-serviettes · Smart TV · Bureau · Penderie ou dressing · Clé individuelle",
     prevPhoto: "Photo précédente",
     nextPhoto: "Photo suivante",
+    photoAlt: (room, n) => `${room} — photo ${n}`,
   },
   commonSpaces: {
     title: "Espace Sport",
@@ -70,6 +71,11 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     gymDesc: "Équipements fitness à disposition : vélo elliptique, haltères et banc de musculation, tapis de yoga pour les étirements.",
     zen: "Salle zen",
     zenDesc: "Un espace détente pour se ressourcer : yoga, méditation et relaxation.",
+    alts: {
+      gym: "Salle de sport",
+      gymEquipment: "Salle de sport — équipements",
+      zen: "Salle zen",
+    },
   },
   garden: {
     title: "Jardin",
@@ -81,6 +87,11 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
       "Salon de jardin 8 places, parfait pour les apéros",
       "Grandes tables pour manger dehors jusqu'à 20 personnes",
     ],
+    alts: {
+      enclosed: "Jardin clos 90 m² — exposition sud",
+      lounge: "Salon de jardin 8 places — canapés pour les apéros",
+      tables: "Grandes tables pour manger dehors jusqu'à 20 personnes",
+    },
   },
   amenities: {
     title: "Ce que propose ce logement",
@@ -224,5 +235,22 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     showAllPhotos: "Afficher toutes les photos",
     previous: "Précédent",
     next: "Suivant",
+    alts: {
+      kitchenTable: "Cuisine et grande table de 16 places",
+      kitchenTable2: "Grande table de la cuisine — autre vue",
+      verandaAperitif: "Véranda — mini-table haute, coin apéro au fond",
+      verandaCoffee: "Véranda — seconde mini-table haute, coin café au fond",
+      livingVeranda: "Salon ouvert sur la véranda",
+      living: "Salon",
+      livingAperitif: "Salon et coin apéro",
+      entrance: "Entrée et buanderie",
+      exterior: "Vue extérieure de la maison",
+    },
+  },
+  notFound: {
+    title: "Page introuvable",
+    text: "Cette page n'existe pas ou a été déplacée.",
+    home: "Retour à l'accueil",
+    book: "Voir les disponibilités et réserver",
   },
 };

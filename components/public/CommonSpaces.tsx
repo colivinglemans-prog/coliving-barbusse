@@ -2,18 +2,20 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, type Dictionary } from "@/lib/i18n";
 import Lightbox from "./Lightbox";
 
-const PHOTOS = [
-  { src: "/images/house/5-sportAI.jpg", alt: "Salle de sport" },
-  { src: "/images/house/5-sportAI-2.JPG", alt: "Salle de sport — équipements" },
-  { src: "/images/house/Salle Zen AI.jpg", alt: "Salle zen" },
+/** Les textes `alt` viennent du dictionnaire (`commonSpaces.alts`). */
+const PHOTOS: { src: string; alt: keyof Dictionary["commonSpaces"]["alts"] }[] = [
+  { src: "/images/house/5-sportAI.jpg", alt: "gym" },
+  { src: "/images/house/5-sportAI-2.JPG", alt: "gymEquipment" },
+  { src: "/images/house/Salle Zen AI.jpg", alt: "zen" },
 ];
 
 export default function CommonSpaces() {
   const { t } = useTranslation();
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const photos = PHOTOS.map((p) => ({ src: p.src, alt: t.commonSpaces.alts[p.alt] }));
 
   return (
     <div className="mx-auto max-w-6xl border-b border-border px-6 py-8">
@@ -24,7 +26,7 @@ export default function CommonSpaces() {
 
       {/* 3 photos côte à côte */}
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        {PHOTOS.map((photo, i) => (
+        {photos.map((photo, i) => (
           <button
             key={photo.src}
             type="button"
@@ -43,7 +45,7 @@ export default function CommonSpaces() {
         ))}
       </div>
 
-      <Lightbox photos={PHOTOS} index={lightbox} onChange={setLightbox} />
+      <Lightbox photos={photos} index={lightbox} onChange={setLightbox} />
 
       {/* Descriptions */}
       <div className="mt-6 space-y-4">

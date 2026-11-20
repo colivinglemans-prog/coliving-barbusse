@@ -53,6 +53,8 @@ export interface Dictionary {
     features: string;
     prevPhoto: string;
     nextPhoto: string;
+    /** Texte `alt` d'une photo de chambre : « Chambre 3 — photo 2 ». */
+    photoAlt: (room: string, n: number) => string;
   };
   commonSpaces: {
     title: string;
@@ -61,11 +63,15 @@ export interface Dictionary {
     gymDesc: string;
     zen: string;
     zenDesc: string;
+    /** Textes `alt` des photos de `CommonSpaces`, dans l'ordre des photos. */
+    alts: { gym: string; gymEquipment: string; zen: string };
   };
   garden: {
     title: string;
     subtitle: string;
     features: string[];
+    /** Textes `alt` des photos de `Garden`. */
+    alts: { enclosed: string; lounge: string; tables: string };
   };
   amenities: {
     title: string;
@@ -156,5 +162,24 @@ export interface Dictionary {
     showAllPhotos: string;
     previous: string;
     next: string;
+    /** Textes `alt` (et légendes de la visionneuse) des photos de `PhotoGallery`. */
+    alts: {
+      kitchenTable: string;
+      kitchenTable2: string;
+      verandaAperitif: string;
+      verandaCoffee: string;
+      livingVeranda: string;
+      living: string;
+      livingAperitif: string;
+      entrance: string;
+      exterior: string;
+    };
+  };
+  /** Page 404 (`app/[locale]/not-found.tsx`) : titre (aussi dans `<title>`), phrase, deux liens. */
+  notFound: {
+    title: string;
+    text: string;
+    home: string;
+    book: string;
   };
 }

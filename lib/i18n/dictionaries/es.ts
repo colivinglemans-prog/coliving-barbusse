@@ -62,6 +62,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     features: "Cama hecha a la llegada · Edredón y 2 almohadas · Mesita de noche · Baño privado · Toallero eléctrico · Smart TV · Escritorio · Armario o vestidor · Llave individual",
     prevPhoto: "Foto anterior",
     nextPhoto: "Foto siguiente",
+    photoAlt: (room, n) => `${room} — foto ${n}`,
   },
   commonSpaces: {
     title: "Espacio Deportivo",
@@ -70,6 +71,11 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     gymDesc: "Equipamiento fitness disponible: bicicleta elíptica, mancuernas y banco de musculación, esterillas de yoga para estiramientos.",
     zen: "Sala zen",
     zenDesc: "Un espacio relax para desconectar: yoga, meditación y relajación.",
+    alts: {
+      gym: "Gimnasio",
+      gymEquipment: "Gimnasio — equipamiento",
+      zen: "Sala zen",
+    },
   },
   garden: {
     title: "Jardín",
@@ -81,6 +87,11 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
       "Mobiliario de jardín para 8 personas, perfecto para los aperitivos",
       "Grandes mesas para comer fuera hasta 20 personas",
     ],
+    alts: {
+      enclosed: "Jardín cerrado de 90 m² — orientado al sur",
+      lounge: "Mobiliario de jardín para 8 personas — sofás para los aperitivos",
+      tables: "Grandes mesas para comer fuera hasta 20 personas",
+    },
   },
   amenities: {
     title: "Qué ofrece este alojamiento",
@@ -224,5 +235,22 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     showAllPhotos: "Ver todas las fotos",
     previous: "Anterior",
     next: "Siguiente",
+    alts: {
+      kitchenTable: "Cocina y gran mesa de 16 plazas",
+      kitchenTable2: "Gran mesa de la cocina — otra vista",
+      verandaAperitif: "Galería — mesita alta, rincón del aperitivo al fondo",
+      verandaCoffee: "Galería — segunda mesita alta, rincón del café al fondo",
+      livingVeranda: "Salón abierto a la galería",
+      living: "Salón",
+      livingAperitif: "Salón y rincón del aperitivo",
+      entrance: "Entrada y lavadero",
+      exterior: "Vista exterior de la casa",
+    },
+  },
+  notFound: {
+    title: "Página no encontrada",
+    text: "Esta página no existe o se ha movido.",
+    home: "Volver a la página de inicio",
+    book: "Ver disponibilidad y reservar",
   },
 };

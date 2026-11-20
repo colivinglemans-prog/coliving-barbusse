@@ -2,24 +2,26 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, type Dictionary } from "@/lib/i18n";
 
-const PHOTOS = [
-  { src: "/images/house/cuisine-table-16-places.jpg", alt: "Cuisine et grande table de 16 places" },
-  { src: "/images/house/cuisine-table-16-places-2.jpg", alt: "Grande table de la cuisine — autre vue" },
-  { src: "/images/house/veranda-coin-apero.jpg", alt: "Véranda — mini-table haute, coin apéro au fond" },
-  { src: "/images/house/veranda-coin-cafe.jpg", alt: "Véranda — seconde mini-table haute, coin café au fond" },
-  { src: "/images/house/salon-veranda.jpg", alt: "Salon ouvert sur la véranda" },
-  { src: "/images/house/salon.jpg", alt: "Salon" },
-  { src: "/images/house/salon-coin-apero.jpg", alt: "Salon et coin apéro" },
-  { src: "/images/house/entree-buanderie.jpg", alt: "Entrée et buanderie" },
-  { src: "/images/house/3-maison-AI.jpg", alt: "Vue extérieure de la maison" },
+/** Les textes `alt` viennent du dictionnaire (`gallery.alts`) : ils suivent la langue de la page. */
+const PHOTOS: { src: string; alt: keyof Dictionary["gallery"]["alts"] }[] = [
+  { src: "/images/house/cuisine-table-16-places.jpg", alt: "kitchenTable" },
+  { src: "/images/house/cuisine-table-16-places-2.jpg", alt: "kitchenTable2" },
+  { src: "/images/house/veranda-coin-apero.jpg", alt: "verandaAperitif" },
+  { src: "/images/house/veranda-coin-cafe.jpg", alt: "verandaCoffee" },
+  { src: "/images/house/salon-veranda.jpg", alt: "livingVeranda" },
+  { src: "/images/house/salon.jpg", alt: "living" },
+  { src: "/images/house/salon-coin-apero.jpg", alt: "livingAperitif" },
+  { src: "/images/house/entree-buanderie.jpg", alt: "entrance" },
+  { src: "/images/house/3-maison-AI.jpg", alt: "exterior" },
 ];
 
 export default function PhotoGallery() {
   const [lightbox, setLightbox] = useState<number | null>(null);
   const touchStart = useRef(0);
   const { t } = useTranslation();
+  const altOf = (i: number) => t.gallery.alts[PHOTOS[i].alt];
 
   const gridPhotos = PHOTOS.slice(0, 5);
 
@@ -61,7 +63,7 @@ export default function PhotoGallery() {
           >
             <Image
               src={encodeURI(gridPhotos[0].src)}
-              alt={gridPhotos[0].alt}
+              alt={altOf(0)}
               fill
               className="object-cover"
               sizes="100vw"
@@ -81,7 +83,7 @@ export default function PhotoGallery() {
           >
             <Image
               src={encodeURI(gridPhotos[0].src)}
-              alt={gridPhotos[0].alt}
+              alt={altOf(0)}
               fill
               className="object-cover transition-opacity hover:opacity-90"
               sizes="50vw"
@@ -96,7 +98,7 @@ export default function PhotoGallery() {
             >
               <Image
                 src={encodeURI(photo.src)}
-                alt={photo.alt}
+                alt={altOf(i + 1)}
                 fill
                 className="object-cover transition-opacity hover:opacity-90"
                 sizes="25vw"
@@ -170,7 +172,7 @@ export default function PhotoGallery() {
           >
             <Image
               src={encodeURI(PHOTOS[lightbox].src)}
-              alt={PHOTOS[lightbox].alt}
+              alt={altOf(lightbox)}
               fill
               className="object-contain p-4 md:p-12"
               sizes="100vw"
@@ -180,7 +182,7 @@ export default function PhotoGallery() {
 
           {/* Caption */}
           <p className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 text-sm text-white/70">
-            {PHOTOS[lightbox].alt}
+            {altOf(lightbox)}
           </p>
         </div>
       )}

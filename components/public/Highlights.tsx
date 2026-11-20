@@ -33,7 +33,7 @@ export default function Highlights() {
           <div key={h.title} className="flex gap-4">
             <div className="shrink-0 text-foreground">{h.icon}</div>
             <div>
-              <h3 className="font-medium text-foreground">{h.title}</h3>
+              <h2 className="font-medium text-foreground">{h.title}</h2>
               <p className="mt-0.5 text-sm text-secondary">{h.description}</p>
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function Highlights() {
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">{t.highlights.superhost.title}</h3>
+              <h2 className="text-lg font-semibold text-foreground">{t.highlights.superhost.title}</h2>
               <p className="mt-1 text-sm text-secondary">
                 {t.highlights.superhost.description}
               </p>
