@@ -217,7 +217,10 @@ docs/journal.md § Conventions).
   la valeur d'un secret de `.env.local` et un export de réservations. Il s'active par
   `git config core.hooksPath .githooks` (déjà posé dans le clone de ce poste, donc dans tous ses
   worktrees) et exige `node_modules` (`npm ci`). **Un agent ne passe jamais `--no-verify`** sans
-  l'accord explicite de l'hôte : un refus se corrige, il ne se contourne pas.
+  l'accord explicite de l'hôte : un refus se corrige, il ne se contourne pas. **En CI**
+  (`ci.yml`, étape `garde-commit`, socle ≥ v3.35.0) : même contrôle, commit par commit, sur
+  chaque PR et chaque push ; il **détecte** seulement (dépôt public : déjà en ligne) → prévenir
+  l'hôte (rotation du secret, ou réécriture de l'historique et purge GitHub).
 - **Un push sur `main` déploie la prod.** Travailler sur une branche ; vérifier en preview
   (`npx vercel --scope colivinglemans-progs-projects`) avant de fusionner.
 - **Plusieurs sessions travaillent dans ce dépôt** : jamais deux sessions dans le même arbre.
