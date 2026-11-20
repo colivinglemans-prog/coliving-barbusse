@@ -23,8 +23,8 @@ export default function Article() {
           tout le monde est en congés, pour réunir enfin les cousins et les amis dispersés.
         </li>
         <li>
-          <strong>Le repas de fin d'année de l'équipe</strong> : en semaine début décembre, une
-          ou deux nuits pour un dîner d'équipe et une matinée de bilan, sans que personne ne
+          <strong>Le repas de fin d'année de l'équipe</strong> : en semaine début décembre, deux
+          nuits pour un dîner d'équipe et une matinée de bilan, sans que personne ne
           reprenne la route après la soirée. Arrivée plus tôt ou départ plus tard possibles,
           en supplément et selon les disponibilités (
           <Link href="/fr/blog/seminaire-entreprise-le-mans">séminaires</Link>).

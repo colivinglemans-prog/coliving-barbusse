@@ -26,7 +26,7 @@ export default function Article() {
         </li>
         <li>
           <strong>Die Jahresabschlussfeier des Teams</strong>: unter der Woche Anfang Dezember,
-          eine oder zwei Nächte für ein Team-Abendessen und einen Vormittag mit Jahresrückblick,
+          zwei Nächte für ein Team-Abendessen und einen Vormittag mit Jahresrückblick,
           ohne dass sich nach dem Abend jemand wieder ans Steuer setzt. Frühere Ankunft oder
           spätere Abreise möglich, gegen Aufpreis und je nach Verfügbarkeit (
           <Link href="/de/blog/seminaire-entreprise-le-mans">Seminare</Link>).

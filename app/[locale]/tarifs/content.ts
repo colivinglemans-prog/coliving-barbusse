@@ -58,7 +58,7 @@ export function pricesContent(locale: Locale): PricesContent {
           taken: "Booked",
           onRequest: "Price on the payment page",
           book: "Book these dates",
-          updatedAt: (d) => `Table updated on ${d}.`,
+          updatedAt: (d) => `Prices checked within the 24 hours before ${d}; the exact price for your dates and group is shown in the calendar.`,
         },
       };
     case "de":
@@ -86,7 +86,7 @@ export function pricesContent(locale: Locale): PricesContent {
           taken: "Belegt",
           onRequest: "Preis auf der Zahlungsseite",
           book: "Diese Daten buchen",
-          updatedAt: (d) => `Tabelle aktualisiert am ${d}.`,
+          updatedAt: (d) => `Preise in den 24 Stunden vor dem ${d} abgefragt; der genaue Preis für Ihre Daten und Ihre Gruppe steht im Kalender.`,
         },
       };
     case "es":
@@ -114,7 +114,7 @@ export function pricesContent(locale: Locale): PricesContent {
           taken: "Reservado",
           onRequest: "Precio en la página de pago",
           book: "Reservar estas fechas",
-          updatedAt: (d) => `Tabla actualizada el ${d}.`,
+          updatedAt: (d) => `Precios consultados en las 24 horas anteriores al ${d}; el precio exacto de sus fechas y su grupo aparece en el calendario.`,
         },
       };
     case "it":
@@ -142,7 +142,7 @@ export function pricesContent(locale: Locale): PricesContent {
           taken: "Prenotato",
           onRequest: "Prezzo nella pagina di pagamento",
           book: "Prenota queste date",
-          updatedAt: (d) => `Tabella aggiornata il ${d}.`,
+          updatedAt: (d) => `Prezzi rilevati nelle 24 ore precedenti il ${d}; il prezzo esatto per le vostre date e il vostro gruppo è nel calendario.`,
         },
       };
     default:
@@ -170,7 +170,7 @@ export function pricesContent(locale: Locale): PricesContent {
           taken: "Réservé",
           onRequest: "Prix sur la page de paiement",
           book: "Réserver ces dates",
-          updatedAt: (d) => `Tableau mis à jour le ${d}.`,
+          updatedAt: (d) => `Prix relevés dans les 24 heures précédant le ${d} ; le prix exact de vos dates et de votre groupe s'affiche dans le calendrier.`,
         },
       };
   }

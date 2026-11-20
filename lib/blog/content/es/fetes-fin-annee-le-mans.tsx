@@ -26,7 +26,7 @@ export default function Article() {
         </li>
         <li>
           <strong>La comida de fin de año del equipo</strong>: entre semana a principios de
-          diciembre, una o dos noches para una cena de equipo y una mañana de balance, sin
+          diciembre, dos noches para una cena de equipo y una mañana de balance, sin
           que nadie tenga que volver a coger el coche después de la velada. Es posible llegar
           antes o salir más tarde, con suplemento y según disponibilidad (
           <Link href="/es/blog/seminaire-entreprise-le-mans">seminarios</Link>).
