@@ -28,8 +28,12 @@ export const DEPARTURE_LOCK_GRACE_MINUTES = 30;
  */
 export const REOCCUPY_LOOKBACK_HOURS = 2;
 
-/** Ouvertures réussies : déverrouillage, ouverture (« unlatch »), déverrouillage avec ouverture. */
-const OPENING_ACTIONS: ReadonlySet<number> = new Set([1, 3, 5]);
+/**
+ * Ouvertures réussies : déverrouillage, ouverture (« unlatch »), déverrouillage avec ouverture.
+ * Même ensemble que celui du socle (`lib/access-codes.ts`, v3.35.0), qui ne l'exporte pas. Repris
+ * par l'alerte des codes perso (`lib/cleaning/sources.ts`).
+ */
+export const OPENING_ACTIONS: ReadonlySet<number> = new Set([1, 3, 5]);
 /** `trigger` d'une ligne du journal venue du clavier. */
 const KEYPAD_TRIGGER = 255;
 /** `trigger` d'une ouverture par l'application ou l'API Nuki. */
