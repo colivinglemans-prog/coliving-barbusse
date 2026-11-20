@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { goToAnchor } from "@sejour/socle/lib/go-to-anchor";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/lib/i18n";
@@ -66,6 +67,7 @@ export default function MobileBookBar() {
       >
         <Link
           href={`/${locale}#disponibilite`}
+          onClick={(e) => goToAnchor(e, "disponibilite")}
           tabIndex={hidden ? -1 : undefined}
           className="block rounded-full bg-primary py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-primary-dark"
         >

@@ -380,6 +380,10 @@ qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas l
   60 nuits (`invalid-request`, sans appel Beds24).
 - **Jamais `/sejour` dans `surveillance.yml`** : chaque relevé consommerait du quota Beds24.
   Pare-feu Vercel : `^/[a-z]{2}/sejour$` ajouté à la règle « Limite API IA » (20/min/IP, compteur partagé avec l'API ; le plan Vercel n'autorise qu'une règle de limitation).
+- **Liens « Réserver » (barre mobile, en-tête, pied de page, accroche)** : `onClick={(e) => goToAnchor(e, ancre)}`
+  (socle v3.30.1). Un `<Link>` vers l'adresse déjà affichée, ancre comprise, ne fait rien : dans l'appli
+  mobile, la barre du bas restait muette après « Voir le calendrier » (relevé par l'hôte le 20/11).
+  Tout nouveau lien vers le calendrier de la page passe par `goToAnchor`.
 - **Calendrier : les voyageurs avant les dates.** Compteurs en tête (« Combien de voyageurs ? »),
   adultes à 0 au départ (sauf `?adultes=`) : ni prix ni bouton Réserver avant au moins un adulte
   (demande de l'hôte du 20/11). Le nombre se tape aussi au clavier (16 clics pour 16, c'était trop). Sous-titre `calendar.subtitle` adapté dans les 5 langues.

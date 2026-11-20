@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { goToAnchor } from "@sejour/socle/lib/go-to-anchor";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { LOCALES, LOCALE_META, useTranslation } from "@/lib/i18n";
@@ -77,6 +78,7 @@ export default function Header() {
           <li>
             <Link
               href={`${base}#disponibilite`}
+              onClick={(e) => goToAnchor(e, "disponibilite")}
               className="rounded-full bg-primary px-5 py-2 text-white transition-colors hover:bg-primary-dark"
             >
               {t.header.book}
@@ -192,7 +194,10 @@ export default function Header() {
             <li>
               <Link
                 href={`${base}#disponibilite`}
-                onClick={() => setMenuOpen(false)}
+                onClick={(e) => {
+                  setMenuOpen(false);
+                  goToAnchor(e, "disponibilite");
+                }}
                 className="inline-block rounded-full bg-primary px-5 py-2 text-white hover:bg-primary-dark"
               >
                 {t.header.book}
