@@ -164,7 +164,10 @@ export function lowestWeekendTotal(grid: PriceGrid): number | null {
   let min: number | null = null;
   for (const r of grid.rows) {
     const c = r.cells[0];
-    if (r.label || r.nights !== 2 || c?.status !== "available") continue;
+    // Un vrai week-end : 2 nuits arrivant un vendredi. Un sous-séjour de 2 nuits tiré d'une
+    // semaine en partie prise (mercredi → vendredi) ne doit jamais devenir « Week-end à partir de ».
+    const friday = new Date(`${r.checkIn}T12:00:00Z`).getUTCDay() === 5;
+    if (r.label || r.nights !== 2 || !friday || c?.status !== "available") continue;
     if (min === null || c.total < min) min = c.total;
   }
   return min;

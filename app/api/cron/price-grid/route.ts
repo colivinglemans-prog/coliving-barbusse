@@ -19,7 +19,7 @@ import { computePriceGrid, PRICE_GRID_COMPOSITION, PRICE_GRID_KEY } from "@/lib/
  */
 export const dynamic = "force-dynamic";
 // Plafond du plan Hobby. Le calcul s'arrête à ~22 s (`timeBudgetMs`, cron-job.org coupe à 30 s) :
-// à cache de prix vide, la grille n'est rangée qu'au 2e ou 3e passage, qui reprend les prix en cache.
+// à cache de prix vide, la grille n’est rangée qu’au 3e ou 4e passage, qui reprend les prix en cache.
 export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {

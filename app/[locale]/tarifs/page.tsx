@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PriceGrid from "@sejour/socle/components/PriceGrid";
 import {
-  jsonLdText,
+  jsonLdText,
   priceGridOffer,
   type GridColumn,
   type GridRow,
