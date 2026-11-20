@@ -180,6 +180,31 @@ Depuis le 2026-11-14 :
 - **Limitation** : capteur ne remonte son état que en mode présence (`derog_mode=3`)
 - **Diminution** : affiche l'écart cft_temp - eco_temp quand personne n'est détecté
 - **Comportement normal** : `cur_signal=fro` quand personne ≠ problème fil pilote
+- **Paliers** (non documentés par Heatzy) : `cft` (présence), puis `cft1`, `cft2` (confort −1 / −2 °C),
+  puis `eco` quand la pièce se vide. Le dashboard lit `cft1`/`cft2` comme une présence,
+  `lib/radiator-load.ts` comme une pièce vide : la détection du départ ne compte que `cft` et
+  **journalise le palier brut** pour trancher sur les départs observés.
+
+### Détection du départ (phase B, en observation depuis le 2026-11-20)
+
+- **But** : savoir à quelle heure la maison se vide vraiment le jour du départ, pour couper le
+  chauffage à ce moment-là (phase C) plutôt qu'à heure fixe. **En observation, le chauffage ne
+  change jamais** : `heating-automation` pose ses modes, puis observe.
+- **Quand** : le jour d'un départ, de 5 h à l'heure de départ + 30 min (11 h 30 en standard,
+  16 h 30 pour un départ convenu à 16 h). Pas en mode été (aucune présence remontée).
+- **Signaux** : présence des radiateurs lus par le passage (aucun appel Heatzy de plus), état de
+  la serrure, journal Nuki depuis la veille 18 h (porte verrouillée seulement), message de départ
+  du voyageur dans le fil Beds24 (un passage sur deux, jamais le texte gardé).
+- **Règle** (`departureTransition`, `lib/departure-detection.ts`) : porte verrouillée **après une
+  ouverture du jour même** (personne ne sort autrement) **et** 3 passages sans présence, ou message
+  de départ → « partis », à l'heure du verrouillage. Un code du
+  séjour qui rouvre ensuite → « revenu ».
+- **Journal** : `barbusse:departure-journal:<jour>` (14 jours), présence par radiateur avec son
+  palier, serrure, événements, message. Le lendemain :
+  `node --env-file=.env.local scripts/departure-journal.mjs 2026-12-06`.
+- **Notification** (priorité 2, une fois) : « Départ estimé à 8 h 42 (observation : chauffage non
+  modifié) ».
+- **Interrupteur** : `DEPARTURE_DETECTION=observe|live|off` (défaut `observe` ; `live` pas encore codé).
 
 ### Mode été (chauffage suspendu)
 

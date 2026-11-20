@@ -8,7 +8,9 @@ import {
   expandSpans,
   type Beds24CalendarWrite,
   type Beds24CalendarWriteResult,
+  type Beds24StoredToken,
   type Beds24TokenExchange,
+  type Beds24TokenStore,
 } from "@sejour/socle/lib/beds24-client";
 import type {
   Beds24AvailabilityRoom,
@@ -17,6 +19,7 @@ import type {
   Beds24Property,
 } from "@sejour/socle/lib/beds24-types";
 import { PROPERTY_ID, ROOM_ID } from "@/lib/beds24-property";
+import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 
 export { PROPERTY_ID, ROOM_ID } from "@/lib/beds24-property";
 
@@ -53,8 +56,29 @@ export { PROPERTY_ID, ROOM_ID } from "@/lib/beds24-property";
  * trafic. Un long life aurait de toute façon forcé un jeton séparé pour l'écriture, faute de
  * pouvoir porter un scope `write`.
  */
+/**
+ * Access tokens partagés entre instances (socle v3.31.0, 2026-11-20) : chaque démarrage à froid
+ * refaisait `/authentication/token`, et deux post-déploiements du 2026-11-16 ont échoué sur un
+ * 429 de cet échange. Clé `barbusse:beds24:access:<32 hex>` (SHA-256 tronqué du refresh token,
+ * jamais le refresh token lui-même) ; la valeur est un access token de 24 h, la base reste
+ * privée. Sans Redis, pas de magasin : comportement d'avant. Redis en panne ou lent = magasin
+ * absent (le socle échange directement, sans erreur).
+ */
+const tokenStore: Beds24TokenStore | undefined = hasRedis()
+  ? {
+      get: (k) => getRedis().get<Beds24StoredToken>(redisKey(k)),
+      set: async (k, v, ttl) => {
+        await getRedis().set(redisKey(k), v, { ex: ttl });
+      },
+      delete: async (k) => {
+        await getRedis().del(redisKey(k));
+      },
+    }
+  : undefined;
+
 const client = createBeds24Client({
   defaultRoute: "lecture",
+  tokenStore,
   routes: {
     /**
      * Le jeton qui ne sait rien des réservations. Servir la vitrine avec celui du dashboard
@@ -348,7 +372,7 @@ export async function addNukiPin(bookingId: number, pin: string): Promise<void> 
     cache: "no-store",
   });
   if (!res.ok) {
-    if (res.status === 401) client.invalidate("ecriture");
+    if (res.status === 401) await client.invalidateShared("ecriture");
     throw new Error(`Beds24 a refusé l'écriture du PIN (HTTP ${res.status})`);
   }
   const parsed = (await res.json().catch(() => null)) as { success?: boolean }[] | null;
@@ -371,7 +395,7 @@ export async function confirmBooking(bookingId: number): Promise<void> {
     cache: "no-store",
   });
   if (!res.ok) {
-    if (res.status === 401) client.invalidate("ecriture");
+    if (res.status === 401) await client.invalidateShared("ecriture");
     throw new Error(`Beds24 a refusé la confirmation (HTTP ${res.status})`);
   }
   const parsed = (await res.json().catch(() => null)) as { success?: boolean }[] | null;
@@ -662,7 +686,7 @@ export async function sendBookingMessage(bookingId: number, message: string): Pr
   const body = await res.text();
 
   if (!res.ok) {
-    if (res.status === 401) client.invalidate("messagerie");
+    if (res.status === 401) await client.invalidateShared("messagerie");
     throw new Beds24Error(res.status, "/bookings/messages (POST)", body);
   }
 

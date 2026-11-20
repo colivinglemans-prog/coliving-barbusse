@@ -9,8 +9,9 @@ import type { TrackedAlert } from "./alert-memory";
  *
  * Phase A (2026-11-16) : `departureLockCheck`, l'alerte « serrure non verrouillée après le
  * départ », surveillée jusqu'à la fin de validité du code des partants (complément du
- * 2026-11-16). Phase B y ajoutera la détection du départ réel (présence des radiateurs, journal
- * de la serrure, message du voyageur) et l'état servi par `/api/dashboard/stay-status`.
+ * 2026-11-16). Phase B (2026-11-20, en observation, plus bas) : la détection du départ réel
+ * (présence des radiateurs, journal de la serrure, message du voyageur) et l'état servi par
+ * `/api/dashboard/stay-status`.
  */
 
 /**
@@ -409,4 +410,393 @@ export function departureLockTitle(departureHour: number | null, guestReturned =
   return guestReturned
     ? "Serrure non verrouillée après le retour d'un voyageur"
     : `Serrure non verrouillée — départ de ${departureHour ?? 11} h dépassé`;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * Phase B — détection du départ, **en observation** (2026-11-20)
+ *
+ * Le jour d'un départ, chaque passage de `heating-automation` relève la présence des radiateurs,
+ * la serrure et (un passage sur deux) le fil de messages du voyageur, fait avancer un état par
+ * réservation et journalise le tout (`lib/departure-observation.ts`). **Le chauffage ne change
+ * jamais** en observation : la règle d'aujourd'hui (coupure à l'heure de départ) reste en place.
+ *
+ * « Maison vide » = serrure verrouillée, aucune ouverture depuis le dernier verrouillage, **et**
+ * soit aucune présence sur `EMPTY_PASSES` passages de suite, soit un message de départ du
+ * voyageur (constat immédiat). Une ouverture par le code de la réservation (ou à la main, de
+ * l'intérieur) après le constat l'annule : `returned`.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/** Passages de suite sans présence pour conclure (30 à 45 min). À régler sur l'observation. */
+export const EMPTY_PASSES = 3;
+/** En dessous, la présence de la maison est « illisible » : trop peu de radiateurs pour conclure. */
+export const MIN_READABLE_RADIATORS = 3;
+/** Verrouillage réussi (`action` 2). Le « lock 'n' go » (4) commence par une ouverture : non compté. */
+const LOCK_ACTION = 2;
+/** `trigger` d'une manœuvre à la main (bouton de la serrure, molette intérieure, clé). */
+const MANUAL_TRIGGERS: ReadonlySet<number> = new Set([1, 2]);
+
+/**
+ * Paliers que le mode présence d'un Heatzy applique : `cft` (quelqu'un est là), puis `cft1` et
+ * `cft2` (confort −1 / −2 °C, la pièce se vide), puis `eco`. Leur sens exact n'est pas documenté
+ * (le dashboard lit `cft1`/`cft2` comme une présence, `lib/radiator-load.ts` comme une pièce
+ * vide) : **seul `cft` vaut présence ici**, et le palier brut est journalisé pour trancher.
+ */
+export const PRESENT_TIERS: ReadonlySet<string> = new Set(["cft"]);
+
+export interface RadiatorPresence {
+  name: string;
+  /** Palier remonté (`cft`, `cft1`, `cft2`, `eco`…). */
+  tier: string;
+  present: boolean;
+}
+
+/**
+ * Présence d'un radiateur, ou `null` si elle ne se lit pas : hors ligne, attributs illisibles,
+ * radiateur verrouillé ou tenu hors des alertes (Véranda D), ou pas en mode présence
+ * (`derog_mode` ≠ 3 — en hors-gel après le départ, un radiateur est muet).
+ */
+export function presenceFromReading(
+  reading: { name: string; online: boolean; attrs: Record<string, unknown> | null },
+  options: { locked?: boolean; ignored?: boolean } = {},
+): RadiatorPresence | null {
+  if (!reading.online || !reading.attrs || options.locked || options.ignored) return null;
+  if (reading.attrs.derog_mode !== 3) return null;
+  const tier = typeof reading.attrs.mode === "string" ? reading.attrs.mode : "inconnu";
+  return { name: reading.name, tier, present: PRESENT_TIERS.has(tier) };
+}
+
+/** Présence de la maison : `readable` faux sous `MIN_READABLE_RADIATORS` radiateurs lisibles. */
+export function housePresence(radiators: ReadonlyArray<RadiatorPresence | null>): {
+  readable: boolean;
+  present: boolean;
+  radiators: RadiatorPresence[];
+} {
+  const list = radiators.filter((r): r is RadiatorPresence => r !== null);
+  return { readable: list.length >= MIN_READABLE_RADIATORS, present: list.some((r) => r.present), radiators: list };
+}
+
+/** Qui a manœuvré la serrure — jamais de nom : le journal ne garde que la catégorie. */
+export type LockActor =
+  | "séjour"
+  | "voyageurs suivants"
+  | "code personnel"
+  | "autre code"
+  | "application"
+  | "à la main"
+  | "automatique";
+
+export interface LockEvent {
+  at: string;
+  kind: "verrouillage" | "ouverture";
+  actor: LockActor;
+  trigger: number;
+}
+
+export interface LockFacts {
+  /** Événements réussis (verrouillages et ouvertures) depuis `since`, dans l'ordre. */
+  events: LockEvent[];
+  lastLockAt: string | null;
+  lastOpening: LockEvent | null;
+}
+
+export interface LockContext {
+  departingIds: readonly number[];
+  arrivingIds: readonly number[];
+  people: readonly string[];
+}
+
+function lockActor(e: NukiLogEntry, ctx: LockContext): LockActor {
+  if (e.trigger === KEYPAD_TRIGGER) {
+    const id = managedBookingId(e.name ?? "");
+    if (id !== null && ctx.departingIds.includes(id)) return "séjour";
+    if (id !== null && ctx.arrivingIds.includes(id)) return "voyageurs suivants";
+    return isPersonalCode(e.name, ctx.people) ? "code personnel" : "autre code";
+  }
+  if (e.trigger === APP_TRIGGER) return "application";
+  if (MANUAL_TRIGGERS.has(e.trigger)) return "à la main";
+  return "automatique";
+}
+
+/**
+ * Dernier verrouillage et dernière ouverture depuis `since`, avec le déclencheur et **la
+ * catégorie** du code (séjour, code personnel…) — pas son nom, qui porte le prénom du voyageur.
+ * Les manœuvres ratées (`state` ≠ 0) sont ignorées.
+ */
+export function lockFacts(log: readonly NukiLogEntry[], since: Date, ctx: LockContext): LockFacts {
+  const events: LockEvent[] = log
+    .filter(
+      (e) =>
+        e.state === 0 &&
+        Date.parse(e.date) >= since.getTime() &&
+        (e.action === LOCK_ACTION || OPENING_ACTIONS.has(e.action)),
+    )
+    .sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
+    .map((e) => ({
+      at: new Date(Date.parse(e.date)).toISOString(),
+      kind: e.action === LOCK_ACTION ? ("verrouillage" as const) : ("ouverture" as const),
+      actor: lockActor(e, ctx),
+      trigger: e.trigger,
+    }));
+  const locks = events.filter((e) => e.kind === "verrouillage");
+  const openings = events.filter((e) => e.kind === "ouverture");
+  return {
+    events,
+    lastLockAt: locks.length > 0 ? locks[locks.length - 1].at : null,
+    lastOpening: openings.length > 0 ? openings[openings.length - 1] : null,
+  };
+}
+
+/**
+ * Porte fermée derrière quelqu'un qui sort : verrouillée, **une ouverture le jour même**
+ * (`dayStart`), puis un verrouillage après la dernière ouverture. On ne sort que par la porte
+ * d'entrée : sans ouverture ce jour-là, personne n'est sorti. Un verrouillage de la veille au
+ * soir (de l'intérieur, à 23 h 30) ou aucun événement ne prouvent rien (relecture Fable,
+ * 2026-11-20 : des dormeurs sans palier `cft` donnaient un faux départ à 7 h 15).
+ */
+export function doorClosedBehind(lockState: number | null, facts: LockFacts, dayStart: Date): boolean {
+  if (lockState !== LOCK_STATE_LOCKED || !facts.lastOpening || facts.lastLockAt === null) return false;
+  const opened = Date.parse(facts.lastOpening.at);
+  return opened >= dayStart.getTime() && Date.parse(facts.lastLockAt) > opened;
+}
+
+/* ── Message de départ du voyageur ───────────────────────────────────── */
+
+/**
+ * Tournures **affirmatives** (texte replié : minuscules, sans accents) qui disent « nous sommes
+ * partis », dans les 5 langues du site. Volontairement étroites : « on part à 10 h » n'est pas un
+ * départ, ni un mot isolé (« partis » seul acceptait « à quelle heure devons-nous être partis ? »).
+ */
+const DEPARTED_PATTERNS: readonly RegExp[] = [
+  // fr : « nous sommes (bien) partis », « on est partis », « je suis partie », « nous avons quitté »
+  /\b(sommes|suis|est|sont)\s+(bien\s+)?(tous\s+|toutes\s+)?parti(e|s|es)?\b/,
+  /\b(avons|ai)\s+(bien\s+)?quitte\b/,
+  // en : « we (have) (just) left », « we've checked out »
+  /\b(we|i)\s+(have\s+|'ve\s+|’ve\s+)?(just\s+|now\s+|all\s+)?(left|checked[\s-]?out)\b/,
+  /\b(we've|i've|we’ve|i’ve)\s+(just\s+|now\s+|all\s+)?(left|checked[\s-]?out)\b/,
+  // it : « siamo partiti », « abbiamo lasciato la casa »
+  /\b(siamo|sono)\s+(gia\s+)?(partit[ie]|uscit[ie])\b/,
+  /\babbiamo\s+lasciato\b/,
+  // de : « wir sind abgereist / weg », « wir haben ausgecheckt / das Haus verlassen »
+  /\b(sind|bin)\s+(jetzt\s+|schon\s+|gerade\s+)?(abgereist|weg|losgefahren|abgefahren)\b/,
+  /\b(haben|habe)\s+(jetzt\s+|gerade\s+)?(ausgecheckt|das\s+haus\s+verlassen)\b/,
+  // es : « (ya) hemos salido », « (ya) salimos », « nos fuimos »
+  /\b(hemos\s+salido|ya\s+salimos|salimos\s+de|nos\s+fuimos|nos\s+hemos\s+ido)\b/,
+];
+
+/**
+ * Négation **sur le verbe du départ** : « nous ne sommes pas (encore) partis », « pas encore »,
+ * « we haven't (yet) left », « not yet », « wir sind noch nicht… », « non siamo… », « no hemos… ».
+ * Étroite exprès : « nous sommes partis, n'hésitez pas » reste un départ.
+ */
+const NEGATION =
+  /\bn(e\s+|')(sommes|suis|est|sont|etes|avons|ai)\b[^.!?]*\b(pas|plus|jamais)\b|\bpas\s+(encore|tous|toutes)\b|\b(we|i|have|has)\s+not\b|n['’]t\s+(yet\s+|all\s+)?(left|checked)\b|\bnot\s+(yet|all)\b|\b(sind|bin|haben|habe)\s+(noch\s+)?nicht\b|\bnoch\s+nicht\b|\bnon\s+(siamo|sono|abbiamo|ancora)\b|\bno\s+(hemos|nos|salimos|fuimos)\b|\b(todavia|aun)\s+no\b/;
+
+const foldText = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+/**
+ * Le texte dit-il que les voyageurs sont partis ? Phrase par phrase : une **question** (« ? »)
+ * ou une phrase **négative** ne compte pas. Exporté pour les tests.
+ */
+export function saysDeparted(text: string): boolean {
+  const sentences = foldText(text).match(/[^.!?\n]+[.!?]?/g) ?? [];
+  return sentences.some((raw) => {
+    const sentence = raw.trim();
+    if (sentence.endsWith("?") || sentence.includes("¿") || NEGATION.test(sentence)) return false;
+    return DEPARTED_PATTERNS.some((p) => p.test(sentence));
+  });
+}
+
+/**
+ * Le voyageur confirme-t-il son départ ? Seulement ses messages (`source: "guest"`) reçus depuis
+ * `since` (la veille du départ à 18 h : un groupe qui part à l'aube écrit parfois le soir). Rend l'heure du premier message reconnu, **jamais le texte** :
+ * il n'est ni journalisé, ni notifié, ni servi.
+ */
+export function departureMessage(
+  thread: ReadonlyArray<{ time: string; source: string; message: string }>,
+  since: Date,
+): { at: string } | null {
+  const hits = thread
+    .filter((m) => m.source === "guest" && Date.parse(m.time) >= since.getTime() && saysDeparted(m.message ?? ""))
+    .map((m) => Date.parse(m.time))
+    .sort((a, b) => a - b);
+  return hits.length > 0 ? { at: new Date(hits[0]).toISOString() } : null;
+}
+
+/* ── Transition ──────────────────────────────────────────────────────── */
+
+export type DepartureStatus = "occupied" | "suspected" | "empty" | "returned";
+
+/** État d'une réservation le jour de son départ (`barbusse:departure:<id>`, 7 jours). */
+export interface DepartureState {
+  /** Jour du départ, « YYYY-MM-DD ». */
+  day: string;
+  status: DepartureStatus;
+  /** Passages de suite sans présence (relevés lisibles seulement). */
+  absentPasses: number;
+  /** Premier passage de la série sans présence. */
+  absentSince?: string;
+  lastPresenceAt?: string;
+  /** Départ estimé : dernier verrouillage du jour, sinon début de l'absence, sinon le message. */
+  departedAt?: string;
+  by?: "presence" | "message";
+  messageAt?: string;
+  /** Message de départ reçu alors que la porte n'était pas verrouillée. */
+  leftUnlocked?: boolean;
+  /** Relevé de la porte après l'heure de départ (`departureLockCheck`), sans lecture de plus. */
+  door?: "locked" | "unlocked" | "reoccupied";
+  returnedAt?: string;
+  /** Dernière lecture du fil de messages (un passage sur deux), réussie ou non. */
+  messageCheckedAt?: string;
+  /** Notifications décidées mais pas encore parties (ntfy en échec) : réessayées au passage suivant. */
+  notifyPending?: Array<"departed" | "left-unlocked">;
+  updatedAt: string;
+}
+
+export interface DepartureFacts {
+  /** `null` : radiateurs illisibles. */
+  presence: { readable: boolean; present: boolean } | null;
+  /** `null` : serrure illisible ou hors ligne. */
+  lockState: number | null;
+  /** `null` : journal non lu ou illisible. */
+  lock: LockFacts | null;
+  /** Message de départ reçu (déjà filtré au jour du départ) ; `null` sinon, ou non lu. */
+  message: { at: string } | null;
+}
+
+export interface DepartureTransition {
+  state: DepartureState;
+  /** À notifier — chacune une seule fois par réservation, ce que l'appelant garantit. */
+  notify: Array<"departed" | "left-unlocked">;
+  /** Rien de concluant ce passage (serrure, journal ou radiateurs illisibles). */
+  unreadable: boolean;
+}
+
+/** État de départ d'une journée : maison occupée, aucune absence. */
+export function initialDepartureState(day: string, now: Date): DepartureState {
+  return { day, status: "occupied", absentPasses: 0, updatedAt: now.toISOString() };
+}
+
+/**
+ * Fait avancer l'état d'un départ — **pure**, état passé en argument (patron :
+ * `powerCutTransition`).
+ *
+ * - Radiateurs illisibles : la série sans présence ne bouge pas (seul un message peut conclure).
+ * - Serrure illisible, hors ligne ou en état de passage : aucun constat, aucune notification.
+ * - `empty` : porte fermée derrière les voyageurs le jour même (`doorClosedBehind` : ouverture
+ *   du jour, puis verrouillage) **et** (`EMPTY_PASSES` passages sans présence **ou** message de
+ *   départ). Départ daté du verrouillage. Notifie `departed`, à chaque constat (un après retour
+ *   compris ; l'appelant ne notifie jamais deux fois le même constat).
+ * - Message reçu, porte non verrouillée : `left-unlocked` (une fois), statut `suspected`.
+ * - Après `empty`, une ouverture par le code du séjour, ou à la main, annule le constat :
+ *   `returned`, et la détection repart (un nouveau constat est possible, et notifié). Une ouverture par le ménage, l'hôte ou les voyageurs suivants n'est pas un
+ *   retour.
+ */
+export function departureTransition(
+  previous: DepartureState | null,
+  facts: DepartureFacts,
+  now: Date,
+  day: string,
+): DepartureTransition {
+  const prev = previous && previous.day === day ? previous : initialDepartureState(day, now);
+  const nowIso = now.toISOString();
+  const next: DepartureState = { ...prev, updatedAt: nowIso };
+  const notify: DepartureTransition["notify"] = [];
+
+  if (facts.presence?.readable) {
+    if (facts.presence.present) {
+      next.absentPasses = 0;
+      delete next.absentSince;
+      next.lastPresenceAt = nowIso;
+    } else {
+      next.absentPasses = prev.absentPasses + 1;
+      next.absentSince = prev.absentSince ?? nowIso;
+    }
+  }
+  if (facts.message && !next.messageAt) next.messageAt = facts.message.at;
+
+  const lockReadable = facts.lockState !== null && !LOCK_STATES_TRANSIENT.has(facts.lockState);
+  if (!lockReadable) return { state: next, notify, unreadable: true };
+  const unreadable = facts.lock === null || !facts.presence?.readable;
+
+  if (prev.status === "empty") {
+    const o = facts.lock?.lastOpening;
+    if (
+      o &&
+      prev.departedAt &&
+      (o.actor === "séjour" || o.actor === "à la main") &&
+      Date.parse(o.at) > Date.parse(prev.departedAt)
+    ) {
+      next.status = "returned";
+      next.returnedAt = o.at;
+      next.absentPasses = 0;
+      delete next.absentSince;
+      delete next.departedAt;
+      delete next.by;
+    }
+    return { state: next, notify, unreadable };
+  }
+
+  const closed = facts.lock !== null && doorClosedBehind(facts.lockState, facts.lock, parisInstant(day, 0));
+  // Fermée derrière eux ⇒ le dernier verrouillage est du jour et suit leur sortie.
+  const lockedAt = closed ? facts.lock!.lastLockAt! : null;
+  // Après un retour, seul un message postérieur au retour compte.
+  const message =
+    next.messageAt && (!next.returnedAt || Date.parse(next.messageAt) > Date.parse(next.returnedAt))
+      ? next.messageAt
+      : null;
+
+  if (lockedAt && (message || next.absentPasses >= EMPTY_PASSES)) {
+    // Le départ, c'est la porte verrouillée en sortant — que le message la précède ou la suive.
+    next.status = "empty";
+    next.by = message ? "message" : "presence";
+    next.departedAt = lockedAt;
+    notify.push("departed");
+  } else {
+    if (message && facts.lockState !== LOCK_STATE_LOCKED && !prev.leftUnlocked) {
+      next.leftUnlocked = true;
+      notify.push("left-unlocked");
+    }
+    next.status =
+      (closed && next.absentPasses > 0) || message ? "suspected" : prev.returnedAt ? "returned" : "occupied";
+  }
+  return { state: next, notify, unreadable };
+}
+
+/* ── Affichage (dashboard) ───────────────────────────────────────────── */
+
+/** « 8 h 42 », heure de Paris. */
+export function frenchClock(when: string | Date): string {
+  const [h, m] = parisClock(new Date(when)).split(":");
+  return `${Number(h)} h ${m}`;
+}
+
+export interface DepartureBadge {
+  /** `gone` : porte et coche vertes ; `present` : horloge orange ; `unlocked` : porte ouverte rouge. */
+  icon: "gone" | "present" | "unlocked";
+  /** Ligne d'état de la fiche, sans donnée personnelle, toujours avec « estimation ». */
+  line: string;
+}
+
+const UNLOCKED_LINE = "Partis sans verrouiller la porte (estimation)";
+
+/**
+ * Ce que le calendrier montre d'un départ — pure. « Partis sans verrouiller » quand le message est
+ * arrivé porte ouverte, ou que le relevé d'après l'heure de départ trouve la porte ouverte (tant
+ * qu'il ne l'a pas trouvée verrouillée ou reprise en main) ; « partis » sur un constat ;
+ * « encore présents » le jour même seulement, tant que rien n'est constaté.
+ */
+export function departureBadge(state: DepartureState, today: string, agreedDepartureHour?: number): DepartureBadge | null {
+  if (state.door === "unlocked") return { icon: "unlocked", line: UNLOCKED_LINE };
+  if (state.status === "empty" && state.departedAt) {
+    const line =
+      state.by === "message" && state.messageAt
+        ? `Départ confirmé par message à ${frenchClock(state.messageAt)} (estimation)`
+        : `Départ constaté à ${frenchClock(state.departedAt)} (porte verrouillée, plus de présence) (estimation)`;
+    return { icon: "gone", line };
+  }
+  if (state.leftUnlocked && state.door === undefined) return { icon: "unlocked", line: UNLOCKED_LINE };
+  if (state.day !== today || state.door !== undefined) return null;
+  const seen = state.lastPresenceAt ? ` (dernière présence ${frenchClock(state.lastPresenceAt)})` : "";
+  const late = agreedDepartureHour !== undefined ? ` · départ tardif convenu à ${agreedDepartureHour} h` : "";
+  return { icon: "present", line: `Voyageurs encore présents${seen}${late} (estimation)` };
 }

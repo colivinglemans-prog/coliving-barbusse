@@ -21,6 +21,7 @@ import { addMonths, daysInMonth, firstDayOfMonth, formatDate } from "@sejour/soc
 import { nightsBetween } from "@sejour/socle/lib/booking";
 import { chartEuro } from "@sejour/socle/lib/chart-theme";
 import GuestShareBlock from "@/components/dashboard/GuestShareBlock";
+import type { DepartureBadge } from "@/lib/departure-detection";
 import { GuestMessagesBookingPanel } from "@sejour/socle/components/GuestMessagesDashboard";
 import {
   AGREED_RANGE,
@@ -201,6 +202,11 @@ interface BookingCalendarProps {
    */
   stayHours?: Record<number, AgreedHours>;
   onStayHoursChanged?: (bookingId: number, hours: AgreedHours) => void;
+  /**
+   * État du départ estimé par l'observation (`/api/dashboard/stay-status`), **admin et viewer** :
+   * la personne du ménage voit d'un coup d'œil si les voyageurs sont partis. Absent = rien.
+   */
+  departures?: Record<number, DepartureBadge>;
 }
 
 interface LockCodeStatus {
@@ -223,6 +229,53 @@ function LockDot({ status }: { status: LockCodeStatus }) {
       style={{ backgroundColor: dot.colour }}
       aria-label={dot.label}
     />
+  );
+}
+
+/**
+ * Icône du départ, à l'extrémité « départ » de la barre, au gabarit de la pastille de serrure :
+ * porte et coche vertes (partis), horloge orange (encore présents, le jour même), porte ouverte
+ * rouge (partis sans verrouiller). C'est une **estimation** (phase d'observation).
+ */
+const DEPARTURE_ICON: Record<DepartureBadge["icon"], { colour: string; label: string }> = {
+  gone: { colour: "#16a34a", label: "Voyageurs partis" },
+  present: { colour: "#ea580c", label: "Voyageurs encore présents" },
+  unlocked: { colour: "#dc2626", label: "Partis sans verrouiller" },
+};
+
+function DepartureMark({ badge }: { badge: DepartureBadge }) {
+  const { colour, label } = DEPARTURE_ICON[badge.icon];
+  return (
+    <svg
+      className="inline-block h-3 w-3 rounded-full bg-white p-[1px] align-[-2px] ring-1 ring-white"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={colour}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-label={`${label} (estimation)`}
+      role="img"
+    >
+      {badge.icon === "present" ? (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </>
+      ) : badge.icon === "gone" ? (
+        <>
+          <path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v6" />
+          <path d="M3 21h11" />
+          <path d="m14 17 3 3 5-6" />
+        </>
+      ) : (
+        <>
+          <path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17" />
+          <path d="M3 21h16" />
+          <path d="M5 3l8 3v15" />
+        </>
+      )}
+    </svg>
   );
 }
 
@@ -640,7 +693,7 @@ function EventLink({
   );
 }
 
-export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated, unlinkedEvents = [], onEventLinkChanged, lockStatus, stayHours = {}, onStayHoursChanged }: BookingCalendarProps) {
+export default function BookingCalendar({ bookings, showPrices = true, showChannels = true, isAdmin = true, onNotesUpdated, unlinkedEvents = [], onEventLinkChanged, lockStatus, stayHours = {}, onStayHoursChanged, departures = {} }: BookingCalendarProps) {
   // Un couple {année, mois} plutôt qu'une `Date` : le calendrier public du site le fait déjà,
   // et `addMonths` du socle travaille sur ce couple — plus aucun objet `Date` à promener.
   const [month, setMonth] = useState(() => {
@@ -1022,6 +1075,8 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                         const bp = seg.source;
                         const lock = isAdmin ? lockStatus?.[bp.booking.id] : undefined;
                         const agreed = agreedLabel(stayHours[bp.booking.id]);
+                        // Icône du départ : sur le dernier segment seulement, côté « départ ».
+                        const departure = seg.endsHere ? departures[bp.booking.id] : undefined;
                         const cellW = 100 / 7; // width of one cell in %
                         const halfCell = cellW / 2;
                         // Half-cell inset on arrival day, half-cell trim on departure day
@@ -1035,7 +1090,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                             key={`${bp.booking.id}-${seg.startCol}`}
                             data-bar
                             onClick={(e) => handleBarClick(seg, e)}
-                            className={`absolute top-0 h-full cursor-pointer overflow-hidden truncate px-1.5 text-left text-[11px] font-medium text-white transition-opacity hover:opacity-90 ${roundedEnds(
+                            className={`absolute top-0 h-full cursor-pointer overflow-hidden truncate px-1.5 text-left text-[11px] font-medium text-white transition-opacity hover:opacity-90 ${departure ? "pr-5" : ""} ${roundedEnds(
                               seg.startsHere,
                               seg.endsHere,
                             )}`}
@@ -1057,6 +1112,7 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                               seg.label,
                               lock ? `${LOCK_DOT[lock.state].label} — ${lock.detail}` : null,
                               agreed,
+                              departure?.line,
                               bp.booking.notes ? `📝 ${bp.booking.notes}` : null,
                             ]
                               .filter(Boolean)
@@ -1079,6 +1135,11 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                               <span className="hidden sm:inline">
                                 {bp.provisional || bp.booking.notes ? " " : ""}
                                 {seg.label}
+                              </span>
+                            )}
+                            {departure && (
+                              <span className="absolute right-1 top-1/2 -translate-y-1/2 leading-none">
+                                <DepartureMark badge={departure} />
                               </span>
                             )}
                           </button>
@@ -1291,6 +1352,16 @@ export default function BookingCalendar({ bookings, showPrices = true, showChann
                   <p className="mt-0.5 whitespace-pre-wrap rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-900">
                     {popup.booking.comments}
                   </p>
+                </div>
+              )}
+
+              {/* État du départ, estimé : visible du viewer (la personne du ménage). */}
+              {departures[popup.booking.id] && (
+                <div className="col-span-2 flex items-start gap-2 text-xs text-gray-600">
+                  <span className="mt-0.5">
+                    <DepartureMark badge={departures[popup.booking.id]} />
+                  </span>
+                  <span>{departures[popup.booking.id].line}</span>
                 </div>
               )}
 

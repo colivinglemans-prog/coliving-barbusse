@@ -17,6 +17,7 @@ import { getActiveBookings } from "@/lib/bookings";
 import { locksToRelease } from "@/lib/heating-locks";
 import { withStayHours } from "@/lib/stay-hours";
 import { runDepartureLockCheck, runDepartureLockCheckSummer } from "@/lib/departure-lock";
+import { recordDoorCheck, runDepartureObservation } from "@/lib/departure-observation";
 import { sendHeatingAlert } from "@/lib/alerts";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
@@ -101,6 +102,11 @@ export const maxDuration = 60;
  * 5. **Porte au départ** (2026-11-16) : le jour d'un départ, après l'heure de départ (11 h ou
  *    convenue), une serrure non verrouillée alerte en priorité 4 au 2e relevé, sauf si le ménage
  *    ou les voyageurs suivants ont ouvert depuis (`lib/departure-lock.ts`). Aussi en mode été.
+ * 6. **Détection du départ, en observation** (2026-11-20, `lib/departure-observation.ts`) : le
+ *    jour d'un départ, de 5 h à l'heure de départ + 30 min, présence des radiateurs (lectures de
+ *    ce passage), serrure et message du voyageur, journalisés ; notification « Départ estimé ».
+ *    Lancée **après** la pose des modes : **le chauffage ne change jamais** en observation
+ *    (`DEPARTURE_DETECTION`, défaut `observe`). Pas en mode été (aucune présence remontée).
  *
  * Horaires convenus (arrivée anticipée, départ tardif) joints aux réservations
  * (`lib/stay-hours.ts`) : occupé dès l'arrivée convenue, jusqu'au départ convenu.
@@ -113,6 +119,8 @@ export const maxDuration = 60;
  * changement d'état (`barbusse:alert:heating-automation`).
  */
 export async function GET(request: NextRequest) {
+  // Début du passage : l'observation du départ se saute au-delà de 35 s (plafond Hobby de 60 s).
+  const startedAt = Date.now();
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -387,8 +395,22 @@ export async function GET(request: NextRequest) {
       ).catch((e) => console.error("[heating-automation] alerte:", e instanceof Error ? e.message : e));
     }
 
+    // Détection du départ, en observation : après la pose des modes, rien n'en revient vers le
+    // chauffage. Fenêtre de 5 h à D + 30 min, disjointe de celle du relevé de la porte.
+    const departure = await runDepartureObservation({
+      bookings: allBookings,
+      today,
+      now,
+      readings,
+      lockedDids: lockedDevices,
+      ignoredDids: alertIgnoredDids(config),
+      startedAt,
+    });
+
     // Serrure non verrouillée après le départ (`lib/departure-detection.ts`) : alerte au 2e relevé.
     const doorCheck = await runDepartureLockCheck(allBookings, today, now);
+    // Son relevé est reporté sur l'état du départ (icône « partis sans verrouiller »), sans relire.
+    await recordDoorCheck(allBookings, today, doorCheck, now);
 
     await beat("heating-automation", "ok");
     await reportCronRun("heating-automation", "Automation du chauffage", sendHeatingAlert, null).catch(() => {});
@@ -396,6 +418,7 @@ export async function GET(request: NextRequest) {
       success: true,
       situation,
       departureLock: { status: doorCheck.status, detail: doorCheck.detail },
+      departure: departure && { mode: departure.mode, detail: departure.detail },
       estimatedLoadW: estimatedW,
       capW: ELECTRICAL_BUDGET.radiatorCapW,
       sheddingMode: LOAD_SHEDDING_MODE,

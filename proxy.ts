@@ -59,6 +59,10 @@ export const proxy = createDashboardProxy({
     // Lecture seule (GET) : les déliements réservation/événement. L'écriture est sous
     // `/api/dashboard/bookings/[id]/event-link`, et c'est cette route qui la refuse au viewer.
     "/api/dashboard/event-links",
+    // Préfixe : couvre toutes les sous-routes du chauffage. Le proxy laisse passer, chaque route
+    // décide (2026-11-20) : `GET heating`, `GET heating/lock`, `GET heating/summer-mode` et
+    // `POST heating/control` restent ouverts au viewer ; `lock` POST, `pilot-lock`,
+    // `summer-mode` POST, `add-device` et `scan` sont admin seulement (`denyNonAdmin`).
     "/api/dashboard/heating",
     "/api/dashboard/water-heater",
     "/api/dashboard/properties",

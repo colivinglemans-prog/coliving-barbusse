@@ -7,7 +7,8 @@ function sleep(ms: number) {
 }
 
 export async function POST(request: NextRequest) {
-  const refus = await guard.deny(request, ["admin", "viewer"]);
+  // Admin seul (2026-11-20) : le bouton n'est montré qu'à l'admin, la route le dit aussi.
+  const refus = await guard.denyNonAdmin(request);
   if (refus) return refus;
 
   try {

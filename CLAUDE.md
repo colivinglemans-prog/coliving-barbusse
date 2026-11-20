@@ -194,6 +194,7 @@ docs/journal.md § Conventions).
 - **Images externes** : Airbnb CDN (`a0.muscache.com`) configuré dans `next.config.ts`
 - **Droits photo** : ne jamais committer une image sans licence claire. Les photos de presse des organisateurs (ACO, Porsche Club Motorsport France) et les previews Getty/stock sont protégées — vérifier les métadonnées XMP (`dc:rights`, `xmpRights:Marked`) avant usage. Sources sûres : Wikimedia Commons (CC BY / CC BY-SA), Unsplash, ou nos propres photos. Une licence à attribution **exige** de remplir `BlogPostMeta.imageCredit` (auteur + page source + licence) : le crédit est rendu en légende sous la photo de l'article, avec le libellé localisé `PHOTO_CREDIT_LABEL`. **Exception décidée par l'hôte (2026-11-17)** : les photos du fabricant ou du vendeur d'un équipement **réellement présent dans la maison** (la cage Powergym de la salle de sport, `public/images/blog/salle-de-sport/`) sont acceptées, avec une légende qui en dit la source (« photo : Powergym », « photo du fabricant »). L'exception ne vaut pas pour les photos d'événements ou de lieux.
 - **Rôles auth** : `admin` (accès complet) et `viewer` (calendrier, chauffage et eau chaude en lecture/contrôle — `allowedPaths` de `proxy.ts`).
+  Depuis le 2026-11-20, sous `/api/dashboard/heating/*` le viewer garde la lecture et le pilotage des modes (`GET heating`, `GET heating/lock`, `GET heating/summer-mode`, `POST heating/control`) ; les réglages d'installation sont **admin seulement** dans la route (`denyNonAdmin`) : `POST lock`, `POST pilot-lock`, `POST summer-mode`, `POST add-device`, `GET scan`. La page ne les montrait déjà qu'à l'admin ; la matrice `doors` de `tests/deploy/site.ts` attend 403 viewer sur chacun.
   Mécanique dans `@sejour/socle/lib/auth` — voir sa CLAUDE.md, section « Lot 1 ».
   **Un jeton illisible vaut `viewer`, jamais `admin`** : aucun repli fail-open dans le `catch`
   de `getTokenRole` (historique : docs/journal.md § Conventions).
@@ -316,6 +317,12 @@ Politique tarifaire configurée **dans Beds24**, pas dans le code : le site n'af
 `components/public/ReservationCalendar.tsx` n'est qu'une enveloppe : le calendrier vit dans
 **`@sejour/socle/components/ReservationCalendar`**, commun avec Albiez depuis le Lot 5
 (historique : docs/journal.md § Calendrier public de réservation).
+
+`/api/availability` (2026-11-20) lit **par mois civils entiers** (`monthlyAvailability` du socle,
+comme `lib/agent.ts`), ramène les bornes dans `[aujourd'hui − 31 j, aujourd'hui + 400 j]` (un jour
+hors horizon est absent : le calendrier le lit « non vendable ») et pose
+`Cache-Control: public, s-maxage=60, stale-while-revalidate=60` sur ses 200. Tests :
+`tests/security/routes.test.ts`.
 
 Restent ici : `propertyId` (303771), la route `/api/availability?mode=map`, la capacité, et
 les libellés hors section `calendar` — la seule section de dictionnaire commune aux deux
@@ -477,7 +484,7 @@ Trois portes, dans cet ordre. Aucune n'est suffisante seule.
 | Porte | Où | Ce qu'elle fait |
 |---|---|---|
 | `proxy.ts` | racine | Cookie exigé sur `/dashboard` et `/api/dashboard`. **Liste blanche** des chemins ouverts à `viewer` — l'ancien middleware tenait une liste noire de quatre préfixes, et c'est ainsi que `bookings` est resté ouvert. |
-| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`, `bookings/[id]/stay-hours`. Lecture ouverte au viewer : `stay-status` (identifiants et heures seulement). |
+| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`, `bookings/[id]/stay-hours`, et les réglages du chauffage (`heating/lock` POST, `pilot-lock`, `summer-mode` POST, `add-device`, `scan`). Lecture ouverte au viewer : `stay-status` (identifiants et heures seulement). |
 | DTO | `@sejour/socle/lib/booking-dto` | `/api/dashboard/bookings` projette vers `BookingListItem` (15 champs) ou `AdminBookingListItem` (+`price`, `email`, `mobile`, `phone`, `country`). |
 
 **Deux protections contre la fuite des `NUKI_PIN`**, fermée le 2026-09-11 (historique et
@@ -501,11 +508,35 @@ mesures : docs/journal.md § Cloisonnement du dashboard) :
 
 Tous sont derrière une garde admin ou `CRON_SECRET` ; aucun PIN ne part vers le navigateur hors des routes admin.
 
+**Durcissements du 2026-11-20** (branche `securite-dashboard`) :
+- `GET /api/dashboard/water-heater` ne renvoie plus le bloc `debug` (états bruts Cozytouch, servis au viewer) ;
+- `GET /api/dashboard/calendar` : `propertyId` = 303771 seulement (400 sinon), dates `YYYY-MM-DD`, 400 jours au plus ;
+- `next.config.ts` : `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+  `Permissions-Policy: camera=(), microphone=(), geolocation=()` partout ; `X-Frame-Options: DENY` +
+  `frame-ancestors 'none'` sur `/dashboard/*` **seulement**. ⚠️ Jamais `payment` dans la
+  `Permissions-Policy` : l'iframe de paiement Beds24 porte `allow="payment"`.
+
+**Connexion limitée** (socle v3.31.0, 2026-11-20, `app/api/auth/login/route.ts` = `createLoginRoute`) :
+5 mots de passe faux en 15 min par IP ⇒ 429 + `Retry-After`, même avec le bon mot de passe ; un
+succès remet l'adresse à zéro. Compteur Redis partagé `barbusse:login-failures:<ip>` (repli en
+mémoire si Redis manque ou tombe, jamais de blocage par panne) ; **une seule** alerte ntfy
+priorité 4 au franchissement. ⚠️ `security.badLogin` (post-déploiement) fait un échec par passage
+depuis l'IP du runner : cinq passages en 15 min depuis la même IP et le sixième reçoit 429 (KO).
+Les écritures du dashboard sont toutes des `fetch` relatifs : le contrôle d'`Origin` de
+`guard.deny` (403 sur une écriture d'une autre origine) ne gêne ni la page ni les crons.
+Tests : `tests/security/login.test.ts`.
+
 ## Beds24 API (v2)
 
 **Cinq tokens — un par chemin, pas par verbe.** Les trois premiers datent du 2026-09-11
 (rotation complète après la découverte de quatre secrets en clair dans
 `.claude/settings.json`) ; la messagerie s'est ajoutée le 2026-09-22, les tarifs avec la sortie de Beyond.
+
+**Access tokens partagés dans Redis** (socle v3.31.0, 2026-11-20, `tokenStore` de `lib/beds24.ts`) :
+clé `barbusse:beds24:access:<32 hex>` (SHA-256 tronqué du refresh token, jamais lui), TTL = durée
+du jeton − 10 min. Une instance froide relit le jeton au lieu de refaire `/authentication/token` :
+c'est la fin des 429 sur l'échange (post-déploiements du 2026-11-16). 401 ⇒ mémoire et Redis
+effacés, un échange neuf. Redis absent, en panne ou lent (> 1,5 s) ⇒ échange direct, comme avant.
 
 | Variable | `deviceName` | Scopes | Chemin servi |
 |---|---|---|---|
@@ -698,7 +729,7 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
 | [lib/stay-hours-rules.ts](lib/stay-hours-rules.ts) | Règle **pure** (importable côté navigateur) : `stayHours` (17 h / 11 h sauf accord), `withAgreedHours`, bornes `AGREED_RANGE` (arrivée 8-16 h, départ 12-23 h, heures entières), `rotationCheck`, `accessHours`, `formatHourFor`, et **la** fenêtre du code envoyée à la serrure (`lockWindows` : heures convenues puis `boundRotationWindows` ; `codeEndsAt`, `departingCodesEnd`), commune à la synchro et au relevé de la porte au départ. |
 | [lib/stay-hours.ts](lib/stay-hours.ts) | Table Redis : **hachage** `barbusse:stay-hours`, un champ par réservation. `readStayHours` ne lève jamais (Redis injoignable ⇒ heures standard) ; `withStayHours(bookings)` = la jointure commune aux crons et au dashboard. |
 | `POST`/`DELETE /api/dashboard/bookings/[id]/stay-hours` | **Admin seulement** (`guard.denyNonAdmin`), même origine exigée (403) et JSON pour le `POST` (415), comme `pricing/halt`. 404 hors maison (303771) ou statut exclu ; 400 hors bornes ; **409 si le départ convenu dépasse l'arrivée (convenue ou standard) du séjour vendu qui arrive le même jour** (ou l'inverse) — voisins : `rotationNeighbours`, la même définition que la popup ; avertissement si égalité, **en rouge** si l'arrivée anticipée laisse moins de 3 h au ménage ; 503 sans Redis. Après l'écriture, **synchro des codes immédiate** (`runAccessSync`, déclencheur `dashboard`, même verrou que le webhook) ; si elle échoue, 200 avec `syncDeferred` (le passage horaire rattrape). |
-| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** — et, pour le viewer, **vendues** (`countsAsSold` : ni demandes ni options, comme `/api/dashboard/bookings`, cerbere B1) (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). La phase B y ajoutera l'état du départ du jour. |
+| `GET /api/dashboard/stay-status` | Admin **et viewer** (dans `allowedPaths`) : `{ hours: { <id>: { arrivalHour?, departureHour? } } }`, rien d'autre, **seulement pour les réservations de la maison non exclues** — et, pour le viewer, **vendues** (`countsAsSold` : ni demandes ni options, comme `/api/dashboard/bookings`, cerbere B1) (Beds24 relu, sauf table vide ; illisible ⇒ `{}`). Depuis la phase B : `departures: { <id>: { icon: "gone" \| "present" \| "unlocked", line } }`, une icône et une phrase toutes faites (`departureBadge`), jamais le texte d'un message ni le journal de la serrure ; Beds24 relu seulement s'il y a une table ou un état de départ. |
 
 | Consommateur | Standard | Arrivée convenue A / départ convenu D |
 |---|---|---|
@@ -749,6 +780,33 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
   entré ») ; Redis illisible (horaires convenus relus par `readStayHoursStrict`, état d'alerte,
   fin de journée) → relevé sauté sans alerte ; alerte déjà ouverte → le garage n'est plus relu ;
   minuit passé, en hiver comme en mode été, les deux alertes se referment sans message.
+- **Détection du départ, phase B en observation** (2026-11-20, `lib/departure-detection.ts` pur,
+  `lib/departure-observation.ts` lectures) : dans `heating-automation`, **après** la pose des modes,
+  le jour d'un départ **de 5 h à D + 30 min** (ensuite le relevé de la porte prend le relais, son
+  résultat est reporté par `recordDoorCheck` sans relire). Par passage : présence des radiateurs
+  **déjà lus** (seul le palier `cft` vaut présence ; `cft1`/`cft2` journalisés pour trancher ;
+  hors radiateurs verrouillés et `alerts: false`), état de la serrure (1 appel Nuki), journal
+  depuis la veille 18 h (1 appel) **seulement porte verrouillée ou départ déjà constaté**, fil
+  Beds24 (`getBookingMessages`) **un passage sur deux au plus** (25 min), jamais une fois le
+  message reçu ou le départ constaté (un échec, 429 compris, compte comme une lecture). Lectures
+  plafonnées à 4,5 s ; passage déjà long de plus de 35 s : observation sautée. « Vide » = porte
+  verrouillée **avec une ouverture le jour même suivie d'un verrouillage** (on ne sort que par la
+  porte d'entrée : un verrouillage de la veille au soir ne prouve rien) **et** (3 passages sans
+  présence **ou** message de départ du voyageur depuis la veille 18 h, tournures affirmatives en
+  5 langues, questions et négations écartées, texte jamais gardé) ; départ daté du verrouillage. Code du séjour (ou ouverture à la main) après le
+  constat → `returned`. État `barbusse:departure:<id>` (7 j), journal
+  `barbusse:departure-journal:<jour>` (14 j, une entrée par passage, catégorie du code et jamais
+  son nom) relu par `node --env-file=.env.local scripts/departure-journal.mjs AAAA-MM-JJ`.
+  Notifications priorité 2 (`SET NX barbusse:departure-notified:*`), « Départ estimé » **une fois
+  par constat** (un constat après retour est notifié), envoi raté réessayé au passage suivant
+  (`notifyPending`) :
+  « Départ estimé à 8 h 42 (observation : chauffage non modifié) », et « message de départ, porte
+  non verrouillée ». Serrure ou radiateurs illisibles : rien. **Interrupteur `DEPARTURE_DETECTION`
+  = `observe` (défaut) | `live` | `off`** ; `live` n'est pas codé (TODO phase C, se comporte comme
+  `observe`) : **le chauffage ne change jamais**. Pas en mode été. Calendrier : icône au bout de la
+  barre (porte + coche verte « partis », horloge orange « encore présents » le jour même, porte
+  ouverte rouge « partis sans verrouiller ») et ligne « … (estimation) » dans la fiche, admin et
+  viewer.
 - ⚠️ La messagerie maison étant en mode `test`, les vrais messages partent encore des auto-actions
   Beds24, qui disent « avant 11h » : confirmer l'heure convenue au voyageur à la main.
 - Le guide d'arrivée reste générique (« Sauf accord préalable… avant 11h ») : il n'est lié à aucune

@@ -142,9 +142,10 @@ const site = {
     loginBody: (password) => ({ password }),
     dashboardLoginPage: "/dashboard/login",
     /**
-     * La matrice des portes, reprise de `scripts/protocole/portes.mjs` du socle. Uniquement des
-     * lectures : aucune route qui pilote le chauffage ou le ballon (`*\/control`, `*\/lock`,
-     * `*\/summer-mode`, `*\/scan`, `*\/add-device`) n'est appelée. `invoices/generate` reçoit
+     * La matrice des portes, reprise de `scripts/protocole/portes.mjs` du socle. Des lectures, et
+     * des POST qui ne sont envoyés qu'à un rôle refusé (anonyme, viewer sur une route admin) : la
+     * garde répond avant toute lecture du corps, rien ne bouge chez Heatzy ni Cozytouch.
+     * `*\/control` n'est jamais appelé (le viewer y a droit). `invoices/generate` reçoit
      * un corps vide : la garde répond avant toute validation, le compteur n'est jamais atteint.
      */
     doors: [
@@ -176,6 +177,15 @@ const site = {
         viewer: [200],
       },
       { path: "/api/dashboard/heating", anonymous: [401], viewer: [200] },
+      { path: "/api/dashboard/heating/lock", anonymous: [401], viewer: [200] },
+      // Chauffage (2026-11-20) : le viewer pilote zones et radiateurs (`heating/control`, non
+      // appelé ici), mais les réglages d'installation sont admin seulement. Chaque POST est
+      // refusé par la garde avant toute lecture du corps : rien ne bouge chez Heatzy.
+      { path: "/api/dashboard/heating/lock", method: "POST", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/heating/pilot-lock", method: "POST", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/heating/summer-mode", method: "POST", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/heating/add-device", method: "POST", anonymous: [401], viewer: [403] },
+      { path: "/api/dashboard/heating/scan", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/water-heater", anonymous: [401], viewer: [200] },
       // Ouverte au viewer en lecture (GET) le 2026-11-07 (`proxy.ts`). Règle : toute route dont
       // la garde accepte le viewer doit aussi être dans `allowedPaths` — cette porte le vérifie.
