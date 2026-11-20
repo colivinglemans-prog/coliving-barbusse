@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PriceGrid from "@sejour/socle/components/PriceGrid";
 import {
-  jsonLdText,
-  lowestTotal,
+  jsonLdText,
   priceGridOffer,
   type GridColumn,
   type GridRow,
@@ -12,7 +11,7 @@ import {
 import { isLocale, LOCALE_META, type Locale } from "@/lib/i18n";
 import { alternatesFor, pageOpenGraph, pageTwitter, pricesPath } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
-import { getPriceGrid } from "@/lib/tarifs";
+import { getPriceGrid, lowestWeekendTotal } from "@/lib/tarifs";
 import { pricesContent } from "./content";
 
 /**
@@ -77,7 +76,7 @@ export default async function PricesPage({ params }: { params: Promise<{ locale:
   const tag = LOCALE_META[locale].bcp47;
   const stored = await getPriceGrid();
   const grid = stored ? localized(stored.grid, c.holidays) : null;
-  const min = grid?.pricesShown ? lowestTotal(grid, 0) : null;
+  const min = grid?.pricesShown ? lowestWeekendTotal(grid) : null;
   const from = min === null ? null : new Intl.NumberFormat(tag, { style: "currency", currency: "EUR" }).format(min);
   const offer = grid && !stored?.stale ? priceGridOffer(grid, `${SITE_URL}${pricesPath(locale)}`) : null;
 
@@ -97,7 +96,8 @@ export default async function PricesPage({ params }: { params: Promise<{ locale:
       )}
       <h1 className="text-2xl font-semibold text-foreground">{c.title}</h1>
       <p className="mt-2 text-secondary">{c.lead(from)}</p>
-      <p className="mt-2 mb-8 text-sm text-secondary">{c.house}</p>
+      <p className="mt-2 text-sm text-secondary">{c.house}</p>
+      <p className="mt-1 mb-8 text-sm text-secondary">{c.weekdays}</p>
       {grid && grid.rows.length > 0 ? (
         <PriceGrid grid={grid} locale={tag} labels={c.grid} linkFor={grid.pricesShown ? calendarHref(locale) : undefined} />
       ) : (

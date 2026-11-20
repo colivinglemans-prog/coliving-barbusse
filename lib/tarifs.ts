@@ -9,7 +9,8 @@
  * Jamais un appel Beds24 sur le chemin d'un visiteur. Logique de rangement et d'alerte :
  * `@sejour/socle/lib/price-grid-job` ; calcul : `@sejour/socle/lib/price-grid`.
  *
- * - **Quels séjours** : les week-ends du vendredi au dimanche des 4 prochains mois ; les fêtes
+ * - **Quels séjours** : les week-ends du vendredi au dimanche et les séjours en semaine du lundi au
+ *   vendredi (4 nuits, demande de l'hôte du 20/11/2026) des 4 prochains mois ; les fêtes
  *   (périodes du moteur de prix, `ENGINE_CONFIG.fixedPeriods`) des 6 prochains mois ; les grands
  *   événements **confirmés** (`LE_MANS_EVENTS` dont la clé a une règle `majorEvents`, plus les
  *   24 Heures Vélo), au séjour minimum Beds24 qui finit le lendemain de la course — **seulement si
@@ -27,6 +28,7 @@ import {
   buildPriceGrid,
   eventStays,
   fixedStays,
+  spreadTtl,
   weekendStays,
   type PriceGrid,
   type StayWindow,
@@ -50,7 +52,7 @@ export const PRICE_PARTIES = [10, 15, 20].map((adults) => ({ adults, children: 0
  * rangée sous une autre composition n'est jamais servie (la page affiche le renvoi au calendrier
  * jusqu'au calcul suivant).
  */
-export const PRICE_GRID_COMPOSITION = `barbusse-v1:weekends-4m,fetes-6m${eventsEnabled() ? ",events-min" : ""};adults-10-15-20`;
+export const PRICE_GRID_COMPOSITION = `barbusse-v2:weekends-4m,weekdays-4m,fetes-6m${eventsEnabled() ? ",events-min" : ""};adults-10-15-20`;
 
 /** Clé Upstash de la grille (l'état du cron sous `…:job`, l'alerte sous `…:alert`). */
 export const PRICE_GRID_KEY = redisKey("price-grid");
@@ -107,6 +109,8 @@ function sources(today: string): WindowSource[] {
     : [];
   return [
     weekendStays({ from: today, to: addDays(today, WEEKEND_DAYS) }, { startWeekday: 5, nights: 2 }),
+    // En semaine : arrivée le lundi, départ le vendredi (séminaires, équipes, chantiers).
+    weekendStays({ from: today, to: addDays(today, WEEKEND_DAYS) }, { startWeekday: 1, nights: 4 }),
     fixedStays(holidayStays(today)),
     // Fenêtre lue : la veille du premier jour plus les nuits d'approche du moteur ; la ligne est
     // le séjour minimum Beds24 qui finit le lendemain de la course.
@@ -133,7 +137,10 @@ export async function computePriceGrid(counter?: { availability: number; price: 
       },
       price: (req) => {
         if (counter) counter.price++;
-        return fetchRoomPrice(req, { revalidate: PRICE_TTL });
+        // Durée de cache étalée par séjour (12 à 24 h) : les prix n'expirent pas tous ensemble, le
+        // cron horaire n'en redemande qu'une fraction à chaque passage (voir `spreadTtl`).
+        const id = `${req.checkIn}/${req.checkOut}/${req.adults}/${req.children}`;
+        return fetchRoomPrice(req, { revalidate: spreadTtl(id, PRICE_TTL, PRICE_TTL) });
       },
     },
     {
@@ -147,6 +154,20 @@ export async function computePriceGrid(counter?: { availability: number; price: 
       timeBudgetMs: 22_000,
     },
   );
+}
+
+/**
+ * Le plus petit total d'un **week-end** (2 nuits, sans intitulé) pour la première colonne : la phrase
+ * de tête parle de week-ends, un séjour de 4 nuits en semaine ne doit pas s'y glisser.
+ */
+export function lowestWeekendTotal(grid: PriceGrid): number | null {
+  let min: number | null = null;
+  for (const r of grid.rows) {
+    const c = r.cells[0];
+    if (r.label || r.nights !== 2 || c?.status !== "available") continue;
+    if (min === null || c.total < min) min = c.total;
+  }
+  return min;
 }
 
 /** Au-delà, une grille rangée n'est plus servie du tout (le cron est arrêté depuis trop longtemps). */
