@@ -210,6 +210,14 @@ docs/journal.md § Conventions).
   de réservation, aucun PIN dans le code, les logs, les tests ou les commits. Les archives
   `data/*.json` de réservations et `docs/print/` (fiches A4 avec Wi-Fi et code de serrure) sont
   gitignorés et doivent le rester. Rien ne se copie depuis `.env.local`.
+- **`data/` est en liste blanche** dans le `.gitignore` : tout y est ignoré sauf les fichiers
+  nommés. Versionner un nouveau fichier de `data/`, c'est l'ajouter à cette liste après avoir
+  vérifié qu'il ne contient aucune donnée voyageur. **Hook avant commit** `.githooks/pre-commit`
+  → `garde-commit` du socle (v3.32.0) : il refuse un fichier ignoré ajouté de force, un `.env*`,
+  la valeur d'un secret de `.env.local` et un export de réservations. Il s'active par
+  `git config core.hooksPath .githooks` (déjà posé dans le clone de ce poste, donc dans tous ses
+  worktrees) et exige `node_modules` (`npm ci`). **Un agent ne passe jamais `--no-verify`** sans
+  l'accord explicite de l'hôte : un refus se corrige, il ne se contourne pas.
 - **Un push sur `main` déploie la prod.** Travailler sur une branche ; vérifier en preview
   (`npx vercel --scope colivinglemans-progs-projects`) avant de fusionner.
 - **Plusieurs sessions travaillent dans ce dépôt** : jamais deux sessions dans le même arbre.

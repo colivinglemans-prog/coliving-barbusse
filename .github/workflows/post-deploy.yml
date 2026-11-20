@@ -35,7 +35,7 @@ jobs:
       contents: read
       issues: write
       actions: read
-    uses: colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml@02bda70088b2e0beffd5a0293702cefe6d7957d4 # v3.21.0
+    uses: colivinglemans-prog/sejour-socle/.github/workflows/deploy-checks.yml@a9ed8926489e5707e02496413c3db8758af0f9fb # v3.32.0
     with:
       site_name: Coliving Barbusse
       level: full
