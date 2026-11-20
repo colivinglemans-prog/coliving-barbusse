@@ -708,8 +708,11 @@ se reproduit pas) : la notification est mise en file, `barbusse:arrival-notice:r
 retente (`retryArrivalNotices`, même anti-doublon). Un journal des notifications qui lève après un
 envoi réussi n'est pas un échec (`lib/ntfy.ts`).
 
-**Le PIN** est tiré des 6 derniers chiffres du téléphone du voyageur quand ils respectent les
-règles du clavier (1 à 9, pas « 12 » en tête) et sont libres, sinon au hasard. Il est écrit
+**Le PIN** est tiré **au hasard** (`crypto.randomInt`, règles du clavier : 1 à 9, pas « 12 » en
+tête). **Jamais du téléphone** depuis le 2026-11-20 (`baseStay` passe `phone: null` au
+planificateur) : les téléphones de 54 réservations ont fuité (juillet 2026) et `pinFromPhone` du
+socle est public, un code pris dans le numéro se devinait. Un PIN déjà posé est conservé tel
+quel. Il est écrit
 dans Beds24 (`addNukiPin`, jeton `ecriture`) **avant** d'être posé sur la serrure ; si
 l'écriture échoue, le code n'est pas posé. Le gabarit Beds24 le lit par
 `[BOOKINGINFOCODETEXT:NUKI_PIN]`, et l'auto-action « Before arrival - Send Nuki PIN » est
