@@ -1,0 +1,6 @@
+#!/bin/sh
+# Garde-fou avant commit : le depot est PUBLIC. Mecanisme dans le socle (scripts/garde-commit.mjs).
+# Active par : git config core.hooksPath .githooks
+garde=node_modules/@sejour/socle/scripts/garde-commit.mjs
+[ -f "$garde" ] || { echo "garde-commit absent : lancer npm ci dans ce dossier, puis recommencer le commit" >&2; exit 1; }
+exec node "$garde"

@@ -47,8 +47,19 @@ next-env.d.ts
 # (le depot est public) - regenerer avec scripts/generate-print-sheets.mjs
 docs/print/
 
-# historique Beds24 : noms, e-mails, telephones des voyageurs (le depot est public).
-# En production il vient de la variable HISTORIQUE_BARBUSSE (gzip + base64) ; en local,
-# `node --env-file=.env.local scripts/beds24-backup.mjs` regenere les deux fichiers.
-data/bookings-archive.json
-data/beds24-raw-backup.json
+# data/ en LISTE BLANCHE (audit securite 2026-11-20). Le 24/07/2026, deux sauvegardes
+# Beds24 (noms, e-mails, telephones, codes de serrure) ont ete commitees ici, dans un
+# depot PUBLIC, faute de ligne ignore : desormais tout data/ est ignore sauf ce qui est
+# nomme ci-dessous. Versionner un nouveau fichier de data/ = l'ajouter ici, apres avoir
+# verifie qu'il ne contient aucune donnee voyageur.
+# Restent ignores, entre autres : data/bookings-archive.json et data/beds24-raw-backup.json
+# (en production : variable HISTORIQUE_BARBUSSE ; en local :
+# `node --env-file=.env.local scripts/beds24-backup.mjs`). Le hook .githooks/pre-commit
+# (garde-commit du socle) refuse aussi un `git add -f` sur un fichier ignore.
+/data/*
+!/data/reviews.json
+!/data/heatzy-zones.json
+# Chiffres fiscaux : versionnes a ce jour, a sortir du depot si l'hote le decide (audit 20/11).
+!/data/fiscal/
+/data/fiscal/*
+!/data/fiscal/2026.json
