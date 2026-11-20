@@ -184,37 +184,110 @@ export function personalDoorArrivals(
 export type PersonalBaseline = Partial<Record<ArrivalSource, number>>;
 
 /**
- * Les venues des codes perso à signaler : une par venue (même personne, arrivées à moins de 45 min
- * de la première de la venue, garage et porte confondus, comme `newArrivalsSince`).
+ * Clé de dédoublonnage d'un nom de code perso : casse, accents, « # » et espaces ignorés.
+ * « ALEXANDRE » au garage et « # Alexandre » à la porte sont la même personne.
+ */
+export function personalKey(who: string): string {
+  return who
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/^\s*#\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/** Une venue d'un code perso : ses arrivées, de la plus ancienne à la plus récente (la 1re l'ouvre). */
+export type PersonalVenue = CleaningArrival[];
+
+/** Au-delà de 3 h, une venue n'est plus signalée seule : elle entre dans un résumé (panne longue). */
+export const PERSONAL_MAX_AGE_MS = 3 * 3600_000;
+
+/**
+ * Les venues des codes perso à signaler : une par venue (même personne au sens de `personalKey`,
+ * arrivées à moins de 45 min de la première de la venue, garage et porte confondus).
  *
  * Une venue est **nouvelle** si aucune de ses arrivées n'a déjà été vue, c'est-à-dire si chacune
  * est postérieure à la ligne de base de **sa** source. Une source sans ligne de base (premier
  * passage, ou source illisible jusqu'ici) ou illisible à ce passage (`readable`) ne signale rien :
- * ses arrivées restent à venir, la ligne de base de cette source ne bougeant pas
- * (`advancePersonalBaseline`). Rend l'arrivée qui ouvre chaque venue.
+ * ses arrivées restent à venir, la ligne de base de cette source ne bougeant pas.
+ *
+ * `recent` : venues ouvertes il y a moins de 3 h (`PERSONAL_MAX_AGE_MS`), une alerte chacune ;
+ * `stale` : les plus anciennes (retour d'une panne longue), un seul résumé. Ordre chronologique.
  */
 export function freshPersonalVenues(
   arrivals: readonly CleaningArrival[],
   baseline: PersonalBaseline,
   readable: Readonly<Record<ArrivalSource, boolean>>,
-): CleaningArrival[] {
-  const venues: CleaningArrival[][] = [];
-  const openByPerson = new Map<string, CleaningArrival[]>();
+  now: Date,
+): { recent: PersonalVenue[]; stale: PersonalVenue[] } {
+  const venues: PersonalVenue[] = [];
+  const openByPerson = new Map<string, PersonalVenue>();
   for (const a of [...arrivals].sort((x, y) => x.at.getTime() - y.at.getTime())) {
-    const open = openByPerson.get(a.who);
+    const key = personalKey(a.who);
+    const open = openByPerson.get(key);
     if (open && a.at.getTime() - open[0].at.getTime() < SAME_VISIT_GAP_MS) {
       open.push(a);
       continue;
     }
     const venue = [a];
-    openByPerson.set(a.who, venue);
+    openByPerson.set(key, venue);
     venues.push(venue);
   }
   const unseen = (a: CleaningArrival) => {
     const base = baseline[a.source];
     return readable[a.source] && base !== undefined && a.at.getTime() > base;
   };
-  return venues.filter((v) => v.every(unseen)).map((v) => v[0]);
+  const fresh = venues.filter((v) => v.every(unseen));
+  const isRecent = (v: PersonalVenue) => now.getTime() - v[0].at.getTime() < PERSONAL_MAX_AGE_MS;
+  return { recent: fresh.filter(isRecent), stale: fresh.filter((v) => !isRecent(v)) };
+}
+
+/**
+ * La ligne de base une fois `sent` signalées (à écrire **après chaque envoi réussi**) : la venue
+ * est marquée vue en avançant la source de son arrivée d'ouverture jusqu'à elle — sans dépasser
+ * une arrivée des venues encore à envoyer (`pending`), qui resterait sinon perdue si le passage
+ * s'interrompt. Ne recule jamais.
+ */
+export function coverPersonalVenues(
+  baseline: PersonalBaseline,
+  sent: readonly PersonalVenue[],
+  pending: readonly PersonalVenue[],
+): PersonalBaseline {
+  const next: PersonalBaseline = { ...baseline };
+  for (const v of sent) {
+    const first = v[0];
+    const prev = next[first.source];
+    if (prev === undefined) continue;
+    const cap = pending
+      .flat()
+      .filter((a) => a.source === first.source)
+      .reduce((min, a) => Math.min(min, a.at.getTime() - 1), Infinity);
+    next[first.source] = Math.max(prev, Math.min(first.at.getTime(), cap));
+  }
+  return next;
+}
+
+/** Lit la ligne de base stockée ; rend `null` si elle est illisible (à reposer, sans rafale). */
+export function parsePersonalBaseline(stored: unknown): PersonalBaseline | null {
+  let value = stored;
+  if (value === null || value === undefined) return {};
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const out: PersonalBaseline = {};
+  for (const source of ["garage", "porte"] as const) {
+    const v = (value as Record<string, unknown>)[source];
+    if (v === undefined) continue;
+    if (typeof v !== "number" || !Number.isFinite(v)) return null;
+    out[source] = v;
+  }
+  return out;
 }
 
 /**

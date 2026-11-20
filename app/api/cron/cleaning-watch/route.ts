@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
 import {
-  advancePersonalBaseline, buildSessions, freshPersonalVenues, guestKeypadEntries, mergeArrivals, maxArrivalMs, newArrivalsSince,
-  personalGarageArrivals, trackedOpenings, trackedPeople,
-  type CleaningArrival, type CleaningSession, type GuestKeypadCode, type PersonalBaseline, type TrackedPerson,
+  advancePersonalBaseline, buildSessions, coverPersonalVenues, freshPersonalVenues, guestKeypadEntries, mergeArrivals, maxArrivalMs,
+  newArrivalsSince, parsePersonalBaseline, personalGarageArrivals, trackedOpenings, trackedPeople,
+  type CleaningArrival, type CleaningSession, type GuestKeypadCode, type PersonalBaseline, type PersonalVenue, type TrackedPerson,
 } from "@/lib/cleaning/sessions";
 import { readGarageOpenings, doorReading, cameraMotions, buttonPresses, guestArrivalDays } from "@/lib/cleaning/sources";
 import type { KeypadOpening } from "@/lib/cleaning/intratone";
@@ -144,7 +144,8 @@ export async function GET(request: NextRequest) {
     }
 
     const redis = getRedis();
-    const personalSent = await notifyPersonal(redis, personal, { garage: garageOk, porte: doorOk }, startedAt, dry);
+    // Codes perso : après les alertes des personnes suivies, et sans jamais les faire tomber.
+    const runPersonal = () => notifyPersonal(redis, personal, { garage: garageOk, porte: doorOk }, startedAt, dry, notes);
     const stored = await redis.get<number>(LAST_KEY);
     const lastMs = typeof stored === "number" ? stored : Number(stored ?? 0);
 
@@ -153,8 +154,9 @@ export async function GET(request: NextRequest) {
       const baseline = maxArrivalMs(arrivals, 0);
       if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
       if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
+      const personalSent = await runPersonal();
       if (!dry) await succeeded();
-      return NextResponse.json({ success: sourcesOk, baseline: true, garage: garage.length, porte: door.length, personal: personalSent, upserted, notes });
+      return NextResponse.json({ success: sourcesOk, baseline: true, garage: garage.length, porte: door.length, ...personalSent, upserted, notes });
     }
 
     const fresh = newArrivalsSince(arrivals, lastMs);
@@ -175,6 +177,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
+    const personalSent = await runPersonal();
     if (!dry) await succeeded();
     return NextResponse.json({
       success: sourcesOk,
@@ -184,7 +187,7 @@ export async function GET(request: NextRequest) {
       porte: door.length,
       motions: motions.length,
       fresh: fresh.length,
-      personal: personalSent,
+      ...personalSent,
       upserted,
       sessions: freshSessions.map(serializeSession),
       notes,
@@ -220,10 +223,14 @@ function sourceAlerts(notes: Record<string, string>): TrackedAlert[] {
 }
 
 /**
- * Alerte d'arrivée des autres codes perso : une par venue nouvelle (`freshPersonalVenues`), puis la
- * ligne de base avance pour les seules sources lues (`advancePersonalBaseline`). Premier passage :
- * ligne de base posée sans rien envoyer. Rend le **nombre** d'alertes (jamais les noms).
- * Un envoi qui échoue lève avant d'avancer la ligne de base : la venue repart au passage suivant.
+ * Alerte d'arrivée des autres codes perso. Une par venue de moins de 3 h (`freshPersonalVenues`),
+ * un seul résumé pour les plus anciennes (retour d'une panne longue : pas de rafale). La ligne de
+ * base est écrite **après chaque envoi réussi** (`coverPersonalVenues`) : un échec à mi-chemin ne
+ * fait rien renvoyer de ce qui est parti. Puis elle avance pour les seules sources lues
+ * (`advancePersonalBaseline`). Premier passage : ligne de base posée sans rien envoyer.
+ *
+ * **Isolée** : une erreur (ntfy, Redis) est notée dans `notes.personal` et le cron continue ; une
+ * ligne de base illisible est reposée (sans rafale). Rend des **compteurs**, jamais les noms.
  */
 async function notifyPersonal(
   redis: ReturnType<typeof getRedis>,
@@ -231,19 +238,43 @@ async function notifyPersonal(
   readable: Record<"garage" | "porte", boolean>,
   now: Date,
   dry: boolean,
-): Promise<number> {
-  const stored = await redis.get<PersonalBaseline | string>(LAST_PERSONAL_KEY);
-  const baseline: PersonalBaseline = typeof stored === "string" ? JSON.parse(stored) : (stored ?? {});
-  const fresh = freshPersonalVenues(arrivals, baseline, readable);
-  if (dry) return fresh.length;
-  if (fresh.length > 0 && !process.env.NTFY_TOPIC) {
-    throw new Error("NTFY_TOPIC manquant : une arrivée de code perso ne peut pas être signalée");
+  notes: Record<string, string>,
+): Promise<{ personal: number; personalLate: number }> {
+  let sent = 0;
+  let late = 0;
+  try {
+    const parsed = parsePersonalBaseline(await redis.get<unknown>(LAST_PERSONAL_KEY));
+    if (parsed === null) notes.personal = "ligne de base illisible, reposée";
+    let baseline: PersonalBaseline = parsed ?? {};
+    const { recent, stale } = freshPersonalVenues(arrivals, baseline, readable, now);
+    if (dry) return { personal: recent.length, personalLate: stale.length };
+    if ((recent.length > 0 || stale.length > 0) && !process.env.NTFY_TOPIC) {
+      throw new Error("NTFY_TOPIC manquant");
+    }
+    const save = async (next: PersonalBaseline) => {
+      if (JSON.stringify(next) === JSON.stringify(baseline)) return;
+      baseline = next;
+      await redis.set(LAST_PERSONAL_KEY, baseline);
+    };
+    if (stale.length > 0) {
+      await sendPersonalSummary(stale);
+      late = stale.length;
+      await save(coverPersonalVenues(baseline, stale, recent));
+    }
+    for (let i = 0; i < recent.length; i++) {
+      await sendPersonalArrival(recent[i][0]);
+      sent++;
+      await save(coverPersonalVenues(baseline, [recent[i]], recent.slice(i + 1)));
+    }
+    await save(advancePersonalBaseline(arrivals, baseline, readable, now));
+  } catch (e) {
+    notes.personal = short(e);
+    console.error("[cleaning-watch] codes perso:", short(e));
   }
-  for (const a of fresh) await sendPersonalArrival(a);
-  const next = advancePersonalBaseline(arrivals, baseline, readable, now);
-  if (JSON.stringify(next) !== JSON.stringify(baseline)) await redis.set(LAST_PERSONAL_KEY, next);
-  return fresh.length;
+  return { personal: sent, personalLate: late };
 }
+
+const PERSONAL_LOG_TITLE = "Accès maison — code perso";
 
 async function sendPersonalArrival(a: CleaningArrival): Promise<void> {
   const when = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" }).format(a.at);
@@ -255,7 +286,18 @@ async function sendPersonalArrival(a: CleaningArrival): Promise<void> {
       tags: a.source === "garage" ? ["house", "oncoming_automobile"] : ["house", "key"],
     },
     // Le journal des notifications (page « Alertes ») ne garde pas le nom.
-    { title: "Accès maison — code perso" },
+    { title: PERSONAL_LOG_TITLE },
+  );
+}
+
+/** Les venues de plus de 3 h, vues au retour d'une panne : un seul message, sans les noms. */
+async function sendPersonalSummary(stale: PersonalVenue[]): Promise<void> {
+  const sources = (["garage", "porte"] as const).filter((src) => stale.some((v) => v.some((a) => a.source === src)));
+  const n = stale.length;
+  await sendNtfy(
+    `${n} passage${n > 1 ? "s" : ""} de codes perso pendant la panne (${sources.join("/")}).`,
+    { title: "Accès maison — codes perso pendant la panne", priority: 2, tags: ["house"] },
+    { title: PERSONAL_LOG_TITLE },
   );
 }
 

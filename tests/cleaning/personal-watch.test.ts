@@ -15,6 +15,9 @@ const h = vi.hoisted(() => ({
   garageError: null as Error | null,
   doorPersonal: [] as Array<{ source: "porte"; at: Date; who: string }>,
   doorError: null as Error | null,
+  doorTracked: [] as Array<{ source: "porte"; at: Date; who: string }>,
+  /** Titres dont l'envoi échoue (une fois chacun). */
+  failTitles: new Set<string>(),
   sent: [] as Array<{ message: string; options: { title?: string; priority?: number }; log?: { title?: string } }>,
 }));
 
@@ -46,7 +49,7 @@ vi.mock("@/lib/cleaning/sources", () => ({
   },
   doorReading: async () => {
     if (h.doorError) throw h.doorError;
-    return { arrivals: [], guestCodes: [], personal: h.doorPersonal };
+    return { arrivals: h.doorTracked, guestCodes: [], personal: h.doorPersonal };
   },
   guestArrivalDays: async () => new Map(),
   cameraMotions: async () => [],
@@ -58,6 +61,7 @@ vi.mock("@/lib/cleaning/store", () => ({
 }));
 vi.mock("@/lib/ntfy", () => ({
   sendNtfy: vi.fn(async (message: string, options: { title?: string; priority?: number }, log?: { title?: string }) => {
+    if (options.title && h.failTitles.delete(options.title)) throw new Error("ntfy 502: passerelle");
     h.sent.push({ message, options, log });
   }),
 }));
@@ -83,10 +87,12 @@ beforeEach(() => {
   h.garageError = null;
   h.doorPersonal = [];
   h.doorError = null;
+  h.doorTracked = [];
+  h.failTitles.clear();
   vi.mocked(upsertSessions).mockClear();
   process.env.CRON_SECRET = "secret-de-test";
   process.env.NTFY_TOPIC = "https://ntfy.example.test/sujet-de-test";
-  process.env.TRACKED_PEOPLE = "Intervenante:ménage";
+  process.env.TRACKED_PEOPLE = "Alice:ménage";
   delete process.env.CLEANING_WATCH_ENABLED;
   vi.useFakeTimers({ toFake: ["Date"] });
   return () => vi.useRealTimers();
@@ -164,5 +170,82 @@ describe("cleaning-watch — codes perso", () => {
     h.doorPersonal = [{ source: "porte", at: at("09:35"), who: "Gaspard" }];
     await call();
     expect(personalAlerts().map((a) => a.options.title)).toEqual(["Accès maison — Gaspard"]);
+  });
+
+  it("retour d'une panne longue : un résumé pour les venues de plus de 3 h, une alerte pour les récentes", async () => {
+    vi.setSystemTime(at("02:00"));
+    await call();
+
+    vi.setSystemTime(at("09:00"));
+    h.garage = [
+      { at: at("03:00"), code: "1", name: "Perso" },
+      { at: at("08:30"), code: "1", name: "Perso" },
+    ];
+    h.doorPersonal = [{ source: "porte", at: at("04:00"), who: "Gaspard" }];
+    const res = await call();
+    const alerts = personalAlerts();
+    expect(alerts.map((a) => a.options.title)).toEqual(["Accès maison — codes perso pendant la panne", "Accès maison — Perso"]);
+    expect(alerts[0].message).toBe("2 passages de codes perso pendant la panne (garage/porte).");
+    expect(alerts[0].options.priority).toBe(2);
+    expect(JSON.parse(res.text)).toMatchObject({ personal: 1, personalLate: 2 });
+    expect(h.kv.get("barbusse:cleaning:last-personal")).toEqual({ garage: at("08:30").getTime(), porte: at("04:00").getTime() });
+  });
+
+  it("échec d'envoi à mi-chemin : ce qui est parti ne repart pas, le reste part au passage suivant", async () => {
+    vi.setSystemTime(at("08:00"));
+    await call();
+
+    vi.setSystemTime(at("09:00"));
+    h.garage = [{ at: at("08:20"), code: "1", name: "Perso" }];
+    h.doorPersonal = [{ source: "porte", at: at("08:40"), who: "Gaspard" }];
+    h.failTitles.add("Accès maison — Gaspard");
+    const res = await call();
+    expect(res.status).toBe(200);
+    expect(JSON.parse(res.text).notes.personal).toContain("ntfy 502");
+    expect(personalAlerts().map((a) => a.options.title)).toEqual(["Accès maison — Perso"]);
+
+    vi.setSystemTime(at("09:10"));
+    await call();
+    expect(personalAlerts().map((a) => a.options.title)).toEqual(["Accès maison — Perso", "Accès maison — Gaspard"]);
+  });
+
+  it("isolement : un échec des codes perso ne fait tomber ni le cron ni l'alerte d'une personne suivie", async () => {
+    vi.setSystemTime(at("08:00"));
+    h.doorTracked = [{ source: "porte", at: at("07:00"), who: "Alice" }];
+    await call();
+
+    vi.setSystemTime(at("09:00"));
+    h.garage = [{ at: at("08:50"), code: "1", name: "Perso" }];
+    h.doorTracked = [
+      { source: "porte", at: at("07:00"), who: "Alice" },
+      { source: "porte", at: at("08:55"), who: "Alice" },
+    ];
+    h.failTitles.add("Accès maison — Perso");
+    const res = await call();
+    expect(res.status).toBe(200);
+    expect(JSON.parse(res.text).notes.personal).toBeTruthy();
+    expect(h.sent.map((s) => s.options.title)).toContain("Accès maison — Alice");
+  });
+
+  it("ligne de base corrompue dans Redis : notée, reposée sans rafale, le cron continue", async () => {
+    vi.setSystemTime(at("09:00"));
+    h.kv.set("barbusse:cleaning:last-personal", "{pas du json");
+    h.garage = [{ at: at("08:50"), code: "1", name: "Perso" }];
+    const res = await call();
+    expect(res.status).toBe(200);
+    expect(JSON.parse(res.text).notes.personal).toBe("ligne de base illisible, reposée");
+    expect(personalAlerts()).toEqual([]);
+    expect(h.kv.get("barbusse:cleaning:last-personal")).toMatchObject({ garage: at("08:50").getTime() });
+  });
+
+  it("même personne au garage (« GASPARD ») et à la porte (« # Gaspard ») à moins de 45 min : une alerte", async () => {
+    vi.setSystemTime(at("08:00"));
+    await call();
+
+    vi.setSystemTime(at("09:00"));
+    h.garage = [{ at: at("08:20"), code: "1", name: "GASPARD" }];
+    h.doorPersonal = [{ source: "porte", at: at("08:30"), who: "Gaspard" }];
+    await call();
+    expect(personalAlerts().map((a) => a.options.title)).toEqual(["Accès maison — GASPARD"]);
   });
 });

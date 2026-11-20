@@ -239,8 +239,14 @@ passage live de la synchro. Notée dans le journal sous « Arrivée imminente »
   (`{ garage, porte }`) : rien au premier passage ; une source illisible ne signale rien et
   garde la sienne, ses arrivées partent au passage suivant. Titre « Accès maison — <Nom> », texte
   « Code « <Nom> » à HH:MM — garage|porte. » ; le nom ne part que dans ntfy : journal des
-  notifications « Accès maison — code perso », réponse du cron `personal: <nombre>`. N'entre
-  pas dans le journal des intervenants (page « Suivi »).
+  notifications « Accès maison — code perso », réponse du cron `personal` / `personalLate`
+  (nombres). N'entre pas dans le journal des intervenants (page « Suivi »).
+  Garde-fous (relecture du 20/11) : même nom au garage et à la porte comparé sans casse, accents
+  ni « # » (`personalKey`) ; venues de plus de 3 h (retour de panne) en **un seul** résumé « N
+  passages de codes perso pendant la panne (garage/porte) », priorité 2 ; ligne de base écrite
+  après chaque envoi réussi (pas de doublon sur échec partiel) ; tout échec (ntfy, Redis, ligne
+  de base corrompue, reposée sans rafale) noté dans `notes.personal`, sans faire tomber le cron
+  ni retarder les alertes des personnes suivies (envoyées avant).
 
 ### Journal des notifications (30 jours)
 
