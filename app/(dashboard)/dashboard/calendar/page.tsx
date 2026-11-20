@@ -6,6 +6,7 @@ import type { DashboardRole } from "@/lib/auth";
 import type { LockStatus } from "@/lib/access-sync";
 import { eventLinkRef } from "@/lib/events";
 import type { AgreedHours } from "@/lib/stay-hours-rules";
+import type { DepartureBadge } from "@/lib/departure-detection";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import BookingCalendar from "@/components/dashboard/BookingCalendar";
 
@@ -18,6 +19,8 @@ export default function CalendarPage() {
   const [lockStatus, setLockStatus] = useState<LockStatus["bookings"] | undefined>();
   // Horaires convenus (arrivée anticipée, départ tardif), admin et viewer : `/api/dashboard/stay-status`.
   const [stayHours, setStayHours] = useState<Record<number, AgreedHours>>({});
+  // État du départ estimé (observation), admin et viewer : même route.
+  const [departures, setDepartures] = useState<Record<number, DepartureBadge>>({});
   const [actualRole, setActualRole] = useState<DashboardRole>("admin");
   const [viewAsViewer, setViewAsViewer] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,7 +48,11 @@ export default function CalendarPage() {
         // Non bloquant, comme les pastilles : sans la table, aucun horaire convenu affiché.
         fetch("/api/dashboard/stay-status")
           .then((r) => (r.ok ? r.json() : null))
-          .then((data: { hours: Record<number, AgreedHours> } | null) => data && setStayHours(data.hours))
+          .then((data: { hours: Record<number, AgreedHours>; departures?: Record<number, DepartureBadge> } | null) => {
+            if (!data) return;
+            setStayHours(data.hours);
+            setDepartures(data.departures ?? {});
+          })
           .catch(() => {});
 
         const [meRes, bookingsRes, linksRes] = await Promise.all([
@@ -124,6 +131,7 @@ export default function CalendarPage() {
               }}
               unlinkedEvents={unlinkedEvents}
               stayHours={stayHours}
+              departures={departures}
               onStayHoursChanged={(id, hours) =>
                 setStayHours((prev) => {
                   const next = { ...prev };
