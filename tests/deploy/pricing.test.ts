@@ -14,9 +14,11 @@ import { SITE_URL } from "@/lib/site";
 
 const BASE = (process.env.DEPLOY_BASE_URL || SITE_URL).replace(/\/$/, "");
 const SECRET = process.env.CRON_SECRET;
+// Production seulement : les previews n'ont plus de CRON_SECRET (retiré le 2026-11-20).
+const IS_PRODUCTION = new URL(BASE).origin === new URL(SITE_URL).origin;
 const auth = { Authorization: `Bearer ${SECRET}` };
 
-describe.skipIf(!SECRET)("pricing après publication (CRON_SECRET requis)", () => {
+describe.skipIf(!SECRET || !IS_PRODUCTION)("pricing après publication (CRON_SECRET requis)", () => {
   it("le relevé quotidien lit 365 jours de calendrier", async () => {
     const r = await fetch(`${BASE}/api/cron/pricing-snapshot?dry=1`, { headers: auth });
     expect(r.status).toBe(200);
