@@ -76,7 +76,7 @@ export default function Article() {
 
       <h3>Le Mans ville</h3>
       <p>
-        Le bon compromis : environ 20 minutes du circuit hors gros événement, des
+        Le bon compromis : à moins de 5 km du circuit, des
         restaurants ouverts le soir, un centre historique pour occuper les
         accompagnants pendant les sessions, et la gare TGV à 55 minutes de Paris pour
         ceux qui viennent sans voiture.
@@ -113,7 +113,7 @@ export default function Article() {
           sessions, récupération après.
         </li>
         <li>
-          <strong>Environ 20 min du circuit Bugatti</strong> hors affluence.
+          <strong>À moins de 5 km du circuit Bugatti</strong>.
         </li>
         <li>
           <strong>15 min à pied de la gare TGV</strong> : Paris en 55 min, pratique pour

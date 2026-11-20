@@ -20,11 +20,11 @@ export default function Article() {
         mit dem Auto entfernt und vom Bahnhof Le Mans gut erreichbar.
       </p>
 
-      <h2>Kalender 2026: 13 Veranstaltungen im Jahr</h2>
+      <h2>Kalender 2026: Renntage über das ganze Jahr</h2>
       <p>
         Die Pferdesport-Saison 2026 wurde am <strong>4. März 2026</strong> mit
-        einem Galopprenntag eröffnet. Insgesamt sind dreizehn Renntage für das
-        ganze Jahr geplant, mit einer Mischung aus Trabrennen, Galopprennen und
+        einem Galopprenntag eröffnet. Weitere Renntage folgen über das
+        ganze Jahr, mit einer Mischung aus Trabrennen, Galopprennen und
         PMU-Rennen. Der Kalender ist so konzipiert, dass die Disziplinen
         ausgeglichen sind und die großen Termine, die den Ruf von Le Mans in der
         Pferdesportwelt ausmachen, zur Geltung kommen.

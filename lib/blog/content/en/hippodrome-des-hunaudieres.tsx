@@ -18,10 +18,10 @@ export default function Article() {
         and easily accessible from Le Mans station.
       </p>
 
-      <h2>2026 schedule: 13 race meetings through the year</h2>
+      <h2>2026 schedule: race meetings through the year</h2>
       <p>
         The 2026 racing season kicked off on <strong>4 March 2026</strong> with a flat
-        racing meeting. Thirteen meetings are scheduled throughout the year, mixing
+        racing meeting. Further meetings follow throughout the year, mixing
         trotting, flat racing and PMU betting races. The calendar balances disciplines
         and highlights the flagship events that have given Le Mans its horse-racing
         reputation.

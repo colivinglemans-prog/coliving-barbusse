@@ -72,7 +72,7 @@ export default function Article() {
 
       <h3>Le Mans città</h3>
       <p>
-        Il compromesso migliore: circa 20 minuti dal circuito fuori dai grandi eventi,
+        Il compromesso migliore: a meno di 5 km dal circuito,
         ristoranti aperti la sera, un centro storico per intrattenere gli accompagnatori
         durante le sessioni e la stazione TGV a 55 minuti da Parigi per chi viaggia
         senza auto.
@@ -109,8 +109,7 @@ export default function Article() {
           recupero dopo.
         </li>
         <li>
-          <strong>Circa 20 min dal circuito Bugatti</strong> fuori dai momenti di
-          traffico.
+          <strong>A meno di 5 km dal circuito Bugatti</strong>.
         </li>
         <li>
           <strong>15 min a piedi dalla stazione TGV</strong>: Parigi in 55 min, comodo

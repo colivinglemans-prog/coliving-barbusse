@@ -4,8 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic è il più grande raduno mondiale di auto da corsa
-        d'epoca. Ogni due anni, oltre 235.000 appassionati si riuniscono al
+        Le Mans Classic è un raduno di auto da corsa d'epoca. Ogni due anni, oltre 235.000 appassionati si riuniscono al
         Circuito delle 24 Ore per vedere correre 700 vetture mitiche, dalla
         Bentley Blower alla Porsche 962. Ecco come preparare il vostro
         weekend.

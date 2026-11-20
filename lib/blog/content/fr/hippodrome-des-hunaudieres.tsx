@@ -18,10 +18,10 @@ export default function Article() {
         de notre maison et reste facilement accessible depuis la gare du Mans.
       </p>
 
-      <h2>Calendrier 2026 : 13 réunions dans l'année</h2>
+      <h2>Calendrier 2026 : des réunions toute l'année</h2>
       <p>
         La saison hippique 2026 a été lancée le <strong>4 mars 2026</strong> avec une réunion
-        consacrée au plat. Treize réunions sont programmées sur l'ensemble de l'année,
+        consacrée au plat. D'autres réunions suivent sur l'ensemble de l'année,
         mêlant trot, galop, et courses PMU. Le calendrier est conçu pour équilibrer les
         disciplines et mettre en valeur les grands rendez-vous qui font la renommée du
         Mans dans le monde hippique.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { BLOG_POSTS, getPostBySlug, getLocalizedPost } from "@/lib/blog/posts";
+import { BLOG_POSTS, getPostBySlug, getLocalizedPost, metaDescriptionOf } from "@/lib/blog/posts";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { eventJsonLd, findEventByKey } from "@sejour/socle/lib/events";
 import { isPastEvent, todayInParis } from "@/lib/blog/journey";
@@ -433,10 +433,12 @@ export async function generateMetadata({
   const pathFor = blogPostPath(post.slug);
   const url = `${SITE_URL}${pathFor(locale)}`;
   const image = `${SITE_URL}${post.image}`;
+  // La meta (balise, Open Graph, Twitter) peut être plus courte que le chapeau affiché.
+  const description = metaDescriptionOf(loc);
 
   return {
     title: loc.title,
-    description: loc.description,
+    description,
     keywords: loc.keywords,
     // Une edition passee remplacee par la suivante ne doit plus concurrencer
     // celle-ci dans l'index : on la desindexe tout en gardant ses liens suivis.
@@ -444,7 +446,7 @@ export async function generateMetadata({
     alternates: alternatesFor(locale, pathFor),
     openGraph: {
       title: loc.title,
-      description: loc.description,
+      description,
       url,
       type: "article",
       publishedTime: post.date,
@@ -456,7 +458,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: loc.title,
-      description: loc.description,
+      description,
       images: [image],
     },
   };

@@ -4,8 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic es la mayor reunión mundial de coches antiguos de
-        competición. Cada dos años, más de 235.000 aficionados se reúnen en
+        Le Mans Classic es una reunión de coches antiguos de competición. Cada dos años, más de 235.000 aficionados se reúnen en
         el Circuito de las 24 Horas para ver rodar 700 coches míticos, desde
         el Bentley Blower hasta el Porsche 962. Le explicamos cómo preparar
         su fin de semana.

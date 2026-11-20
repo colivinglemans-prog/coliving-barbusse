@@ -4,7 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic is the world's largest gathering of vintage racing cars. Every two
+        Le Mans Classic is a gathering of vintage racing cars. Every two
         years, over 235,000 enthusiasts descend on the Le Mans Circuit to watch 700
         legendary cars in action — from the Bentley Blower to the Porsche 962. Here's
         how to plan your weekend.

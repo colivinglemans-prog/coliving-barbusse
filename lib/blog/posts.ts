@@ -3,7 +3,17 @@ import type { Journey } from "./journey";
 
 export interface LocalizedPost {
   title: string;
+  /**
+   * Chapeau visible sous le titre de l'article. Sert aussi de meta description, de JSON-LD
+   * et de llms.txt, sauf quand `metaDescription` le remplace pour la seule balise meta.
+   */
   description: string;
+  /**
+   * Meta description (balise `description`, Open Graph et Twitter) quand le chapeau sort des
+   * 120-155 caractères recommandés par Bing : on la raccourcit sans toucher au chapeau.
+   * Absente, c'est `description` qui sert. Lue par `metaDescriptionOf`, jamais directement.
+   */
+  metaDescription?: string;
   excerpt: string;
   keywords: string[];
 }
@@ -326,6 +336,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
           "title": "Volleyball Fitness Training: Vertical Jump and Shoulders",
           "description": "Box jumps, squats, shoulder prehab, team circuit: fitness training for a volleyball team at a tournament in Le Mans.",
+          "metaDescription": "Box jumps, squats, shoulder injury prevention, team circuit: fitness training for a volleyball team at a tournament in Le Mans.",
           "excerpt": "Vertical jump, landings, the attacker's shoulders: the sessions to do before and during a volleyball tournament, in the house gym.",
           "keywords": [
             "volleyball strength training",
@@ -476,6 +487,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
           "title": "Strength Training for Cyclists: Preparing in Le Mans",
           "description": "Squats, core, rowing: fitness training for cyclists and 24 Heures Vélo teams, in the gym of our house in Le Mans.",
+          "metaDescription": "Squats, core work, rowing machine: fitness training for cyclists and 24 Heures Vélo teams, in the gym of our house in Le Mans.",
           "excerpt": "Stronger legs and a core that holds the position: the cyclist's strength session, and how a relay team gets organised for the 24 Heures Vélo.",
           "keywords": [
             "strength training for cyclists",
@@ -794,7 +806,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       de: {
-        "title": "Wettbewerb oder Messe in Le Mans: Gruppenunterkunft bis 20 Personen",
+        "title": "Wettbewerb oder Messe in Le Mans: Gruppenunterkunft für 20",
         "description": "Hair Artist Awards, Fachmesse oder Kongress in Le Mans: 9 Zimmer mit eigenem Duschbad für Azubis, Ausbilder und Modelle, 15 Gehminuten vom Bahnhof.",
         "excerpt": "Im November 2026 hat ein Friseursalon aus der Ariège 14 Personen für die Hair Artist Awards bei uns untergebracht. So organisiert sich das Haus für Schulen, Ausbildungszentren und Aussteller bei Wettbewerben und Messen in Le Mans.",
         "keywords": [
@@ -897,7 +909,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     familyDates: true,
     locales: {
       fr: {
-        "title": "Fêter la fin d’année au Mans : Noël en avance, entre les fêtes ou en équipe",
+        "title": "Fin d’année au Mans : Noël en avance, entre les fêtes, en équipe",
         "description": "Noël avant le 24, retrouvailles entre les fêtes, repas d’équipe : une maison entière au Mans pour 20, table de 16 à 20 places, 9 chambres avec douche.",
         "excerpt": "Le 24 et le 31, chacun est pris ailleurs. Alors on se retrouve autour des fêtes : le week-end d’avant Noël, entre Noël et le Nouvel An, ou pour le repas d’équipe.",
         "keywords": [
@@ -909,7 +921,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       en: {
-        "title": "Celebrating the festive season in Le Mans: early Christmas or team dinner",
+        "title": "Festive season in Le Mans: early Christmas or a team dinner",
         "description": "An early Christmas, a reunion between the holidays, a year-end team dinner: a whole house in Le Mans for 20, a table for 16 to 20, 9 en-suite bedrooms.",
         "excerpt": "On the 24th and 31st, everyone is busy elsewhere. So groups get together around the festive season: the weekend before Christmas, between the holidays, or for the team dinner.",
         "keywords": [
@@ -933,7 +945,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       de: {
-        "title": "Jahresende in Le Mans feiern: Weihnachten vorab, zwischen den Jahren",
+        "title": "Jahresende in Le Mans: Weihnachten vorab, zwischen den Jahren",
         "description": "Weihnachten vor dem 24., Treffen zwischen den Jahren, Teamfeier: ein ganzes Haus in Le Mans für 20, Tisch für 16 bis 20, 9 Zimmer mit Duschbad.",
         "excerpt": "Am 24. und 31. sind die meisten anderweitig verplant. Also trifft man sich rund um die Feiertage: am Wochenende vor Weihnachten, zwischen den Jahren oder zur Jahresabschlussfeier im Team.",
         "keywords": [
@@ -945,7 +957,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       es: {
-        "title": "Celebrar el fin de año en Le Mans: Navidad, Año Nuevo o con el equipo",
+        "title": "Fin de año en Le Mans: Navidad, Año Nuevo o con el equipo",
         "description": "Navidad antes del 24, reencuentros entre fiestas, comida de empresa: una casa entera en Le Mans para 20, mesa de 16 a 20 plazas y 9 habitaciones con ducha.",
         "excerpt": "El 24 y el 31 cada uno tiene ya sus compromisos, así que cada vez más grupos se reúnen alrededor de las fiestas. Una casa entera en Le Mans para 20, con una mesa a la altura.",
         "keywords": [
@@ -1044,6 +1056,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Réunion de famille au Mans : une maison avec table de 16 à 20",
         description:
           "Noël, anniversaire, mariage, baptême : une maison entière au Mans pour réunir jusqu'à 20 proches, avec une grande table de 16 places (20 avec la véranda) et 9 chambres avec salle de douche privative.",
+        metaDescription:
+          "Noël, anniversaire, mariage, baptême : une maison entière au Mans pour 20 proches, table de 16 places (20 avec la véranda), 9 chambres avec douche.",
         excerpt:
           "Nous avons rallongé la table : 16 places assises, 20 avec les mini-tables de la véranda. De quoi réunir toute la famille autour du même repas, et loger tout le monde sur place.",
         keywords: [
@@ -1058,6 +1072,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Family reunion in Le Mans: a house with a table for 16 to 20",
         description:
           "Christmas, birthday, wedding, christening: a whole house in Le Mans to gather up to 20 relatives, with a 16-seat table (20 with the veranda) and 9 bedrooms with en-suite shower rooms.",
+        metaDescription:
+          "Christmas, birthday, wedding, christening: a whole house in Le Mans for up to 20, a 16-seat table (20 with the veranda), 9 en-suite bedrooms.",
         excerpt:
           "We have extended the table: 16 seats, 20 with the veranda bistro tables. Enough to gather the whole family around one meal, and sleep everyone under the same roof.",
         keywords: [
@@ -1072,6 +1088,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Riunione di famiglia a Le Mans: una casa con tavolo da 16 a 20",
         description:
           "Natale, compleanno, matrimonio, battesimo: una casa intera a Le Mans per riunire fino a 20 persone, con un grande tavolo da 16 posti (20 con la veranda) e 9 camere con doccia privata.",
+        metaDescription:
+          "Natale, compleanno, matrimonio, battesimo: casa intera a Le Mans per 20 persone, tavolo da 16 posti (20 con la veranda), 9 camere con doccia privata.",
         excerpt:
           "Abbiamo allungato il tavolo: 16 posti a sedere, 20 con i tavolini della veranda. Per riunire tutta la famiglia attorno allo stesso pasto, e dormire tutti sotto lo stesso tetto.",
         keywords: [
@@ -1086,6 +1104,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Familientreffen in Le Mans: ein Haus mit Tisch für 16 bis 20",
         description:
           "Weihnachten, Geburtstag, Hochzeit, Taufe: ein ganzes Haus in Le Mans für bis zu 20 Angehörige, mit einem großen Tisch für 16 (20 mit dem Wintergarten) und 9 Zimmern mit eigenem Duschbad.",
+        metaDescription:
+          "Weihnachten, Geburtstag, Hochzeit, Taufe: ganzes Haus in Le Mans für bis zu 20, Tisch für 16 (20 mit Wintergarten), 9 Zimmer mit eigenem Duschbad.",
         excerpt:
           "Wir haben den Tisch verlängert: 16 Sitzplätze, 20 mit den Stehtischen des Wintergartens. Genug, um die ganze Familie an einem Tisch zu versammeln und alle unter einem Dach unterzubringen.",
         keywords: [
@@ -1100,6 +1120,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Reunión familiar en Le Mans: casa con mesa de 16 a 20 plazas",
         description:
           "Navidad, cumpleaños, boda, bautizo: una casa entera en Le Mans para reunir hasta 20 personas, con una gran mesa de 16 plazas (20 con la galería) y 9 habitaciones con ducha privada.",
+        metaDescription:
+          "Navidad, cumpleaños, boda, bautizo: casa entera en Le Mans para 20 personas, mesa de 16 plazas (20 con la galería) y 9 habitaciones con ducha privada.",
         excerpt:
           "Hemos alargado la mesa: 16 plazas sentadas, 20 con las mesitas de la galería. Para reunir a toda la familia en torno a la misma comida, y alojar a todos bajo el mismo techo.",
         keywords: [
@@ -1253,6 +1275,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       es: {
           "title": "Cross-training en Le Mans: seis WOD en el gimnasio de la casa",
           "description": "Barra olímpica, bumpers, suelo amortiguador, remo Concept2, balón medicinal, cajón: seis WOD de cross-training, solo o en equipo, en nuestra casa en Le Mans.",
+          "metaDescription": "Barra olímpica, bumpers, suelo amortiguador, remo Concept2, balón medicinal, cajón: seis WOD, solo o en equipo, en nuestra casa en Le Mans.",
           "excerpt": "Todo el material de un box en el gimnasio de la casa: seis WOD pensados para este espacio, del «for time» al team WOD, y las buenas prácticas.",
           "keywords": [
             "cross-training Le Mans",
@@ -1347,7 +1370,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     image: "/images/blog/hippodrome.jpg",
     locales: {
       fr: {
-        "title": "Concours équestre au Pôle Européen du Cheval : où loger cavaliers, grooms et familles",
+        "title": "Concours équestre au Pôle Européen du Cheval : où loger l’équipe",
         "description": "Concours au Pôle Européen du Cheval : une maison entière au Mans pour toute l’équipe, 9 chambres avec salle de douche, grande table, lave-linge, à 20 min.",
         "excerpt": "Un week-end de concours, c’est toute une équipe à loger : cavaliers, coachs, grooms, parents. Comment la maison s’organise autour du rythme d’un concours équestre.",
         "keywords": [
@@ -1395,7 +1418,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       es: {
-        "title": "Concurso hípico en el Pôle Européen du Cheval: dónde alojarse en Le Mans",
+        "title": "Concurso hípico en el Pôle Européen du Cheval: dónde alojarse",
         "description": "Concurso en el Pôle Européen du Cheval: una casa entera en Le Mans para todo el equipo, 9 habitaciones con ducha, gran mesa y lavadora, a unos 20 min.",
         "excerpt": "Un fin de semana de concurso supone alojar a todo un equipo: jinetes, entrenadores, mozos de cuadra, padres. Así se organiza la casa al ritmo de un concurso hípico.",
         "keywords": [
@@ -1451,7 +1474,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       de: {
-        "title": "Unterkunft für Nachtschichtteams in Le Mans: tagsüber gut schlafen",
+        "title": "Unterkunft für Nachtschichtteams in Le Mans: tagsüber schlafen",
         "description": "Haus in Le Mans für Nachtschichtteams: 9 Zimmer mit Duschbad und Rollläden, ruhiges Viertel, Küche, Fitnessraum, Bahnhof 15 Min. zu Fuß, Firmenrechnung.",
         "excerpt": "Wer nachts arbeitet, muss am helllichten Tag schlafen können. Im Oktober 2026 hat ein Nachtschichtteam bei uns gewohnt: Darum eignet sich das Haus dafür, und darauf sollten Sie vor der Buchung achten.",
         "keywords": [
@@ -1463,7 +1486,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       es: {
-        "title": "Alojar a un equipo de noche en Le Mans: una casa para dormir de día",
+        "title": "Equipo de noche en Le Mans: una casa para dormir de día",
         "description": "Misión nocturna en Le Mans: 9 habitaciones con ducha privada y persianas para dormir de día, calle tranquila, gimnasio y cocina, estación a 15 min a pie.",
         "excerpt": "Cuando se trabaja de noche, lo importante es poder dormir de día. Una habitación a oscuras por persona, tranquilidad y con qué entretener a quienes duermen poco sin despertar a los demás.",
         "keywords": [
@@ -1563,6 +1586,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Heures Moto 2027 (8-11 avril) : hébergement au Mans",
         description:
           "Tout pour organiser votre week-end des 24 Heures Moto 2027 au Mans, 50ᵉ édition du 8 au 11 avril : zones d'hébergement, prix, parking moto, conseils pour groupes de motards.",
+        metaDescription:
+          "24 Heures Moto 2027 au Mans, 50ᵉ édition du 8 au 11 avril : zones d'hébergement, prix, parking moto et conseils pour les groupes de motards.",
         excerpt:
           "100 000 spectateurs, une ambiance motards unique et un hébergement bien placé, c'est ce qu'il faut. Voici comment préparer votre week-end.",
         keywords: [
@@ -1577,6 +1602,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Le Mans 24 Hours Motorcycle 2027 (8-11 April): where to stay",
         description:
           "Everything to plan your 24 Hours Motorcycle 2027 weekend in Le Mans, 50th edition on 8-11 April: accommodation areas, prices, motorcycle parking, tips for biker groups.",
+        metaDescription:
+          "24 Hours Motorcycle 2027 in Le Mans, 50th edition on 8-11 April: accommodation areas, prices, motorcycle parking and tips for biker groups.",
         excerpt:
           "100,000 spectators, a unique biker vibe and a well-located place to stay — here's how to prepare your weekend.",
         keywords: [
@@ -1591,6 +1618,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Ore Moto Le Mans 2027 (8-11 aprile): dove alloggiare",
         description:
           "Tutto per organizzare il vostro weekend della 24 Ore Moto 2027 a Le Mans, 50ª edizione dall'8 all'11 aprile: zone di alloggio, prezzi, parcheggio moto, consigli per gruppi di motociclisti.",
+        metaDescription:
+          "24 Ore Moto 2027 a Le Mans, 50ª edizione dall'8 all'11 aprile: zone di alloggio, prezzi, parcheggio moto e consigli per gruppi di motociclisti.",
         excerpt:
           "100.000 spettatori, un'atmosfera motociclistica unica e un alloggio ben posizionato, ecco quello che serve. Ecco come preparare il vostro weekend.",
         keywords: [
@@ -1605,6 +1634,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Stunden Motorrad Le Mans 2027 (8.–11. April): Unterkunft",
         description:
           "Alles, um Ihr 24-Stunden-Motorrad-Wochenende 2027 in Le Mans zu organisieren, 50. Ausgabe vom 8. bis 11. April: Unterkunftszonen, Preise, Motorradparken, Tipps für Bikergruppen.",
+        metaDescription:
+          "24-Stunden-Motorrad 2027 in Le Mans, 50. Ausgabe vom 8. bis 11. April: Unterkunftszonen, Preise, Motorradparken, Tipps für Bikergruppen.",
         excerpt:
           "100.000 Zuschauer, eine einzigartige Biker-Atmosphäre und eine gut gelegene Unterkunft — so bereiten Sie Ihr Wochenende vor.",
         keywords: [
@@ -1619,6 +1650,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Horas Moto Le Mans 2027 (8-11 de abril): dónde alojarse",
         description:
           "Todo para organizar su fin de semana de las 24 Horas Moto 2027 en Le Mans, 50ª edición del 8 al 11 de abril: zonas de alojamiento, precios, parking moto, consejos para grupos de moteros.",
+        metaDescription:
+          "24 Horas Moto 2027 en Le Mans, 50ª edición del 8 al 11 de abril: zonas de alojamiento, precios, parking moto y consejos para grupos de moteros.",
         excerpt:
           "100.000 espectadores, un ambiente motero único y un alojamiento bien ubicado: eso es lo que necesita. Así puede preparar su fin de semana.",
         keywords: [
@@ -1641,7 +1674,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       fr: {
         title: "Le Mans Classic Heritage 2027 (1-4 juillet) : où loger",
         description:
-          "Le Mans Classic Heritage 2027, du 1ᵉʳ au 4 juillet : plus grand rassemblement mondial de voitures de course anciennes. Dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
+          "Le Mans Classic Heritage 2027, du 1ᵉʳ au 4 juillet : rassemblement de voitures de course anciennes. Dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
+        metaDescription:
+          "Le Mans Classic Heritage 2027, du 1ᵉʳ au 4 juillet, voitures de course anciennes : dates, programme, hébergement et conseils pour passionnés et clubs.",
         excerpt:
           "700 voitures mythiques de 1923 à 1993, 24 heures de course, 235 000 spectateurs. Préparez votre séjour pour la plus grande fête de l'automobile de collection.",
         keywords: [
@@ -1655,7 +1690,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
         title: "Le Mans Classic Heritage 2027 (1-4 July): where to stay",
         description:
-          "Le Mans Classic Heritage 2027, from 1 to 4 July: the world's largest gathering of vintage racing cars. Dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
+          "Le Mans Classic Heritage 2027, from 1 to 4 July: a gathering of vintage racing cars. Dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
+        metaDescription:
+          "Le Mans Classic Heritage 2027, 1-4 July, vintage racing cars: dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
         excerpt:
           "700 legendary cars from 1923 to 1993, 24 hours of racing, 235,000 spectators. Plan your stay for the greatest vintage motoring celebration.",
         keywords: [
@@ -1669,7 +1706,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       it: {
         title: "Le Mans Classic Heritage 2027 (1-4 luglio): dove alloggiare",
         description:
-          "Le Mans Classic Heritage 2027, dal 1º al 4 luglio: il più grande raduno mondiale di auto da corsa d'epoca. Date, programma, alloggio e consigli pratici per appassionati e club.",
+          "Le Mans Classic Heritage 2027, dal 1º al 4 luglio: raduno di auto da corsa d'epoca. Date, programma, alloggio e consigli pratici per appassionati e club.",
+        metaDescription:
+          "Le Mans Classic Heritage 2027, 1-4 luglio, auto da corsa d'epoca: date, programma, alloggio e consigli pratici per appassionati e club.",
         excerpt:
           "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa, 235.000 spettatori. Preparate il vostro soggiorno per la più grande festa dell'automobile d'epoca.",
         keywords: [
@@ -1683,7 +1722,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       de: {
         title: "Le Mans Classic Heritage 2027 (1.–4. Juli): Unterkunft",
         description:
-          "Le Mans Classic Heritage 2027, vom 1. bis 4. Juli: das weltgrößte Treffen historischer Rennwagen. Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
+          "Le Mans Classic Heritage 2027, vom 1. bis 4. Juli: Treffen historischer Rennwagen. Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
+        metaDescription:
+          "Le Mans Classic Heritage 2027, 1.-4. Juli, historische Rennwagen: Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
         excerpt:
           "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen, 235.000 Zuschauer. Planen Sie Ihren Aufenthalt für das größte Fest des klassischen Automobilsports.",
         keywords: [
@@ -1697,7 +1738,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       es: {
         title: "Le Mans Classic Heritage 2027 (1-4 de julio): dónde alojarse",
         description:
-          "Le Mans Classic Heritage 2027, del 1 al 4 de julio: el mayor encuentro mundial de coches de carreras clásicos. Fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
+          "Le Mans Classic Heritage 2027, del 1 al 4 de julio: encuentro de coches de carreras clásicos. Fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
+        metaDescription:
+          "Le Mans Classic Heritage 2027, 1-4 de julio, coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
         excerpt:
           "700 coches míticos de 1923 a 1993, 24 horas de carrera, 235.000 espectadores. Prepare su estancia para la mayor fiesta del automovilismo de colección.",
         keywords: [
@@ -1828,6 +1871,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "MotoGP Francia 2027 a Le Mans: alloggio e consigli pratici",
         description:
           "Gran Premio di Francia MotoGP 2027 al Circuit Bugatti (14-16 maggio), tariffe alloggio, trasporti, consigli per un weekend riuscito in famiglia o tra amici.",
+        metaDescription:
+          "Gran Premio di Francia MotoGP 2027 al Circuit Bugatti (14-16 maggio): tariffe alloggio, trasporti, consigli per un weekend in famiglia o tra amici.",
         excerpt:
           "La gara più frequentata del campionato: preparate il vostro weekend MotoGP a Le Mans con la nostra guida completa.",
         keywords: [
@@ -1842,6 +1887,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "MotoGP Frankreich 2027 in Le Mans: Unterkunft und Tipps",
         description:
           "Frankreich-Grand-Prix MotoGP 2027 auf dem Circuit Bugatti (14.-16. Mai), Unterkunftspreise, Anreise, Tipps für ein gelungenes Wochenende mit Familie oder Freunden.",
+        metaDescription:
+          "Frankreich-Grand-Prix MotoGP 2027 auf dem Circuit Bugatti (14.-16. Mai): Unterkunftspreise, Anreise, Tipps fürs Wochenende mit Familie oder Freunden.",
         excerpt:
           "Der meistbesuchte Lauf der Meisterschaft: Planen Sie Ihr MotoGP-Wochenende in Le Mans mit unserem kompletten Guide.",
         keywords: [
@@ -1856,6 +1903,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "MotoGP de Francia 2027 en Le Mans: alojamiento y consejos",
         description:
           "Gran Premio de Francia MotoGP 2027 en el Circuito Bugatti (14-16 de mayo), tarifas de alojamiento, transporte, consejos para un fin de semana logrado en familia o entre amigos.",
+        metaDescription:
+          "Gran Premio de Francia MotoGP 2027 en el Circuito Bugatti (14-16 de mayo): precios de alojamiento, transporte y consejos para ir en familia o con amigos.",
         excerpt:
           "La cita más concurrida del campeonato: prepare su fin de semana de MotoGP en Le Mans con nuestra guía completa.",
         keywords: [
@@ -1899,7 +1948,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       it: {
-        "title": "Alloggio per squadre sportive a Le Mans: casa intera fino a 20 posti",
+        "title": "Alloggio per squadre sportive a Le Mans: casa intera per 20",
         "description": "Casa intera a Le Mans per squadre sportive: 9 camere con doccia privata, tavolo da 20, lavatrice, palestra. Vicino ad Antarès, stadio e circuito kart.",
         "excerpt": "Torneo, trasferta o ritiro a Le Mans? Una casa intera con 9 camere e bagno privato con doccia, un grande tavolo per i pasti di squadra e tutto per lavare le divise e recuperare.",
         "keywords": [
@@ -1923,7 +1972,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ]
       },
       es: {
-        "title": "Alojamiento para equipos deportivos en Le Mans: casa entera hasta 20",
+        "title": "Alojamiento para equipos deportivos en Le Mans: casa para 20",
         "description": "Casa entera en Le Mans para equipos deportivos: 9 habitaciones con ducha, mesa para 20, lavadora, gimnasio privado y tranvía a Antarès y al estadio.",
         "excerpt": "Un torneo, una concentración o un partido en Le Mans: una casa entera con 9 habitaciones con baño con ducha, una gran mesa y lavadora para alojar a todo el equipo bajo el mismo techo.",
         "keywords": [
@@ -1953,7 +2002,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       fr: {
         title: "Porsche Sprint Challenge au Mans : où loger avec son équipage ?",
         description:
-          "Porsche Sprint Challenge France sur le circuit Bugatti du Mans : format monotype, profil des équipages, où se loger. Maison entière de 9 suites pour 20 personnes à 20 min du circuit.",
+          "Porsche Sprint Challenge France sur le circuit Bugatti du Mans : format monotype, profil des équipages, où se loger. Maison entière de 9 suites pour 20 personnes à moins de 5 km du circuit.",
+        metaDescription:
+          "Porsche Sprint Challenge France au circuit Bugatti du Mans : format monotype, équipages, où se loger. Maison entière de 9 suites pour 20, à moins de 5 km.",
         excerpt:
           "Un plateau 100 % Porsche sur le circuit Bugatti, des équipages de 3 à 6 personnes par voiture engagée. Le guide hébergement pour votre week-end de course.",
         keywords: [
@@ -1968,7 +2019,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
         title: "Porsche Sprint Challenge at Le Mans: where to stay with your crew",
         description:
-          "Porsche Sprint Challenge France on the Le Mans Bugatti circuit: one-make format, who the crews are, where to stay. Whole house with 9 en-suite bedrooms for 20 people, 20 min from the track.",
+          "Porsche Sprint Challenge France on the Le Mans Bugatti circuit: one-make format, who the crews are, where to stay. Whole house with 9 en-suite bedrooms for 20 people, less than 5 km from the track.",
+        metaDescription:
+          "Porsche Sprint Challenge France at the Le Mans Bugatti circuit: one-make format, crews, lodging. Whole house, 9 en-suite rooms for 20, under 5 km away.",
         excerpt:
           "An all-Porsche grid on the Bugatti circuit, with 3 to 6 people per entered car. The accommodation guide for your race weekend.",
         keywords: [
@@ -1983,7 +2036,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       it: {
         title: "Porsche Sprint Challenge a Le Mans: alloggio per l'equipaggio",
         description:
-          "Porsche Sprint Challenge France sul circuito Bugatti di Le Mans: format monomarca, profilo degli equipaggi, dove alloggiare. Casa intera di 9 suite per 20 persone a 20 min dal circuito.",
+          "Porsche Sprint Challenge France sul circuito Bugatti di Le Mans: format monomarca, profilo degli equipaggi, dove alloggiare. Casa intera di 9 suite per 20 persone a meno di 5 km dal circuito.",
+        metaDescription:
+          "Porsche Sprint Challenge France al circuito Bugatti di Le Mans: monomarca, equipaggi, alloggio. Casa intera, 9 suite per 20, a meno di 5 km dal circuito.",
         excerpt:
           "Uno schieramento 100 % Porsche sul circuito Bugatti, con 3 a 6 persone per vettura iscritta. La guida all'alloggio per il vostro weekend di gara.",
         keywords: [
@@ -1998,7 +2053,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       de: {
         title: "Porsche Sprint Challenge in Le Mans: Unterkunft fürs Team",
         description:
-          "Porsche Sprint Challenge France auf dem Bugatti-Circuit in Le Mans: Markenpokal-Format, Profil der Mannschaften, Unterkunft. Ganzes Haus mit 9 Suiten für 20 Personen, 20 Min. von der Strecke.",
+          "Porsche Sprint Challenge France auf dem Bugatti-Circuit in Le Mans: Markenpokal-Format, Profil der Mannschaften, Unterkunft. Ganzes Haus mit 9 Suiten für 20 Personen, weniger als 5 km von der Strecke.",
+        metaDescription:
+          "Porsche Sprint Challenge France auf dem Bugatti-Circuit in Le Mans: Markenpokal, Teams, Unterkunft. Ganzes Haus, 9 Suiten für 20, unter 5 km entfernt.",
         excerpt:
           "Ein reines Porsche-Feld auf dem Bugatti-Circuit, mit 3 bis 6 Personen pro gemeldetem Auto. Der Unterkunfts-Leitfaden für Ihr Rennwochenende.",
         keywords: [
@@ -2013,7 +2070,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       es: {
         title: "Porsche Sprint Challenge en Le Mans: dónde alojarse con su equipo",
         description:
-          "Porsche Sprint Challenge France en el circuito Bugatti de Le Mans: formato monomarca, perfil de los equipos, dónde alojarse. Casa entera de 9 suites para 20 personas a 20 min del circuito.",
+          "Porsche Sprint Challenge France en el circuito Bugatti de Le Mans: formato monomarca, perfil de los equipos, dónde alojarse. Casa entera de 9 suites para 20 personas a menos de 5 km del circuito.",
+        metaDescription:
+          "Porsche Sprint Challenge France en el circuito Bugatti de Le Mans: monomarca, equipos, alojamiento. Casa de 9 suites para 20, a menos de 5 km del circuito.",
         excerpt:
           "Una parrilla 100 % Porsche en el circuito Bugatti, con 3 a 6 personas por coche inscrito. La guía de alojamiento para su fin de semana de carrera.",
         keywords: [
@@ -2118,6 +2177,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Jardin clos et sécurisé au Mans pour vos séjours en groupe",
         description:
           "Profitez de notre jardin privatif de 90 m², clos et sécurisé, en plein cœur du Mans : salon de jardin 8 places, grandes tables pour 20 personnes, exposition plein sud.",
+        metaDescription:
+          "Notre jardin privatif de 90 m², clos et sécurisé, en plein cœur du Mans : salon de jardin 8 places, grandes tables pour 20 personnes, exposition plein sud.",
         excerpt:
           "Avec la belle saison, le jardin est prêt à vous recevoir : 90 m² clos et sécurisés, salon 8 places et grandes tables pour manger dehors jusqu'à 20 personnes.",
         keywords: [
@@ -2146,6 +2207,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Giardino recintato e sicuro a Le Mans per soggiorni di gruppo",
         description:
           "Godetevi il nostro giardino privato di 90 m², recintato e sicuro, nel cuore di Le Mans: salotto da 8 posti, grandi tavoli per 20 persone, esposizione a sud.",
+        metaDescription:
+          "Il nostro giardino privato di 90 m², recintato e sicuro, nel cuore di Le Mans: salotto da 8 posti, grandi tavoli per 20 persone, esposto a sud.",
         excerpt:
           "Con la bella stagione, il giardino è pronto ad accogliervi: 90 m² recintati e sicuri, salotto da 8 posti e grandi tavoli per mangiare all'aperto fino a 20 persone.",
         keywords: [
@@ -2174,6 +2237,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Jardín cerrado y seguro en Le Mans para estancias en grupo",
         description:
           "Disfrute de nuestro jardín privado de 90 m², cerrado y seguro, en pleno corazón de Le Mans: salón de 8 plazas, grandes mesas para 20 personas, orientación sur.",
+        metaDescription:
+          "Nuestro jardín privado de 90 m², cerrado y seguro, en pleno corazón de Le Mans: salón de 8 plazas, grandes mesas para 20 personas, orientación sur.",
         excerpt:
           "Con la buena estación, el jardín está listo para recibirle: 90 m² cerrados y seguros, salón de 8 plazas y grandes mesas para comer fuera hasta 20 personas.",
         keywords: [
@@ -2197,6 +2262,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Championnat du Monde de Karting KZ 2026 au Mans : guide complet",
         description:
           "Mondial Karting KZ 2026 au Le Mans International Karting Circuit (16-20 sept) : catégorie reine, format, hébergement pour teams internationales. Notre maison à moins de 5 km du circuit.",
+        metaDescription:
+          "Mondial Karting KZ 2026 au Le Mans International Karting Circuit (16-20 sept.) : format, hébergement des teams. Maison à moins de 5 km du circuit.",
         excerpt:
           "Les meilleurs pilotes de karting de la planète se retrouvent au Mans du 16 au 20 septembre 2026. Guide complet pour teams et accompagnants.",
         keywords: [
@@ -2212,6 +2279,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "KZ World Karting Championship 2026 in Le Mans: full guide",
         description:
           "KZ World Karting Championship 2026 at Le Mans International Karting Circuit (16-20 Sept): flagship category, format, accommodation for international teams. House less than 5 km from the track.",
+        metaDescription:
+          "KZ World Karting Championship 2026 at Le Mans International Karting Circuit (16-20 Sept): format, team accommodation. House under 5 km from the track.",
         excerpt:
           "The best karting drivers in the world gather in Le Mans from 16 to 20 September 2026. Complete guide for teams and support staff.",
         keywords: [
@@ -2227,6 +2296,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Campionato Mondiale di Karting KZ 2026 a Le Mans: guida completa",
         description:
           "Mondiale Karting KZ 2026 al Le Mans International Karting Circuit (16-20 sett): categoria regina, format, alloggio per team internazionali. La nostra casa a meno di 5 km dal circuito.",
+        metaDescription:
+          "Mondiale Karting KZ 2026 al Le Mans International Karting Circuit (16-20 sett.): format, alloggio per i team. Casa a meno di 5 km dal circuito.",
         excerpt:
           "I migliori piloti di karting del pianeta si ritrovano a Le Mans dal 16 al 20 settembre 2026. Guida completa per team e accompagnatori.",
         keywords: [
@@ -2242,6 +2313,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "KZ Kart-Weltmeisterschaft 2026 in Le Mans: kompletter Guide",
         description:
           "Kart-WM KZ 2026 auf dem Le Mans International Karting Circuit (16.-20. Sept): Königsklasse, Format, Unterkunft für internationale Teams. Unser Haus weniger als 5 km vom Circuit.",
+        metaDescription:
+          "Kart-WM KZ 2026 auf dem Le Mans International Karting Circuit (16.-20. Sept.): Format, Unterkunft für Teams. Haus weniger als 5 km vom Circuit.",
         excerpt:
           "Die besten Kartfahrer der Welt treffen sich vom 16. bis 20. September 2026 in Le Mans. Kompletter Guide für Teams und Begleitpersonen.",
         keywords: [
@@ -2257,6 +2330,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Campeonato del Mundo de Karting KZ 2026 en Le Mans: guía completa",
         description:
           "Mundial de Karting KZ 2026 en el Le Mans International Karting Circuit (16-20 sept): categoría reina, formato, alojamiento para equipos internacionales. Nuestra casa a menos de 5 km del circuito.",
+        metaDescription:
+          "Mundial de Karting KZ 2026 en el Le Mans International Karting Circuit (16-20 sept.): formato, alojamiento para equipos. Casa a menos de 5 km del circuito.",
         excerpt:
           "Los mejores pilotos de karting del planeta se reúnen en Le Mans del 16 al 20 de septiembre de 2026. Guía completa para equipos y acompañantes.",
         keywords: [
@@ -2283,6 +2358,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Heures Camions 2026 au Mans : guide du week-end",
         description:
           "24 Heures Camions 2026 au Circuit Bugatti les 26-27 septembre : programme, tarifs, animations, hébergement en famille ou entre amis. Notre maison à moins de 5 km du circuit.",
+        metaDescription:
+          "24 Heures Camions 2026 au Circuit Bugatti, 26-27 septembre : programme, tarifs, animations, hébergement. Notre maison à moins de 5 km du circuit.",
         excerpt:
           "Un spectacle accessible, familial et bon marché : les 24h Camions au Mans sont le week-end idéal en famille. Dates, programme et conseils pratiques.",
         keywords: [
@@ -2298,6 +2375,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Hours Truck Race 2026 in Le Mans: weekend guide",
         description:
           "24 Hours Truck Race 2026 at Bugatti Circuit on 26-27 September: schedule, prices, entertainment, accommodation for families and friends. House less than 5 km from the circuit.",
+        metaDescription:
+          "24 Hours Truck Race 2026 at Bugatti Circuit, 26-27 September: schedule, prices, entertainment, accommodation. Our house under 5 km from the circuit.",
         excerpt:
           "An accessible, family-friendly and affordable spectacle: the 24h Truck Race in Le Mans is the ideal family weekend. Dates, schedule and practical tips.",
         keywords: [
@@ -2313,6 +2392,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Ore Camion 2026 a Le Mans: guida al weekend",
         description:
           "24 Ore Camion 2026 al Circuit Bugatti il 26-27 settembre: programma, prezzi, animazioni, alloggio in famiglia o tra amici. La nostra casa a meno di 5 km dal circuito.",
+        metaDescription:
+          "24 Ore Camion 2026 al Circuit Bugatti, 26-27 settembre: programma, prezzi, animazioni, alloggio. La nostra casa a meno di 5 km dal circuito.",
         excerpt:
           "Uno spettacolo accessibile, familiare ed economico: le 24h Camion a Le Mans sono il weekend ideale in famiglia. Date, programma e consigli pratici.",
         keywords: [
@@ -2328,6 +2409,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24-Stunden-Truck-Rennen 2026 in Le Mans: Wochenend-Guide",
         description:
           "24-Stunden-Truck-Rennen 2026 auf dem Circuit Bugatti am 26.-27. September: Programm, Preise, Animationen, Unterkunft für Familie oder Freunde. Unser Haus weniger als 5 km vom Circuit.",
+        metaDescription:
+          "24-Stunden-Truck-Rennen 2026 auf dem Circuit Bugatti, 26.-27. September: Programm, Preise, Animationen, Unterkunft. Haus unter 5 km vom Circuit.",
         excerpt:
           "Ein zugängliches, familienfreundliches und günstiges Spektakel: das 24h-Truck-Rennen in Le Mans ist das ideale Familienwochenende. Daten, Programm und praktische Tipps.",
         keywords: [
@@ -2343,6 +2426,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Horas de Camiones 2026 en Le Mans: guía del fin de semana",
         description:
           "24 Horas de Camiones 2026 en el Circuito Bugatti los 26-27 de septiembre: programa, precios, animaciones, alojamiento en familia o entre amigos. Nuestra casa a menos de 5 km del circuito.",
+        metaDescription:
+          "24 Horas de Camiones 2026 en el Circuito Bugatti, 26-27 de septiembre: programa, precios, animaciones, alojamiento. Casa a menos de 5 km del circuito.",
         excerpt:
           "Un espectáculo accesible, familiar y económico: las 24 Horas de Camiones de Le Mans son el fin de semana ideal en familia. Fechas, programa y consejos prácticos.",
         keywords: [
@@ -2369,6 +2454,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "SWS Karting Finals au Mans (20-23 mai 2026) : où se loger ?",
         description:
           "SWS International Finals 2026 au Le Mans Karting Circuit : dates, format (dont 24h endurance inédite), hébergement pour équipes. Notre maison à moins de 5 km du circuit.",
+        metaDescription:
+          "SWS International Finals 2026 au Le Mans Karting Circuit : dates, format (dont une 24h d'endurance inédite), hébergement. Maison à moins de 5 km.",
         excerpt:
           "Le plus grand rendez-vous du karting amateur débarque au Mans du 20 au 23 mai 2026 avec une 24h endurance inédite. Voici comment préparer votre séjour.",
         keywords: [
@@ -2384,6 +2471,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "SWS Karting Finals in Le Mans (20-23 May 2026): where to stay",
         description:
           "SWS International Finals 2026 at Le Mans Karting Circuit: dates, format (including a new 24h endurance race), accommodation for teams. Our house less than 5 km from the circuit.",
+        metaDescription:
+          "SWS International Finals 2026 at Le Mans Karting Circuit: dates, format (incl. a new 24h endurance race), team accommodation under 5 km away.",
         excerpt:
           "Europe's biggest amateur karting event lands in Le Mans on 20-23 May 2026 with a new 24-hour endurance race. Here's how to plan your stay.",
         keywords: [
@@ -2399,6 +2488,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "SWS Karting Finals a Le Mans (20-23 mag 2026): dove alloggiare",
         description:
           "SWS International Finals 2026 al Le Mans Karting Circuit: date, format (inclusa una 24h endurance inedita), alloggio per i team. La nostra casa a meno di 5 km dal circuito.",
+        metaDescription:
+          "SWS International Finals 2026 al Le Mans Karting Circuit: date, format (con una 24h endurance inedita), alloggio per i team a meno di 5 km.",
         excerpt:
           "Il più grande appuntamento del karting amatoriale arriva a Le Mans dal 20 al 23 maggio 2026 con una 24h endurance inedita. Ecco come preparare il vostro soggiorno.",
         keywords: [
@@ -2414,6 +2505,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "SWS Karting Finals in Le Mans (20.-23. Mai 2026): Unterkunft",
         description:
           "SWS International Finals 2026 auf dem Le Mans Karting Circuit: Daten, Format (inklusive eines neuen 24h-Langstreckenrennens), Unterkunft für Teams. Unser Haus weniger als 5 km vom Circuit.",
+        metaDescription:
+          "SWS International Finals 2026 auf dem Le Mans Karting Circuit: Daten, Format (inkl. neuem 24h-Rennen), Unterkunft für Teams unter 5 km entfernt.",
         excerpt:
           "Europas größtes Amateur-Kart-Event kommt vom 20. bis 23. Mai 2026 nach Le Mans mit einem neuen 24-Stunden-Langstreckenrennen. So planen Sie Ihren Aufenthalt.",
         keywords: [
@@ -2429,6 +2522,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "SWS Karting Finals en Le Mans (20-23 may 2026): alojamiento",
         description:
           "SWS International Finals 2026 en el Le Mans Karting Circuit: fechas, formato (incluida una 24h de resistencia inédita), alojamiento para equipos. Nuestra casa a menos de 5 km del circuito.",
+        metaDescription:
+          "SWS International Finals 2026 en el Le Mans Karting Circuit: fechas, formato (con una 24h de resistencia inédita), alojamiento a menos de 5 km.",
         excerpt:
           "La mayor cita del karting amateur llega a Le Mans del 20 al 23 de mayo de 2026 con una 24h de resistencia inédita. Así puede preparar su estancia.",
         keywords: [
@@ -2452,6 +2547,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Séminaire d'entreprise au Mans : maison pour 10 à 20 personnes",
         description:
           "Organiser un séminaire de 10 à 20 personnes au Mans : 9 chambres avec salle de douche privative, 11 couchages sans partager de lit, grande table de 16 à 20 places, écran HDMI, team-building au Circuit Bugatti. Programme type 2 jours et budget.",
+        metaDescription:
+          "Séminaire de 10 à 20 personnes au Mans : 9 chambres avec douche privative, table de 16 à 20 places, écran HDMI, team-building, programme 2 jours et budget.",
         excerpt:
           "10 à 20 personnes, une maison entière, le circuit mythique à moins de 5 km : 11 participants logés sans partager de lit et jusqu'à 20 places assises pour travailler.",
         keywords: [
@@ -2468,6 +2565,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Corporate seminar in Le Mans: a whole house for 10 to 20 people",
         description:
           "Organising a seminar for 10 to 20 people in Le Mans: 9 bedrooms with en-suite shower rooms, 11 guests without sharing a bed, a 16-to-20-seat table, HDMI screen, team-building at Bugatti Circuit. 2-day programme and budget.",
+        metaDescription:
+          "Seminar for 10 to 20 people in Le Mans: 9 en-suite bedrooms, a 16-to-20-seat table, HDMI screen, team-building, 2-day programme and budget.",
         excerpt:
           "10 to 20 people, a whole house, the legendary circuit less than 5 km away: 11 guests housed without sharing a bed and up to 20 seats to work around.",
         keywords: [
@@ -2484,6 +2583,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Seminario aziendale a Le Mans: una casa intera per 10-20 persone",
         description:
           "Organizzare un seminario per 10-20 persone a Le Mans: 9 camere con doccia privata, 11 posti letto senza condividere il letto, grande tavolo da 16 a 20 posti, schermo HDMI, team-building al Circuit Bugatti. Programma di 2 giorni e budget.",
+        metaDescription:
+          "Seminario per 10-20 persone a Le Mans: 9 camere con doccia privata, tavolo da 16 a 20 posti, schermo HDMI, team-building, programma di 2 giorni e budget.",
         excerpt:
           "10-20 persone, una casa intera, il circuito mitico a meno di 5 km: 11 partecipanti alloggiati senza condividere il letto e fino a 20 posti a sedere per lavorare.",
         keywords: [
@@ -2500,6 +2601,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Firmenseminar in Le Mans: ein ganzes Haus für 10 bis 20 Personen",
         description:
           "Seminar für 10 bis 20 Personen in Le Mans organisieren: 9 Zimmer mit eigenem Duschbad, 11 Schlafplätze ohne geteiltes Bett, großer Tisch mit 16 bis 20 Plätzen, HDMI-Bildschirm, Team-Building am Circuit Bugatti. 2-Tages-Programm und Budget.",
+        metaDescription:
+          "Seminar für 10 bis 20 Personen in Le Mans: 9 Zimmer mit Duschbad, Tisch für 16 bis 20, HDMI-Bildschirm, Team-Building, 2-Tages-Programm und Budget.",
         excerpt:
           "10 bis 20 Personen, ein ganzes Haus, der legendäre Circuit weniger als 5 km entfernt: 11 Teilnehmende ohne geteiltes Bett und bis zu 20 Sitzplätze zum Arbeiten.",
         keywords: [
@@ -2516,6 +2619,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Seminario de empresa en Le Mans: casa para 10 a 20 personas",
         description:
           "Organizar un seminario para 10 a 20 personas en Le Mans: 9 habitaciones con ducha privada, 11 plazas sin compartir cama, gran mesa de 16 a 20 plazas, pantalla HDMI, team-building en el Circuito Bugatti. Programa de 2 días y presupuesto.",
+        metaDescription:
+          "Seminario para 10 a 20 personas en Le Mans: 9 habitaciones con ducha privada, mesa de 16 a 20 plazas, pantalla HDMI, team-building, programa de 2 días.",
         excerpt:
           "10 a 20 personas, una casa entera, el mítico circuito a menos de 5 km: 11 participantes alojados sin compartir cama y hasta 20 plazas sentadas para trabajar.",
         keywords: [
@@ -2539,9 +2644,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       fr: {
         title: "Hippodrome des Hunaudières au Mans : courses et événements",
         description:
-          "Hippodrome des Hunaudières au Mans : 13 réunions hippiques en 2026, courses de trot et galop, soirées nocturnes. Notre maison à 20 min de l'hippodrome pour votre week-end.",
+          "Hippodrome des Hunaudières au Mans : courses de trot et galop, soirées nocturnes. Notre maison à 20 min de l'hippodrome pour votre week-end.",
+        metaDescription:
+          "Hippodrome des Hunaudières au Mans : courses de trot et de galop, soirées nocturnes. Notre maison à 20 min de l'hippodrome pour votre week-end.",
         excerpt:
-          "Seul hippodrome de la Sarthe, 13 réunions dans l'année, courses de trot sur piste sable de 1 350 m. L'incontournable du monde hippique au Mans.",
+          "Seul hippodrome de la Sarthe, courses de trot sur piste sable de 1 350 m. L'incontournable du monde hippique au Mans.",
         keywords: [
           "Hippodrome des Hunaudières",
           "courses hippiques Le Mans",
@@ -2553,9 +2660,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       en: {
         title: "Hunaudières Racecourse: races, schedule and events in Le Mans",
         description:
-          "Hunaudières Racecourse in Le Mans: 13 race meetings in 2026, trotting and flat racing, evening events. Our house 20 min from the racecourse for your weekend.",
+          "Hunaudières Racecourse in Le Mans: trotting and flat racing, evening events. Our house 20 min from the racecourse for your weekend.",
+        metaDescription:
+          "Hunaudières Racecourse in Le Mans: trotting and flat racing, evening events. Our house is 20 min from the racecourse for your weekend.",
         excerpt:
-          "Sarthe's only racecourse, 13 meetings per year, 1,350 m sand trotting track. A must-see in the Le Mans horse racing scene.",
+          "Sarthe's only racecourse, 1,350 m sand trotting track. A must-see in the Le Mans horse racing scene.",
         keywords: [
           "Hunaudières Racecourse",
           "Le Mans horse racing",
@@ -2567,9 +2676,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       it: {
         title: "Ippodromo des Hunaudières: corse, programma ed eventi a Le Mans",
         description:
-          "Ippodromo des Hunaudières a Le Mans: 13 riunioni ippiche nel 2026, corse al trotto e al galoppo, serate notturne. La nostra casa a 20 min dall'ippodromo per il vostro weekend.",
+          "Ippodromo des Hunaudières a Le Mans: corse al trotto e al galoppo, serate notturne. La nostra casa a 20 min dall'ippodromo per il vostro weekend.",
+        metaDescription:
+          "Ippodromo des Hunaudières a Le Mans: corse al trotto e al galoppo, serate notturne. La nostra casa a 20 min dall'ippodromo per il vostro weekend.",
         excerpt:
-          "Unico ippodromo della Sarthe, 13 riunioni all'anno, corse al trotto su pista in sabbia da 1.350 m. L'imperdibile del mondo ippico a Le Mans.",
+          "Unico ippodromo della Sarthe, corse al trotto su pista in sabbia da 1.350 m. L'imperdibile del mondo ippico a Le Mans.",
         keywords: [
           "Ippodromo des Hunaudières",
           "corse ippiche Le Mans",
@@ -2581,9 +2692,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       de: {
         title: "Pferderennbahn Hunaudières in Le Mans: Rennen und Events",
         description:
-          "Pferderennbahn Hunaudières in Le Mans: 13 Renntage 2026, Trab- und Galopprennen, Abendveranstaltungen. Unser Haus 20 Min von der Rennbahn für Ihr Wochenende.",
+          "Pferderennbahn Hunaudières in Le Mans: Trab- und Galopprennen, Abendveranstaltungen. Unser Haus 20 Min von der Rennbahn für Ihr Wochenende.",
+        metaDescription:
+          "Pferderennbahn Hunaudières in Le Mans: Trab- und Galopprennen, Abendveranstaltungen. Unser Haus 20 Min. von der Rennbahn für Ihr Wochenende.",
         excerpt:
-          "Einzige Rennbahn der Sarthe, 13 Renntage pro Jahr, 1.350 m Sand-Trabrennbahn. Ein Muss der Pferderennen-Szene in Le Mans.",
+          "Einzige Rennbahn der Sarthe, 1.350 m Sand-Trabrennbahn. Ein Muss der Pferderennen-Szene in Le Mans.",
         keywords: [
           "Pferderennbahn Hunaudières",
           "Pferderennen Le Mans",
@@ -2595,9 +2708,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       es: {
         title: "Hippodrome des Hunaudières en Le Mans: carreras y eventos",
         description:
-          "Hippodrome des Hunaudières en Le Mans: 13 reuniones hípicas en 2026, carreras al trote y al galope, veladas nocturnas. Nuestra casa a 20 min del hipódromo para su fin de semana.",
+          "Hippodrome des Hunaudières en Le Mans: carreras al trote y al galope, veladas nocturnas. Nuestra casa a 20 min del hipódromo para su fin de semana.",
+        metaDescription:
+          "Hippodrome des Hunaudières en Le Mans: carreras al trote y al galope, veladas nocturnas. Nuestra casa a 20 min del hipódromo para su fin de semana.",
         excerpt:
-          "Único hipódromo de la Sarthe, 13 reuniones al año, carreras al trote en pista de arena de 1.350 m. La cita imprescindible del mundo hípico en Le Mans.",
+          "Único hipódromo de la Sarthe, carreras al trote en pista de arena de 1.350 m. La cita imprescindible del mundo hípico en Le Mans.",
         keywords: [
           "Hippodrome des Hunaudières",
           "carreras hípicas Le Mans",
@@ -2622,6 +2737,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Heures Rollers du Mans 2026 : guide de l'événement roller",
         description:
           "24 Heures Rollers 2026 au Circuit Bugatti les 11-12 juillet : format, inscriptions, hébergement pour équipes et clubs. Guide complet pour préparer votre week-end.",
+        metaDescription:
+          "24 Heures Rollers 2026 au Circuit Bugatti les 11-12 juillet : format, inscriptions, hébergement pour équipes et clubs. Le guide pour votre week-end.",
         excerpt:
           "Patiner 24 heures sur le circuit mythique : 11-12 juillet 2026. Tout pour préparer votre venue en équipe, club ou solo.",
         keywords: [
@@ -2678,6 +2795,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "24 Horas Rollers de Le Mans 2026: guía del evento de patinaje",
         description:
           "24 Horas Rollers 2026 en el Circuito Bugatti los 11-12 de julio: formato, inscripciones, alojamiento para equipos y clubes. Guía completa para preparar su fin de semana.",
+        metaDescription:
+          "24 Horas Rollers 2026 en el Circuito Bugatti, 11-12 de julio: formato, inscripciones, alojamiento para equipos y clubes. Guía para su fin de semana.",
         excerpt:
           "Patinar 24 horas sobre el mítico circuito: 11-12 de julio de 2026. Todo para preparar su llegada en equipo, club o en solitario.",
         keywords: [
@@ -2778,6 +2897,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Coliving pro au Mans : entreprises proches et séjours d'affaires",
         description:
           "Séjour d'affaires ou séminaire au Mans ? Notre maison est proche de MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor et du technopôle Novaxis/Novaxud.",
+        metaDescription:
+          "Séjour d'affaires ou séminaire au Mans ? Maison proche de MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor et Novaxis/Novaxud.",
         excerpt:
           "Novaxis, Renault, CLAAS, MMA : notre coliving est idéalement placé pour les séjours pros, séminaires et formations au Mans.",
         keywords: [
@@ -2793,6 +2914,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Business coliving in Le Mans: nearby companies for work stays",
         description:
           "Business trip or seminar in Le Mans? Our house is close to MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor and the Novaxis/Novaxud business park.",
+        metaDescription:
+          "Business trip or seminar in Le Mans? A house close to MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor and Novaxis/Novaxud.",
         excerpt:
           "Novaxis, Renault, CLAAS, MMA: our coliving is ideally located for business trips, seminars and training sessions in Le Mans.",
         keywords: [
@@ -2808,6 +2931,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Coliving business a Le Mans: aziende vicine e trasferte",
         description:
           "Trasferta di lavoro o seminario a Le Mans? La nostra casa è vicina a MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor e al polo tecnologico Novaxis/Novaxud.",
+        metaDescription:
+          "Trasferta o seminario a Le Mans? Casa vicina a MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor e al polo Novaxis/Novaxud.",
         excerpt:
           "Novaxis, Renault, CLAAS, MMA: il nostro coliving è idealmente posizionato per soggiorni di lavoro, seminari e formazioni a Le Mans.",
         keywords: [
@@ -2823,6 +2948,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Business-Coliving in Le Mans: nahe Unternehmen, Geschäftsreisen",
         description:
           "Geschäftsreise oder Seminar in Le Mans? Unser Haus liegt nahe MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor und dem Technologiepark Novaxis/Novaxud.",
+        metaDescription:
+          "Geschäftsreise oder Seminar in Le Mans? Haus nahe MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor und Technologiepark Novaxis/Novaxud.",
         excerpt:
           "Novaxis, Renault, CLAAS, MMA: unser Coliving ist ideal gelegen für Geschäftsreisen, Seminare und Schulungen in Le Mans.",
         keywords: [
@@ -2838,6 +2965,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Coliving en Le Mans: empresas cercanas y viajes de negocios",
         description:
           "¿Viaje de negocios o seminario en Le Mans? Nuestra casa está cerca de MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor y del tecnopolo Novaxis/Novaxud.",
+        metaDescription:
+          "¿Viaje de negocios o seminario en Le Mans? Casa cerca de MMA (Covéa), Renault Manufacture Louis Schweitzer, CLAAS Tractor y el tecnopolo Novaxis/Novaxud.",
         excerpt:
           "Novaxis, Renault, CLAAS, MMA: nuestro coliving está idealmente ubicado para estancias profesionales, seminarios y formaciones en Le Mans.",
         keywords: [
@@ -3104,6 +3233,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "GP Explorer : c'est terminé après The Last Race 2025",
         description:
           "Le GP Explorer de Squeezie s'est arrêté après sa troisième édition, The Last Race (3-5 octobre 2025 au Circuit Bugatti). Retour sur les trois éditions et sur les événements qui continuent au Mans.",
+        metaDescription:
+          "Le GP Explorer de Squeezie a pris fin avec The Last Race (3-5 octobre 2025, Circuit Bugatti). Les trois éditions et les événements qui continuent au Mans.",
         excerpt:
           "Pas d'édition 2026 : la troisième, The Last Race, était la dernière. Retour sur l'aventure GP Explorer et sur ce qui fait encore vivre le Circuit Bugatti.",
         keywords: [
@@ -3118,6 +3249,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "GP Explorer: it's over after The Last Race 2025",
         description:
           "Squeezie's GP Explorer ended after its third edition, The Last Race (3-5 October 2025 at the Bugatti Circuit). A look back at the three editions and at the events that carry on in Le Mans.",
+        metaDescription:
+          "Squeezie's GP Explorer ended with The Last Race (3-5 October 2025, Bugatti Circuit). The three editions and the events that carry on in Le Mans.",
         excerpt:
           "No 2026 edition: the third one, The Last Race, was the last. A look back at GP Explorer and at what still fills the Bugatti Circuit.",
         keywords: [
@@ -3132,6 +3265,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "GP Explorer: è finito dopo The Last Race 2025",
         description:
           "Il GP Explorer di Squeezie si è fermato dopo la terza edizione, The Last Race (3-5 ottobre 2025 al Circuit Bugatti). Bilancio delle tre edizioni e degli eventi che continuano a Le Mans.",
+        metaDescription:
+          "Il GP Explorer di Squeezie si è fermato con The Last Race (3-5 ottobre 2025, Circuit Bugatti). Le tre edizioni e gli eventi che continuano a Le Mans.",
         excerpt:
           "Nessuna edizione 2026: la terza, The Last Race, era l'ultima. Bilancio dell'avventura GP Explorer e di ciò che anima ancora il Circuit Bugatti.",
         keywords: [
@@ -3146,6 +3281,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "GP Explorer: nach The Last Race 2025 ist Schluss",
         description:
           "Squeezies GP Explorer endete nach der dritten Ausgabe, The Last Race (3.-5. Oktober 2025 auf dem Circuit Bugatti). Rückblick auf die drei Ausgaben und auf die Events, die in Le Mans weitergehen.",
+        metaDescription:
+          "Squeezies GP Explorer endete mit The Last Race (3.-5. Oktober 2025, Circuit Bugatti). Die drei Ausgaben und die Events, die in Le Mans weitergehen.",
         excerpt:
           "Keine Ausgabe 2026: Die dritte, The Last Race, war die letzte. Rückblick auf den GP Explorer und darauf, was den Circuit Bugatti weiterhin füllt.",
         keywords: [
@@ -3160,6 +3297,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "GP Explorer: se acabó tras The Last Race 2025",
         description:
           "El GP Explorer de Squeezie se detuvo tras su tercera edición, The Last Race (3-5 de octubre de 2025 en el Circuito Bugatti). Repaso de las tres ediciones y de los eventos que continúan en Le Mans.",
+        metaDescription:
+          "El GP Explorer de Squeezie terminó con The Last Race (3-5 de octubre de 2025, Circuito Bugatti). Las tres ediciones y los eventos que siguen en Le Mans.",
         excerpt:
           "Sin edición 2026: la tercera, The Last Race, fue la última. Repaso de la aventura GP Explorer y de lo que sigue llenando el Circuito Bugatti.",
         keywords: [
@@ -3224,6 +3363,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         title: "Le Mans mit der Familie: was kann man im Sarthe besichtigen?",
         description:
           "Reiseführer zur Entdeckung von Le Mans und dem Sarthe mit der Familie: Cité Plantagenêt, Abtei von Épau, Zoo von La Flèche, Gastronomie, kulturelle Veranstaltungen.",
+        metaDescription:
+          "Reiseführer für Le Mans und die Sarthe mit der Familie: Cité Plantagenêt, Abtei von Épau, Zoo von La Flèche, Gastronomie, Kulturveranstaltungen.",
         excerpt:
           "Zwischen mittelalterlichem Erbe, renommiertem Zoo und Sarthe-Gastronomie bietet Le Mans weit mehr als eine Rennstrecke. Hier sind die Highlights.",
         keywords: [
@@ -3258,4 +3399,9 @@ export function getPostBySlug(slug: string): BlogPostMeta | undefined {
 
 export function getLocalizedPost(post: BlogPostMeta, locale: Locale): LocalizedPost {
   return post.locales[locale] ?? post.locales.fr;
+}
+
+/** La meta description d'un article : `metaDescription` si elle existe, sinon le chapeau. */
+export function metaDescriptionOf(loc: LocalizedPost): string {
+  return loc.metaDescription ?? loc.description;
 }

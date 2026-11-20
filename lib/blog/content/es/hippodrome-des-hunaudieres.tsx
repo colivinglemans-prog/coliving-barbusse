@@ -19,10 +19,10 @@ export default function Article() {
         nuestra casa y es fácilmente accesible desde la estación de Le Mans.
       </p>
 
-      <h2>Calendario 2026: 13 reuniones al año</h2>
+      <h2>Calendario 2026: reuniones durante todo el año</h2>
       <p>
         La temporada hípica 2026 se inauguró el <strong>4 de marzo de 2026</strong>{" "}
-        con una reunión dedicada al plano. Trece reuniones están programadas
+        con una reunión dedicada al plano. Otras reuniones siguen
         a lo largo del año, mezclando trote, galope y carreras PMU. El
         calendario está diseñado para equilibrar las disciplinas y poner en
         valor las grandes citas que dan fama a Le Mans en el mundo hípico.
