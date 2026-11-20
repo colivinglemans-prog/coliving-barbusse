@@ -19,6 +19,7 @@ const h = vi.hoisted(() => ({
   nukiCalls: 0,
   logCalls: 0,
   messageCalls: 0,
+  messagesDown: false,
   setDeviceMode: vi.fn(async () => {}),
   setDeviceTemperatures: vi.fn(async () => {}),
 }));
@@ -65,6 +66,7 @@ vi.mock("@/lib/access-sync", () => ({ nukiConfig: () => ({ token: "t", smartlock
 vi.mock("@/lib/beds24", () => ({
   getBookingMessages: async () => {
     h.messageCalls++;
+    if (h.messagesDown) throw new Error("Beds24 429");
     return h.thread;
   },
 }));
@@ -165,12 +167,14 @@ describe("lockFacts", () => {
     expect(f.lastOpening).toMatchObject({ actor: "séjour", kind: "ouverture", trigger: 255 });
     expect(f.events.map((e) => e.actor)).toEqual(["code personnel", "séjour", "à la main"]);
     expect(JSON.stringify(f)).not.toContain("Test");
-    expect(doorClosedBehind(1, f)).toBe(true);
-    expect(doorClosedBehind(3, f)).toBe(false);
+    expect(doorClosedBehind(1, f, since)).toBe(true);
+    expect(doorClosedBehind(3, f, since)).toBe(false);
     // Une ouverture après le dernier verrouillage : la porte n'est pas fermée derrière quelqu'un.
-    expect(doorClosedBehind(1, lockFacts([lockEntry(at(8)), entry(at(9), "# Hôte")], since, ctx))).toBe(false);
-    // Rien dans la fenêtre (verrouillée depuis la veille) : fermée.
-    expect(doorClosedBehind(1, lockFacts([], since, ctx))).toBe(true);
+    expect(doorClosedBehind(1, lockFacts([lockEntry(at(8)), entry(at(9), "# Hôte")], since, ctx), since)).toBe(false);
+    // Aucun événement, ou verrouillée la veille au soir sans ouverture du jour : personne n'est sorti.
+    const eve = new Date(since.getTime() - 6 * 3600_000);
+    expect(doorClosedBehind(1, lockFacts([], eve, ctx), since)).toBe(false);
+    expect(doorClosedBehind(1, lockFacts([entry(new Date(since.getTime() - 3600_000), "# Hôte"), lockEntry(new Date(since.getTime() - 30 * 60_000))], eve, ctx), since)).toBe(false);
   });
 });
 
@@ -187,7 +191,25 @@ describe("departureMessage", () => {
     ]) {
       expect(saysDeparted(t), t).toBe(true);
     }
-    for (const t of ["Nous ne sommes pas encore partis", "We haven't left yet", "On part vers 10 h", "Une partie du groupe dort encore"]) {
+    // Tournure affirmative parmi d'autres phrases, ou suivie d'une formule de politesse négative.
+    expect(saysDeparted("Merci pour tout. Nous sommes partis, n'hésitez pas à nous écrire !")).toBe(true);
+    expect(saysDeparted("On est partis à 8 h. Les clés sont sur les portes ?")).toBe(true);
+    for (const t of [
+      "Nous ne sommes pas encore partis",
+      "Nous ne sommes pas partis",
+      "À quelle heure devons-nous être partis ?",
+      "Doit-on être partis avant 11 h ?",
+      "Bien partis pour une belle journée",
+      "We haven't left yet",
+      "We have not left",
+      "When should we have left?",
+      "Wir sind noch nicht abgereist",
+      "Non siamo ancora partiti",
+      "No hemos salido todavía",
+      "¿A qué hora salimos?",
+      "On part vers 10 h",
+      "Une partie du groupe dort encore",
+    ]) {
       expect(saysDeparted(t), t).toBe(false);
     }
   });
@@ -212,10 +234,23 @@ describe("departureTransition (pure)", () => {
     expect(run(at(8, 30), [facts(false), facts(false)]).state.status).toBe("suspected");
   });
 
-  it("verrouillée la veille au soir, sans ouverture : le départ est daté du début de l'absence", () => {
-    const f = facts(false, { lock: lockFacts([lockEntry(new Date(since.getTime() - 30 * 60_000))], new Date(since.getTime() - 6 * 3600_000), ctx) });
-    const { state } = run(at(9), [f, f, f]);
-    expect(state).toMatchObject({ status: "empty", departedAt: at(9).toISOString() });
+  it("verrouillée de l'intérieur la veille à 23 h 30, dormeurs sans palier `cft` : aucun faux départ ; le vrai est notifié", () => {
+    const eve = new Date(since.getTime() - 6 * 3600_000);
+    const night = lockFacts([lockEntry(new Date(since.getTime() - 30 * 60_000))], eve, ctx);
+    const asleep = facts(false, { lock: night });
+    const r = run(at(7, 15), [asleep, asleep, asleep, asleep]);
+    expect(r.state.status).toBe("occupied");
+    expect(r.notified).toEqual([]);
+    // Ils sortent à 9 h 40 avec leur code et verrouillent à 9 h 41 : départ constaté, notifié.
+    const out = lockFacts([lockEntry(new Date(since.getTime() - 30 * 60_000)), entry(at(9, 40), `${ID}: Test`), lockEntry(at(9, 41))], eve, ctx);
+    const gone = departureTransition(r.state, facts(false, { lock: out }), at(9, 45), DAY);
+    expect(gone.state).toMatchObject({ status: "empty", by: "presence", departedAt: at(9, 41).toISOString() });
+    expect(gone.notify).toEqual(["departed"]);
+  });
+
+  it("message envoyé avant de verrouiller : le départ est l'heure du verrouillage", () => {
+    const f = facts(true, { lock: lockFacts([entry(at(8, 20), `${ID}: Test`), lockEntry(at(8, 42))], since, ctx), message: { at: at(8, 30).toISOString() } });
+    expect(run(at(8, 45), [f]).state).toMatchObject({ status: "empty", by: "message", departedAt: at(8, 42).toISOString() });
   });
 
   it("départ constaté par le message : immédiat, porte verrouillée", () => {
@@ -224,7 +259,7 @@ describe("departureTransition (pure)", () => {
     expect(notified).toEqual(["departed"]);
   });
 
-  it("retour d'un voyageur : son code rouvre après le constat → `returned`, puis nouveau constat sans nouvelle notification", () => {
+  it("retour d'un voyageur : son code rouvre après le constat → `returned`, puis nouveau constat, notifié", () => {
     const empty = run(at(8, 45), [facts(false), facts(false), facts(false)]).state;
     expect(empty.status).toBe("empty");
     const back = lockFacts([entry(at(8, 40), `${ID}: Test`), lockEntry(at(8, 42)), entry(at(9, 40), `${ID}: Test`)], since, ctx);
@@ -234,7 +269,7 @@ describe("departureTransition (pure)", () => {
     const relocked = lockFacts([entry(at(9, 40), `${ID}: Test`), lockEntry(at(9, 50))], since, ctx);
     const again = run(at(10), [facts(false, { lock: relocked }), facts(false, { lock: relocked }), facts(false, { lock: relocked })], r.state);
     expect(again.state).toMatchObject({ status: "empty", departedAt: at(9, 50).toISOString() });
-    expect(again.notified).toEqual([]);
+    expect(again.notified).toEqual(["departed"]);
   });
 
   it("le ménage ou l'hôte qui ouvrent après le constat : pas un retour", () => {
@@ -307,6 +342,8 @@ describe("runDepartureObservation (passage complet)", () => {
     h.nukiCalls = 0;
     h.logCalls = 0;
     h.messageCalls = 0;
+    h.messagesDown = false;
+    h.sendNtfy.mockImplementation(async (body: string, options: unknown) => void [body, options]);
     process.env.NTFY_TOPIC = "topic-de-test";
     delete process.env.DEPARTURE_DETECTION;
   });
@@ -394,5 +431,26 @@ describe("runDepartureObservation (passage complet)", () => {
     expect(h.nukiCalls).toBe(nuki);
     const states = await readDepartureStates();
     expect(departureBadge(states[ID], DAY)?.icon).toBe("unlocked");
+  });
+
+  it("ntfy en échec : le constat est renotifié au passage suivant, puis plus jamais", async () => {
+    h.sendNtfy.mockRejectedValueOnce(new Error("ntfy 502"));
+    for (const m of [0, 15, 30, 45, 60, 75]) await runDepartureObservation(input(new Date(at(9).getTime() + m * 60_000)));
+    expect(h.sendNtfy).toHaveBeenCalledTimes(2);
+    expect((h.mem.get(departureStateKey(ID)) as DepartureState).notifyPending).toBeUndefined();
+  });
+
+  it("Beds24 en échec (429) : pas de relecture au passage suivant", async () => {
+    h.messagesDown = true;
+    h.health = { online: true, lockState: 3 };
+    for (const m of [0, 15]) await runDepartureObservation(input(new Date(at(8).getTime() + m * 60_000), house("cft")));
+    expect(h.messageCalls).toBe(1);
+  });
+
+  it("passage déjà long de plus de 35 s : rien n'est lu", async () => {
+    const r = await runDepartureObservation({ ...input(at(9)), startedAt: Date.now() - 40_000 });
+    expect(r?.detail).toContain("trop long");
+    expect(h.nukiCalls).toBe(0);
+    expect(h.messageCalls).toBe(0);
   });
 });

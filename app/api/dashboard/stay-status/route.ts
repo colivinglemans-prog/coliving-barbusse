@@ -6,11 +6,33 @@ import { auth, guard } from "@/lib/auth";
 import { getBookings } from "@/lib/beds24";
 import { PROPERTY_ID } from "@/lib/beds24-property";
 import { readStayHours } from "@/lib/stay-hours";
+import { getJson, redisKey, setJson } from "@/lib/redis";
 import { departureBadge, type DepartureBadge, type DepartureState } from "@/lib/departure-detection";
 import { readDepartureStates } from "@/lib/departure-observation";
 
 /** Fenêtre lue dans Beds24 : celle du calendrier (six mois en arrière), plus une marge. */
 const PAST_DAYS = 200;
+
+/**
+ * Réservations de la maison (identifiant et statut seulement), gardées 5 min dans Redis : le
+ * calendrier ne relance pas Beds24 à chaque ouverture (relecture Fable, 2026-11-20). Un horaire
+ * saisi sur une réservation de moins de 5 min peut attendre ce délai pour s'afficher.
+ */
+const HOUSE_CACHE_KEY = () => redisKey("stay-status", "house");
+const HOUSE_CACHE_TTL_SECONDS = 300;
+
+async function houseStays(): Promise<Array<{ id: number; status?: string | null }>> {
+  try {
+    const cached = await getJson<Array<{ id: number; status?: string | null }>>(HOUSE_CACHE_KEY());
+    if (Array.isArray(cached)) return cached;
+  } catch {
+    // Cache illisible : Beds24.
+  }
+  const bookings = await getBookings({ departureFrom: addDays(todayParis(), -PAST_DAYS) });
+  const stays = bookings.filter((b) => b.propertyId === PROPERTY_ID).map((b) => ({ id: b.id, status: b.status ?? null }));
+  await setJson(HOUSE_CACHE_KEY(), stays, HOUSE_CACHE_TTL_SECONDS).catch(() => {});
+  return stays;
+}
 
 /**
  * État des séjours pour le calendrier : les **horaires convenus** (arrivée anticipée, départ
@@ -48,8 +70,7 @@ export async function GET(request: NextRequest) {
 
   let house: Set<number>;
   try {
-    const bookings = await getBookings({ departureFrom: addDays(todayParis(), -PAST_DAYS) });
-    house = new Set(bookings.filter((b) => b.propertyId === PROPERTY_ID && visible(b.status)).map((b) => b.id));
+    house = new Set((await houseStays()).filter((b) => visible(b.status)).map((b) => b.id));
   } catch (e) {
     console.error("[stay-status] réservations illisibles :", e instanceof Error ? e.message : e);
     return NextResponse.json({ hours: {}, departures: {} });

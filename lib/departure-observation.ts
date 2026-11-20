@@ -50,9 +50,12 @@ import { STANDARD_HOURS } from "./stay-hours-rules";
  *   présence par radiateur avec son palier, serrure, événements (catégorie du code, jamais son
  *   nom), message reçu (heure seulement, jamais le texte). Relu par
  *   `node scripts/departure-journal.mjs <jour>`.
- * - **Notifications** (ntfy, priorité 2, une seule fois par réservation, `SET NX`) : « Départ
- *   estimé à 8 h 42 (observation : chauffage non modifié) » ; « message de départ reçu, porte non
- *   verrouillée ». Serrure ou radiateurs illisibles : rien.
+ * - **Notifications** (ntfy, priorité 2, `SET NX`) : « Départ estimé à 8 h 42 (observation :
+ *   chauffage non modifié) », une fois par constat (clé portant l'heure du départ : un constat qui
+ *   suit un retour est notifié, le même jamais deux fois) ; « message de départ reçu, porte non
+ *   verrouillée », une fois par réservation. Envoi raté : gardée dans `notifyPending` et
+ *   réessayée au passage suivant. Serrure ou radiateurs illisibles : rien.
+ * - **Durée** : lectures plafonnées à 4,5 s ; passage déjà long de plus de 35 s : rien n'est lu.
  * - **Interrupteur** `DEPARTURE_DETECTION=observe|live|off` (défaut `observe`).
  * - Ne lève jamais.
  */
@@ -69,8 +72,11 @@ export function departureDetectionMode(raw: string | undefined = process.env.DEP
 export const OBSERVE_FROM_HOUR = 5;
 /** Le fil de messages n'est relu qu'au bout de ce délai : un passage sur deux au plus. */
 export const MESSAGE_RECHECK_MINUTES = 25;
-const READ_TIMEOUT_MS = 10_000;
-const MESSAGE_TIMEOUT_MS = 8_000;
+/** Plafonds des lectures de l'observation (le passage entier tient en 60 s, radiateurs compris). */
+const READ_TIMEOUT_MS = 4_500;
+const MESSAGE_TIMEOUT_MS = 4_500;
+/** Au-delà, le passage a déjà trop duré : l'observation est sautée (le battement doit partir). */
+export const OBSERVATION_BUDGET_MS = 35_000;
 const STATE_TTL_SECONDS = 7 * 24 * 3600;
 const JOURNAL_TTL_SECONDS = 14 * 24 * 3600;
 /** Le journal remonte à la veille au soir : un départ de 6 h, ou un verrouillage de 23 h 30. */
@@ -101,6 +107,8 @@ export interface DepartureObservationInput {
   /** Radiateurs verrouillés (hors automatisation) et tenus hors des alertes (Véranda D). */
   lockedDids: ReadonlySet<string>;
   ignoredDids: ReadonlySet<string>;
+  /** Début du passage (`Date.now()`) : au-delà de `OBSERVATION_BUDGET_MS`, rien n'est lu. */
+  startedAt?: number;
 }
 
 export interface JournalEntry {
@@ -174,6 +182,9 @@ async function observe(input: DepartureObservationInput, mode: DepartureDetectio
     console.warn("[departure-observation] DEPARTURE_DETECTION=live pas encore codé : observation seule");
   }
 
+  const overBudget = () => input.startedAt !== undefined && Date.now() - input.startedAt > OBSERVATION_BUDGET_MS;
+  if (overBudget()) return { mode, detail: "passage déjà trop long : observation sautée", bookings: [] };
+
   const ids = departures.map((d) => d.bookingId);
   let previous: Array<DepartureState | null>;
   try {
@@ -200,7 +211,7 @@ async function observe(input: DepartureObservationInput, mode: DepartureDetectio
     lock = { online: health.online, lockState: health.lockState };
     const state = health.lockState;
     const constated = previous.some((p) => p?.day === today && p.status === "empty");
-    if (health.online && state !== null && !LOCK_STATES_TRANSIENT.has(state) && (state === LOCK_STATE_LOCKED || constated)) {
+    if (!overBudget() && health.online && state !== null && !LOCK_STATES_TRANSIENT.has(state) && (state === LOCK_STATE_LOCKED || constated)) {
       const since = parisInstant(addDays(today, -1), LOG_FROM_PREVIOUS_DAY_HOUR);
       try {
         const log = await withTimeout(listLogSince(cfg, since), READ_TIMEOUT_MS, "journal de la serrure");
@@ -237,10 +248,16 @@ async function observe(input: DepartureObservationInput, mode: DepartureDetectio
         messages[id] = "non relu (un passage sur deux)";
         return;
       }
+      if (overBudget()) {
+        messages[id] = "non relu (passage trop long)";
+        return;
+      }
+      // Lecture réussie ou non (429…), elle compte : pas de relecture avant deux passages.
+      checked.add(id);
       try {
         const thread = await withTimeout(getBookingMessages(id), MESSAGE_TIMEOUT_MS, "messages Beds24");
-        checked.add(id);
-        const m = departureMessage(thread, parisInstant(today, 0));
+        // Depuis la veille 18 h : un groupe qui part à l'aube écrit parfois le soir.
+        const m = departureMessage(thread, parisInstant(addDays(today, -1), LOG_FROM_PREVIOUS_DAY_HOUR));
         if (m) found.set(id, m);
         messages[id] = m ? `reçu à ${frenchClock(m.at)}` : "aucun";
       } catch (e) {
@@ -267,24 +284,33 @@ async function observe(input: DepartureObservationInput, mode: DepartureDetectio
       today,
     );
     if (checked.has(id)) t.state.messageCheckedAt = now.toISOString();
+    // Notifications : celles de ce passage, plus celles restées en échec au passage précédent.
+    const pending = [...new Set([...(t.state.notifyPending ?? []), ...t.notify])];
+    if (pending.length > 0) t.state.notifyPending = pending;
+    else delete t.state.notifyPending;
     try {
       await setJson(departureStateKey(id), t.state, STATE_TTL_SECONDS);
     } catch (e) {
       // Sans état écrit, pas de notification : elle repartirait au passage suivant.
       console.error("[departure-observation] état non écrit :", errorText(e));
-      t.notify.length = 0;
+      pending.length = 0;
     }
-    for (const kind of t.notify) {
-      if (!(await claim(id, kind))) continue;
+    const failed: typeof pending = [];
+    for (const kind of pending) {
+      // Une fois par constat (l'heure du départ dans la clé), une fois par réservation pour la porte.
+      const claimKey = kind === "departed" ? `departed:${t.state.departedAt ?? "?"}` : kind;
+      if (!(await claim(id, claimKey))) continue;
       try {
         if (kind === "departed") {
+          if (!t.state.departedAt) continue;
           const proof =
             t.state.by === "message" && t.state.messageAt
               ? `message de départ du voyageur reçu à ${frenchClock(t.state.messageAt)}, porte verrouillée`
               : `porte verrouillée, plus de présence sur ${EMPTY_PASSES} relevés`;
           await sendHeatingAlert(
             "Départ estimé",
-            `Départ estimé à ${frenchClock(t.state.departedAt!)} (observation : chauffage non modifié).\nConstat : ${proof}.`,
+            `Départ estimé à ${frenchClock(t.state.departedAt)} (observation : chauffage non modifié).
+Constat : ${proof}.`,
             2,
           );
         } else {
@@ -297,8 +323,17 @@ async function observe(input: DepartureObservationInput, mode: DepartureDetectio
         notified.push(kind);
       } catch (e) {
         console.error("[departure-observation] notification :", errorText(e));
-        await release(id, kind);
+        await release(id, claimKey);
+        failed.push(kind);
       }
+    }
+    if (pending.length > 0) {
+      // Restent en attente seulement les envois ratés : réessayés au passage suivant.
+      if (failed.length > 0) t.state.notifyPending = failed;
+      else delete t.state.notifyPending;
+      await setJson(departureStateKey(id), t.state, STATE_TTL_SECONDS).catch((e) =>
+        console.error("[departure-observation] état non réécrit :", errorText(e)),
+      );
     }
     summary.push({ id, status: t.state.status });
     journalBookings.push({

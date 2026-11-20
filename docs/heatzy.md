@@ -195,8 +195,9 @@ Depuis le 2026-11-14 :
 - **Signaux** : présence des radiateurs lus par le passage (aucun appel Heatzy de plus), état de
   la serrure, journal Nuki depuis la veille 18 h (porte verrouillée seulement), message de départ
   du voyageur dans le fil Beds24 (un passage sur deux, jamais le texte gardé).
-- **Règle** (`departureTransition`, `lib/departure-detection.ts`) : porte verrouillée sans
-  ouverture depuis **et** 3 passages sans présence, ou message de départ → « partis ». Un code du
+- **Règle** (`departureTransition`, `lib/departure-detection.ts`) : porte verrouillée **après une
+  ouverture du jour même** (personne ne sort autrement) **et** 3 passages sans présence, ou message
+  de départ → « partis », à l'heure du verrouillage. Un code du
   séjour qui rouvre ensuite → « revenu ».
 - **Journal** : `barbusse:departure-journal:<jour>` (14 jours), présence par radiateur avec son
   palier, serrure, événements, message. Le lendemain :
