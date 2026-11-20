@@ -25,7 +25,7 @@ export default function Article() {
         </li>
         <li>
           <strong>La cena di fine anno della squadra</strong>: in settimana a inizio dicembre,
-          una o due notti per una cena aziendale e una mattinata di bilancio, senza che nessuno
+          due notti per una cena aziendale e una mattinata di bilancio, senza che nessuno
           debba rimettersi in macchina dopo la serata. Arrivo anticipato o partenza posticipata
           possibili, a pagamento e secondo disponibilità (
           <Link href="/it/blog/seminaire-entreprise-le-mans">seminari</Link>).

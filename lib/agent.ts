@@ -198,7 +198,12 @@ export function stayAgentDeps(): StayAgentDeps {
       const [dates, minStay] = await Promise.all([getAvailability(PROPERTY_ID, from, to), getMinStay(PROPERTY_ID, from, to)]);
       return { dates, minStay };
     }),
+    // Sans `revalidate` : prix frais (socle v3.36.0, jamais le cache de données de Next, qui
+    // servait un prix périmé au premier appel : 57,66 € d'écart entre `find` et `quote`, 20/11/2026).
     price: (req) => fetchRoomPrice(req),
+    // Pause entre deux appels de prix d'une recherche ou d'un devis et ses alternatives :
+    // getroomprice répond 403 aux rafales ; 30 appels sur 30 acceptés à 250 ms (20/11/2026).
+    pauseMs: 250,
     onAnomaly: (message) => sendNtfy(message, { title: "Devis IA Barbusse", priority: 4, tags: ["warning"] }),
     keys: () => quoteKeysFromEnv(),
   };

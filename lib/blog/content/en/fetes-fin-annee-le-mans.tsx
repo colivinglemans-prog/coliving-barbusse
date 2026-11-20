@@ -25,8 +25,8 @@ export default function Article() {
           friends.
         </li>
         <li>
-          <strong>The team&apos;s end-of-year dinner</strong>: midweek in early December, one
-          or two nights for a team dinner and a review morning, with nobody having to drive
+          <strong>The team&apos;s end-of-year dinner</strong>: midweek in early December, two
+          nights for a team dinner and a review morning, with nobody having to drive
           home after the evening. Early check-in or late check-out possible, at extra cost and
           subject to availability (
           <Link href="/en/blog/seminaire-entreprise-le-mans">seminars</Link>).

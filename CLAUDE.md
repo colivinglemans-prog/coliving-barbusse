@@ -360,8 +360,9 @@ produit le chiffre d'affaires direct, il se teste sur une vraie réponse Beds24,
 
 Une fois les dates et les voyageurs choisis, le calendrier (accueil et `/chambres`) affiche
 « Disponible » et le total Beds24 exact **avant** la modale de paiement (prop `quote` du socle,
-`lib/calendar-quote`). Source : `/api/agent/quote?…&src=calendrier` — la route des IA, même calcul,
-même cache CDN de 5 min. Phrase « compris » : `lib/included.ts`, partagée avec la page devis (linge
+`lib/calendar-quote`). Source : `/api/agent/quote?…&src=calendrier` — la route des IA, même calcul :
+prix Beds24 **sans cache** (`fetchRoomPrice` sans `revalidate` = `no-store`, socle v3.36.0), garde de
+l'agent 5 min, CDN 2 min **sans** `stale-while-revalidate`. Phrase « compris » : `lib/included.ts`, partagée avec la page devis (linge
 toujours compris).
 - Une panne, un 429 du pare-feu (« Limite API IA », 20/min/IP, le socle se tait alors 60 s) ou un
   prix bloqué affichent « Le prix exact s'affiche sur la page de paiement » : Réserver reste actif.
@@ -376,7 +377,7 @@ CORS ouvert), documentée dans `public/llms.txt`. Le prix vient de `getroomprice
 Beds24 tout compris) et passe un **garde-fou** : `breakdown` (le détail montré au voyageur) recalcule la grille (nuits
 −7 %, ménage 280, linge 15 €/voyageur, taxe 2,20 €/**adulte**/nuit). Un écart de plus de 1 €
 bloque le prix (`price-blocked`) et envoie un ntfy « Devis IA Barbusse » : c'est le signal
-qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas le contourner. **Indexation automatique** (socle v3.24.0, `lib/indexing.ts`) : le cron `/api/cron/indexing` (`vercel.json`, 05:30 UTC) envoie chaque jour les pages **nouvelles**, ou **modifiées selon le `lastmod`** du sitemap (une page sans `lastmod` n’est soumise qu’une fois et jamais re-signalée : seuls les articles et `/llms.txt` sont vraiment suivis ; ne jamais mettre `lastModified: new Date()` dans le sitemap), et `/llms.txt` quand son contenu change, à IndexNow et à l’API Bing (`SubmitUrlBatch`, ~100 URL/jour, `BING_WEBMASTER_API_KEY`), puis le reliquat jamais soumis à Bing dans le quota restant — jamais une page inchangée. État Upstash `barbusse:indexing:state` (alerte ntfy `[Indexation]` sous `…:alert`, deux passages KO de suite) ; `?dry=1` rend le plan sans rien envoyer. Plus besoin de `npm run indexnow` après un déploiement : le script (clé publique dans `public/<clé>.txt`) reste pour un envoi manuel. Google n’en a pas besoin : il relit le sitemap seul.
+qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas le contourner. **Prix frais** (socle v3.36.0) : `fetchRoomPrice(req)` sans `revalidate` = `no-store`. Avant, le cache de données de Next (stale-while-revalidate) servait au premier appel un prix de n'importe quel âge — `find` 1 534,16 € puis `quote` 1 476,50 € 7 s plus tard, reproduit 4/4 le 20/11. `pauseMs: 250` dans `stayAgentDeps()` : pause entre deux appels de prix d'une recherche, et avant les alternatives d'un devis refusé (403 en rafale ; 30/30 acceptés à 250 ms). Un week-end refusé (demande qui couvre la nuit du samedi) propose d'abord le week-end libre le plus proche (`sameWeekdayFirst`). **Indexation automatique** (socle v3.24.0, `lib/indexing.ts`) : le cron `/api/cron/indexing` (`vercel.json`, 05:30 UTC) envoie chaque jour les pages **nouvelles**, ou **modifiées selon le `lastmod`** du sitemap (une page sans `lastmod` n’est soumise qu’une fois et jamais re-signalée : seuls les articles et `/llms.txt` sont vraiment suivis ; ne jamais mettre `lastModified: new Date()` dans le sitemap), et `/llms.txt` quand son contenu change, à IndexNow et à l’API Bing (`SubmitUrlBatch`, ~100 URL/jour, `BING_WEBMASTER_API_KEY`), puis le reliquat jamais soumis à Bing dans le quota restant — jamais une page inchangée. État Upstash `barbusse:indexing:state` (alerte ntfy `[Indexation]` sous `…:alert`, deux passages KO de suite) ; `?dry=1` rend le plan sans rien envoyer. Plus besoin de `npm run indexnow` après un déploiement : le script (clé publique dans `public/<clé>.txt`) reste pour un envoi manuel. Google n’en a pas besoin : il relit le sitemap seul.
 
 - Politiques servies aux IA = `CANCELLATION_POLICY` / `PAYMENT_POLICY` de `lib/property-info.ts`.
 - Arrivée le jour même : le devis porte une consigne d'appeler l'hôte (`lastMinute`).
@@ -442,7 +443,7 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
     - Si la grille a plus de 24 h, les lignes passées sont retirées et le JSON-LD n'est pas émis.
 - **Fiche cron-job.org** : toutes les heures, en-tête `Authorization: Bearer <CRON_SECRET>`, **délai de
   30 s** (valeur par défaut de cron-job.org) — d'où `timeBudgetMs` ≈ 22 s : le calcul s'arrête avant,
-  les prix déjà demandés restent en cache **12 à 24 h, durée étalée par séjour** (`spreadTtl`, pour qu'ils n'expirent pas tous ensemble), la grille (~96 prix) se complète à froid en 3 ou 4 passages
+  les prix déjà demandés restent en cache **6 à 12 h, durée étalée par séjour** (12 à 24 h jusqu'au 20/11/2026 : prix de la veille) (`spreadTtl`, pour qu'ils n'expirent pas tous ensemble), la grille (~96 prix) se complète à froid en 3 ou 4 passages
   (`incomplete`). Au 6e `incomplete` de suite (`maxIncompleteStreak`, socle v3.28.0), ou sans succès depuis 24 h, c'est un relevé KO
   (`stalled`, alerte au 2e). Un verrou (`…:lock`, 90 s) empêche deux calculs simultanés.
 - **Après un déploiement** : appeler le cron à la main, **à répétition, jusqu'à `"outcome":"stored"`**
@@ -473,7 +474,7 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
 - **Lecture de la disponibilité** :
   - une plage par période, lue en 2 appels v2 (`getAvailability` puis `getMinStay`) ;
   - jamais `monthlyAvailability`, qui lancerait environ 22 appels en parallèle ;
-  - prix demandés un par un, avec 700 ms d'écart (sinon 403), gardés 12 h en cache.
+  - prix demandés un par un, avec 700 ms d'écart (sinon 403), gardés 6 à 12 h en cache (étalés).
 - **Colonnes** : 10, 15 et 20 **adultes**, et la ligne « autre effectif : prix exact dans le
   calendrier ».
   - On écrit « tout compris (ménage, draps et serviettes, taxe de séjour) », jamais de
