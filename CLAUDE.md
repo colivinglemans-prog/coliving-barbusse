@@ -352,35 +352,69 @@ qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas l
 
 ## Tarifs (`/[locale]/tarifs`, page discrète, socle v3.27.0)
 
-La grille du **prix exact** des prochains week-ends, des fêtes et des grands événements, en HTML
-lisible sans JavaScript. Tests du 19/11/2026 : Copilot recommandait la maison mais « les pages
-n'affichent pas de calendrier ni d'état de disponibilité » ; Perplexity citait un faux « 150 à
-250 €/nuit/personne ». Les assistants ne lisent ni le calendrier ni `llms.txt` ni l'API de devis.
-Plan : `C:Usersalexa.claudeplanscurried-mapping-stallman.md` (lot 1).
+La page donne le **prix exact** des prochains week-ends, des fêtes et des grands événements, en
+HTML lisible sans JavaScript.
 
-- **Calcul** : `lib/tarifs.ts` → `buildPriceGrid` du socle (`@sejour/socle/lib/price-grid`) :
-  - week-ends du vendredi au dimanche sur 4 mois (`weekendStays`) ; un week-end en période de
-    3 nuits minimum est allongé, jamais affiché « complet » à tort ;
-  - fêtes : les périodes du moteur de prix (`ENGINE_CONFIG.fixedPeriods`, Noël / Nouvel An),
-    intitulés traduits par la page ;
-  - événements : `LE_MANS_EVENTS` **confirmés** ayant une règle `ENGINE_CONFIG.majorEvents` (plus
-    les 24 Heures Vélo), arrivée la veille + `extendBefore`, départ le lendemain ; **prix publiés
-    tels quels** (décision de l'hôte du 19/11/2026, stratégie visible des agences assumée).
-- **Colonnes** : 10, 15 et 20 **adultes** (la taxe de séjour ne porte que sur les majeurs) ;
-  « autre effectif : prix exact dans le calendrier ». Formulation « tout compris (ménage, draps et
-  serviettes, taxe de séjour) », jamais de pourcentage (« tarif direct, moins cher que sur les
-  plateformes »). Rappel en tête : 9 chambres à lit double, 2 clic-clacs, gare à 15 min.
-- **Cache** : une grille pour les cinq langues (`unstable_cache`, 1 h, clé avec l'interrupteur),
-  chaque prix gardé 12 h ; pause de 700 ms entre deux appels réels à `getroomprice` (403 sinon,
-  mesuré le 19/11/2026). Grille dégradée : rien en cache, la page renvoie au calendrier. Page
-  `force-dynamic` : aucun appel Beds24 au `next build`.
-- **Interrupteur** : `PRIX_PUBLICS=off` (Vercel) coupe tous les prix ; la disponibilité reste.
-- **Liens** (publique mais **discrète**, décision de l'hôte) : pied de page, sous le calendrier
-  (accueil et `/chambres`), Conditions, Séminaires (bloc « Tarif indicatif »), `llms.txt`,
-  sitemap. **Pas dans le menu.** Prix → calendrier pré-rempli (`rel="nofollow"`), jamais un devis
-  signé.
-- **JSON-LD** : un `AggregateOffer` (`itemOffered` : `House`). Textes :
-  `app/[locale]/tarifs/content.ts`, longueurs testées (`tests/tarifs-content.test.ts`).
+Pourquoi : lors des tests du 19/11/2026, les assistants IA ne trouvaient aucun prix fiable.
+- Copilot recommandait la maison, mais notait que « les pages n'affichent pas de calendrier ni
+  d'état de disponibilité ».
+- Perplexity citait un faux « 150 à 250 €/nuit/personne ».
+
+Les assistants ne lisent ni le calendrier, ni `llms.txt`, ni l'API de devis.
+Plan : `C:\Users\alexa\.claude\plans\curried-mapping-stallman.md` (lot 1).
+
+- **Architecture : le calcul ne passe jamais par une page visitée.**
+  - Le cron `app/api/cron/price-grid` tourne **toutes les heures via cron-job.org** (le plan
+    Hobby n'accepte que des crons Vercel quotidiens), avec `Authorization: Bearer $CRON_SECRET` et
+    `maxDuration = 60` (plafond Hobby ; calcul arrêté à ~45 s, repris au passage suivant grâce aux prix en cache).
+  - Il calcule la grille (`computePriceGrid`, `lib/tarifs.ts`) et la range dans Upstash sous
+    `barbusse:price-grid`, au format `{ grid, generatedAt, composition }`, via
+    `@sejour/socle/lib/price-grid-job`.
+  - Si le calcul échoue, **la grille précédente reste**, les essais sont suspendus 15 min
+    (`…:job`), et l'alerte ntfy (`[Tarifs]`) part au 2e relevé KO, sans répétition, puis passe en
+    priorité 1 au retour.
+  - `?dry=1` rend la grille et le nombre d'appels Beds24 sans rien écrire.
+  - La page lit Upstash (`revalidate = 300`).
+    - Si rien n'est rangé ou si la composition a changé, elle renvoie au calendrier, sans jamais
+      d'erreur 500.
+    - Si la grille a plus de 24 h, les lignes passées sont retirées et le JSON-LD n'est pas émis.
+- **Composition versionnée** (`PRICE_GRID_COMPOSITION`) : à changer dès que les séjours ou les
+  groupes changent. **Appeler le cron à la main après un tel déploiement**, sinon la page reste
+  sans prix jusqu'au passage suivant.
+- **Séjours affichés** (`buildPriceGrid` du socle) :
+  - les week-ends du vendredi au dimanche des 4 prochains mois. En période de 3 nuits minimum,
+    le week-end est allongé au lieu d'être marqué « complet » ;
+  - les fêtes des 6 prochains mois : les périodes de `ENGINE_CONFIG.fixedPeriods`, avec des
+    intitulés traduits par la page (« Neujahr » en allemand) ;
+  - les événements `LE_MANS_EVENTS` **confirmés** qui ont une règle `majorEvents`, plus les
+    24 Heures Vélo. Chacun est affiché au **séjour minimum Beds24 qui finit le lendemain de la
+    course** : par exemple 24 Heures Moto, 3 nuits du 9 au 12/04. **Prix publiés tels quels**
+    (décision de l'hôte du 19/11/2026).
+    **Interrupteur `TARIFS_EVENEMENTS` (éteint par défaut, `on` pour allumer)** : décision du
+    20/11/2026 — pas de lignes d'événements tant que le moteur de prix maison n'a pas remplacé
+    Beyond (bascule du 1/12 sous condition) : les prix d'événements actuels sont ceux de Beyond,
+    plus hauts que les prix décidés. La composition versionnée en tient compte. Les options (GP
+    Moto) ne sont pas codées : la grille suit Beds24.
+- **Lecture de la disponibilité** :
+  - une plage par période, lue en 2 appels v2 (`getAvailability` puis `getMinStay`) ;
+  - jamais `monthlyAvailability`, qui lancerait environ 22 appels en parallèle ;
+  - prix demandés un par un, avec 700 ms d'écart (sinon 403), gardés 12 h en cache.
+- **Colonnes** : 10, 15 et 20 **adultes**, et la ligne « autre effectif : prix exact dans le
+  calendrier ».
+  - On écrit « tout compris (ménage, draps et serviettes, taxe de séjour) », jamais de
+    pourcentage.
+  - Rappel en tête : 9 chambres à lit double, 2 clic-clacs, gare à 15 min.
+- **Interrupteur** : `PRIX_PUBLICS=off` (ou `0`, `false`) sur Vercel coupe tous les prix au
+  calcul suivant.
+- **Liens** : la page est publique mais **discrète** (décision de l'hôte).
+  - Elle est liée depuis le pied de page, sous le calendrier (accueil et `/chambres`), les
+    Conditions, les Séminaires, `llms.txt` et le sitemap.
+  - Le chemin passe toujours par `pricesPath`, écrit en gabarit : le mot « tarifs » entre
+    guillemets est réservé à la voie Beds24 par `tests/pricing/push-import.test.ts`.
+  - **Pas dans le menu.**
+  - Chaque prix mène au calendrier pré-rempli (`rel="nofollow"`).
+- **JSON-LD** : un `AggregateOffer`. Les textes sont dans `app/[locale]/tarifs/content.ts`, et
+  leurs longueurs sont testées (`tests/tarifs-content.test.ts`).
 
 ## Cloisonnement du dashboard
 

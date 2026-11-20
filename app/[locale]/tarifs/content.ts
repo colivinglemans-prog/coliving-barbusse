@@ -36,7 +36,7 @@ export function pricesContent(locale: Locale): PricesContent {
         title: "Prices and availability",
         metaTitle: "Prices and availability — whole house in Le Mans, 20 guests",
         metaDescription:
-          "Exact prices of the coming weekends, holidays and Le Mans events for our house of 9 en-suite rooms: all included, direct rate, 15 min from the station.",
+          "Exact prices of the coming weekends and holidays for our house of 9 en-suite rooms in Le Mans: all included, direct rate, 15 min walk from the station.",
         lead: (from) =>
           from
             ? `2-night weekend from ${from} all included for 10 adults (cleaning, bed linen and towels, tourist tax). Direct rate, cheaper than on the platforms.`
@@ -63,7 +63,7 @@ export function pricesContent(locale: Locale): PricesContent {
         title: "Preise und Verfügbarkeit",
         metaTitle: "Preise und Verfügbarkeit — ganzes Haus in Le Mans, 20 Personen",
         metaDescription:
-          "Genaue Preise der kommenden Wochenenden, Feiertage und Rennen in Le Mans für unser Haus mit 9 Zimmern mit Bad: alles inklusive, Direktpreis.",
+          "Genaue Preise der kommenden Wochenenden und Feiertage für unser Haus mit 9 Zimmern mit Bad in Le Mans: alles inklusive, Direktpreis, Bahnhof zu Fuß.",
         lead: (from) =>
           from
             ? `Wochenende mit 2 Nächten ab ${from} alles inklusive für 10 Erwachsene (Reinigung, Bettwäsche und Handtücher, Kurtaxe). Direktpreis, günstiger als auf den Plattformen.`
@@ -73,7 +73,7 @@ export function pricesContent(locale: Locale): PricesContent {
         otherDates: "Andere Gruppengröße oder andere Daten:",
         calendarLink: "genauer Preis im Kalender",
         noPrices: "Die Preise können gerade nicht angezeigt werden. Wählen Sie Ihre Daten im Kalender, um den genauen Preis zu sehen.",
-        holidays: { Noël: "Weihnachten", "Nouvel An": "Silvester" },
+        holidays: { Noël: "Weihnachten", "Nouvel An": "Neujahr" },
         grid: {
           caption: "Genauer Preis pro Aufenthalt, alles inklusive, nach Zahl der Erwachsenen",
           stay: "Aufenthalt",
@@ -90,7 +90,7 @@ export function pricesContent(locale: Locale): PricesContent {
         title: "Precios y disponibilidad",
         metaTitle: "Precios y disponibilidad — casa entera en Le Mans, 20 personas",
         metaDescription:
-          "Precios exactos de los próximos fines de semana, fiestas y carreras de Le Mans para nuestra casa de 9 suites: todo incluido, tarifa directa.",
+          "Precios exactos de los próximos fines de semana y fiestas para nuestra casa de 9 suites en Le Mans: todo incluido, tarifa directa, estación a pie.",
         lead: (from) =>
           from
             ? `Fin de semana de 2 noches desde ${from} todo incluido para 10 adultos (limpieza, ropa de cama y toallas, tasa turística). Tarifa directa, más barata que en las plataformas.`
@@ -117,7 +117,7 @@ export function pricesContent(locale: Locale): PricesContent {
         title: "Prezzi e disponibilità",
         metaTitle: "Prezzi e disponibilità — casa intera a Le Mans, 20 persone",
         metaDescription:
-          "Prezzi esatti dei prossimi weekend, delle feste e delle gare di Le Mans per la nostra casa con 9 suite: tutto incluso, tariffa diretta.",
+          "Prezzi esatti dei prossimi weekend e delle feste per la nostra casa con 9 suite a Le Mans: tutto incluso, tariffa diretta, stazione a piedi.",
         lead: (from) =>
           from
             ? `Weekend di 2 notti da ${from} tutto incluso per 10 adulti (pulizia, biancheria e asciugamani, tassa di soggiorno). Tariffa diretta, più conveniente che sulle piattaforme.`
@@ -126,7 +126,7 @@ export function pricesContent(locale: Locale): PricesContent {
         exact: "Il prezzo viene ricalcolato nella pagina di pagamento al momento della prenotazione: è quello che si applica.",
         otherDates: "Altro numero di persone o altre date:",
         calendarLink: "prezzo esatto nel calendario",
-        noPrices: "Al momento i prezzi non possono essere mostrati. Scegliete le date nel calendario per vedere il prezzo esatto.",
+        noPrices: "Al momento i prezzi non possono essere mostrati. Scegli le date nel calendario per vedere il prezzo esatto.",
         holidays: { Noël: "Natale", "Nouvel An": "Capodanno" },
         grid: {
           caption: "Prezzo esatto per soggiorno, tutto incluso, secondo il numero di adulti",
@@ -144,7 +144,7 @@ export function pricesContent(locale: Locale): PricesContent {
         title: "Tarifs et disponibilités",
         metaTitle: "Tarifs et disponibilités — maison entière au Mans, 20 pers.",
         metaDescription:
-          "Prix exacts des prochains week-ends, des fêtes et des courses du Mans pour notre maison de 9 suites : tout compris, tarif direct, gare à 15 min.",
+          "Prix exacts des prochains week-ends et des fêtes pour notre maison de 9 suites au Mans : tout compris, tarif direct, gare TGV à 15 min à pied.",
         lead: (from) =>
           from
             ? `Week-end de 2 nuits à partir de ${from} tout compris pour 10 adultes (ménage, draps et serviettes, taxe de séjour). Tarif direct, moins cher que sur les plateformes.`

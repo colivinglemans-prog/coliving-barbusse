@@ -4,6 +4,7 @@ import Link from "next/link";
 import ReservationCalendar from "@sejour/socle/components/ReservationCalendar";
 import { useTranslation } from "@/lib/i18n";
 import { PROPERTY_ID, availabilityPath } from "@/lib/beds24-property";
+import { pricesPath } from "@/lib/seo";
 
 /**
  * Calendrier de réservation directe — l'enveloppe locale du composant du socle.
@@ -57,7 +58,7 @@ export default function ReservationCalendarLocal() {
     />
     {/* La grille de tous les week-ends, pour comparer sans essayer chaque date. */}
     <p className="mx-auto max-w-6xl px-6 py-4 text-sm">
-      <Link href={`/${locale}/tarifs`} className="font-medium text-foreground underline underline-offset-2">
+      <Link href={pricesPath(locale)} className="font-medium text-foreground underline underline-offset-2">
         {t.footer.prices}
       </Link>
     </p>

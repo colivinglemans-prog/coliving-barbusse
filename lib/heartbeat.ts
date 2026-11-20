@@ -28,6 +28,8 @@ export const EXPECTED_CRONS = [
   { name: "heating-automation", maxAgeMinutes: 45 },
   // `*/15 * * * *` depuis le 2026-11-09 (150 min jusqu'au 2026-11-16, reste de l'ancien horaire).
   { name: "water-heater-automation", maxAgeMinutes: 45 },
+  // Grille de la page Tarifs, toutes les heures (cron-job.org).
+  { name: "price-grid", maxAgeMinutes: 150 },
   // `35 * * * *`, jour et nuit : les heures de silence sont gérées par la route, pas par l'horaire.
   { name: "arrival-readiness", maxAgeMinutes: 150 },
   // 8 h 10 heure de Paris (cron-job.org), une fois par jour.
