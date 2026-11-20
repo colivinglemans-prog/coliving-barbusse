@@ -113,6 +113,8 @@ const site = {
     { from: "/reservation", to: "/fr" },
     { from: "/blog", to: "/fr/blog" },
     { from: "/chambres", to: "/fr/chambres" },
+    { from: "/seminaires", to: "/fr/seminaires" },
+    { from: "/conditions", to: "/fr/conditions" },
   ],
 
   reviews: reviewsSummary(),

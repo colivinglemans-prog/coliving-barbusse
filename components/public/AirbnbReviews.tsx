@@ -226,17 +226,23 @@ export default function AirbnbReviews() {
         ))}
       </div>
 
-      {/* Dots */}
-      <div className="mt-4 flex justify-center gap-1.5">
+      {/* Dots : le point reste de 6 px, la zone de toucher fait 24 px de haut (marges internes du bouton). */}
+      <div className="mt-2 flex flex-wrap justify-center">
         {Array.from({ length: totalPages }, (_, i) => (
           <button
             key={i}
+            type="button"
             onClick={() => setPage(i)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === page ? "w-6 bg-foreground" : "w-1.5 bg-gray-300"
-            }`}
+            className="flex items-center px-[9px] py-[9px]"
             aria-label={`Page ${i + 1}`}
-          />
+            aria-current={i === page ? "true" : undefined}
+          >
+            <span
+              className={`block h-1.5 rounded-full transition-all duration-300 ${
+                i === page ? "w-6 bg-foreground" : "w-1.5 bg-gray-300"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </section>

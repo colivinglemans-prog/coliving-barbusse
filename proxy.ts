@@ -90,6 +90,8 @@ export const proxy = createDashboardProxy({
     { from: /^\/reservation(?:\/.*)?$/, to: "/fr" },
     { from: /^(\/blog(?:\/.*)?)$/, to: "/fr$1" },
     { from: /^(\/chambres(?:\/.*)?)$/, to: "/fr$1" },
+    // Pages sans préfixe de langue, qui rendaient la 404 nue de Next (audit SEO du 2026-11-08).
+    { from: /^(\/(?:seminaires|conditions|guide-arrivee|tarifs|mentions-legales))\/?$/, to: "/fr$1" },
   ],
 });
 
@@ -98,6 +100,11 @@ export const config = {
     "/",
     "/blog/:path*",
     "/chambres/:path*",
+    "/seminaires",
+    "/conditions",
+    "/guide-arrivee",
+    "/tarifs",
+    "/mentions-legales",
     "/reservation/:path*",
     "/fr/reservation/:path*",
     "/en/reservation/:path*",

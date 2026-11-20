@@ -173,7 +173,7 @@ export default function SleepingArrangement({ firstPhotoPriority = false }: { fi
           const roomName = `${t.sleeping.room} ${i + 1}`;
           const lbPhotos: LightboxPhoto[] = photos.map((src, p) => ({
             src,
-            alt: `${roomName} — photo ${p + 1}`,
+            alt: t.sleeping.photoAlt(roomName, p + 1),
           }));
           return (
             <div

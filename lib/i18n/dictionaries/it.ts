@@ -62,6 +62,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     features: "Letto pronto all'arrivo · Piumone e 2 cuscini · Comodino · Bagno privato · Scaldasalviette · Smart TV · Scrivania · Guardaroba · Chiave individuale",
     prevPhoto: "Foto precedente",
     nextPhoto: "Foto successiva",
+    photoAlt: (room, n) => `${room} — foto ${n}`,
   },
   commonSpaces: {
     title: "Area Sport",
@@ -70,6 +71,11 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     gymDesc: "Attrezzature fitness a disposizione: bici ellittica, manubri e panca pesi, tappetini da yoga per lo stretching.",
     zen: "Sala zen",
     zenDesc: "Uno spazio relax per rigenerarsi: yoga, meditazione e rilassamento.",
+    alts: {
+      gym: "Palestra",
+      gymEquipment: "Palestra — attrezzature",
+      zen: "Sala zen",
+    },
   },
   garden: {
     title: "Giardino",
@@ -81,6 +87,11 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
       "Salotto da giardino 8 posti, perfetto per gli aperitivi",
       "Grandi tavoli per mangiare all'aperto fino a 20 persone",
     ],
+    alts: {
+      enclosed: "Giardino recintato di 90 m² — esposto a sud",
+      lounge: "Salotto da giardino da 8 posti — divani per gli aperitivi",
+      tables: "Grandi tavoli per mangiare all'aperto fino a 20 persone",
+    },
   },
   amenities: {
     title: "Cosa offre questo alloggio",
@@ -224,5 +235,22 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     showAllPhotos: "Mostra tutte le foto",
     previous: "Precedente",
     next: "Successiva",
+    alts: {
+      kitchenTable: "Cucina e grande tavolo da 16 posti",
+      kitchenTable2: "Grande tavolo della cucina — altra vista",
+      verandaAperitif: "Veranda — tavolino alto, angolo aperitivo sul fondo",
+      verandaCoffee: "Veranda — secondo tavolino alto, angolo caffè sul fondo",
+      livingVeranda: "Soggiorno aperto sulla veranda",
+      living: "Soggiorno",
+      livingAperitif: "Soggiorno e angolo aperitivo",
+      entrance: "Ingresso e lavanderia",
+      exterior: "Vista esterna della casa",
+    },
+  },
+  notFound: {
+    title: "Pagina non trovata",
+    text: "Questa pagina non esiste o è stata spostata.",
+    home: "Torna alla home page",
+    book: "Vedi le disponibilità e prenota",
   },
 };

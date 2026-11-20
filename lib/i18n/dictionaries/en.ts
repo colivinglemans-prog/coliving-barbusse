@@ -62,6 +62,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     features: "Bed made up on arrival · Duvet and 2 pillows · Bedside table · Private shower room · Heated towel rail · Smart TV · Desk · Wardrobe · Individual key",
     prevPhoto: "Previous photo",
     nextPhoto: "Next photo",
+    photoAlt: (room, n) => `${room} — photo ${n}`,
   },
   commonSpaces: {
     title: "Fitness Area",
@@ -70,6 +71,11 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     gymDesc: "Fitness equipment available: elliptical bike, dumbbells and weight bench, yoga mats for stretching.",
     zen: "Zen room",
     zenDesc: "A relaxation space to recharge: yoga, meditation and relaxation.",
+    alts: {
+      gym: "Gym",
+      gymEquipment: "Gym — equipment",
+      zen: "Zen room",
+    },
   },
   garden: {
     title: "Garden",
@@ -81,6 +87,11 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
       "8-seater garden furniture, perfect for aperitifs",
       "Large tables to dine outside, up to 20 people",
     ],
+    alts: {
+      enclosed: "Enclosed 90 m² garden — south-facing",
+      lounge: "8-seat garden lounge — sofas for aperitifs",
+      tables: "Large tables to dine outside for up to 20 people",
+    },
   },
   amenities: {
     title: "What this place offers",
@@ -224,5 +235,22 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     showAllPhotos: "View all photos",
     previous: "Previous",
     next: "Next",
+    alts: {
+      kitchenTable: "Kitchen and large 16-seat table",
+      kitchenTable2: "Large kitchen table — another view",
+      verandaAperitif: "Veranda — high bistro table, aperitif corner at the back",
+      verandaCoffee: "Veranda — second high bistro table, coffee corner at the back",
+      livingVeranda: "Living room opening onto the veranda",
+      living: "Living room",
+      livingAperitif: "Living room and aperitif corner",
+      entrance: "Entrance and laundry area",
+      exterior: "Exterior view of the house",
+    },
+  },
+  notFound: {
+    title: "Page not found",
+    text: "This page doesn't exist or has been moved.",
+    home: "Back to the home page",
+    book: "See availability and book",
   },
 };

@@ -2,18 +2,20 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, type Dictionary } from "@/lib/i18n";
 import Lightbox from "./Lightbox";
 
-const PHOTOS = [
-  { src: "/images/garden/voile d'ombrage.jpg", alt: "Jardin clos 90 m² — exposition sud" },
-  { src: "/images/garden/20260528_183511.jpg", alt: "Salon de jardin 8 places — canapés pour les apéros" },
-  { src: "/images/garden/20260528_183440.jpg", alt: "Grandes tables pour manger dehors jusqu'à 20 personnes" },
+/** Les textes `alt` viennent du dictionnaire (`garden.alts`). */
+const PHOTOS: { src: string; alt: keyof Dictionary["garden"]["alts"] }[] = [
+  { src: "/images/garden/voile d'ombrage.jpg", alt: "enclosed" },
+  { src: "/images/garden/20260528_183511.jpg", alt: "lounge" },
+  { src: "/images/garden/20260528_183440.jpg", alt: "tables" },
 ];
 
 export default function Garden() {
   const { t } = useTranslation();
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const photos = PHOTOS.map((p) => ({ src: p.src, alt: t.garden.alts[p.alt] }));
 
   return (
     <div className="mx-auto max-w-6xl border-b border-border px-6 py-8">
@@ -21,7 +23,7 @@ export default function Garden() {
       <p className="mt-2 text-sm text-secondary">{t.garden.subtitle}</p>
 
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        {PHOTOS.map((photo, i) => (
+        {photos.map((photo, i) => (
           <button
             key={photo.src}
             type="button"
@@ -40,7 +42,7 @@ export default function Garden() {
         ))}
       </div>
 
-      <Lightbox photos={PHOTOS} index={lightbox} onChange={setLightbox} />
+      <Lightbox photos={photos} index={lightbox} onChange={setLightbox} />
 
       <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {t.garden.features.map((feature) => (
