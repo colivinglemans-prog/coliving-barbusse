@@ -99,7 +99,7 @@ export default async function PricesPage({ params }: { params: Promise<{ locale:
       <p className="mt-2 text-sm text-secondary">{c.house}</p>
       <p className="mt-1 mb-8 text-sm text-secondary">{c.weekdays}</p>
       {grid && grid.rows.length > 0 ? (
-        <PriceGrid grid={grid} locale={tag} labels={c.grid} linkFor={grid.pricesShown ? calendarHref(locale) : undefined} />
+        <PriceGrid grid={grid} priced={stored?.priced} locale={tag} labels={c.grid} linkFor={grid.pricesShown ? calendarHref(locale) : undefined} />
       ) : (
         <p className="rounded-2xl bg-light-bg p-4 text-sm">{c.noPrices}</p>
       )}

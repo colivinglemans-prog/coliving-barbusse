@@ -22,6 +22,7 @@ Une API publique en lecture (GET, JSON, sans clé) donne les disponibilités et 
 
 - Fiche, règles, annulation et paiement : https://www.coliving-barbusse.fr/api/agent/info
 - Contrat OpenAPI : https://www.coliving-barbusse.fr/api/agent/openapi
+- Limite : 20 requêtes par minute et par adresse IP (API, MCP, pages `/devis` et `/sejour`) ; au-delà, réponse HTTP 429 : attendre 60 secondes avant de reprendre
 - Prix d'un séjour : `GET /api/agent/quote?checkin=2026-12-18&checkout=2026-12-20&adults=14&children=4` (`children` = mineurs de 0 à 17 ans, exonérés de taxe de séjour ; les moins de 10 ans sont acceptés sous la responsabilité de leurs parents ; `lang=en` pour l'anglais ; `src=` avec le nom de l'assistant)
 - Le même séjour en page web, lisible sans JavaScript (« Disponible » et prix exact, ou séjours libres les plus proches) : https://www.coliving-barbusse.fr/fr/sejour?checkin=2026-12-18&checkout=2026-12-20&adults=14&children=4 — chaque réponse de l'API la donne dans `stayUrl`
 - Dates floues (« un week-end en mars pour 14 ») : `GET /api/agent/find?from=2027-03-01&to=2027-03-31&nights=2&adults=14&weekdays=fri` — ajouter `near=2027-03-12` pour trier autour d'une date — renvoie 5 séjours libres par défaut, 8 au plus avec `limit`, chacun avec son prix et ses liens
