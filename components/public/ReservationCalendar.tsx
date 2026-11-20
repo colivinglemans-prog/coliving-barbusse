@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import ReservationCalendar from "@sejour/socle/components/ReservationCalendar";
+import { calendarQuoteLabels, type CalendarStay } from "@sejour/socle/lib/calendar-quote";
+import { INCLUDED } from "@/lib/included";
 import { useTranslation } from "@/lib/i18n";
 import { PROPERTY_ID, availabilityPath } from "@/lib/beds24-property";
 import { pricesPath } from "@/lib/seo";
@@ -27,7 +29,22 @@ import { pricesPath } from "@/lib/seo";
  *   ados, soit 37 voyageurs, et n'apprendre le refus qu'une fois sur la page de paiement ;
  * - la mise à jour du cache de disponibilité est fonctionnelle, là où un `{...availCache}`
  *   capturé dans la closure faisait perdre la première de deux réponses qui se croisent.
+ *
+ * **Bloc prix** (socle v3.29.0) : une fois les dates choisies, « Disponible » et le total Beds24
+ * exact, lus sur `/api/agent/quote` — la route des IA, même calcul et même cache.
  */
+
+/** La route de devis pour un séjour ; `src=calendrier` distingue ces appels de ceux des IA. */
+const quoteUrl = (lang: string) => (s: CalendarStay) =>
+  `/api/agent/quote?${new URLSearchParams({
+    checkin: s.checkIn,
+    checkout: s.checkOut,
+    adults: String(s.adults),
+    children: String(s.children),
+    lang,
+    src: "calendrier",
+  })}`;
+
 export default function ReservationCalendarLocal() {
   const { t, locale } = useTranslation();
 
@@ -55,6 +72,11 @@ export default function ReservationCalendarLocal() {
       heading={{ title: t.calendar.title, subtitle: t.calendar.subtitle }}
       idlePrompt={t.calendar.selectCheckIn}
       className="mx-auto max-w-6xl border-b border-border px-6 py-8"
+      quote={{
+        url: quoteUrl(locale),
+        labels: calendarQuoteLabels(locale),
+        included: INCLUDED[locale] ?? INCLUDED.fr,
+      }}
     />
     {/* La grille de tous les week-ends, pour comparer sans essayer chaque date. */}
     <p className="mx-auto max-w-6xl px-6 py-4 text-sm">

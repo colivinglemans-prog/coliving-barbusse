@@ -331,6 +331,18 @@ propres libellés (`calendar.previousMonth` / `calendar.nextMonth`, et `calendar
 (`isValidCheckIn`, `isValidCheckOut`, `cellState`, `selectionAfterClick`) : c'est le chemin qui
 produit le chiffre d'affaires direct, il se teste sur une vraie réponse Beds24, sans navigateur.
 
+## Bloc prix du calendrier (socle v3.29.0, 2026-11-20)
+
+Une fois les dates et les voyageurs choisis, le calendrier (accueil et `/chambres`) affiche
+« Disponible » et le total Beds24 exact **avant** la modale de paiement (prop `quote` du socle,
+`lib/calendar-quote`). Source : `/api/agent/quote?…&src=calendrier` — la route des IA, même calcul,
+même cache CDN de 5 min. Phrase « compris » : `lib/included.ts`, partagée avec la page devis (linge
+toujours compris).
+- Une panne, un 429 du pare-feu (« Limite API IA », 20/min/IP, le socle se tait alors 60 s) ou un
+  prix bloqué affichent « Le prix exact s'affiche sur la page de paiement » : Réserver reste actif.
+  Si les journaux Vercel montrent des 429 `src=calendrier`, prévoir une règle à part (~60/min).
+- Vérifié le 20/11 (Playwright, 360 px et bureau) : 16 adultes 11→13/12/2026 = 1 403,22 €, égal à l'API.
+
 ## Réservation par IA (`/api/agent/*`, `/[locale]/devis/[token]`)
 
 `lib/agent.ts` déclare la maison à `@sejour/socle/lib/stay-agent` : une seule route publique

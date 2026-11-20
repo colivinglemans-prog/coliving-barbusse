@@ -7,6 +7,7 @@ import { cancellationText, quoteLabels } from "@sejour/socle/lib/quote-labels";
 import { quoteKeysFromEnv } from "@sejour/socle/lib/quote-token";
 import { STAY_AGENT, STAY_QUOTE, stayAgentDeps } from "@/lib/agent";
 import { PROPERTY_ID } from "@/lib/beds24-property";
+import { INCLUDED } from "@/lib/included";
 import { CANCELLATION_POLICY } from "@/lib/property-info";
 import { conditionsPath } from "@/lib/seo";
 
@@ -17,14 +18,6 @@ import { conditionsPath } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
-
-const INCLUDED: Record<string, string> = {
-  fr: "Draps, serviettes, ménage de fin de séjour et taxe de séjour compris.",
-  en: "Bed linen, towels, end-of-stay cleaning and tourist tax included.",
-  de: "Bettwäsche, Handtücher, Endreinigung und Kurtaxe inklusive.",
-  es: "Ropa de cama, toallas, limpieza final y tasa turística incluidas.",
-  it: "Biancheria, asciugamani, pulizia finale e tassa di soggiorno incluse.",
-};
 
 /** Rappel du paiement sur le devis (relevé par le test voyageur : le devis ne le disait pas). */
 const PAYMENT_NOTE: Record<string, string> = {
