@@ -333,6 +333,10 @@ produit le chiffre d'affaires direct, il se teste sur une vraie réponse Beds24,
 
 ## Bloc prix du calendrier (socle v3.29.0, 2026-11-20)
 
+> **Règle de l'hôte du 20/11 : jamais de prix avant le nombre de voyageurs.** Depuis le socle v3.30.0,
+> les compteurs sont en tête et partent de 0 adulte : un lien vers le calendrier qui doit montrer un
+> prix porte **toujours** `adultes` (la page Tarifs, `/devis` et `/sejour` le font).
+
 Une fois les dates et les voyageurs choisis, le calendrier (accueil et `/chambres`) affiche
 « Disponible » et le total Beds24 exact **avant** la modale de paiement (prop `quote` du socle,
 `lib/calendar-quote`). Source : `/api/agent/quote?…&src=calendrier` — la route des IA, même calcul,
@@ -361,6 +365,26 @@ qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas l
 - Le calendrier se pré-remplit par `?arrivee=&depart=&adultes=&enfants=` (socle).
 - **Connecteur MCP** : `app/api/mcp/route.ts` (`createMcpRoute`, socle v3.12.0), mêmes outils que `/api/agent/*` via `runTool`, sans état. Route publique ; à couvrir par la règle Vercel Firewall comme `/api/agent/*`.
 - Tests voyageur à rejouer à chaque lot : voir le plan du chantier (mémoire « tests voyageur IA »).
+
+## Page Séjour et voyageurs avant les dates (socle v3.30.0, 2026-11-20)
+
+- **`/[locale]/sejour?checkin=&checkout=&adults=&children=`** (`app/[locale]/sejour/page.tsx`, socle
+  `lib/stay-page`) : le séjour chiffré rendu côté serveur, lisible par une IA sans JavaScript.
+  « Disponible » + total Beds24 au centime, ou refus traduit + séjours libres les plus proches.
+  **Jamais indexée** : balise robots + `X-Robots-Tag: noindex, nofollow`, cache CDN de 60 s, tous deux
+  dans `next.config.ts` (qui fait foi) ; hors sitemap, sans canonical. Sans paramètre → 308 vers
+  `/tarifs` ; alias `arrivee/depart/adultes/enfants` ou ordre différent → 308 vers la forme canonique.
+- Notes sous le prix (`PAYMENT_NOTE`, `CHILDREN_NOTE`) dans `lib/quote-notes.ts`, partagées par
+  `/devis` et `/sejour`. `MobileBookBar` masquée sur `/sejour`.
+- `stayPagePath` dans `lib/agent.ts` : l'API et le MCP renvoient `stayUrl`. Séjours limités à
+  60 nuits (`invalid-request`, sans appel Beds24).
+- **Jamais `/sejour` dans `surveillance.yml`** : chaque relevé consommerait du quota Beds24.
+  Pare-feu Vercel : `^/[a-z]{2}/sejour$` ajouté à la règle « Limite API IA » (20/min/IP, compteur partagé avec l'API ; le plan Vercel n'autorise qu'une règle de limitation).
+- **Calendrier : les voyageurs avant les dates.** Compteurs en tête (« Combien de voyageurs ? »),
+  adultes à 0 au départ (sauf `?adultes=`) : ni prix ni bouton Réserver avant au moins un adulte
+  (demande de l'hôte du 20/11). Le nombre se tape aussi au clavier (16 clics pour 16, c'était trop). Sous-titre `calendar.subtitle` adapté dans les 5 langues.
+- Plus de « −7 % » affiché : « Tarif direct, moins cher que sur les plateformes » (`directDiscount`)
+  et « N nuits au tarif direct » (`lib/agent.ts`).
 
 ## Tarifs (`/[locale]/tarifs`, page discrète, socle v3.28.0)
 

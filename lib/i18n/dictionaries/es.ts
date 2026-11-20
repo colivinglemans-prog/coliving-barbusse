@@ -113,7 +113,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
   },
   calendar: {
     title: "Disponibilidad",
-    subtitle: "Selecciona tus fechas para reservar la casa entera.",
+    subtitle: "Indica el número de viajeros y luego tus fechas para ver el precio exacto de la casa entera.",
     loading: "Cargando disponibilidad...",
     nights: (n) => `${n} noche${n > 1 ? "s" : ""}`,
     adults: "Adultos",

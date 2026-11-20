@@ -36,7 +36,8 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  return { title: TITLE[locale] ?? TITLE.fr, robots: { index: false, follow: false } };
+  // `openGraph.url` du layout désignerait l'accueil : cette page n'en a pas.
+  return { title: TITLE[locale] ?? TITLE.fr, robots: { index: false, follow: false }, openGraph: { url: undefined } };
 }
 
 export default async function StayPage({ params, searchParams }: Props) {

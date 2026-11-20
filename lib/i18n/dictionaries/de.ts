@@ -113,7 +113,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
   },
   calendar: {
     title: "Verfügbarkeit",
-    subtitle: "Wählen Sie Ihre Reisedaten, um das gesamte Haus zu buchen.",
+    subtitle: "Geben Sie die Zahl der Gäste und dann Ihre Reisedaten an, um den genauen Preis für das gesamte Haus zu sehen.",
     loading: "Verfügbarkeit wird geladen...",
     nights: (n) => `${n} Nacht${n > 1 ? "e" : ""}`,
     adults: "Erwachsene",

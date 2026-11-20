@@ -113,7 +113,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
   },
   calendar: {
     title: "Availability",
-    subtitle: "Select your dates to book the entire house.",
+    subtitle: "Enter the number of guests, then your dates, to see the exact price for the entire house.",
     loading: "Loading availability...",
     nights: (n) => `${n} night${n > 1 ? "s" : ""}`,
     adults: "Adults",

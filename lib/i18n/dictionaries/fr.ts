@@ -113,7 +113,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
   },
   calendar: {
     title: "Disponibilités",
-    subtitle: "Sélectionnez vos dates pour réserver la maison entière.",
+    subtitle: "Indiquez le nombre de voyageurs, puis vos dates, pour voir le prix exact de la maison entière.",
     loading: "Chargement des disponibilités...",
     nights: (n) => `${n} nuit${n > 1 ? "s" : ""}`,
     adults: "Adultes",

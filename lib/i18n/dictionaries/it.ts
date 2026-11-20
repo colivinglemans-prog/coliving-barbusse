@@ -113,7 +113,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
   },
   calendar: {
     title: "Disponibilità",
-    subtitle: "Seleziona le date per prenotare l'intera casa.",
+    subtitle: "Indica il numero di ospiti, poi le date, per vedere il prezzo esatto dell'intera casa.",
     loading: "Caricamento disponibilità...",
     nights: (n) => `${n} nott${n > 1 ? "i" : "e"}`,
     adults: "Adulti",
