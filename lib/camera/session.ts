@@ -63,7 +63,7 @@ export async function withCameraSession<T>(
   await client.login();
   const session = client.session();
   if (session) {
-    await store.save(session).catch((e) => console.error("[camera-session] enregistrement:", e instanceof Error ? e.message : e));
+    await store.save(session).catch((e) => console.error("[camera-session] enregistrement:", e instanceof Error ? e.name : "erreur"));
   }
   return run(client);
 }
