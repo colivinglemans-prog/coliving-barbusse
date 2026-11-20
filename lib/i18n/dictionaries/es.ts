@@ -121,7 +121,7 @@ Dos de las habitaciones cuentan además con un sofá cama individual: la casa ac
     teensNote: "Casa pensada para adolescentes y adultos: no hay nada adaptado para niños pequeños (escaleras sin protección, taburetes altos, gimnasio). Los menores de 10 años son bienvenidos bajo la responsabilidad de sus padres.",
     clear: "Borrar",
     bookNow: "Reservar ahora",
-    directDiscount: "Mejor precio garantizado: −7% reservando directo frente a las plataformas",
+    directDiscount: "Tarifa directa, más barata que en las plataformas",
     selectCheckIn: "Selecciona la fecha de llegada",
     checkInLabel: "Llegada",
     minStayNote: (n) => `(mín. ${n} noches)`,

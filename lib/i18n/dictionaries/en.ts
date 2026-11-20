@@ -121,7 +121,7 @@ Two of the bedrooms also feature a single sofa bed: the house sleeps up to 20 gu
     teensNote: "A house designed for teens and adults: nothing is set up for young children (unguarded stairs, high stools, gym). Children under 10 are welcome under their parents' responsibility.",
     clear: "Clear",
     bookNow: "Book now",
-    directDiscount: "Best price guaranteed: −7% when you book direct vs the platforms",
+    directDiscount: "Direct rate, cheaper than on the booking platforms",
     selectCheckIn: "Select your check-in date",
     checkInLabel: "Check-in",
     minStayNote: (n) => `(min. ${n} nights)`,

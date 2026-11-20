@@ -121,7 +121,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     teensNote: "Ein Haus für Jugendliche und Erwachsene: Für Kleinkinder ist nichts eingerichtet (ungesicherte Treppen, hohe Hocker, Fitnessraum). Kinder unter 10 Jahren sind unter der Verantwortung ihrer Eltern willkommen.",
     clear: "Löschen",
     bookNow: "Jetzt buchen",
-    directDiscount: "Bestpreis garantiert: −7 % bei Direktbuchung gegenüber den Plattformen",
+    directDiscount: "Direktpreis, günstiger als auf den Buchungsplattformen",
     selectCheckIn: "Wählen Sie Ihr Anreisedatum",
     checkInLabel: "Anreise",
     minStayNote: (n) => `(min. ${n} Nächte)`,

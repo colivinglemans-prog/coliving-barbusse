@@ -121,7 +121,7 @@ Due camere dispongono anche di un divano letto singolo: la casa ospita fino a 20
     teensNote: "Casa pensata per ragazzi e adulti: nulla è predisposto per i bambini piccoli (scale non protette, sgabelli alti, palestra). I bambini sotto i 10 anni sono accettati sotto la responsabilità dei genitori.",
     clear: "Cancella",
     bookNow: "Prenota ora",
-    directDiscount: "Miglior prezzo garantito: −7% prenotando diretto rispetto alle piattaforme",
+    directDiscount: "Tariffa diretta, più conveniente che sulle piattaforme",
     selectCheckIn: "Seleziona la data di arrivo",
     checkInLabel: "Arrivo",
     minStayNote: (n) => `(min. ${n} notti)`,

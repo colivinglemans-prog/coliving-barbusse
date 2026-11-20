@@ -121,7 +121,7 @@ Deux des chambres disposent également d'un clic-clac une place : la maison accu
     teensNote: "Maison pensée pour les ados et les adultes : rien n'est aménagé pour les jeunes enfants (escaliers non protégés, tabourets hauts, salle de sport). Les moins de 10 ans sont acceptés sous la responsabilité de leurs parents.",
     clear: "Effacer",
     bookNow: "Réserver maintenant",
-    directDiscount: "Meilleur tarif garanti : −7 % en réservation directe vs les plateformes",
+    directDiscount: "Tarif direct, moins cher que sur les plateformes",
     selectCheckIn: "Sélectionnez votre date d'arrivée",
     checkInLabel: "Arrivée",
     minStayNote: (n) => `(min. ${n} nuits)`,

@@ -27,31 +27,31 @@ const LINE_LABELS: Record<
   { nights: (n: number) => string; cleaning: string; linen: (g: number) => string; tax: (adults: number) => string }
 > = {
   fr: {
-    nights: (n) => `${n} nuit${n > 1 ? "s" : ""}, remise directe de 7 % incluse`,
+    nights: (n) => `${n} nuit${n > 1 ? "s" : ""} au tarif direct`,
     cleaning: "Ménage de fin de séjour",
     linen: (g) => `Draps et serviettes (${g} pers.)`,
     tax: (a) => `Taxe de séjour (${a} adulte${a > 1 ? "s" : ""} ; mineurs exonérés)`,
   },
   en: {
-    nights: (n) => `${n} night${n > 1 ? "s" : ""}, 7% direct-booking discount included`,
+    nights: (n) => `${n} night${n > 1 ? "s" : ""} at the direct rate`,
     cleaning: "End-of-stay cleaning",
     linen: (g) => `Bed linen and towels (${g} guests)`,
     tax: (a) => `Tourist tax (${a} adult${a > 1 ? "s" : ""}; minors exempt)`,
   },
   de: {
-    nights: (n) => `${n > 1 ? `${n} Nächte` : "1 Nacht"}, inkl. 7 % Direktbuchungsrabatt`,
+    nights: (n) => `${n > 1 ? `${n} Nächte` : "1 Nacht"} zum Direktpreis`,
     cleaning: "Endreinigung",
     linen: (g) => `Bettwäsche und Handtücher (${g} Pers.)`,
     tax: (a) => `Kurtaxe (${a} ${a > 1 ? "Erwachsene" : "Erwachsener"}; Minderjährige befreit)`,
   },
   es: {
-    nights: (n) => `${n} noche${n > 1 ? "s" : ""}, descuento directo del 7 % incluido`,
+    nights: (n) => `${n} noche${n > 1 ? "s" : ""} con tarifa directa`,
     cleaning: "Limpieza final",
     linen: (g) => `Ropa de cama y toallas (${g} pers.)`,
     tax: (a) => `Tasa turística (${a} adulto${a > 1 ? "s" : ""}; menores exentos)`,
   },
   it: {
-    nights: (n) => `${n} nott${n > 1 ? "i" : "e"}, sconto diretto del 7 % incluso`,
+    nights: (n) => `${n} nott${n > 1 ? "i" : "e"} a tariffa diretta`,
     cleaning: "Pulizia finale",
     linen: (g) => `Biancheria e asciugamani (${g} pers.)`,
     tax: (a) => `Tassa di soggiorno (${a} adult${a > 1 ? "i" : "o"}; minori esenti)`,
