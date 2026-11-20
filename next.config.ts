@@ -21,6 +21,22 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  /**
+   * Page Séjour (`/xx/sejour?…`, socle `lib/stay-page`) : chaque séjour est revérifié auprès de
+   * Beds24, donc 60 s de cache CDN par URL (canonique, une seule forme), panne comprise — ça
+   * protège le quota. Jamais indexée : en-tête en plus de la balise, pour que `curl` le voie.
+   */
+  async headers() {
+    return [
+      {
+        source: "/:locale(fr|en|de|es|it)/sejour",
+        headers: [
+          { key: "Vercel-CDN-Cache-Control", value: "s-maxage=60" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
