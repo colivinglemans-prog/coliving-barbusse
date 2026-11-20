@@ -516,11 +516,27 @@ Tous sont derrière une garde admin ou `CRON_SECRET` ; aucun PIN ne part vers le
   `frame-ancestors 'none'` sur `/dashboard/*` **seulement**. ⚠️ Jamais `payment` dans la
   `Permissions-Policy` : l'iframe de paiement Beds24 porte `allow="payment"`.
 
+**Connexion limitée** (socle v3.31.0, 2026-11-20, `app/api/auth/login/route.ts` = `createLoginRoute`) :
+5 mots de passe faux en 15 min par IP ⇒ 429 + `Retry-After`, même avec le bon mot de passe ; un
+succès remet l'adresse à zéro. Compteur Redis partagé `barbusse:login-failures:<ip>` (repli en
+mémoire si Redis manque ou tombe, jamais de blocage par panne) ; **une seule** alerte ntfy
+priorité 4 au franchissement. ⚠️ `security.badLogin` (post-déploiement) fait un échec par passage
+depuis l'IP du runner : cinq passages en 15 min depuis la même IP et le sixième reçoit 429 (KO).
+Les écritures du dashboard sont toutes des `fetch` relatifs : le contrôle d'`Origin` de
+`guard.deny` (403 sur une écriture d'une autre origine) ne gêne ni la page ni les crons.
+Tests : `tests/security/login.test.ts`.
+
 ## Beds24 API (v2)
 
 **Cinq tokens — un par chemin, pas par verbe.** Les trois premiers datent du 2026-09-11
 (rotation complète après la découverte de quatre secrets en clair dans
 `.claude/settings.json`) ; la messagerie s'est ajoutée le 2026-09-22, les tarifs avec la sortie de Beyond.
+
+**Access tokens partagés dans Redis** (socle v3.31.0, 2026-11-20, `tokenStore` de `lib/beds24.ts`) :
+clé `barbusse:beds24:access:<32 hex>` (SHA-256 tronqué du refresh token, jamais lui), TTL = durée
+du jeton − 10 min. Une instance froide relit le jeton au lieu de refaire `/authentication/token` :
+c'est la fin des 429 sur l'échange (post-déploiements du 2026-11-16). 401 ⇒ mémoire et Redis
+effacés, un échange neuf. Redis absent, en panne ou lent (> 1,5 s) ⇒ échange direct, comme avant.
 
 | Variable | `deviceName` | Scopes | Chemin servi |
 |---|---|---|---|
