@@ -350,9 +350,9 @@ qu'un réglage Beds24/Beyond a changé la grille — corriger `breakdown`, pas l
 - **Connecteur MCP** : `app/api/mcp/route.ts` (`createMcpRoute`, socle v3.12.0), mêmes outils que `/api/agent/*` via `runTool`, sans état. Route publique ; à couvrir par la règle Vercel Firewall comme `/api/agent/*`.
 - Tests voyageur à rejouer à chaque lot : voir le plan du chantier (mémoire « tests voyageur IA »).
 
-## Tarifs (`/[locale]/tarifs`, page discrète, socle v3.27.0)
+## Tarifs (`/[locale]/tarifs`, page discrète, socle v3.28.0)
 
-La page donne le **prix exact** des prochains week-ends, des fêtes et des grands événements, en
+La page donne le **prix exact** des prochains week-ends, des séjours en semaine, des fêtes et des grands événements, en
 HTML lisible sans JavaScript.
 
 Pourquoi : lors des tests du 19/11/2026, les assistants IA ne trouvaient aucun prix fiable.
@@ -381,8 +381,8 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
     - Si la grille a plus de 24 h, les lignes passées sont retirées et le JSON-LD n'est pas émis.
 - **Fiche cron-job.org** : toutes les heures, en-tête `Authorization: Bearer <CRON_SECRET>`, **délai de
   30 s** (valeur par défaut de cron-job.org) — d'où `timeBudgetMs` ≈ 22 s : le calcul s'arrête avant,
-  les prix déjà demandés restent en cache 12 h, la grille se complète en 2 ou 3 passages
-  (`incomplete`). Au 3e `incomplete` de suite, ou sans succès depuis 24 h, c'est un relevé KO
+  les prix déjà demandés restent en cache **12 à 24 h, durée étalée par séjour** (`spreadTtl`, pour qu'ils n'expirent pas tous ensemble), la grille (~96 prix) se complète à froid en 3 ou 4 passages
+  (`incomplete`). Au 6e `incomplete` de suite (`maxIncompleteStreak`, socle v3.28.0), ou sans succès depuis 24 h, c'est un relevé KO
   (`stalled`, alerte au 2e). Un verrou (`…:lock`, 90 s) empêche deux calculs simultanés.
 - **Après un déploiement** : appeler le cron à la main, **à répétition, jusqu'à `"outcome":"stored"`**
   (`curl -H "Authorization: Bearer $CRON_SECRET" https://…/api/cron/price-grid`).
@@ -395,6 +395,9 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
 - **Séjours affichés** (`buildPriceGrid` du socle) :
   - les week-ends du vendredi au dimanche des 4 prochains mois. En période de 3 nuits minimum,
     le week-end est allongé au lieu d'être marqué « complet » ;
+  - les séjours **en semaine, du lundi au vendredi (4 nuits)**, sur les mêmes 4 mois (demande de
+    l'hôte du 20/11/2026). La phrase de tête « Week-end … à partir de » ne prend que les week-ends
+    (`lowestWeekendTotal`) ;
   - les fêtes des 6 prochains mois : les périodes de `ENGINE_CONFIG.fixedPeriods`, avec des
     intitulés traduits par la page (« Neujahr » en allemand) ;
   - les événements `LE_MANS_EVENTS` **confirmés** qui ont une règle `majorEvents`, plus les
