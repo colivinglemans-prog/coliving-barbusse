@@ -21,6 +21,15 @@ import { reviewsSummary } from "@/lib/reviews";
 import { SITE_URL } from "@/lib/site";
 
 /**
+ * Cible = production ? Les previews n'ont pas les identifiants du matériel (Heatzy, Cozytouch),
+ * retirés de l'environnement Preview le 2026-11-20 : leurs routes y répondent 500. Hors production,
+ * le viewer y accepte donc 200 ou 500 ; le 401 anonyme et l'absence de champ interdit restent contrôlés.
+ */
+const IS_PRODUCTION =
+  new URL(process.env.DEPLOY_BASE_URL || SITE_URL).origin === new URL(SITE_URL).origin;
+const HARDWARE_VIEWER = IS_PRODUCTION ? [200] : [200, 500];
+
+/**
  * Les crons, lus dans `app/api/cron/` au lieu d'être recopiés : une route ajoutée demain est
  * contrôlée (401 sans Bearer) dès son premier déploiement. Toutes appellent `verifyCronAuth`.
  */
@@ -176,7 +185,7 @@ const site = {
         anonymous: [401],
         viewer: [200],
       },
-      { path: "/api/dashboard/heating", anonymous: [401], viewer: [200] },
+      { path: "/api/dashboard/heating", anonymous: [401], viewer: HARDWARE_VIEWER },
       { path: "/api/dashboard/heating/lock", anonymous: [401], viewer: [200] },
       // Chauffage (2026-11-20) : le viewer pilote zones et radiateurs (`heating/control`, non
       // appelé ici), mais les réglages d'installation sont admin seulement. Chaque POST est
@@ -186,7 +195,7 @@ const site = {
       { path: "/api/dashboard/heating/summer-mode", method: "POST", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/heating/add-device", method: "POST", anonymous: [401], viewer: [403] },
       { path: "/api/dashboard/heating/scan", anonymous: [401], viewer: [403] },
-      { path: "/api/dashboard/water-heater", anonymous: [401], viewer: [200] },
+      { path: "/api/dashboard/water-heater", anonymous: [401], viewer: HARDWARE_VIEWER },
       // Ouverte au viewer en lecture (GET) le 2026-11-07 (`proxy.ts`). Règle : toute route dont
       // la garde accepte le viewer doit aussi être dans `allowedPaths` — cette porte le vérifie.
       { path: "/api/dashboard/event-links", anonymous: [401], viewer: [200] },
