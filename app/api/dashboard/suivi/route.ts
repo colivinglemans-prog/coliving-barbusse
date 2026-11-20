@@ -17,7 +17,7 @@ import { loadSessions, upsertSessions } from "@/lib/cleaning/store";
 
 /**
  * Charge utile de la page « Suivi » (admin) : les passages des intervenants suivis (ménage
- * Sophie, dépannage Eric…), **lus dans le magasin persistant** (`lib/cleaning/store.ts`), avec
+ * dépannage…), **lus dans le magasin persistant** (`lib/cleaning/store.ts`), avec
  * des totaux par personne (heures, coût au taux) et un découpage mensuel pour le graphe.
  *
  * On lit le magasin — et non plus un recalcul en direct — pour que la sortie estimée d'un passage
@@ -28,21 +28,22 @@ import { loadSessions, upsertSessions } from "@/lib/cleaning/store";
  * donnée sensible (identifiants, codes) ne sort : seuls le prénom du libellé, les horodatages et
  * les durées.
  *
- * Variables : `TRACKED_PEOPLE` (« Sophie:ménage,Eric:dépannage »), `CLEANING_RATES`
- * (« Sophie:21 » en €/h), plus les accès des sources (Intratone, Nuki, AJCloud) pour l'amorçage.
+ * Variables : `TRACKED_PEOPLE` (« Alice:ménage,Bruno:dépannage »), `CLEANING_RATES`
+ * (« Alice:21 » en €/h), plus les accès des sources (Intratone, Nuki, AJCloud) pour l'amorçage.
  */
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-const DEFAULT_RATES = "Sophie:21";
 
 export async function GET(request: NextRequest) {
   const refus = await guard.denyNonAdmin(request);
   if (refus) return refus;
 
   const people = trackedPeople();
-  const rates = parseRates(process.env.CLEANING_RATES?.trim() || DEFAULT_RATES);
+  // Pas de valeur par défaut (dépôt public) : sans CLEANING_RATES, la page n'affiche pas de coût.
+  const ratesSpec = process.env.CLEANING_RATES?.trim();
+  if (!ratesSpec) console.error("[suivi] CLEANING_RATES absent : coût non calculé");
+  const rates = parseRates(ratesSpec ?? "");
   const notes: Record<string, string> = {};
 
   // Lecture du magasin persistant : les sorties déjà captées sont conservées.

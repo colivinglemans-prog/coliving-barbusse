@@ -2,7 +2,7 @@ import { managedBookingId } from "@sejour/socle/lib/access-codes";
 import type { KeypadOpening } from "./intratone";
 
 /**
- * Logique pure du suivi des intervenants de la maison (ménage Sophie, dépannage Eric…) :
+ * Logique pure du suivi des intervenants de la maison (ménage, dépannage…) :
  * fusionner leurs arrivées (garage Intratone + porte Nuki), détecter les nouvelles depuis le
  * dernier passage, et estimer la fin d'une visite.
  *
@@ -58,10 +58,10 @@ export function trackedOpenings(openings: KeypadOpening[], people: TrackedPerson
 
 /**
  * Les passages de la porte (journal Nuki) faits avec le code **manuel** d'une personne suivie
- * (« # Sophie »…) : clavier (`trigger` 255), réussis (`state` 0).
+ * (« # Prénom »…) : clavier (`trigger` 255), réussis (`state` 0).
  *
  * Un code **géré** (« <n° de réservation>: <Prénom> », `managedBookingId` du socle) est celui
- * d'un séjour : une voyageuse prénommée Sophie n'est pas le ménage. Il est exclu avant la
+ * d'un séjour : une voyageuse qui porte le prénom de l'intervenante n'est pas le ménage. Il est exclu avant la
  * recherche du nom.
  */
 export function doorLogArrivals(
@@ -425,7 +425,7 @@ export interface PersonSummary {
   estimatedCost: number | null;
 }
 
-/** Totaux par personne. `rates` associe un nom à un €/h (ex. `{Sophie: 21}`). */
+/** Totaux par personne. `rates` associe un nom à un €/h (ex. `{Alice: 21}`). */
 export function summarizePeople(
   sessions: CleaningSession[],
   people: TrackedPerson[],
@@ -479,7 +479,7 @@ export function parisMonth(date: Date): string {
   return parts.slice(0, 7); // "YYYY-MM"
 }
 
-/** Parse `"Sophie:21,Eric:0"` en table nom→€/h (ignore les entrées sans nombre valide). */
+/** Parse `"Alice:21,Bruno:0"` en table nom→€/h (ignore les entrées sans nombre valide). */
 export function parseRates(spec: string): Record<string, number> {
   const out: Record<string, number> = {};
   for (const part of spec.split(",")) {
@@ -490,12 +490,18 @@ export function parseRates(spec: string): Record<string, number> {
   return out;
 }
 
-/** Valeur de `TRACKED_PEOPLE` quand la variable est absente. */
-export const DEFAULT_TRACKED_PEOPLE = "Sophie:ménage,Eric:dépannage";
-
-/** Les personnes suivies, lues dans `TRACKED_PEOPLE` (suivi ménage, alerte de porte au départ). */
+/**
+ * Les personnes suivies, lues dans `TRACKED_PEOPLE` (suivi ménage, alerte de porte au départ).
+ * **Aucune valeur par défaut** : le dépôt est public, les prénoms restent dans la variable. Sans
+ * elle, personne n'est suivi (liste vide, signalée dans les logs) — rien n'échoue.
+ */
 export function trackedPeople(): TrackedPerson[] {
-  return parsePeople(process.env.TRACKED_PEOPLE?.trim() || DEFAULT_TRACKED_PEOPLE);
+  const spec = process.env.TRACKED_PEOPLE?.trim();
+  if (!spec) {
+    console.error("[suivi] TRACKED_PEOPLE absent : aucune personne suivie");
+    return [];
+  }
+  return parsePeople(spec);
 }
 
 /**
@@ -506,7 +512,7 @@ export function isCleaningRole(role: string): boolean {
   return role.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase() === "menage";
 }
 
-/** Parse `"Sophie:ménage,Eric:dépannage"` (ou juste `"Sophie,Eric"`) en liste de personnes. */
+/** Parse `"Alice:ménage,Bruno:dépannage"` (ou juste `"Alice,Bruno"`) en liste de personnes. */
 export function parsePeople(spec: string): TrackedPerson[] {
   return spec
     .split(",")

@@ -62,7 +62,7 @@ import { isDryRun } from "@/lib/cron-params";
  * `CAMERA_SCENE_FILTER_DIDS` sont celles du garage, qui **n'est pas un espace des voyageurs** —
  * priorité 4 même pendant un séjour, sauf la nuit (22 h-8 h, 2 pendant un séjour, le temps de
  * recalibrer le filtre de nuit) — `garagePriority`. En revanche, un mouvement
- * qui suit une ouverture du digicode par un code **nommé** de la maison (Perso, Sophie, Eric…) est
+ * qui suit une ouverture du digicode par un code **nommé** de la maison (Perso, prénom d'un intervenant…) est
  * expliqué et ne notifie rien, tant que l'activité continue (`lib/camera/household.ts`, échéance
  * dans `barbusse:camera:household-until:<did>`, jugée après le filtre de scène : seul un mouvement
  * significatif prolonge la présence, 12 h au plus après la dernière ouverture ; `last-real` garde
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
             imageErrors += 1;
           }
         }
-        // Garage : une personne de la maison est entrée avec son code (Perso, Sophie…) → rien. Jugé
+        // Garage : une personne de la maison est entrée avec son code (Perso, ménage…) → rien. Jugé
         // APRÈS le filtre de scène : seul un mouvement significatif prolonge la présence, et
         // `last-real` garde sa condition (jamais du linge qui bouge).
         if (isGarage) {

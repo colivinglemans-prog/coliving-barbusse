@@ -83,7 +83,7 @@ export interface DepartureLockInput {
    * non lu (panne, lenteur, pas d'identifiants) — jamais une raison de ne pas conclure.
    */
   garage?: ReadonlyArray<{ who: string; at: Date }> | null;
-  /** Personnes suivies (`TRACKED_PEOPLE`), reconnues aux codes « # Sophie »… */
+  /** Personnes suivies (`TRACKED_PEOPLE`), reconnues aux codes « # Prénom »… */
   people: readonly string[];
   /**
    * Instant (`cts`) du dernier mouvement **significatif** de la caméra du garage
@@ -165,12 +165,12 @@ export function isCleaningCode(name: string | null | undefined, people: readonly
   return people.some((p) => mentionsPerson(name, p));
 }
 
-/** Minuscules, sans accents : « Éric » et « eric » se valent. */
+/** Minuscules, sans accents : « Élise » et « elise » se valent. */
 const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
 
 /**
  * Le libellé contient-il le nom de la personne **en mots entiers** (casse et accents ignorés) ?
- * « # Eric » oui, « Frederic » non (relecture du 2026-11-16 : une sous-chaîne prenait l'un pour
+ * « # Elise » oui, « Annelise » non (relecture du 2026-11-16 : une sous-chaîne prenait l'un pour
  * l'autre).
  */
 export function mentionsPerson(label: string, person: string): boolean {

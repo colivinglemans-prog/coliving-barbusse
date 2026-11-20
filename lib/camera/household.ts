@@ -2,8 +2,8 @@
  * Caméra du garage : pas d'alerte quand quelqu'un de la maison est entré avec son code Intratone
  * (2026-11-18, décision de l'hôte : « pas besoin d'alerte quand le code perso ouvre la porte »).
  *
- * Les voyageurs n'ont pas de code garage : toute ouverture par un code **nommé** (Perso, Sophie,
- * Eric… — `garageOpenings`, qui écarte déjà les codes nommés par un numéro de réservation) est
+ * Les voyageurs n'ont pas de code garage : toute ouverture par un code **nommé** (Perso, prénoms des
+ * intervenants… — `garageOpenings`, qui écarte déjà les codes nommés par un numéro de réservation) est
  * celle d'une personne de la maison. Un mouvement est alors **expliqué** :
  * - s'il suit une telle ouverture de moins de `AFTER_OPENING_MS`, ou la précède de moins de
  *   `BEFORE_OPENING_MS` ;
