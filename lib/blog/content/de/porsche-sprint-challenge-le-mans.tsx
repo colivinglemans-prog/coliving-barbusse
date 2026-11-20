@@ -75,8 +75,7 @@ export default function Article() {
 
       <h3>Le Mans Stadt</h3>
       <p>
-        Der sinnvolle Kompromiss: rund 20 Minuten zur Strecke außerhalb der
-        Großereignisse, abends geöffnete Restaurants, eine historische Altstadt für die
+        Der sinnvolle Kompromiss: weniger als 5 km zur Strecke, abends geöffnete Restaurants, eine historische Altstadt für die
         Begleitpersonen während der Sessions und der TGV-Bahnhof mit 55 Minuten nach
         Paris für alle, die ohne Auto anreisen.
       </p>
@@ -112,7 +111,7 @@ export default function Article() {
           Regeneration danach.
         </li>
         <li>
-          <strong>Etwa 20 Min. vom Bugatti-Circuit</strong> außerhalb der Stoßzeiten.
+          <strong>Weniger als 5 km vom Bugatti-Circuit</strong>.
         </li>
         <li>
           <strong>15 Min. zu Fuß zum TGV-Bahnhof</strong>: Paris in 55 Min., praktisch für

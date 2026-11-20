@@ -74,7 +74,7 @@ export default function Article() {
 
       <h3>Le Mans ciudad</h3>
       <p>
-        El buen compromiso: unos 20 minutos del circuito fuera de los grandes eventos,
+        El buen compromiso: a menos de 5 km del circuito,
         restaurantes abiertos por la noche, un centro histórico para entretener a los
         acompañantes durante las sesiones y la estación TGV a 55 minutos de París para
         quienes viajan sin coche.
@@ -111,7 +111,7 @@ export default function Article() {
           sesiones, recuperación después.
         </li>
         <li>
-          <strong>Unos 20 min del circuito Bugatti</strong> fuera de horas punta.
+          <strong>A menos de 5 km del circuito Bugatti</strong>.
         </li>
         <li>
           <strong>15 min a pie de la estación TGV</strong>: París en 55 min, práctico

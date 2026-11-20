@@ -70,8 +70,7 @@ export default function Article() {
 
       <h3>Le Mans city</h3>
       <p>
-        The sensible compromise: roughly 20 minutes from the circuit outside major
-        events, restaurants open in the evening, a historic centre to keep supporters
+        The sensible compromise: less than 5 km from the circuit, restaurants open in the evening, a historic centre to keep supporters
         busy during sessions, and a TGV station 55 minutes from Paris for anyone
         travelling without a car.
       </p>
@@ -106,7 +105,7 @@ export default function Article() {
           <strong>Gym and zen space</strong>: warm up before sessions, recover afterwards.
         </li>
         <li>
-          <strong>About 20 min from the Bugatti circuit</strong> outside peak traffic.
+          <strong>Less than 5 km from the Bugatti circuit</strong>.
         </li>
         <li>
           <strong>15 min walk from the TGV station</strong>: Paris in 55 min, handy for

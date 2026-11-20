@@ -19,11 +19,11 @@ export default function Article() {
         e resta facilmente accessibile dalla stazione di Le Mans.
       </p>
 
-      <h2>Calendario 2026: 13 riunioni nell'anno</h2>
+      <h2>Calendario 2026: riunioni durante tutto l'anno</h2>
       <p>
         La stagione ippica 2026 è stata inaugurata il{" "}
         <strong>4 marzo 2026</strong> con una riunione dedicata al piatto.
-        Tredici riunioni sono in programma durante tutto l'anno, alternando
+        Altre riunioni seguono durante tutto l'anno, alternando
         trotto, galoppo e corse PMU. Il calendario è concepito per
         bilanciare le discipline e valorizzare i grandi appuntamenti che
         fanno la reputazione di Le Mans nel mondo ippico.

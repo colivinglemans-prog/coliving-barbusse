@@ -4,8 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic è il più grande raduno mondiale di auto da corsa
-        d'epoca. Ogni due anni, oltre 235.000 appassionati si riuniscono al
+        Le Mans Classic è un raduno di auto da corsa d'epoca. Ogni due anni, decine di migliaia di appassionati si riuniscono al
         Circuito delle 24 Ore per vedere correre 700 vetture mitiche, dalla
         Bentley Blower alla Porsche 962. Ecco come preparare il vostro
         weekend.
@@ -67,8 +66,7 @@ export default function Article() {
 
       <h3>In città, per un accesso facile</h3>
       <p>
-        Le Mans centro resta l'opzione più pratica: 20 minuti dal
-        circuito fuori dall'evento (30-45 min nei giorni di gara), ma
+        Le Mans centro resta l'opzione più pratica: a meno di 5 km dal circuito, ma
         lontano dal traffico e dagli accampamenti. Ideale per le famiglie
         e gli amatori che vogliono anche godersi il patrimonio della
         Cité Plantagenêt.
@@ -91,8 +89,7 @@ export default function Article() {
       <h2>La nostra casa: perfetta per i club di collezionisti</h2>
       <p>
         Le nostre <strong>9 suite private con doccia privata</strong> ospitano
-        fino a 20 persone in una cornice tranquilla, a 20 minuti dal
-        Circuit Bugatti fuori dall'evento (30-45 min nei giorni di gara):
+        fino a 20 persone in una cornice tranquilla, a meno di 5 km dal Circuit Bugatti:
       </p>
       <ul>
         <li>Parcheggio gratuito in una via residenziale tranquilla</li>
