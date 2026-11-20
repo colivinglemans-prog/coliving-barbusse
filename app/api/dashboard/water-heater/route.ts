@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getWaterHeaterStatus, getDeviceURLs, getRawStates } from "@/lib/cozytouch";
+import { getWaterHeaterStatus } from "@/lib/cozytouch";
 import { guard } from "@/lib/auth";
 import { isPeak } from "@/lib/cozytouch";
 import { nowParis } from "@sejour/socle/lib/time";
@@ -11,17 +11,8 @@ export async function GET(request: NextRequest) {
   try {
     const status = await getWaterHeaterStatus();
 
-    // Temporary debug: include raw state names to diagnose
-    let debug: unknown = undefined;
-    try {
-      const { deviceURL } = await getDeviceURLs();
-      const rawStates = await getRawStates(deviceURL);
-      debug = rawStates.map((s: { name: string; value: unknown }) => ({
-        name: s.name,
-        value: s.value,
-      }));
-    } catch { /* ignore */ }
-
+    // Plus d'états bruts Cozytouch dans la réponse (2026-11-20) : le bloc de diagnostic
+    // temporaire les servait au viewer, alors que la page n'en lisait rien.
     // Heure de pic : le thermo doit être en Absence (délestage, 2026-11-09).
     const paris = nowParis();
     const peak = isPeak(paris.getHours(), paris.getMinutes());
@@ -29,7 +20,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       status,
       peak,
-      debug,
       seriesNote:
         "Le ballon thermodynamique préchauffe l'eau en amont du ballon classique. La température affichée est celle du ballon thermo.",
     });
