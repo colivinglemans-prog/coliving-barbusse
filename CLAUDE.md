@@ -684,18 +684,18 @@ recalée ; séjour terminé → supprimé. Une réservation `new` est **passée 
 `# ` tout code saisi à la main qui doit survivre.
 
 **Un code personnel commence par `#`** (règle du 2026-11-16) : l'hôte, le ménage, le dépannage —
-toute personne de la maison — ont un code dont le nom commence par `#` (« # Sophie »). C'est ce
+toute personne de la maison — ont un code dont le nom commence par `#` (« # Prénom »). C'est ce
 qui le protège de la synchro, et c'est ce que le relevé de la porte au départ reconnaît comme une
 **prise en main de la maison** (`isPersonalCode`, `lib/departure-detection.ts` : code `#`, ou nom
 contenant une personne de `TRACKED_PEOPLE` **en mot entier**, casse et accents ignorés :
-« Frederic » n'est pas « Eric », `mentionsPerson`). Un code saisi à la main sans `#` n'en est pas un.
+« Annelise » n'est pas « Elise », `mentionsPerson`). Un code saisi à la main sans `#` n'en est pas un.
 
 **Arrivée imminente** (`lib/arrival-notice.ts`, 2026-11-16) : à partir des actions que la synchro
 a **réellement exécutées** (jamais à blanc, ni `?dry=1`, ni `NUKI_SYNC_MODE` ≠ `live`), quel que
 soit le déclencheur, pour une arrivée aujourd'hui ou demain : création du code d'une réservation
 faite moins de 48 h avant l'arrivée (`isLateBooking` du socle), ou recalage `window` d'un code dont
 le **jour** d'arrivée a changé → ntfy « Arrivée imminente — <Prénom> » : « Arrivée ce soir —
-réservation de dernière minute, 7 voyageurs. Dernier ménage enregistré : Sophie, 15/11 11 h 05
+réservation de dernière minute, 7 voyageurs. Dernier ménage enregistré : <Prénom>, 15/11 11 h 05
 (dernier départ : 15/11) ». Jamais d'heure d'arrivée, jamais « non constaté » (sinon « aucun ménage
 enregistré depuis le dernier départ ») ; seul le rôle `ménage` de `TRACKED_PEOPLE` compte (un
 dépannage n'est pas un ménage). Dernier départ : lecture Beds24 de plus (60 jours). Priorité **4**
@@ -1287,7 +1287,7 @@ Cadences **relevées sur cron-job.org le 2026-11-15** (heure de Paris) :
 | Messages voyageurs | `/api/cron/messages-voyageurs` | `*/10 * * * *` |
 | Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
 | Veille caméra (mouvement) | `/api/cron/camera-watch` | `*/10 * * * *` |
-| Suivi ménage (Sophie) | `/api/cron/cleaning-watch` | `*/10 * * * *` |
+| Suivi ménage | `/api/cron/cleaning-watch` | `*/10 * * * *` |
 | Préparation d'arrivée | `/api/cron/arrival-readiness` | `35 * * * *` (jour et nuit) |
 | Envoi des prix | `/api/cron/pricing-push` | `10 8 * * *` — **8 h 10 heure de Paris** depuis le 2026-11-15 (05:10 UTC avant) |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
@@ -1378,7 +1378,7 @@ lit l'état, l'image instantanée et surtout les **événements de mouvement** (
 |---|---|
 | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Client API cloud AJCloud : login (défi NaCl Box + signature HMAC-SHA256 `X-UAC-Signature`), `device-list`, `fetch-infos` (snapshot, RTSP local, en ligne), `alarms-survey` (mouvement). `tweetnacl` pour le chiffrement. |
 | [lib/camera/watch.ts](lib/camera/watch.ts) | Logique pure : nouveaux événements depuis le dernier `cts`, mise en forme. Testée (`tests/camera/`). |
-| `/api/cron/camera-watch` | Toutes les 10 min (cron-job.org ; battement toléré 30 min). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. Depuis le 2026-11-16, filtre de scène pour les caméras de `CAMERA_SCENE_FILTER_DIDS` (le garage) : un mouvement dont l'image ne change pas (linge qui bouge) est ignoré pendant un séjour, muet (priorité 1) maison vide (`lib/camera/scene.ts`, seuil `CAMERA_SCENE_THRESHOLD`, défaut 12 ; `CAMERA_SCENE_FILTER=false` le coupe ; ignorés dans `barbusse:camera:ignored`, envoyés avec leur écart dans `barbusse:camera:sent`, 50 derniers chacun). Depuis le 2026-11-18 : **la seule caméra branchée est celle du garage** (nommée « Porte d'entrée » dans l'appli ; entrée et jardin pas encore connectées). Le garage n'est pas un espace des voyageurs : **priorité 4 même pendant un séjour, sauf la nuit (22 h-8 h) où un séjour la ramène à 2** le temps de recalibrer le filtre de nuit (`garagePriority`) ; maison vide toujours 4 ; sauf un mouvement qui suit une ouverture du digicode Intratone par un code **nommé** de la maison (Perso, Sophie, Eric — `garageOpenings`) : aucune alerte tant que l'activité continue (`lib/camera/household.ts` : 30 min après l'ouverture, 10 min avant, chaîne de 30 min prolongée **seulement par un mouvement significatif** au sens du filtre de scène, 12 h au plus après la dernière ouverture ; échéance `barbusse:camera:household-until:<did>` ; `last-real` garde sa condition). Inclut Sophie, Eric et tout futur code nommé sans n° de réservation. Les futures caméras d'entrée et de jardin : rien pendant un séjour (décision de l'hôte, à faire au branchement). |
+| `/api/cron/camera-watch` | Toutes les 10 min (cron-job.org ; battement toléré 30 min). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. Depuis le 2026-11-16, filtre de scène pour les caméras de `CAMERA_SCENE_FILTER_DIDS` (le garage) : un mouvement dont l'image ne change pas (linge qui bouge) est ignoré pendant un séjour, muet (priorité 1) maison vide (`lib/camera/scene.ts`, seuil `CAMERA_SCENE_THRESHOLD`, défaut 12 ; `CAMERA_SCENE_FILTER=false` le coupe ; ignorés dans `barbusse:camera:ignored`, envoyés avec leur écart dans `barbusse:camera:sent`, 50 derniers chacun). Depuis le 2026-11-18 : **la seule caméra branchée est celle du garage** (nommée « Porte d'entrée » dans l'appli ; entrée et jardin pas encore connectées). Le garage n'est pas un espace des voyageurs : **priorité 4 même pendant un séjour, sauf la nuit (22 h-8 h) où un séjour la ramène à 2** le temps de recalibrer le filtre de nuit (`garagePriority`) ; maison vide toujours 4 ; sauf un mouvement qui suit une ouverture du digicode Intratone par un code **nommé** de la maison (Perso, ménage, dépannage — `garageOpenings`) : aucune alerte tant que l'activité continue (`lib/camera/household.ts` : 30 min après l'ouverture, 10 min avant, chaîne de 30 min prolongée **seulement par un mouvement significatif** au sens du filtre de scène, 12 h au plus après la dernière ouverture ; échéance `barbusse:camera:household-until:<did>` ; `last-real` garde sa condition). Inclut les intervenants et tout futur code nommé sans n° de réservation. Les futures caméras d'entrée et de jardin : rien pendant un séjour (décision de l'hôte, à faire au branchement). |
 
 - **Anti-inondation** : au premier passage d'une caméra, aucune notification — on pose seulement
   la ligne de base `barbusse:camera:last-cts:<did>` (Redis). Les passages suivants ne notifient
@@ -1391,14 +1391,14 @@ lit l'état, l'image instantanée et surtout les **événements de mouvement** (
 - Variables : `AJCLOUD_EMAIL`, `AJCLOUD_PASSWORD`, `NTFY_TOPIC`, `CRON_SECRET` ;
   `CAMERA_WATCH_ENABLED=false` coupe sans redéployer.
 
-## Suivi de la femme de ménage (Sophie)
+## Suivi de la femme de ménage
 
-Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune facultative :
+Alerte quand la femme de ménage arrive, et journal de ses passages. Trois sources, chacune facultative :
 
 | Source | Pièce | Rôle |
 |---|---|---|
 | **Garage** (Intratone) | [lib/cleaning/intratone.ts](lib/cleaning/intratone.ts) | Ouvertures par code clavier du digicode (les codes dont le libellé contient un nom de `TRACKED_PEOPLE`). |
-| **Porte** (Nuki) | journal de la serrure | Code manuel « # Sophie », lu via `listLogSince` du socle depuis le dernier passage réussi (`lib/nuki-log-cursor.ts`). |
+| **Porte** (Nuki) | journal de la serrure | Code manuel « # Prénom », lu via `listLogSince` du socle depuis le dernier passage réussi (`lib/nuki-log-cursor.ts`). |
 | **Caméra** (mouvement) | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Derniers mouvements, pour **estimer** l'heure de sortie. |
 
 | Pièce | Rôle |
@@ -1416,17 +1416,17 @@ Alerte quand Sophie arrive, et journal de ses passages. Trois sources, chacune f
   connectés ; `evts_recup` est refusé hors UI) — d'où un suivi décalé (cron toutes les 10 min, mais l'événement n'arrive qu'à sa récupération), pas temps réel.
 - **Les ouvertures ne tracent que les entrées** (sortie par bouton poussoir interne, sans nom). La fin de
   visite est donc **estimée** (dernier mouvement caméra, sinon BP), pas mesurée. Les heures servent à
-  **recouper la facture de Sophie, pas à pointer** (statut auto-entrepreneur, risque de salariat déguisé).
+  **recouper sa facture, pas à pointer** (statut auto-entrepreneur, risque de salariat déguisé).
 - Rien de sensible en clair ni dans les logs (identifiants, jwt, code). Le dépôt est public : l'id de
-  centrale et le code de Sophie restent **hors du dépôt** (variables d'environnement).
+  centrale, son code, les prénoms et les tarifs restent **hors du dépôt** (variables d'environnement).
 - Variables : `INTRATONE_USER/PASS`, `INTRATONE_CENTRALE_ID`, `TRACKED_PEOPLE` (nom:rôle),
-  `CLEANING_RATES` (« Sophie:21 » en €/h, pour le coût de la page Suivi), plus `NUKI_*`,
+  `CLEANING_RATES` (« Alice:21 » en €/h, pour le coût de la page Suivi), plus `NUKI_*`,
   `AJCLOUD_*`, `NTFY_TOPIC`. `CLEANING_WATCH_ENABLED=false` coupe.
 - **Page admin `/dashboard/suivi`** : cartes par personne (passages, heures estimées, coût),
   graphe mensuel, journal des passages. Les heures/sorties ne couvrent que les visites récentes
   (historique caméra limité) — assumé, affiché « estimé ». Admin seulement (hors liste blanche viewer).
 - **Code personnel = `#`** : le code Nuki de chaque personne de la maison commence par `#`
-  (« # Sophie ») ; c'est ce qui fait de son passage une prise en main pour le relevé de la porte
+  (« # Prénom ») ; c'est ce qui fait de son passage une prise en main pour le relevé de la porte
   au départ. Au garage, tout code Intratone **nommé** compte (`garageOpenings`, sans le filtre
   `trackedOpenings` ; les voyageurs n'ont pas de code garage — un code donné un jour à un groupe se
   nomme `<n° résa>: …` pour être exclu).
@@ -1480,9 +1480,9 @@ CAMERA_WATCH_ENABLED     # Optionnel : "false" pour couper la veille caméra san
 INTRATONE_USER           # Portail Intratone (digicode garage) — suivi ménage
 INTRATONE_PASS           # Mot de passe Intratone
 INTRATONE_CENTRALE_ID    # Id de la centrale digicode du garage (hors dépôt : dépôt public)
-TRACKED_PEOPLE           # Optionnel : "Sophie:ménage,Eric:dépannage" — personnes suivies (nom:rôle)
+TRACKED_PEOPLE           # "Prénom:ménage,Prénom:dépannage" — personnes suivies (nom:rôle) ; sans défaut dans le code (dépôt public)
 CLEANING_WATCH_ENABLED   # Optionnel : "false" pour couper le suivi ménage sans redéployer
-CLEANING_RATES           # Optionnel : "Sophie:21" (€/h) — coût estimé sur la page /dashboard/suivi
+CLEANING_RATES           # "Prénom:21" (€/h) — coût estimé sur la page /dashboard/suivi ; absent = pas de coût
 CAMERA_LIVE_BASE         # Optionnel : URL du pont vidéo local (go2rtc/Freebox) pour le direct dans /dashboard/video
 BEDS24_WEBHOOK_SECRET    # En-tête x-webhook-secret du webhook Beds24 (?key= en secours)
 DEEPL_API_KEY            # Local seulement (scripts/translate-reviews.mjs), pas sur Vercel

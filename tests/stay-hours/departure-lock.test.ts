@@ -205,13 +205,13 @@ describe("departureLockCheck (pure)", () => {
   });
 
   it("TRACKED_PEOPLE : correspondance en mot entier, sans casse ni accents ; le préfixe # suffit", () => {
-    expect(isCleaningCode("Frederic", ["Eric"])).toBe(false);
-    expect(isCleaningCode("Frédéric", ["Éric"])).toBe(false);
-    expect(isCleaningCode("# éric", ["Eric"])).toBe(true);
-    expect(isCleaningCode("Code ERIC-2", ["Éric"])).toBe(true);
-    expect(isPersonalCode("Frederic", ["Eric"])).toBe(false);
-    expect(isPersonalCode("# Frederic", ["Eric"])).toBe(true);
-    expect(departureLockCheck({ ...standard, people: ["Eric"], log: [entry(at(11, 10), "Frederic")] }).status).toBe("unlocked");
+    expect(isCleaningCode("Annelise", ["Elise"])).toBe(false);
+    expect(isCleaningCode("Annélise", ["Élise"])).toBe(false);
+    expect(isCleaningCode("# élise", ["Elise"])).toBe(true);
+    expect(isCleaningCode("Code ELISE-2", ["Élise"])).toBe(true);
+    expect(isPersonalCode("Annelise", ["Elise"])).toBe(false);
+    expect(isPersonalCode("# Annelise", ["Elise"])).toBe(true);
+    expect(departureLockCheck({ ...standard, people: ["Elise"], log: [entry(at(11, 10), "Annelise")] }).status).toBe("unlocked");
   });
 
   it("serrure en ligne mais état nul ou de passage (2, 4, 7, 255) : rien n'est conclu", () => {

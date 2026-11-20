@@ -13,7 +13,7 @@
  *      ouvertures par **code clavier** (`evt=4`). Colonnes : Quand / Quoi / code / Qui.
  *
  * Rien n'est journalisé en clair (identifiants, jwt). Les événements ne portent que le prénom
- * du libellé du code (ex. « Sophie »), jamais de donnée sensible.
+ * du libellé du code (ex. « Alice »), jamais de donnée sensible.
  *
  * ⚠️ Fraîcheur : les événements récents n'apparaissent qu'une fois « récupérés » depuis
  * l'interphone. Les interphones connectés (4G/LoRa) téléversent seuls ; la « récupération »
@@ -35,7 +35,7 @@ export interface KeypadOpening {
   at: Date;
   /** Numéro du code utilisé (ex. « 100200 »). */
   code: string;
-  /** Libellé du code (prénom), ex. « Sophie ». */
+  /** Libellé du code (prénom), ex. « Alice ». */
   name: string;
 }
 

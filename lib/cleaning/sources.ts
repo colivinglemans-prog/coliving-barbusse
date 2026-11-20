@@ -21,7 +21,7 @@ import {
  * Les quatre sources de données du suivi des intervenants, partagées par le cron
  * (`/api/cron/cleaning-watch`) et la page dashboard (`/api/dashboard/suivi`) :
  *  - `garageArrivals` : ouvertures du digicode Intratone aux noms suivis ;
- *  - `doorArrivals`   : codes Nuki manuels (« # Sophie »…) dans le journal de la serrure, hors
+ *  - `doorArrivals`   : codes Nuki manuels (« # Prénom »…) dans le journal de la serrure, hors
  *                       codes gérés des séjours (« <n° résa>: <Prénom> ») ;
  *  - `cameraMotions`  : mouvements des caméras (pour estimer la sortie) ;
  *  - `buttonPresses`  : appuis sur le bouton poussoir (sortie de secours pour l'estimation).
@@ -76,7 +76,7 @@ export async function doorReading(
 ): Promise<{ arrivals: CleaningArrival[]; guestCodes: GuestKeypadCode[]; personal: CleaningArrival[] }> {
   if (!process.env.NUKI_API_TOKEN || !process.env.NUKI_SMARTLOCK_ID) throw new Error("no-credentials");
   const log = await listLogSince(nukiConfig(), since);
-  // Les codes gérés des séjours (« <n° résa>: Sophie ») sont exclus par `doorLogArrivals`.
+  // Les codes gérés des séjours (« <n° résa>: Prénom ») sont exclus par `doorLogArrivals`.
   return {
     arrivals: doorLogArrivals(log, people),
     guestCodes: guestKeypadCodes(log),

@@ -17,12 +17,12 @@ import { reportAlerts, reportCronRun, type TrackedAlert } from "@/lib/alert-memo
 import { sendCronAlert } from "@/lib/alerts";
 
 /**
- * Suivi des intervenants de la maison : alerte quand une personne suivie arrive (ménage Sophie,
- * dépannage Eric…), et journal de leurs passages.
+ * Suivi des intervenants de la maison : alerte quand une personne suivie arrive (ménage,
+ * dépannage…), et journal de leurs passages.
  *
  * Trois sources, chacune facultative (si l'une manque, les autres continuent) :
  *  - **Garage** : ouvertures par code clavier sur le digicode Intratone (codes libellés aux noms suivis).
- *  - **Porte**  : codes Nuki manuels (« # Sophie »…) lus dans le journal de la serrure.
+ *  - **Porte**  : codes Nuki manuels (« # Prénom »…) lus dans le journal de la serrure.
  *  - **Caméra** : derniers mouvements, pour **estimer** l'heure de sortie (le garage ne trace
  *    pas les sorties) — complété par les appuis bouton poussoir.
  *
@@ -39,7 +39,7 @@ import { sendCronAlert } from "@/lib/alerts";
  * nom ne part que dans ntfy (ni log, ni réponse, ni journal des notifications : un compteur).
  *
  * Variables : `INTRATONE_USER/PASS`, `INTRATONE_CENTRALE_ID`, `TRACKED_PEOPLE`
- * (« Sophie:ménage,Eric:dépannage »), `NUKI_API_TOKEN/SMARTLOCK_ID`, `AJCLOUD_EMAIL/PASSWORD`,
+ * (« Alice:ménage,Bruno:dépannage »), `NUKI_API_TOKEN/SMARTLOCK_ID`, `AJCLOUD_EMAIL/PASSWORD`,
  * `NTFY_TOPIC`, `CRON_SECRET`. `CLEANING_WATCH_ENABLED=false` le coupe. `?dry=1` calcule sans
  * envoyer ni mémoriser (ni alerter). Cron-job.org, toutes les 10 minutes.
  */
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     });
     const buttons = await buttonPresses().catch(() => [] as Date[]);
 
-    // Garage ou porte illisibles : un passage de Sophie ne serait ni signalé ni journalisé. Règle
+    // Garage ou porte illisibles : un passage du ménage ne serait ni signalé ni journalisé. Règle
     // commune (deux passages de suite, jamais répétée, rétabli en 1). Une source sans identifiants
     // (`no-credentials`) est facultative par construction : pas une panne.
     // Garage ou porte en panne : le passage n'a pas vu ce qu'il devait voir, la réponse ne dit pas

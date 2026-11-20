@@ -230,7 +230,7 @@ passage live de la synchro. Notée dans le journal sous « Arrivée imminente »
   haute. Un changement de priorité d'une alerte ouverte la relance (escalade) : voulu, des
   voyageurs arrivent et la panne dure. « Plusieurs radiateurs → 4 » se décide à l'envoi, sur les
   seuls confirmés (option `priority` de `reportAlerts`).
-- **Passages Sophie / Eric** (`cleaning-watch`) : priorité 2.
+- **Passages des intervenants** (`cleaning-watch`) : priorité 2.
 - **Arrivée d'un autre code perso** (`cleaning-watch`, 2026-11-18) : priorité 2, une par venue
   (même nom à moins de 45 min, garage et porte confondus). Tout code Intratone **nommé** du garage
   et tout code Nuki manuel « # Nom » de la porte, hors personnes suivies (`TRACKED_PEOPLE`, déjà

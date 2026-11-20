@@ -13,7 +13,7 @@ import {
 } from "recharts";
 
 /**
- * Page « Suivi » (admin) : les passages des intervenants (ménage Sophie, dépannage Eric…),
+ * Page « Suivi » (admin) : les passages des intervenants (ménage, dépannage…),
  * reconstitués depuis le garage (Intratone) et la porte (Nuki), fin de visite estimée par la
  * caméra. Totaux par personne (heures, coût), graphe mensuel, et journal des passages.
  *
