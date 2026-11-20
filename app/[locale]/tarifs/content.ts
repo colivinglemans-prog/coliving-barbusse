@@ -59,6 +59,7 @@ export function pricesContent(locale: Locale): PricesContent {
           onRequest: "Price on the payment page",
           book: "Book these dates",
           updatedAt: (d) => `Prices checked within the 24 hours before ${d}; the exact price for your dates and group is shown in the calendar.`,
+          pricedBetween: (a, b) => `Prices checked between ${a} and ${b}; the exact price for your dates is shown in the calendar.`,
         },
       };
     case "de":
@@ -87,6 +88,7 @@ export function pricesContent(locale: Locale): PricesContent {
           onRequest: "Preis auf der Zahlungsseite",
           book: "Diese Daten buchen",
           updatedAt: (d) => `Preise in den 24 Stunden vor dem ${d} abgefragt; der genaue Preis für Ihre Daten und Ihre Gruppe steht im Kalender.`,
+          pricedBetween: (a, b) => `Preise abgefragt zwischen dem ${a} und dem ${b}; der genaue Preis für Ihre Daten steht im Kalender.`,
         },
       };
     case "es":
@@ -115,6 +117,7 @@ export function pricesContent(locale: Locale): PricesContent {
           onRequest: "Precio en la página de pago",
           book: "Reservar estas fechas",
           updatedAt: (d) => `Precios consultados en las 24 horas anteriores al ${d}; el precio exacto de sus fechas y su grupo aparece en el calendario.`,
+          pricedBetween: (a, b) => `Precios consultados entre el ${a} y el ${b}; el precio exacto de sus fechas aparece en el calendario.`,
         },
       };
     case "it":
@@ -143,6 +146,7 @@ export function pricesContent(locale: Locale): PricesContent {
           onRequest: "Prezzo nella pagina di pagamento",
           book: "Prenota queste date",
           updatedAt: (d) => `Prezzi rilevati nelle 24 ore precedenti il ${d}; il prezzo esatto per le vostre date e il vostro gruppo è nel calendario.`,
+          pricedBetween: (a, b) => `Prezzi rilevati tra il ${a} e il ${b}; il prezzo esatto per le vostre date è nel calendario.`,
         },
       };
     default:
@@ -171,6 +175,7 @@ export function pricesContent(locale: Locale): PricesContent {
           onRequest: "Prix sur la page de paiement",
           book: "Réserver ces dates",
           updatedAt: (d) => `Prix relevés dans les 24 heures précédant le ${d} ; le prix exact de vos dates et de votre groupe s'affiche dans le calendrier.`,
+          pricedBetween: (a, b) => `Prix relevés entre le ${a} et le ${b} ; le prix exact de vos dates s'affiche dans le calendrier.`,
         },
       };
   }
