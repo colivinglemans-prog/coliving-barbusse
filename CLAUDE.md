@@ -361,12 +361,13 @@ Pourquoi : lors des tests du 19/11/2026, les assistants IA ne trouvaient aucun p
 - Perplexity citait un faux « 150 à 250 €/nuit/personne ».
 
 Les assistants ne lisent ni le calendrier, ni `llms.txt`, ni l'API de devis.
-Plan : `C:\Users\alexa\.claude\plans\curried-mapping-stallman.md` (lot 1).
+Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
 
 - **Architecture : le calcul ne passe jamais par une page visitée.**
   - Le cron `app/api/cron/price-grid` tourne **toutes les heures via cron-job.org** (le plan
     Hobby n'accepte que des crons Vercel quotidiens), avec `Authorization: Bearer $CRON_SECRET` et
-    `maxDuration = 60` (plafond Hobby ; calcul arrêté à ~45 s, repris au passage suivant grâce aux prix en cache).
+    `maxDuration = 60` (plafond Hobby ; voir la fiche cron-job.org ci-dessous). Battement `price-grid`
+    (150 min) : `error` pour un échec ou un `incomplete` qui dure (`stalled`).
   - Il calcule la grille (`computePriceGrid`, `lib/tarifs.ts`) et la range dans Upstash sous
     `barbusse:price-grid`, au format `{ grid, generatedAt, composition }`, via
     `@sejour/socle/lib/price-grid-job`.
@@ -378,6 +379,16 @@ Plan : `C:\Users\alexa\.claude\plans\curried-mapping-stallman.md` (lot 1).
     - Si rien n'est rangé ou si la composition a changé, elle renvoie au calendrier, sans jamais
       d'erreur 500.
     - Si la grille a plus de 24 h, les lignes passées sont retirées et le JSON-LD n'est pas émis.
+- **Fiche cron-job.org** : toutes les heures, en-tête `Authorization: Bearer <CRON_SECRET>`, **délai de
+  30 s** (valeur par défaut de cron-job.org) — d'où `timeBudgetMs` ≈ 22 s : le calcul s'arrête avant,
+  les prix déjà demandés restent en cache 12 h, la grille se complète en 2 ou 3 passages
+  (`incomplete`). Au 3e `incomplete` de suite, ou sans succès depuis 24 h, c'est un relevé KO
+  (`stalled`, alerte au 2e). Un verrou (`…:lock`, 90 s) empêche deux calculs simultanés.
+- **Après un déploiement** : appeler le cron à la main, **à répétition, jusqu'à `"outcome":"stored"`**
+  (`curl -H "Authorization: Bearer $CRON_SECRET" https://…/api/cron/price-grid`).
+- **Lecture** : `getPriceGrid` passe par `unstable_cache` (5 min, tag `price-grid`) — le client
+  Upstash lit en `no-store`, ce qui rendrait la page dynamique ; ainsi elle reste en ISR. Elle vérifie
+  aussi `PRIX_PUBLICS` à la lecture (couper agit tout de suite) et ignore une grille de plus de 7 jours.
 - **Composition versionnée** (`PRICE_GRID_COMPOSITION`) : à changer dès que les séjours ou les
   groupes changent. **Appeler le cron à la main après un tel déploiement**, sinon la page reste
   sans prix jusqu'au passage suivant.

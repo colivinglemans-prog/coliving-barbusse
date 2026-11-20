@@ -21,6 +21,7 @@
  *   changent — la page ne sert jamais une grille d'une autre composition.
  * - **Interrupteur** : `PRIX_PUBLICS=off` (ou `0`, `false`) coupe tous les prix au prochain calcul.
  */
+import { unstable_cache } from "next/cache";
 import { addDays } from "@sejour/socle/lib/dates";
 import {
   buildPriceGrid,
@@ -141,18 +142,37 @@ export async function computePriceGrid(counter?: { availability: number; price: 
       enabled: publicPricesEnabled(),
       // getroomprice répond 403 à des appels trop rapprochés (mesuré le 19/11/2026).
       pauseMs: 700,
-      // La route a 60 s (plan Hobby) : on s'arrête avant, les prix déjà demandés restent en cache.
-      timeBudgetMs: 45_000,
+      // cron-job.org coupe la requête à 30 s par défaut (la route en a 60) : on s'arrête à ~22 s ;
+      // les prix déjà demandés restent en cache 12 h, la grille se complète en 2 ou 3 passages.
+      timeBudgetMs: 22_000,
     },
   );
 }
 
-/** La grille rangée par le cron, ou `null` (Upstash absent ou vide, autre composition). */
+/** Au-delà, une grille rangée n'est plus servie du tout (le cron est arrêté depuis trop longtemps). */
+const MAX_AGE_MS = 7 * 24 * 3_600_000;
+
+/**
+ * Lecture mise en cache 5 min (`unstable_cache`, tag `price-grid`) : le client Upstash lit en
+ * `no-store`, ce qui rendrait la page dynamique à chaque visite ; enveloppée, elle reste en ISR.
+ * Aucun `try/catch` ici : `readPriceGrid` ne lève jamais (magasin illisible → `null`), et une
+ * erreur de rendu dynamique de Next ne doit pas être avalée.
+ */
+const readStored = unstable_cache(
+  async (composition: string): Promise<ReadPriceGrid | null> =>
+    hasRedis() ? readPriceGrid(stringStore(), PRICE_GRID_KEY, composition, { today: todayParis() }) : null,
+  ["price-grid-read"],
+  { revalidate: 300, tags: ["price-grid"] },
+);
+
+/**
+ * La grille rangée par le cron, ou `null` : Upstash absent ou vide, autre composition, prix publics
+ * coupés (`PRIX_PUBLICS`, vérifié aussi à la lecture : couper ne doit pas attendre le calcul
+ * suivant), ou grille de plus de 7 jours.
+ */
 export async function getPriceGrid(): Promise<ReadPriceGrid | null> {
-  if (!hasRedis()) return null;
-  try {
-    return await readPriceGrid(stringStore(), PRICE_GRID_KEY, PRICE_GRID_COMPOSITION, { today: todayParis() });
-  } catch {
-    return null;
-  }
+  if (!publicPricesEnabled()) return null;
+  const read = await readStored(PRICE_GRID_COMPOSITION);
+  if (!read || Date.now() - Date.parse(read.grid.generatedAt) > MAX_AGE_MS) return null;
+  return read;
 }

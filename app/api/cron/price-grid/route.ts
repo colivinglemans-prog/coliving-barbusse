@@ -18,8 +18,8 @@ import { computePriceGrid, PRICE_GRID_COMPOSITION, PRICE_GRID_KEY } from "@/lib/
  * Après chaque déploiement qui change la composition, appeler la route une fois à la main.
  */
 export const dynamic = "force-dynamic";
-// Plafond du plan Hobby. Le calcul s'arrête à ~45 s (`timeBudgetMs`) : au premier passage (cache de
-// prix vide), la grille n'est rangée qu'au passage suivant, qui reprend les prix déjà mis en cache.
+// Plafond du plan Hobby. Le calcul s'arrête à ~22 s (`timeBudgetMs`, cron-job.org coupe à 30 s) :
+// à cache de prix vide, la grille n'est rangée qu'au 2e ou 3e passage, qui reprend les prix en cache.
 export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
@@ -41,12 +41,14 @@ export async function GET(request: NextRequest) {
         notify: (n) => sendNtfy(n.body, { title: `[Tarifs] ${n.title}`, priority: n.priority, tags: ["moneybag", "warning"] }),
       },
     );
-    // Un passage « incomplete » ou « skipped » est un planificateur vivant : il bat `ok`.
-    if (!dry) await beat("price-grid", report.outcome === "failed" ? "error" : "ok");
+    // « skipped » ou un « incomplete » passager : planificateur vivant, `ok`. Un échec ou un
+    // « incomplete » qui dure (`stalled`) : `error`.
+    if (!dry) await beat("price-grid", report.outcome === "failed" || report.stalled ? "error" : "ok");
     const grid = report.grid;
     return NextResponse.json({
       success: report.outcome !== "failed",
       outcome: report.outcome,
+      stalled: report.stalled,
       reason: report.reason,
       alert: report.alert,
       calls,

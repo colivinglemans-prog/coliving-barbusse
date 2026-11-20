@@ -57,6 +57,13 @@ export function stringStore(ttlSeconds?: number) {
       if (ttlSeconds) await getRedis().set(key, value, { ex: ttlSeconds });
       else await getRedis().set(key, value);
     },
+    /** `SET key value NX EX ttl` : verrou (grille des tarifs). `true` si posé. */
+    async setIfAbsent(key: string, value: string, ttl: number): Promise<boolean> {
+      return (await getRedis().set(key, value, { nx: true, ex: ttl })) === "OK";
+    },
+    async del(key: string): Promise<void> {
+      await getRedis().del(key);
+    },
   };
 }
 
