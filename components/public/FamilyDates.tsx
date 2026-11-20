@@ -30,9 +30,11 @@ const FAMILY_DATES: { key: DateKey; checkIn: string; checkOut: string }[] = [
   { key: "mayDay", checkIn: "2027-04-30", checkOut: "2027-05-02" },
   { key: "ascension", checkIn: "2027-05-06", checkOut: "2027-05-09" },
   { key: "pentecost", checkIn: "2027-05-15", checkOut: "2027-05-17" },
-  // ⚠️ N'ajouter une date qu'une fois le calendrier Beds24 ouvert jusque-là : au-delà de
-  // l'horizon de réservation, `/api/availability` répond « pris », et la ligne
-  // s'afficherait « Complet » à tort. Horizon au 2026-11-04 : 31 août 2027.
+  // ⚠️ N'ajouter une date qu'une fois le calendrier Beds24 ouvert jusque-là, et à moins de
+  // 400 jours : au-delà, la ligne s'afficherait « Complet » à tort. Deux horizons comptent :
+  // celui de Beds24 (nuit rendue « prise » ; 31 août 2027 au 2026-11-04) et celui de
+  // `/api/availability`, bornée à aujourd'hui + 400 jours depuis le 2026-11-20 (nuit absente de
+  // la réponse, lue « non réservable » par `AvailabilityDates`, `lib/bookable-nights.ts`).
 ];
 
 interface Copy {

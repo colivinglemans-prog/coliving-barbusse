@@ -8,6 +8,7 @@ import {
 } from "@sejour/socle/lib/availability";
 import { bookingUrl } from "@sejour/socle/lib/booking-url";
 import { PROPERTY_ID } from "@/lib/beds24-property";
+import { knownNights } from "@/lib/bookable-nights";
 import type { Locale } from "@/lib/i18n";
 
 /**
@@ -151,6 +152,7 @@ export default function AvailabilityDates({
       }
 
       let data: Partial<AvailabilityResponse> = {};
+      let read = false;
       try {
         const from = upcoming[0].checkIn;
         // Marge de quelques nuits : une période plus courte que le séjour minimum est
@@ -161,6 +163,7 @@ export default function AvailabilityDates({
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         data = await res.json();
+        read = true;
       } catch {
         // Panne d'API : on affiche les dates comme libres, Beds24 revalide au paiement.
       }
@@ -173,7 +176,9 @@ export default function AvailabilityDates({
           // l'allonge jusqu'au minimum.
           const end =
             daysBetween(p.checkIn, p.checkOut) < minStay ? addDays(p.checkIn, minStay) : p.checkOut;
-          const free = longestFreeRange(data.dates ?? {}, p.checkIn, end);
+          // Réponse lue : une nuit absente (au-delà de l'horizon de 400 jours de la route) n'est
+          // pas réservable (`knownNights`). Panne d'API : libres, comme avant.
+          const free = longestFreeRange(read ? knownNights(data.dates ?? {}, p.checkIn, end) : {}, p.checkIn, end);
           if (!free || free.nights < minStay) {
             return { ...p, checkOut: end, minStay, status: "soldout", free: null };
           }

@@ -5,8 +5,12 @@ import { getJson, getRedis, hasRedis, redisKey, setJson } from "@/lib/redis";
  * secret (demandé par l'hôte le 2026-11-08 : le champ « Custom Header » de Beds24 contenait des
  * chevrons recopiés, et rien ne permettait de voir que chaque appel était refusé).
  *
- * Rien du secret n'est gardé : seulement l'issue, et si la valeur reçue était entourée de
- * chevrons (l'erreur la plus probable).
+ * Rien du secret n'est gardé : seulement l'issue et la voie (`via`).
+ *
+ * **Appels acceptés seulement** depuis l'audit du 15/11 : un appel anonyme (ou le contrôle
+ * `security.webhooks` du socle, qui envoie exprès un faux secret) écrasait le témoin. Les refus
+ * n'écrivent plus rien ; les clés ont changé (`…:accepted`, `…:accepted-recent`) pour que le
+ * dernier refus gardé sous l'ancienne clé ne reste pas affiché 30 jours.
  */
 export type WebhookResult = "accepted" | "no-header" | "bad-secret" | "no-config";
 export interface WebhookTrace {
@@ -39,20 +43,18 @@ export interface WebhookTrace {
   userAgent?: string;
 }
 
-const KEY = () => redisKey("webhook", "beds24", "last");
+const KEY = () => redisKey("webhook", "beds24", "accepted");
+const RECENT = () => redisKey("webhook", "beds24", "accepted-recent");
 
+/** À n'appeler que pour un appel **accepté** (la route refuse sans rien écrire). */
 export async function recordWebhookCall(trace: WebhookTrace): Promise<void> {
-  if (!hasRedis()) return;
+  if (!hasRedis() || trace.result !== "accepted") return;
   try {
     await setJson(KEY(), trace, 30 * 86_400);
-    // Les 20 derniers appels. Les paires « no-header » puis « bad-secret » (POST, corps `{}`, agent
-    // `node`, faux secret de 29 caractères) ne viennent PAS de Beds24 : c'est le contrôle
-    // `security.webhooks` du socle (post-déploiement et surveillance), qui vérifie le refus
-    // (établi le 2026-11-11). Beds24, lui, est accepté.
-    const list = redisKey("webhook", "beds24", "recent");
-    await getRedis().lpush(list, JSON.stringify(trace));
-    await getRedis().ltrim(list, 0, 19);
-    await getRedis().expire(list, 30 * 86_400);
+    // Les 20 derniers appels acceptés.
+    await getRedis().lpush(RECENT(), JSON.stringify(trace));
+    await getRedis().ltrim(RECENT(), 0, 19);
+    await getRedis().expire(RECENT(), 30 * 86_400);
   } catch {
     // Jamais fatal : c'est un témoin, pas une fonction.
   }
@@ -64,15 +66,5 @@ export async function lastWebhookCall(): Promise<WebhookTrace | null> {
     return await getJson<WebhookTrace>(KEY());
   } catch {
     return null;
-  }
-}
-
-/** Vrai au plus une fois toutes les 6 h : pour ne pas alerter à chaque appel refusé. */
-export async function firstRefusalAlert(): Promise<boolean> {
-  if (!hasRedis()) return true;
-  try {
-    return Boolean(await getRedis().set(redisKey("webhook", "beds24", "alert"), 1, { nx: true, ex: 6 * 3600 }));
-  } catch {
-    return false;
   }
 }

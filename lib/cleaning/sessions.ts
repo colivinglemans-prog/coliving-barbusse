@@ -39,7 +39,8 @@ export interface CleaningSession {
   minutes: number | null;
 }
 
-const SAME_VISIT_GAP_MS = 45 * 60 * 1000; // deux passages de la même personne à <45 min = une venue
+/** Deux passages de la même personne à moins de 45 min = une venue (aussi la règle du magasin). */
+export const SAME_VISIT_GAP_MS = 45 * 60 * 1000;
 const MAX_VISIT_MS = 8 * 60 * 60 * 1000; // on ne cherche pas une sortie au-delà de 8 h
 
 /**
@@ -76,6 +77,20 @@ export function doorLogArrivals(
     if (who) out.push({ source: "porte", at: new Date(e.date), who });
   }
   return out;
+}
+
+/**
+ * Les entrées des **voyageurs** au clavier (code géré d'un séjour, « <n° résa>: <Prénom> »),
+ * lues dans le même journal que `doorLogArrivals`. Un jour de rotation, les voyageurs qui
+ * arrivent à 17 h bougent devant les caméras : sans cette borne, leur arrivée devenait l'heure
+ * de sortie du ménage (audit du 15/11, heures et coût surestimés).
+ */
+export function guestKeypadEntries(
+  log: readonly { trigger: number; state?: number; name?: string | null; date: string }[],
+): Date[] {
+  return log
+    .filter((e) => e.trigger === 255 && e.state === 0 && managedBookingId(e.name ?? "") !== null)
+    .map((e) => new Date(e.date));
 }
 
 /** Le nom canonique d'une personne suivie dont le libellé du code contient le nom, sinon null. */
@@ -116,15 +131,19 @@ export function maxArrivalMs(arrivals: CleaningArrival[], fallback: number): num
 /**
  * Estime la fin d'une visite à partir des signes de présence postérieurs à l'arrivée et dans la
  * fenêtre de 8 h : dernier mouvement caméra en priorité, sinon dernier appui bouton poussoir.
+ * La fenêtre s'arrête **avant** la première entrée d'un voyageur au clavier après l'arrivée
+ * (`guestKeypadEntries`) : ce qui bouge ensuite, ce sont les voyageurs.
  */
 export function estimateExit(
   arrival: Date,
   cameraMotions: Date[],
   buttonPresses: Date[],
+  guestEntries: Date[] = [],
 ): { exit: Date | null; by: CleaningSession["exitBy"] } {
   const start = arrival.getTime();
-  const end = start + MAX_VISIT_MS;
-  const inWindow = (d: Date) => d.getTime() > start && d.getTime() <= end;
+  const firstGuest = guestEntries.map((d) => d.getTime()).filter((t) => t > start).sort((a, b) => a - b)[0];
+  const inWindow = (d: Date) =>
+    d.getTime() > start && d.getTime() <= start + MAX_VISIT_MS && (firstGuest === undefined || d.getTime() < firstGuest);
   const lastMotion = latest(cameraMotions.filter(inWindow));
   if (lastMotion) return { exit: lastMotion, by: "camera" };
   const lastButton = latest(buttonPresses.filter(inWindow));
@@ -137,12 +156,42 @@ export function buildSessions(
   arrivals: CleaningArrival[],
   cameraMotions: Date[],
   buttonPresses: Date[],
+  guestEntries: Date[] = [],
 ): CleaningSession[] {
   return arrivals.map((a) => {
-    const { exit, by } = estimateExit(a.at, cameraMotions, buttonPresses);
+    const { exit, by } = estimateExit(a.at, cameraMotions, buttonPresses, guestEntries);
     const minutes = exit ? Math.round((exit.getTime() - a.at.getTime()) / 60000) : null;
     return { who: a.who, arrival: a.at, exitEstimate: exit, exitBy: by, arrivalSource: a.source, minutes };
   });
+}
+
+/**
+ * Fusionne les sessions d'une même venue (même personne, arrivées à moins de 45 min l'une de
+ * l'autre, comme `newArrivalsSince`) : l'arrivée la plus tôt, la sortie la plus tardive. Le
+ * magasin a pu en garder deux quand une source manquait à un passage (garage 9 h 20 seul, après
+ * porte 9 h 00 : clé `who:arrivée` différente, passage compté deux fois — audit du 15/11).
+ * Rend les sessions de la plus récente à la plus ancienne.
+ */
+export function collapseVisits(sessions: CleaningSession[]): CleaningSession[] {
+  const kept: CleaningSession[] = [];
+  const lastByPerson = new Map<string, CleaningSession>();
+  for (const s of [...sessions].sort((a, b) => a.arrival.getTime() - b.arrival.getTime())) {
+    const prev = lastByPerson.get(s.who);
+    if (prev && s.arrival.getTime() - prev.arrival.getTime() < SAME_VISIT_GAP_MS) {
+      const exits = [prev.exitEstimate, s.exitEstimate].filter((d): d is Date => d !== null);
+      const exit = latest(exits);
+      if (exit && exit !== prev.exitEstimate) {
+        prev.exitEstimate = exit;
+        prev.exitBy = s.exitBy;
+      }
+      prev.minutes = prev.exitEstimate ? Math.round((prev.exitEstimate.getTime() - prev.arrival.getTime()) / 60000) : null;
+      continue;
+    }
+    const copy = { ...s };
+    lastByPerson.set(s.who, copy);
+    kept.push(copy);
+  }
+  return kept.sort((a, b) => b.arrival.getTime() - a.arrival.getTime());
 }
 
 /** Bilan d'une personne sur l'ensemble des sessions. */

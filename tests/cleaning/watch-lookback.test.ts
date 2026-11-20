@@ -39,8 +39,10 @@ vi.mock("@/lib/redis", () => ({
 vi.mock("@/lib/cleaning/sources", () => ({
   garageArrivals: async () => [{ source: "garage", at: at("09:20"), who: "Intervenante" }],
   // Le journal de la porte ne rend que ce qui est postérieur à `since`, comme `listLogSince`.
-  doorArrivals: async (_people: unknown, since: Date) =>
-    [{ source: "porte", at: at("09:00"), who: "Intervenante" }].filter((a) => a.at >= since),
+  doorReading: async (_people: unknown, since: Date) => ({
+    arrivals: [{ source: "porte", at: at("09:00"), who: "Intervenante" }].filter((a) => a.at >= since),
+    guestEntries: [],
+  }),
   cameraMotions: async () => h.motions,
   buttonPresses: async () => [],
 }));

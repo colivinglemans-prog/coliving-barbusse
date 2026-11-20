@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
 import { buildSessions, mergeArrivals, maxArrivalMs, newArrivalsSince, trackedPeople, type CleaningArrival, type CleaningSession, type TrackedPerson } from "@/lib/cleaning/sessions";
-import { garageArrivals, doorArrivals, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
+import { garageArrivals, doorReading, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
 import { upsertSessions, pruneOldSessions } from "@/lib/cleaning/store";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { beat } from "@/lib/heartbeat";
@@ -67,10 +67,10 @@ export async function GET(request: NextRequest) {
     // garage dans les 45 min devient une seconde session. D'où au moins 10 h de journal.
     const cursor = await readLogSince("cleaning", startedAt);
     const since = new Date(Math.min(cursor.getTime(), startedAt.getTime() - CLEANING_LOOKBACK_MS));
-    const door = await doorArrivals(people, since).catch((e) => {
+    const { arrivals: door, guestEntries } = await doorReading(people, since).catch((e) => {
       doorOk = false;
       notes.porte = short(e);
-      return [] as CleaningArrival[];
+      return { arrivals: [] as CleaningArrival[], guestEntries: [] as Date[] };
     });
     const arrivals = mergeArrivals(garage, door);
 
@@ -83,6 +83,10 @@ export async function GET(request: NextRequest) {
     // Garage ou porte illisibles : un passage de Sophie ne serait ni signalé ni journalisé. Règle
     // commune (deux passages de suite, jamais répétée, rétabli en 1). Une source sans identifiants
     // (`no-credentials`) est facultative par construction : pas une panne.
+    // Garage ou porte en panne : le passage n'a pas vu ce qu'il devait voir, la réponse ne dit pas
+    // « succès » (audit du 15/11). HTTP 200 quand même : l'alerte suit la règle commune, un 5xx
+    // ferait écrire cron-job.org à l'hôte à chaque passage.
+    const sourcesOk = sourceAlerts(notes).length === 0;
     if (!dry) {
       await reportAlerts("cleaning-sources", sourceAlerts(notes), sendCronAlert, {
         title: (c) => (c.length === 1 ? "Suivi ménage : une source illisible" : "Suivi ménage : sources illisibles"),
@@ -96,7 +100,14 @@ export async function GET(request: NextRequest) {
     // mouvements du moment permettent. On les PERSISTE à chaque passage : la sortie se précise et
     // se grave, elle ne se réeffacera plus (corrige la perte constatée sur « Suivi »). Amorce aussi
     // le magasin dès le 1er passage pour que la page montre tout l'historique.
-    const allSessions = buildSessions(newArrivalsSince(arrivals, 0), motions, buttons);
+    // Journal de la porte illisible : les entrées des voyageurs manquent, la sortie ne serait plus
+    // bornée par leur arrivée et se graverait trop tard. Ce passage enregistre les venues sans
+    // faire avancer leur sortie ; le suivant, journal lu, la précise.
+    // Sans identifiants Nuki, la porte n'est pas suivie du tout : rien à attendre, sortie libre.
+    const guestsKnown = doorOk || notes.porte === "no-credentials";
+    const exitMotions = guestsKnown ? motions : [];
+    const exitButtons = guestsKnown ? buttons : [];
+    const allSessions = buildSessions(newArrivalsSince(arrivals, 0), exitMotions, exitButtons, guestEntries);
     let upserted = 0;
     if (!dry) {
       upserted = await upsertSessions(allSessions);
@@ -113,11 +124,11 @@ export async function GET(request: NextRequest) {
       if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
       if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
       if (!dry) await succeeded();
-      return NextResponse.json({ success: true, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
+      return NextResponse.json({ success: sourcesOk, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
     }
 
     const fresh = newArrivalsSince(arrivals, lastMs);
-    const freshSessions = buildSessions(fresh, motions, buttons);
+    const freshSessions = buildSessions(fresh, exitMotions, exitButtons, guestEntries);
 
     if (fresh.length > 0 && !dry && !process.env.NTFY_TOPIC) {
       return NextResponse.json(
@@ -136,7 +147,7 @@ export async function GET(request: NextRequest) {
     if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
     if (!dry) await succeeded();
     return NextResponse.json({
-      success: true,
+      success: sourcesOk,
       dry,
       people: people.map((p) => p.name),
       garage: garage.length,

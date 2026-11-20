@@ -636,6 +636,24 @@ d'une maison chaude ou d'une alerte ne reste muette. Branche `voyageur-devant-la
 - **Hors du lot** : l'heure de coupure du chauffage le jour du départ (10 h codé, 11 h annoncé),
   reprise par un plan séparé.
 
+### 2026-11-20 — suite de l'audit des 13 et 15/11
+
+- **Pannes muettes** : `nuki-sync` alerte quand `NUKI_SYNC_MODE` n'est pas `live`
+  (`nuki-sync-mode`, priorité 4, deux passages) ; `checkin-notifications` et `cleaning-watch`
+  ne répondent plus `success: true` quand le journal Nuki (ou le garage) est illisible — HTTP 200
+  gardé, l'alerte suit déjà la règle commune. Les autres cas cités (reset, relevé des prix,
+  NTFY_TOPIC absent, `reportAlerts` partout) étaient corrigés depuis le 16/11.
+- **Battements** : déjà en place pour les 18 crons (16/11), tolérances revues sur les cadences
+  réelles ; rien à ajouter.
+- **Page Vidéo** : pause quand l'onglet est caché, session AJCloud réutilisée (Redis, 6 h).
+- **Suivi ménage** : une venue, un champ (fusion à moins de 45 min, à l'écriture et à la
+  lecture) ; sortie bornée par la première entrée d'un voyageur au clavier.
+- **Webhook Beds24** : en-tête d'abord, `?key=` en secours (preuve de l'en-tête attendue sur
+  l'écran Messages) ; un appel refusé n'écrit plus rien, l'alerte de refus est retirée.
+- **Disponibilités** : un jour absent de `/api/availability` (au-delà de 400 jours) n'est plus lu
+  « libre » par les encarts du blog (`lib/bookable-nights.ts`) ; `longestFreeRange` du socle
+  garde sa règle (correction à porter au socle, Albiez d'abord).
+
 ## Horaires convenus par réservation
 
 ### 2026-11-16 — phase A : arrivée anticipée et départ tardif

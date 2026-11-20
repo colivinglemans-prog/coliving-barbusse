@@ -1,10 +1,8 @@
-import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { constantTimeEqual } from "@sejour/socle/lib/cron-auth";
 import { runAccessSync } from "@/lib/access-sync";
-import { sendNtfy } from "@/lib/ntfy";
 import { modes, runCron } from "@/lib/messages/engine";
-import { firstRefusalAlert, recordWebhookCall, type WebhookResult } from "@/lib/webhook-trace";
+import { recordWebhookCall, type WebhookResult } from "@/lib/webhook-trace";
 
 /**
  * Webhook « Booking » de Beds24 : appelé à chaque réservation créée, modifiée ou annulée.
@@ -25,30 +23,35 @@ import { firstRefusalAlert, recordWebhookCall, type WebhookResult } from "@/lib/
  * alerte, jamais un envoi répété.
  *
  * Authentification : en-tête `x-webhook-secret`, à poser dans le champ « Custom Header » de
- * Beds24. Absence de `BEDS24_WEBHOOK_SECRET` ⇒ refus, comme pour les crons.
+ * Beds24 (`?key=` en secours, voir `check`). Absence de `BEDS24_WEBHOOK_SECRET` ⇒ refus, comme
+ * pour les crons. Un appel refusé n'écrit rien.
  */
 export const maxDuration = 60;
 
 /**
- * Le secret peut arriver par l'en-tête `x-webhook-secret` **ou** par le paramètre `key` de l'URL
- * (2026-11-08) : chez Barbusse, Beds24 n'envoyait pas l'en-tête saisi dans « Custom Header »
- * (appels relevés sans en-tête, ou avec une autre valeur). Le paramètre est saisi dans le même
- * champ URL que l'adresse : l'appel qui en vient est reconnu quoi qu'il arrive à l'en-tête.
+ * Le secret arrive par l'en-tête `x-webhook-secret` (champ « Custom Header » de Beds24), la voie
+ * normale. Le paramètre `key` de l'URL reste accepté **en secours** : le 2026-11-08, Beds24
+ * semblait ne pas envoyer l'en-tête chez Barbusse et l'URL du webhook a été saisie avec `?key=`.
+ * Ce diagnostic est douteux (les appels « sans en-tête » relevés ce jour-là étaient en partie le
+ * contrôle `security.webhooks` du socle, établi le 2026-11-11), mais rien ne prouve encore que
+ * Beds24 envoie l'en-tête : retirer `?key=` sans cette preuve couperait le webhook. Le témoin
+ * garde la voie de chaque appel accepté (`via`) ; quand l'écran Messages montre « par l'en-tête »,
+ * retirer `?key=` de l'URL dans Beds24 puis ce secours (audit du 15/11).
+ *
+ * En-tête d'abord : quand les deux sont là, c'est l'en-tête qui compte.
  */
-const fingerprint = (v: string) => ({ length: v.length, hash: createHash("sha256").update(v).digest("hex").slice(0, 6) });
+type Check = { result: WebhookResult; via?: "header" | "query" };
 
-function check(request: NextRequest): { result: WebhookResult; bracketed: boolean; got?: string; expected?: string } {
+function check(request: NextRequest): Check {
   // `trim()` : une valeur collée dans Vercel avec un retour à la ligne refuserait tout, l'en-tête
   // HTTP arrivant, lui, sans blancs de bord. Même comparaison que la route d'Albiez.
   const secret = process.env.BEDS24_WEBHOOK_SECRET?.trim();
+  if (!secret) return { result: "no-config" };
   const header = request.headers.get("x-webhook-secret");
+  if (header && constantTimeEqual(header, secret)) return { result: "accepted", via: "header" };
   const query = request.nextUrl.searchParams.get("key");
-  // L'URL d'abord : c'est la voie qui marche quand Beds24 ignore l'en-tête.
-  const given = query && secret && constantTimeEqual(query, secret) ? query : header;
-  const bracketed = Boolean(given && given.startsWith("<") && given.endsWith(">"));
-  if (!secret) return { result: "no-config", bracketed };
-  if (!given) return { result: "no-header", bracketed };
-  return constantTimeEqual(given, secret) ? { result: "accepted", bracketed } : { result: "bad-secret", bracketed, got: given, expected: secret };
+  if (query && constantTimeEqual(query, secret)) return { result: "accepted", via: "query" };
+  return { result: header || query ? "bad-secret" : "no-header" };
 }
 
 /** En-têtes ajoutés par Vercel ou le transport : sans intérêt pour savoir qui appelle. */
@@ -69,34 +72,18 @@ function shape(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { result, bracketed, got, expected } = check(request);
-  const secret = process.env.BEDS24_WEBHOOK_SECRET?.trim();
-  const key = request.nextUrl.searchParams.get("key");
-  const via = result === "accepted" ? (key && secret && constantTimeEqual(key, secret) ? "query" : "header") : undefined;
-  // Témoin du dernier appel, lu par l'écran Messages : la preuve que Beds24 envoie le bon secret.
-  await recordWebhookCall({
-    at: new Date().toISOString(),
-    result,
-    ...shape(request),
-    ...(via ? { via } : {}),
-    ...(bracketed ? { bracketed } : {}),
-    // Diagnostic d'un refus : longueur et empreinte courte, jamais le secret.
-    ...(got && expected ? { got: fingerprint(got), expected: fingerprint(expected) } : {}),
-  });
+  const { result, via } = check(request);
   if (result !== "accepted") {
-    // Pas d'alerte sans en-tête : ce sont des robots, pas Beds24 (la trace, elle, est gardée).
-    // Seul un refus venant de Beds24 (agent « Booking Notifier ») alerte : le contrôle
-    // `security.webhooks` du socle envoie exprès un faux secret après chaque déploiement et
-    // donnait une fausse alerte toutes les 6 h (constaté le 2026-11-13).
-    const fromBeds24 = (request.headers.get("user-agent") ?? "").includes("Booking Notifier");
-    if (result !== "no-header" && fromBeds24 && (await firstRefusalAlert())) {
-      await sendNtfy(
-        `Webhook Beds24 refusé (${result}${bracketed ? ", valeur entre chevrons" : ""}) : vérifier le « Custom Header » dans Beds24.`,
-        { title: "Barbusse — webhook Beds24", priority: 3, tags: ["warning"] },
-      ).catch(() => {});
-    }
+    // **Rien n'est écrit** pour un appel refusé (audit du 15/11) : un appel anonyme écrasait le
+    // témoin de l'écran Messages, et le contrôle `security.webhooks` du socle (faux secret après
+    // chaque déploiement, previews comprises) le faisait à chaque fois. Plus de trace, plus
+    // d'alerte de refus (sa mémoire anti-répétition était elle aussi une écriture) : un Beds24
+    // mal réglé se voit à la date du dernier appel accepté, qui cesse d'avancer, et le cron
+    // horaire `nuki-sync` rattrape les codes.
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  // Témoin du dernier appel accepté, lu par l'écran Messages, avec la voie du secret.
+  await recordWebhookCall({ at: new Date().toISOString(), result, ...shape(request), ...(via ? { via } : {}) });
   let messages: unknown = null;
   try {
     const report = await runAccessSync({ dryRun: false, trigger: "webhook" });
