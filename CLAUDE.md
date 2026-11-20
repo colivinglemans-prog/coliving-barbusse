@@ -194,6 +194,7 @@ docs/journal.md § Conventions).
 - **Images externes** : Airbnb CDN (`a0.muscache.com`) configuré dans `next.config.ts`
 - **Droits photo** : ne jamais committer une image sans licence claire. Les photos de presse des organisateurs (ACO, Porsche Club Motorsport France) et les previews Getty/stock sont protégées — vérifier les métadonnées XMP (`dc:rights`, `xmpRights:Marked`) avant usage. Sources sûres : Wikimedia Commons (CC BY / CC BY-SA), Unsplash, ou nos propres photos. Une licence à attribution **exige** de remplir `BlogPostMeta.imageCredit` (auteur + page source + licence) : le crédit est rendu en légende sous la photo de l'article, avec le libellé localisé `PHOTO_CREDIT_LABEL`. **Exception décidée par l'hôte (2026-11-17)** : les photos du fabricant ou du vendeur d'un équipement **réellement présent dans la maison** (la cage Powergym de la salle de sport, `public/images/blog/salle-de-sport/`) sont acceptées, avec une légende qui en dit la source (« photo : Powergym », « photo du fabricant »). L'exception ne vaut pas pour les photos d'événements ou de lieux.
 - **Rôles auth** : `admin` (accès complet) et `viewer` (calendrier, chauffage et eau chaude en lecture/contrôle — `allowedPaths` de `proxy.ts`).
+  Depuis le 2026-11-20, sous `/api/dashboard/heating/*` le viewer garde la lecture et le pilotage des modes (`GET heating`, `GET heating/lock`, `GET heating/summer-mode`, `POST heating/control`) ; les réglages d'installation sont **admin seulement** dans la route (`denyNonAdmin`) : `POST lock`, `POST pilot-lock`, `POST summer-mode`, `POST add-device`, `GET scan`. La page ne les montrait déjà qu'à l'admin ; la matrice `doors` de `tests/deploy/site.ts` attend 403 viewer sur chacun.
   Mécanique dans `@sejour/socle/lib/auth` — voir sa CLAUDE.md, section « Lot 1 ».
   **Un jeton illisible vaut `viewer`, jamais `admin`** : aucun repli fail-open dans le `catch`
   de `getTokenRole` (historique : docs/journal.md § Conventions).
@@ -316,6 +317,12 @@ Politique tarifaire configurée **dans Beds24**, pas dans le code : le site n'af
 `components/public/ReservationCalendar.tsx` n'est qu'une enveloppe : le calendrier vit dans
 **`@sejour/socle/components/ReservationCalendar`**, commun avec Albiez depuis le Lot 5
 (historique : docs/journal.md § Calendrier public de réservation).
+
+`/api/availability` (2026-11-20) lit **par mois civils entiers** (`monthlyAvailability` du socle,
+comme `lib/agent.ts`), ramène les bornes dans `[aujourd'hui − 31 j, aujourd'hui + 400 j]` (un jour
+hors horizon est absent : le calendrier le lit « non vendable ») et pose
+`Cache-Control: public, s-maxage=60, stale-while-revalidate=60` sur ses 200. Tests :
+`tests/security/routes.test.ts`.
 
 Restent ici : `propertyId` (303771), la route `/api/availability?mode=map`, la capacité, et
 les libellés hors section `calendar` — la seule section de dictionnaire commune aux deux
@@ -477,7 +484,7 @@ Trois portes, dans cet ordre. Aucune n'est suffisante seule.
 | Porte | Où | Ce qu'elle fait |
 |---|---|---|
 | `proxy.ts` | racine | Cookie exigé sur `/dashboard` et `/api/dashboard`. **Liste blanche** des chemins ouverts à `viewer` — l'ancien middleware tenait une liste noire de quatre préfixes, et c'est ainsi que `bookings` est resté ouvert. |
-| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`, `bookings/[id]/stay-hours`. Lecture ouverte au viewer : `stay-status` (identifiants et heures seulement). |
+| `guard` de route | `@/lib/auth` | `guard.denyNonAdmin(req)` en tête des routes sensibles : `invoices/prefill`, `bookings/[id]/notes`, `bookings/[id]/nuki-code`, `bookings/[id]/messages`, `bookings/[id]/stay-hours`, et les réglages du chauffage (`heating/lock` POST, `pilot-lock`, `summer-mode` POST, `add-device`, `scan`). Lecture ouverte au viewer : `stay-status` (identifiants et heures seulement). |
 | DTO | `@sejour/socle/lib/booking-dto` | `/api/dashboard/bookings` projette vers `BookingListItem` (15 champs) ou `AdminBookingListItem` (+`price`, `email`, `mobile`, `phone`, `country`). |
 
 **Deux protections contre la fuite des `NUKI_PIN`**, fermée le 2026-09-11 (historique et
@@ -500,6 +507,14 @@ mesures : docs/journal.md § Cloisonnement du dashboard) :
    code de la serrure entre dans le message d'arrivée).
 
 Tous sont derrière une garde admin ou `CRON_SECRET` ; aucun PIN ne part vers le navigateur hors des routes admin.
+
+**Durcissements du 2026-11-20** (branche `securite-dashboard`) :
+- `GET /api/dashboard/water-heater` ne renvoie plus le bloc `debug` (états bruts Cozytouch, servis au viewer) ;
+- `GET /api/dashboard/calendar` : `propertyId` = 303771 seulement (400 sinon), dates `YYYY-MM-DD`, 400 jours au plus ;
+- `next.config.ts` : `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+  `Permissions-Policy: camera=(), microphone=(), geolocation=()` partout ; `X-Frame-Options: DENY` +
+  `frame-ancestors 'none'` sur `/dashboard/*` **seulement**. ⚠️ Jamais `payment` dans la
+  `Permissions-Policy` : l'iframe de paiement Beds24 porte `allow="payment"`.
 
 ## Beds24 API (v2)
 
