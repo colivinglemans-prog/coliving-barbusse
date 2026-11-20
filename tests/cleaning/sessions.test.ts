@@ -8,7 +8,8 @@ import {
 
 const d = (iso: string) => new Date(iso);
 const op = (at: string, code: string, name: string): KeypadOpening => ({ at: d(at), code, name });
-const PEOPLE: TrackedPerson[] = [{ name: "Sophie", role: "ménage" }, { name: "Eric", role: "dépannage" }];
+// Prénoms et codes inventés : aucune donnée réelle des intervenants.
+const PEOPLE: TrackedPerson[] = [{ name: "Alice", role: "ménage" }, { name: "Bruno", role: "dépannage" }];
 
 describe("parseFrenchDate", () => {
   it("convertit l'heure de Paris en UTC (hiver +1h)", () => {
@@ -23,35 +24,35 @@ describe("parseFrenchDate", () => {
 describe("parseOpenings", () => {
   it("extrait les lignes à 4 cellules", () => {
     const html = `<table><tr><th>Quand</th></tr>
-      <tr><td>04/11/26 16:11</td><td>Code Clavier</td><td>100200</td><td>Sophie</td></tr>
-      <tr><td>22/10/26 14:32</td><td>Code Clavier</td><td>100300</td><td>Eric</td></tr></table>`;
+      <tr><td>04/11/26 16:11</td><td>Code Clavier</td><td>900001</td><td>Alice</td></tr>
+      <tr><td>22/10/26 14:32</td><td>Code Clavier</td><td>900002</td><td>Bruno</td></tr></table>`;
     const ops = parseOpenings(html);
     expect(ops).toHaveLength(2);
-    expect(ops[0].name).toBe("Sophie");
-    expect(ops[1].name).toBe("Eric");
+    expect(ops[0].name).toBe("Alice");
+    expect(ops[1].name).toBe("Bruno");
   });
 });
 
 describe("parsePeople", () => {
   it("parse nom:rôle séparés par des virgules", () => {
-    const p = parsePeople("Sophie:ménage, Eric:dépannage");
-    expect(p).toEqual([{ name: "Sophie", role: "ménage" }, { name: "Eric", role: "dépannage" }]);
+    const p = parsePeople("Alice:ménage, Bruno:dépannage");
+    expect(p).toEqual([{ name: "Alice", role: "ménage" }, { name: "Bruno", role: "dépannage" }]);
   });
   it("rôle par défaut si absent", () => {
-    expect(parsePeople("Sophie")[0].role).toBe("intervenant");
+    expect(parsePeople("Alice")[0].role).toBe("intervenant");
   });
 });
 
 describe("matchPerson + trackedOpenings", () => {
-  it("reconnaît Sophie ET Eric, insensible à la casse", () => {
-    expect(matchPerson("SOPHIE", PEOPLE)).toBe("Sophie");
-    expect(matchPerson("eric f", PEOPLE)).toBe("Eric");
+  it("reconnaît Alice ET Bruno, insensible à la casse", () => {
+    expect(matchPerson("ALICE", PEOPLE)).toBe("Alice");
+    expect(matchPerson("bruno f", PEOPLE)).toBe("Bruno");
     expect(matchPerson("Perso", PEOPLE)).toBeNull();
   });
   it("filtre les ouvertures des personnes suivies et marque who + source garage", () => {
-    const ops = [op("2026-11-04T15:11:00Z", "1", "Sophie"), op("2026-11-04T13:00:00Z", "2", "Perso"), op("2026-11-04T09:00:00Z", "3", "Eric")];
+    const ops = [op("2026-11-04T15:11:00Z", "1", "Alice"), op("2026-11-04T13:00:00Z", "2", "Perso"), op("2026-11-04T09:00:00Z", "3", "Bruno")];
     const g = trackedOpenings(ops, PEOPLE);
-    expect(g.map((x) => x.who).sort()).toEqual(["Eric", "Sophie"]);
+    expect(g.map((x) => x.who).sort()).toEqual(["Alice", "Bruno"]);
     expect(g.every((x) => x.source === "garage")).toBe(true);
   });
 });
@@ -61,19 +62,19 @@ describe("doorLogArrivals — journal de la porte", () => {
   const entry = (date: string, name: string, extra: { trigger?: number; state?: number } = {}) =>
     ({ date, name, action: 3, trigger: extra.trigger ?? 255, state: extra.state ?? 0 });
 
-  it("une voyageuse prénommée Sophie (code géré « <n° résa>: Sophie ») n'est pas le ménage", () => {
-    const log = [entry("2026-11-04T16:30:00Z", "90000010: Sophie"), entry("2026-11-04T16:31:00Z", "123456: sophie m")];
+  it("une voyageuse prénommée Alice (code géré « <n° résa>: Alice ») n'est pas le ménage", () => {
+    const log = [entry("2026-11-04T16:30:00Z", "90000010: Alice"), entry("2026-11-04T16:31:00Z", "123456: alice m")];
     expect(doorLogArrivals(log, PEOPLE)).toEqual([]);
   });
   it("garde le code manuel du ménage, avec le nom canonique et la source porte", () => {
-    const log = [entry("2026-11-04T09:00:00Z", "# Sophie"), entry("2026-11-04T10:00:00Z", "90000011: Eric"), entry("2026-11-04T11:00:00Z", "Eric dépannage")];
+    const log = [entry("2026-11-04T09:00:00Z", "# Alice"), entry("2026-11-04T10:00:00Z", "90000011: Bruno"), entry("2026-11-04T11:00:00Z", "Bruno dépannage")];
     const a = doorLogArrivals(log, PEOPLE);
-    expect(a.map((x) => x.who)).toEqual(["Sophie", "Eric"]);
+    expect(a.map((x) => x.who)).toEqual(["Alice", "Bruno"]);
     expect(a.every((x) => x.source === "porte")).toBe(true);
     expect(a[0].at.toISOString()).toBe("2026-11-04T09:00:00.000Z");
   });
   it("ignore ce qui n'est pas un passage réussi au clavier", () => {
-    const log = [entry("2026-11-04T09:00:00Z", "# Sophie", { trigger: 0 }), entry("2026-11-04T09:05:00Z", "# Sophie", { state: 1 })];
+    const log = [entry("2026-11-04T09:00:00Z", "# Alice", { trigger: 0 }), entry("2026-11-04T09:05:00Z", "# Alice", { state: 1 })];
     expect(doorLogArrivals(log, PEOPLE)).toEqual([]);
   });
 });
@@ -81,15 +82,15 @@ describe("doorLogArrivals — journal de la porte", () => {
 describe("newArrivalsSince — dédoublonnage PAR personne", () => {
   it("dédoublonne la même personne (<45 min) mais garde deux personnes différentes", () => {
     const list: CleaningArrival[] = [
-      { source: "porte", at: d("2026-11-04T15:00:00Z"), who: "Sophie" },
-      { source: "garage", at: d("2026-11-04T15:10:00Z"), who: "Sophie" }, // même venue de Sophie
-      { source: "garage", at: d("2026-11-04T15:12:00Z"), who: "Eric" },   // Eric, autre personne
+      { source: "porte", at: d("2026-11-04T15:00:00Z"), who: "Alice" },
+      { source: "garage", at: d("2026-11-04T15:10:00Z"), who: "Alice" }, // même venue de Alice
+      { source: "garage", at: d("2026-11-04T15:12:00Z"), who: "Bruno" },   // Bruno, autre personne
     ];
     const fresh = newArrivalsSince(list, d("2026-11-04T14:00:00Z").getTime());
-    expect(fresh.map((f) => f.who)).toEqual(["Sophie", "Eric"]);
+    expect(fresh.map((f) => f.who)).toEqual(["Alice", "Bruno"]);
   });
   it("rien si tout est antérieur", () => {
-    const list: CleaningArrival[] = [{ source: "garage", at: d("2026-11-01T10:00:00Z"), who: "Sophie" }];
+    const list: CleaningArrival[] = [{ source: "garage", at: d("2026-11-01T10:00:00Z"), who: "Alice" }];
     expect(newArrivalsSince(list, d("2026-11-02T00:00:00Z").getTime())).toHaveLength(0);
   });
 });
@@ -108,18 +109,18 @@ describe("estimateExit + buildSessions", () => {
   });
   it("inconnu si aucun signe", () => expect(estimateExit(arrival, [], []).by).toBe("inconnu"));
   it("buildSessions calcule la durée et garde who", () => {
-    const arr: CleaningArrival[] = [{ source: "garage", at: arrival, who: "Sophie" }];
+    const arr: CleaningArrival[] = [{ source: "garage", at: arrival, who: "Alice" }];
     const s = buildSessions(arr, [d("2026-11-04T11:00:00Z")], []);
     expect(s[0].minutes).toBe(120);
-    expect(s[0].who).toBe("Sophie");
+    expect(s[0].who).toBe("Alice");
   });
 });
 
 describe("merge + maxArrivalMs", () => {
   it("fusionne et trie", () => {
-    const g: CleaningArrival[] = [{ source: "garage", at: d("2026-11-04T15:00:00Z"), who: "Eric" }];
-    const p: CleaningArrival[] = [{ source: "porte", at: d("2026-11-03T09:00:00Z"), who: "Sophie" }];
-    expect(mergeArrivals(g, p).map((a) => a.who)).toEqual(["Sophie", "Eric"]);
+    const g: CleaningArrival[] = [{ source: "garage", at: d("2026-11-04T15:00:00Z"), who: "Bruno" }];
+    const p: CleaningArrival[] = [{ source: "porte", at: d("2026-11-03T09:00:00Z"), who: "Alice" }];
+    expect(mergeArrivals(g, p).map((a) => a.who)).toEqual(["Alice", "Bruno"]);
   });
   it("maxArrivalMs rend le plus grand instant ou le fallback", () => {
     expect(maxArrivalMs([], 42)).toBe(42);
@@ -136,7 +137,7 @@ const sess = (who: string, arrivalIso: string, minutes: number | null): Cleaning
 
 describe("parseRates", () => {
   it("parse nom:euros, ignore le non-numérique", () => {
-    expect(parseRates("Sophie:21, Eric:x, Bob:15")).toEqual({ Sophie: 21, Bob: 15 });
+    expect(parseRates("Alice:21, Bruno:x, Bob:15")).toEqual({ Alice: 21, Bob: 15 });
   });
 });
 
@@ -151,27 +152,27 @@ describe("parisMonth", () => {
 });
 
 describe("summarizePeople", () => {
-  const PEOPLE2 = [{ name: "Sophie", role: "ménage" }, { name: "Eric", role: "dépannage" }];
+  const PEOPLE2 = [{ name: "Alice", role: "ménage" }, { name: "Bruno", role: "dépannage" }];
   it("compte passages, heures et coût au taux (sessions sans durée exclues du coût)", () => {
-    const sessions = [sess("Sophie", "2026-11-04T09:00:00Z", 120), sess("Sophie", "2026-11-06T09:00:00Z", null), sess("Eric", "2026-11-05T09:00:00Z", 30)];
-    const sum = summarizePeople(sessions, PEOPLE2, { Sophie: 21 });
-    const sophie = sum.find((s) => s.who === "Sophie")!;
-    expect(sophie.count).toBe(2);
-    expect(sophie.withDuration).toBe(1);
-    expect(sophie.totalMinutes).toBe(120);
-    expect(sophie.estimatedCost).toBe(42); // 2 h × 21
-    const eric = sum.find((s) => s.who === "Eric")!;
-    expect(eric.ratePerHour).toBeNull();
-    expect(eric.estimatedCost).toBeNull();
+    const sessions = [sess("Alice", "2026-11-04T09:00:00Z", 120), sess("Alice", "2026-11-06T09:00:00Z", null), sess("Bruno", "2026-11-05T09:00:00Z", 30)];
+    const sum = summarizePeople(sessions, PEOPLE2, { Alice: 21 });
+    const alice = sum.find((s) => s.who === "Alice")!;
+    expect(alice.count).toBe(2);
+    expect(alice.withDuration).toBe(1);
+    expect(alice.totalMinutes).toBe(120);
+    expect(alice.estimatedCost).toBe(42); // 2 h × 21
+    const bruno = sum.find((s) => s.who === "Bruno")!;
+    expect(bruno.ratePerHour).toBeNull();
+    expect(bruno.estimatedCost).toBeNull();
   });
 });
 
 describe("monthlyBuckets", () => {
   it("regroupe par mois de Paris et par personne, trié croissant", () => {
-    const sessions = [sess("Sophie", "2026-10-28T09:00:00Z", 60), sess("Eric", "2026-11-05T09:00:00Z", 60), sess("Sophie", "2026-11-04T09:00:00Z", 60)];
+    const sessions = [sess("Alice", "2026-10-28T09:00:00Z", 60), sess("Bruno", "2026-11-05T09:00:00Z", 60), sess("Alice", "2026-11-04T09:00:00Z", 60)];
     const buckets = monthlyBuckets(sessions);
     expect(buckets.map((b) => b.month)).toEqual(["2026-10", "2026-11"]);
-    expect(buckets[1].counts).toEqual({ Eric: 1, Sophie: 1 });
+    expect(buckets[1].counts).toEqual({ Bruno: 1, Alice: 1 });
   });
 });
 
@@ -182,7 +183,7 @@ describe("jour de rotation : l'arrivée des voyageurs borne la sortie du ménage
     [7000003, "2026-11-01"],
   ]);
   const log = [
-    { trigger: 255, state: 0, name: "# Sophie", date: "2026-11-04T10:00:00Z" },
+    { trigger: 255, state: 0, name: "# Alice", date: "2026-11-04T10:00:00Z" },
     { trigger: 255, state: 0, name: "7000001: Voyageur", date: "2026-11-04T16:00:00Z" },
     { trigger: 255, state: 1, name: "7000002: Autre", date: "2026-11-04T15:00:00Z" },
   ];
