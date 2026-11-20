@@ -10,8 +10,8 @@
  * Règles de l'exploitant (2026-11-07) : code valable de 14 h le jour d'arrivée à 14 h le jour
  * du départ ; nom `<n° de réservation>: <Prénom>` ; codes `#…` jamais touchés ; seules les
  * réservations `confirmed` et `new` reçoivent un code (une `new` passe ensuite en
- * `confirmed`, une fois son code posé) ; le PIN est tiré du téléphone du
- * voyageur quand c'est possible, et **écrit dans Beds24 avant d'être posé sur la serrure**.
+ * `confirmed`, une fois son code posé) ; le PIN est tiré **au hasard** (jamais du téléphone
+ * depuis le 2026-11-20), et **écrit dans Beds24 avant d'être posé sur la serrure**.
  *
  * **Deux modes.** `NUKI_SYNC_MODE=live` écrit ; toute autre valeur calcule le plan sans rien
  * écrire, mais **alerte** quand même au passage du cron (serrure hors ligne, PIN manquant…) :
@@ -139,7 +139,10 @@ function baseStay(b: Beds24Booking): AccessStay {
     departure: b.departure,
     status: accessStatus(b.status),
     pin: nukiCodeOf(b),
-    phone: b.mobile || b.phone || null,
+    // PIN tiré au hasard (crypto.randomInt), jamais du téléphone : les téléphones de 54
+    // réservations ont fuité en juillet 2026 et l'algorithme du socle est public, un PIN pris
+    // dans le numéro se devinait. Décision de l'hôte, audit de sécurité du 2026-11-20.
+    phone: null,
   };
 }
 
