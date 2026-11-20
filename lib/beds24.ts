@@ -372,7 +372,7 @@ export async function addNukiPin(bookingId: number, pin: string): Promise<void> 
     cache: "no-store",
   });
   if (!res.ok) {
-    if (res.status === 401) client.invalidate("ecriture");
+    if (res.status === 401) await client.invalidateShared("ecriture");
     throw new Error(`Beds24 a refusé l'écriture du PIN (HTTP ${res.status})`);
   }
   const parsed = (await res.json().catch(() => null)) as { success?: boolean }[] | null;
@@ -395,7 +395,7 @@ export async function confirmBooking(bookingId: number): Promise<void> {
     cache: "no-store",
   });
   if (!res.ok) {
-    if (res.status === 401) client.invalidate("ecriture");
+    if (res.status === 401) await client.invalidateShared("ecriture");
     throw new Error(`Beds24 a refusé la confirmation (HTTP ${res.status})`);
   }
   const parsed = (await res.json().catch(() => null)) as { success?: boolean }[] | null;
@@ -686,7 +686,7 @@ export async function sendBookingMessage(bookingId: number, message: string): Pr
   const body = await res.text();
 
   if (!res.ok) {
-    if (res.status === 401) client.invalidate("messagerie");
+    if (res.status === 401) await client.invalidateShared("messagerie");
     throw new Beds24Error(res.status, "/bookings/messages (POST)", body);
   }
 
