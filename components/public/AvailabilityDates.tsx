@@ -8,7 +8,6 @@ import {
 } from "@sejour/socle/lib/availability";
 import { bookingUrl } from "@sejour/socle/lib/booking-url";
 import { PROPERTY_ID } from "@/lib/beds24-property";
-import { knownNights } from "@/lib/bookable-nights";
 import type { Locale } from "@/lib/i18n";
 
 /**
@@ -177,8 +176,11 @@ export default function AvailabilityDates({
           const end =
             daysBetween(p.checkIn, p.checkOut) < minStay ? addDays(p.checkIn, minStay) : p.checkOut;
           // Réponse lue : une nuit absente (au-delà de l'horizon de 400 jours de la route) n'est
-          // pas réservable (`knownNights`). Panne d'API : libres, comme avant.
-          const free = longestFreeRange(read ? knownNights(data.dates ?? {}, p.checkIn, end) : {}, p.checkIn, end);
+          // pas réservable (socle v3.34.0, `longestFreeRange`). Panne d'API : la période entière est
+          // affichée libre, comme avant (Beds24 revalide au paiement).
+          const free = read
+            ? longestFreeRange(data.dates ?? {}, p.checkIn, end)
+            : { from: p.checkIn, to: end, nights: daysBetween(p.checkIn, end) };
           if (!free || free.nights < minStay) {
             return { ...p, checkOut: end, minStay, status: "soldout", free: null };
           }

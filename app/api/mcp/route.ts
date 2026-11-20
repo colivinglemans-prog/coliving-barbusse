@@ -1,5 +1,6 @@
 import { createMcpRoute } from "@sejour/socle/lib/stay-agent-mcp";
 import { STAY_AGENT, stayAgentDeps } from "@/lib/agent";
+import { agentGuard } from "@/lib/agent-guard";
 
 /**
  * Le connecteur MCP des assistants (Claude, ChatGPT en mode développeur, Le Chat…) :
@@ -9,4 +10,4 @@ import { STAY_AGENT, stayAgentDeps } from "@/lib/agent";
  * **Route publique**, hors du `matcher` du proxy : elle ne rend que des jours, des nombres de
  * voyageurs et des montants publics.
  */
-export const { GET, POST, DELETE, OPTIONS } = createMcpRoute(STAY_AGENT, stayAgentDeps);
+export const { GET, POST, DELETE, OPTIONS } = createMcpRoute(STAY_AGENT, stayAgentDeps, agentGuard);

@@ -34,7 +34,7 @@ const FAMILY_DATES: { key: DateKey; checkIn: string; checkOut: string }[] = [
   // 400 jours : au-delà, la ligne s'afficherait « Complet » à tort. Deux horizons comptent :
   // celui de Beds24 (nuit rendue « prise » ; 31 août 2027 au 2026-11-04) et celui de
   // `/api/availability`, bornée à aujourd'hui + 400 jours depuis le 2026-11-20 (nuit absente de
-  // la réponse, lue « non réservable » par `AvailabilityDates`, `lib/bookable-nights.ts`).
+  // la réponse, lue « non réservable » par `longestFreeRange` du socle, v3.34.0).
 ];
 
 interface Copy {
