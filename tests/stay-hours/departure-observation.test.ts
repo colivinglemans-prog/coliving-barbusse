@@ -11,6 +11,8 @@ import { parisInstant } from "@sejour/socle/lib/time";
 const h = vi.hoisted(() => ({
   mem: new Map<string, unknown>(),
   lists: new Map<string, string[]>(),
+  sets: new Map<string, Set<string>>(),
+  scans: 0,
   sendNtfy: vi.fn(async (body: string, options: unknown) => void [body, options]),
   health: { online: true, lockState: 1 as number | null },
   healthDown: false,
@@ -39,9 +41,21 @@ vi.mock("@/lib/redis", () => ({
     },
     expire: async () => 1,
     scan: async (_c: unknown, o: { match: string }) => {
+      h.scans++;
       const prefix = o.match.replace(/\*$/, "");
       return ["0", [...h.mem.keys()].filter((k) => k.startsWith(prefix))];
     },
+    sadd: async (k: string, ...m: Array<string | number>) => {
+      const set = h.sets.get(k) ?? new Set<string>();
+      m.forEach((x) => set.add(String(x)));
+      h.sets.set(k, set);
+      return m.length;
+    },
+    srem: async (k: string, ...m: Array<string | number>) => {
+      m.forEach((x) => h.sets.get(k)?.delete(String(x)));
+      return m.length;
+    },
+    smembers: async (k: string) => [...(h.sets.get(k) ?? [])],
     mget: async (...keys: string[]) => keys.map((k) => (h.mem.has(k) ? JSON.parse(JSON.stringify(h.mem.get(k))) : null)),
   }),
   getJson: async (k: string) => (h.mem.has(k) ? JSON.parse(JSON.stringify(h.mem.get(k))) : null),
@@ -75,6 +89,7 @@ vi.mock("@/lib/heatzy", () => ({ setDeviceMode: h.setDeviceMode, setDeviceTemper
 
 import {
   EMPTY_PASSES,
+  OBSERVE_FROM_HOUR,
   departureBadge,
   departureMessage,
   departureTransition,
@@ -82,12 +97,14 @@ import {
   housePresence,
   lockFacts,
   presenceFromReading,
+  returnAfter,
   saysDeparted,
   type DepartureFacts,
   type DepartureState,
 } from "@/lib/departure-detection";
 import {
   departureDetectionMode,
+  departureIndexKey,
   departureJournalKey,
   departureStateKey,
   readDepartureStates,
@@ -278,6 +295,40 @@ describe("departureTransition (pure)", () => {
     expect(departureTransition(empty, { ...facts(true), lockState: 3, lock: host }, at(9, 45), DAY).state.status).toBe("empty");
   });
 
+  it("retour masqué : le code du séjour rouvre, puis le ménage ouvre → `returned` quand même", () => {
+    const empty = run(at(8, 45), [facts(false), facts(false), facts(false)]).state;
+    // 9 h 40 : un voyageur revient avec son code ; 10 h 05 : le ménage entre. Dernière ouverture = ménage.
+    const masked = lockFacts(
+      [entry(at(8, 40), `${ID}: Test`), lockEntry(at(8, 42)), entry(at(9, 40), `${ID}: Test`), entry(at(10, 5), "# Ménage")],
+      since,
+      { ...ctx, people: ["Ménage"] },
+    );
+    expect(masked.lastOpening?.actor).toBe("code personnel");
+    const r = departureTransition(empty, { ...facts(true), lockState: 3, lock: masked }, at(10, 15), DAY);
+    expect(r.state).toMatchObject({ status: "returned", returnedAt: at(9, 40).toISOString() });
+  });
+
+  it("ouverture à la main : un retour avant toute autre entrée, pas après celle du ménage", () => {
+    const departedAt = at(8, 42).toISOString();
+    const people = { ...ctx, people: ["Ménage"] };
+    const manualFirst = lockFacts([lockEntry(at(8, 42)), entry(at(9, 10), "", 1, 1)], since, people);
+    expect(returnAfter(manualFirst.events, departedAt)).toMatchObject({ actor: "à la main", at: at(9, 10).toISOString() });
+    const cleanerThenManual = lockFacts([lockEntry(at(8, 42)), entry(at(10), "# Ménage"), entry(at(10, 20), "", 1, 1)], since, people);
+    expect(returnAfter(cleanerThenManual.events, departedAt)).toBeNull();
+    // Une ouverture avant le constat ne compte pas.
+    expect(returnAfter(lockFacts([entry(at(8, 40), `${ID}: Test`), lockEntry(at(8, 42))], since, ctx).events, departedAt)).toBeNull();
+  });
+
+  it(`ouverture après minuit (retour à 2 h, verrouillé de l'intérieur) : pas une sortie du jour avant ${OBSERVE_FROM_HOUR} h`, () => {
+    const night = lockFacts([entry(at(2), `${ID}: Test`), lockEntry(at(2, 5))], since, ctx);
+    const asleep = facts(false, { lock: night });
+    const r = run(at(6), [asleep, asleep, asleep, asleep]);
+    expect(r.state.status).toBe("occupied");
+    expect(r.notified).toEqual([]);
+    // La même sortie à 8 h 40 : constatée.
+    expect(run(at(9), [facts(false), facts(false), facts(false)]).state.status).toBe("empty");
+  });
+
   it("message de départ, porte non verrouillée : alerte basse une seule fois, pas de constat", () => {
     const open = facts(false, { lockState: 3, lock: null, message: { at: at(9, 5).toISOString() } });
     const { state, notified } = run(at(9, 15), [open, open, open, open]);
@@ -332,6 +383,7 @@ describe("runDepartureObservation (passage complet)", () => {
   beforeEach(() => {
     h.mem.clear();
     h.lists.clear();
+    h.sets.clear();
     h.sendNtfy.mockClear();
     h.setDeviceMode.mockClear();
     h.setDeviceTemperatures.mockClear();
@@ -431,6 +483,23 @@ describe("runDepartureObservation (passage complet)", () => {
     expect(h.nukiCalls).toBe(nuki);
     const states = await readDepartureStates();
     expect(departureBadge(states[ID], DAY)?.icon).toBe("unlocked");
+  });
+
+  it("dashboard : les états lus par l'index, sans SCAN ; un état expiré quitte l'index", async () => {
+    h.sets.clear();
+    h.scans = 0;
+    await runDepartureObservation(input(at(9)));
+    await recordDoorCheck([{ id: 1000003, arrival: "2027-01-08", departure: DAY, status: "confirmed" }], DAY, { status: "locked" }, at(11, 30));
+    expect([...(h.sets.get(departureIndexKey()) ?? [])].sort()).toEqual([String(ID), "1000003"]);
+    // Une clé `departure:` étrangère à l'index n'est pas lue.
+    h.mem.set("barbusse:departure:1000009", { day: DAY, status: "empty", absentPasses: 0, updatedAt: at(9).toISOString() });
+    const states = await readDepartureStates();
+    expect(Object.keys(states).sort()).toEqual([String(ID), "1000003"]);
+    expect(h.scans).toBe(0);
+    // L'état de 1000003 expire : il disparaît de la lecture et de l'index.
+    h.mem.delete(departureStateKey(1000003));
+    expect(Object.keys(await readDepartureStates())).toEqual([String(ID)]);
+    expect([...(h.sets.get(departureIndexKey()) ?? [])]).toEqual([String(ID)]);
   });
 
   it("ntfy en échec : le constat est renotifié au passage suivant, puis plus jamais", async () => {

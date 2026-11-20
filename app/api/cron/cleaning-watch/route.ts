@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
-import { buildSessions, mergeArrivals, maxArrivalMs, newArrivalsSince, trackedPeople, type CleaningArrival, type CleaningSession, type TrackedPerson } from "@/lib/cleaning/sessions";
-import { garageArrivals, doorReading, cameraMotions, buttonPresses } from "@/lib/cleaning/sources";
+import { buildSessions, guestKeypadEntries, mergeArrivals, maxArrivalMs, newArrivalsSince, trackedPeople, type CleaningArrival, type CleaningSession, type GuestKeypadCode, type TrackedPerson } from "@/lib/cleaning/sessions";
+import { garageArrivals, doorReading, cameraMotions, buttonPresses, guestArrivalDays } from "@/lib/cleaning/sources";
 import { upsertSessions, pruneOldSessions } from "@/lib/cleaning/store";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { beat } from "@/lib/heartbeat";
@@ -67,11 +67,21 @@ export async function GET(request: NextRequest) {
     // garage dans les 45 min devient une seconde session. D'où au moins 10 h de journal.
     const cursor = await readLogSince("cleaning", startedAt);
     const since = new Date(Math.min(cursor.getTime(), startedAt.getTime() - CLEANING_LOOKBACK_MS));
-    const { arrivals: door, guestEntries } = await doorReading(people, since).catch((e) => {
+    const { arrivals: door, guestCodes } = await doorReading(people, since).catch((e) => {
       doorOk = false;
       notes.porte = short(e);
-      return { arrivals: [] as CleaningArrival[], guestEntries: [] as Date[] };
+      return { arrivals: [] as CleaningArrival[], guestCodes: [] as GuestKeypadCode[] };
     });
+    // Seuls les codes des voyageurs qui **arrivent** ce jour-là bornent la sortie : un partant qui
+    // revient après l'arrivée du ménage ne la tronque plus (2026-11-20). Beds24 illisible : comme un
+    // journal illisible, la sortie n'avance pas à ce passage (pas d'alerte : le suivant la précise).
+    let arrivalsKnown = true;
+    const arrivalDays = await guestArrivalDays(guestCodes).catch((e) => {
+      arrivalsKnown = false;
+      notes.voyageurs = short(e);
+      return new Map<number, string>();
+    });
+    const guestEntries = guestKeypadEntries(guestCodes, arrivalDays);
     const arrivals = mergeArrivals(garage, door);
 
     const motions = await cameraMotions().catch((e) => {
@@ -104,7 +114,7 @@ export async function GET(request: NextRequest) {
     // bornée par leur arrivée et se graverait trop tard. Ce passage enregistre les venues sans
     // faire avancer leur sortie ; le suivant, journal lu, la précise.
     // Sans identifiants Nuki, la porte n'est pas suivie du tout : rien à attendre, sortie libre.
-    const guestsKnown = doorOk || notes.porte === "no-credentials";
+    const guestsKnown = (doorOk && arrivalsKnown) || notes.porte === "no-credentials";
     const exitMotions = guestsKnown ? motions : [];
     const exitButtons = guestsKnown ? buttons : [];
     const allSessions = buildSessions(newArrivalsSince(arrivals, 0), exitMotions, exitButtons, guestEntries);

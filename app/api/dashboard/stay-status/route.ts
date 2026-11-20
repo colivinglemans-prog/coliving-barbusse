@@ -38,7 +38,8 @@ async function houseStays(): Promise<Array<{ id: number; status?: string | null 
  * État des séjours pour le calendrier : les **horaires convenus** (arrivée anticipée, départ
  * tardif), et depuis la phase B (2026-11-20) l'**état du départ** (`departures` : icône de la
  * barre et ligne de la fiche, `departureBadge`), estimé par l'observation
- * (`lib/departure-observation.ts`, `barbusse:departure:<id>`, 7 jours). Du départ ne sort qu'une
+ * (`lib/departure-observation.ts`, `barbusse:departure:<id>`, 7 jours, lus par l'index
+ * `barbusse:departure-index` sans SCAN). Du départ ne sort qu'une
  * icône et une phrase toute faite (heures, « porte verrouillée ») : jamais le texte d'un message,
  * ni un nom, ni le journal de la serrure.
  *

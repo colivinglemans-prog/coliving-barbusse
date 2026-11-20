@@ -196,9 +196,14 @@ Depuis le 2026-11-14 :
   la serrure, journal Nuki depuis la veille 18 h (porte verrouillée seulement), message de départ
   du voyageur dans le fil Beds24 (un passage sur deux, jamais le texte gardé).
 - **Règle** (`departureTransition`, `lib/departure-detection.ts`) : porte verrouillée **après une
-  ouverture du jour même** (personne ne sort autrement) **et** 3 passages sans présence, ou message
-  de départ → « partis », à l'heure du verrouillage. Un code du
-  séjour qui rouvre ensuite → « revenu ».
+  ouverture du jour même, à partir de 5 h** (`OBSERVE_FROM_HOUR` : un retour de soirée à 2 h,
+  verrouillé de l'intérieur, n'est pas une sortie) **et** 3 passages sans présence, ou message
+  de départ → « partis », à l'heure du verrouillage. Ensuite, **toutes** les ouvertures depuis le
+  constat sont examinées (`returnAfter`) : le code du séjour qui rouvre → « revenu », même si le
+  ménage ouvre après lui ; une ouverture à la main ne compte que si personne d'autre n'est entré
+  depuis le constat.
+- **État** : `barbusse:departure:<id>` (7 jours), inscrit à chaque écriture dans l'index
+  `barbusse:departure-index` (ensemble, 7 jours) que lit le calendrier — plus de SCAN de la base.
 - **Journal** : `barbusse:departure-journal:<jour>` (14 jours), présence par radiateur avec son
   palier, serrure, événements, message. Le lendemain :
   `node --env-file=.env.local scripts/departure-journal.mjs 2026-12-06`.

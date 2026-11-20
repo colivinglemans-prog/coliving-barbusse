@@ -10,6 +10,7 @@ import {
   EMPTY_PASSES,
   LOCK_STATE_LOCKED,
   LOCK_STATES_TRANSIENT,
+  OBSERVE_FROM_HOUR,
   departureDeadlineHour,
   departureLockDueAt,
   departureMessage,
@@ -45,7 +46,9 @@ import { STANDARD_HOURS } from "./stay-hours-rules";
  *   verrouillée ou qu'un départ est déjà constaté (pour voir un retour) ; le fil de messages
  *   Beds24 (1 appel par réservation qui part) **un passage sur deux au plus**, jamais une fois le
  *   départ constaté ni le message reçu.
- * - **État** : `barbusse:departure:<id>` (7 jours), lu par `/api/dashboard/stay-status`.
+ * - **État** : `barbusse:departure:<id>` (7 jours), lu par `/api/dashboard/stay-status`. Chaque
+ *   écriture inscrit l'identifiant dans l'index `barbusse:departure-index` (ensemble, 7 jours
+ *   repoussés à chaque écriture) : le dashboard lit l'index, jamais un SCAN de toute la base.
  * - **Journal** : `barbusse:departure-journal:<jour>` (liste, 14 jours), une entrée par passage :
  *   présence par radiateur avec son palier, serrure, événements (catégorie du code, jamais son
  *   nom), message reçu (heure seulement, jamais le texte). Relu par
@@ -68,8 +71,8 @@ export function departureDetectionMode(raw: string | undefined = process.env.DEP
   return v === "off" || v === "live" ? v : "observe";
 }
 
-/** Début de l'observation le jour du départ (heure de Paris). */
-export const OBSERVE_FROM_HOUR = 5;
+/** Début de l'observation le jour du départ (heure de Paris), défini avec la règle. */
+export { OBSERVE_FROM_HOUR };
 /** Le fil de messages n'est relu qu'au bout de ce délai : un passage sur deux au plus. */
 export const MESSAGE_RECHECK_MINUTES = 25;
 /** Plafonds des lectures de l'observation (le passage entier tient en 60 s, radiateurs compris). */
@@ -84,6 +87,8 @@ const LOG_FROM_PREVIOUS_DAY_HOUR = 18;
 const JOURNAL_EVENTS_MAX = 20;
 
 export const departureStateKey = (bookingId: number) => redisKey("departure", bookingId);
+/** Ensemble des réservations dont un état de départ est gardé (`readDepartureStates`). */
+export const departureIndexKey = () => redisKey("departure-index");
 export const departureJournalKey = (day: string) => redisKey("departure-journal", day);
 const notifiedKey = (bookingId: number, kind: string) => redisKey("departure-notified", bookingId, kind);
 
@@ -135,6 +140,21 @@ function departuresOf(bookings: readonly DepartureStay[], today: string) {
   return bookings
     .filter((b) => (b.status === undefined || countsAsSold(b.status)) && b.departure === today)
     .map((b) => ({ bookingId: b.id, departureHour: b.departureHour ?? STANDARD_HOURS.departure }));
+}
+
+/**
+ * Écrit l'état d'un départ **et** l'inscrit dans l'index (même durée de vie, repoussée à chaque
+ * écriture). L'index raté n'empêche pas l'état : il sera réinscrit au passage suivant.
+ */
+async function writeState(bookingId: number, state: DepartureState): Promise<void> {
+  await setJson(departureStateKey(bookingId), state, STATE_TTL_SECONDS);
+  try {
+    const redis = getRedis();
+    await redis.sadd(departureIndexKey(), bookingId);
+    await redis.expire(departureIndexKey(), STATE_TTL_SECONDS);
+  } catch (e) {
+    console.error("[departure-observation] index non écrit :", errorText(e));
+  }
 }
 
 /** Pose la marque « déjà notifié » ; `false` si elle l'était (ou Redis illisible : on se tait). */
@@ -289,7 +309,7 @@ async function observe(input: DepartureObservationInput, mode: DepartureDetectio
     if (pending.length > 0) t.state.notifyPending = pending;
     else delete t.state.notifyPending;
     try {
-      await setJson(departureStateKey(id), t.state, STATE_TTL_SECONDS);
+      await writeState(id, t.state);
     } catch (e) {
       // Sans état écrit, pas de notification : elle repartirait au passage suivant.
       console.error("[departure-observation] état non écrit :", errorText(e));
@@ -331,7 +351,7 @@ Constat : ${proof}.`,
       // Restent en attente seulement les envois ratés : réessayés au passage suivant.
       if (failed.length > 0) t.state.notifyPending = failed;
       else delete t.state.notifyPending;
-      await setJson(departureStateKey(id), t.state, STATE_TTL_SECONDS).catch((e) =>
+      await writeState(id, t.state).catch((e) =>
         console.error("[departure-observation] état non réécrit :", errorText(e)),
       );
     }
@@ -392,29 +412,33 @@ export async function recordDoorCheck(
       const previous = await getJson<DepartureState>(key);
       const base = previous?.day === today ? previous : initialDepartureState(today, now);
       if (base.door === door) continue;
-      await setJson(key, { ...base, door, updatedAt: now.toISOString() }, STATE_TTL_SECONDS);
+      await writeState(bookingId, { ...base, door, updatedAt: now.toISOString() });
     }
   } catch (e) {
     console.error("[departure-observation] relevé de porte non reporté :", errorText(e));
   }
 }
 
-/** Les états de départ gardés (≤ 7 jours), par réservation — pour `/api/dashboard/stay-status`. */
+/**
+ * Les états de départ gardés (≤ 7 jours), par réservation — pour `/api/dashboard/stay-status`.
+ * Lus par l'index (`SMEMBERS` puis un `MGET`), plus jamais par un SCAN de tout l'espace de clés à
+ * chaque ouverture du calendrier (2026-11-20). Un identifiant dont l'état a expiré est retiré de
+ * l'index au passage.
+ */
 export async function readDepartureStates(): Promise<Record<number, DepartureState>> {
   const out: Record<number, DepartureState> = {};
   const redis = getRedis();
-  const keys: string[] = [];
-  let cursor: string | number = 0;
-  do {
-    const [next, batch] = (await redis.scan(cursor, { match: `${redisKey("departure")}:*`, count: 200 })) as [string | number, string[]];
-    keys.push(...batch);
-    cursor = next;
-  } while (String(cursor) !== "0");
-  const ids = keys.map((k) => Number(k.split(":").pop())).filter((n) => Number.isInteger(n) && n > 0);
+  const members = (await redis.smembers(departureIndexKey())) as Array<string | number>;
+  const ids = [...new Set(members.map(Number))].filter((n) => Number.isInteger(n) && n > 0);
   if (ids.length === 0) return out;
   const values = await redis.mget<unknown[]>(...ids.map((id) => departureStateKey(id)));
+  const expired: number[] = [];
   ids.forEach((id, i) => {
     let v = values[i];
+    if (v === null || v === undefined) {
+      expired.push(id);
+      return;
+    }
     if (typeof v === "string") {
       try {
         v = JSON.parse(v);
@@ -426,5 +450,6 @@ export async function readDepartureStates(): Promise<Record<number, DepartureSta
       out[id] = v as DepartureState;
     }
   });
+  if (expired.length > 0) await redis.srem(departureIndexKey(), ...expired).catch(() => {});
   return out;
 }

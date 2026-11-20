@@ -3,7 +3,7 @@ import type { KeypadOpening } from "@/lib/cleaning/intratone";
 import { parseOpenings, parseFrenchDate } from "@/lib/cleaning/intratone";
 import {
   trackedOpenings, matchPerson, doorLogArrivals, parsePeople, mergeArrivals, newArrivalsSince,
-  maxArrivalMs, estimateExit, buildSessions, guestKeypadEntries, type CleaningArrival, type TrackedPerson,
+  maxArrivalMs, estimateExit, buildSessions, guestKeypadEntries, guestKeypadCodes, parisDayOf, type CleaningArrival, type TrackedPerson,
 } from "@/lib/cleaning/sessions";
 
 const d = (iso: string) => new Date(iso);
@@ -176,20 +176,47 @@ describe("monthlyBuckets", () => {
 });
 
 describe("jour de rotation : l'arrivée des voyageurs borne la sortie du ménage", () => {
+  // 7000001 arrive le 4 ; 7000003 est parti le 4 (arrivé le 1er) et revient chercher un chargeur.
+  const ARRIVALS = new Map([
+    [7000001, "2026-11-04"],
+    [7000003, "2026-11-01"],
+  ]);
   const log = [
     { trigger: 255, state: 0, name: "# Sophie", date: "2026-11-04T10:00:00Z" },
     { trigger: 255, state: 0, name: "7000001: Voyageur", date: "2026-11-04T16:00:00Z" },
     { trigger: 255, state: 1, name: "7000002: Autre", date: "2026-11-04T15:00:00Z" },
   ];
   it("ne garde que les codes gérés, ouvertures réussies", () => {
-    expect(guestKeypadEntries(log).map((x) => x.toISOString())).toEqual(["2026-11-04T16:00:00.000Z"]);
+    expect(guestKeypadCodes(log)).toEqual([{ bookingId: 7000001, at: d("2026-11-04T16:00:00Z") }]);
+    expect(guestKeypadEntries(guestKeypadCodes(log), ARRIVALS).map((x) => x.toISOString())).toEqual(["2026-11-04T16:00:00.000Z"]);
   });
   it("les mouvements après l'entrée des voyageurs ne font plus la sortie", () => {
     const motions = [d("2026-11-04T13:30:00Z"), d("2026-11-04T16:20:00Z")];
-    expect(estimateExit(d("2026-11-04T10:00:00Z"), motions, [], guestKeypadEntries(log)).exit?.toISOString()).toBe(
+    expect(estimateExit(d("2026-11-04T10:00:00Z"), motions, [], guestKeypadEntries(guestKeypadCodes(log), ARRIVALS)).exit?.toISOString()).toBe(
       "2026-11-04T13:30:00.000Z",
     );
     // Sans le journal, l'ancienne lecture : 16 h 20.
     expect(estimateExit(d("2026-11-04T10:00:00Z"), motions, []).exit?.toISOString()).toBe("2026-11-04T16:20:00.000Z");
+  });
+  it("un partant qui revient après l'arrivée du ménage ne tronque pas sa sortie", () => {
+    const back = [...log, { trigger: 255, state: 0, name: "7000003: Partant", date: "2026-11-04T10:30:00Z" }];
+    const motions = [d("2026-11-04T10:40:00Z"), d("2026-11-04T13:30:00Z"), d("2026-11-04T16:20:00Z")];
+    const entries = guestKeypadEntries(guestKeypadCodes(back), ARRIVALS);
+    expect(entries.map((x) => x.toISOString())).toEqual(["2026-11-04T16:00:00.000Z"]);
+    expect(estimateExit(d("2026-11-04T10:00:00Z"), motions, [], entries).exit?.toISOString()).toBe("2026-11-04T13:30:00.000Z");
+    // L'ancienne lecture (tout code géré) : sortie tronquée à 10 h 30, aucun mouvement retenu.
+    const all = guestKeypadCodes(back).map((c) => c.at);
+    expect(estimateExit(d("2026-11-04T10:00:00Z"), motions, [], all).by).toBe("inconnu");
+  });
+  it("seulement le jour de l'arrivée, heure de Paris ; une réservation inconnue ne borne rien", () => {
+    // Le lendemain de son arrivée, le même voyageur ne borne plus la sortie d'un ménage.
+    const nextDay = [{ trigger: 255, state: 0, name: "7000001: Voyageur", date: "2026-11-05T12:00:00Z" }];
+    expect(guestKeypadEntries(guestKeypadCodes(nextDay), ARRIVALS)).toEqual([]);
+    // 23 h 30 UTC le 3 = 0 h 30 à Paris le 4 : c'est bien le jour de l'arrivée.
+    const lateNight = [{ trigger: 255, state: 0, name: "7000001: Voyageur", date: "2026-11-03T23:30:00Z" }];
+    expect(parisDayOf(d("2026-11-03T23:30:00Z"))).toBe("2026-11-04");
+    expect(guestKeypadEntries(guestKeypadCodes(lateNight), ARRIVALS)).toHaveLength(1);
+    const unknown = [{ trigger: 255, state: 0, name: "7000009: Inconnu", date: "2026-11-04T16:00:00Z" }];
+    expect(guestKeypadEntries(guestKeypadCodes(unknown), ARRIVALS)).toEqual([]);
   });
 });

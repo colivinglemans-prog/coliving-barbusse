@@ -30,7 +30,9 @@ vi.mock("@/lib/redis", () => ({
       for (const [f, val] of Object.entries(v)) h.hash.set(f, val);
     },
     hdel: async (_k: string, f: string) => h.hash.delete(f),
-    scan: async () => ["0", [...h.departures.keys()]],
+    // L'index des réservations suivies (`barbusse:departure-index`) : les identifiants des états.
+    smembers: async () => [...h.departures.keys()].map((k) => k.split(":").pop()),
+    srem: async () => 0,
     mget: async (...keys: string[]) => keys.map((k) => h.departures.get(k) ?? null),
   }),
   // Cache des réservations de la maison (5 min) : vide par défaut, Beds24 lu.
