@@ -79,18 +79,51 @@ export function doorLogArrivals(
   return out;
 }
 
+/** Une entrée au clavier par le code géré d'un séjour : le n° de réservation et l'instant. */
+export interface GuestKeypadCode {
+  bookingId: number;
+  at: Date;
+}
+
 /**
- * Les entrées des **voyageurs** au clavier (code géré d'un séjour, « <n° résa>: <Prénom> »),
- * lues dans le même journal que `doorLogArrivals`. Un jour de rotation, les voyageurs qui
- * arrivent à 17 h bougent devant les caméras : sans cette borne, leur arrivée devenait l'heure
- * de sortie du ménage (audit du 15/11, heures et coût surestimés).
+ * Les entrées au clavier par un code **géré** (« <n° résa>: <Prénom> »), réussies, lues dans le
+ * même journal que `doorLogArrivals`. Brutes : partants comme arrivants. `guestKeypadEntries`
+ * n'en garde que les arrivants.
+ */
+export function guestKeypadCodes(
+  log: readonly { trigger: number; state?: number; name?: string | null; date: string }[],
+): GuestKeypadCode[] {
+  const out: GuestKeypadCode[] = [];
+  for (const e of log) {
+    if (e.trigger !== 255 || e.state !== 0) continue;
+    const bookingId = managedBookingId(e.name ?? "");
+    if (bookingId !== null) out.push({ bookingId, at: new Date(e.date) });
+  }
+  return out;
+}
+
+const PARIS_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" });
+
+/** « YYYY-MM-DD » de l'instant, heure de Paris. */
+export function parisDayOf(d: Date): string {
+  return PARIS_DAY.format(d);
+}
+
+/**
+ * Les entrées des **voyageurs qui arrivent** : code géré d'une réservation dont l'arrivée
+ * (`arrivalDays`, n° → « YYYY-MM-DD ») est le jour même de l'entrée, heure de Paris. Un jour de
+ * rotation, les voyageurs qui arrivent à 17 h bougent devant les caméras : sans cette borne, leur
+ * arrivée devenait l'heure de sortie du ménage (audit du 15/11, heures et coût surestimés).
+ *
+ * Le code d'un **partant** ne borne rien (2026-11-20) : un voyageur qui revient chercher un
+ * chargeur après l'arrivée du ménage tronquait sa sortie, voire l'annulait. Un code dont la
+ * réservation est inconnue de `arrivalDays` (hors fenêtre, annulée) ne borne rien non plus.
  */
 export function guestKeypadEntries(
-  log: readonly { trigger: number; state?: number; name?: string | null; date: string }[],
+  codes: readonly GuestKeypadCode[],
+  arrivalDays: ReadonlyMap<number, string>,
 ): Date[] {
-  return log
-    .filter((e) => e.trigger === 255 && e.state === 0 && managedBookingId(e.name ?? "") !== null)
-    .map((e) => new Date(e.date));
+  return codes.filter((c) => arrivalDays.get(c.bookingId) === parisDayOf(c.at)).map((c) => c.at);
 }
 
 /** Le nom canonique d'une personne suivie dont le libellé du code contient le nom, sinon null. */
@@ -131,8 +164,8 @@ export function maxArrivalMs(arrivals: CleaningArrival[], fallback: number): num
 /**
  * Estime la fin d'une visite à partir des signes de présence postérieurs à l'arrivée et dans la
  * fenêtre de 8 h : dernier mouvement caméra en priorité, sinon dernier appui bouton poussoir.
- * La fenêtre s'arrête **avant** la première entrée d'un voyageur au clavier après l'arrivée
- * (`guestKeypadEntries`) : ce qui bouge ensuite, ce sont les voyageurs.
+ * La fenêtre s'arrête **avant** la première entrée au clavier d'un voyageur **qui arrive** ce
+ * jour-là, après l'arrivée (`guestKeypadEntries`) : ce qui bouge ensuite, ce sont les voyageurs.
  */
 export function estimateExit(
   arrival: Date,

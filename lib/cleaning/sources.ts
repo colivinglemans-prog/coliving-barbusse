@@ -3,7 +3,17 @@ import { managedBookingId } from "@sejour/socle/lib/access-codes";
 import { nukiConfig } from "@/lib/access-sync";
 import { AjCloud } from "@/lib/camera/ajcloud";
 import { Intratone } from "@/lib/cleaning/intratone";
-import { doorLogArrivals, guestKeypadEntries, trackedOpenings, type CleaningArrival, type TrackedPerson } from "@/lib/cleaning/sessions";
+import { getBookings } from "@/lib/beds24";
+import { getJson, redisKey, setJson } from "@/lib/redis";
+import {
+  doorLogArrivals,
+  guestKeypadCodes,
+  parisDayOf,
+  trackedOpenings,
+  type CleaningArrival,
+  type GuestKeypadCode,
+  type TrackedPerson,
+} from "@/lib/cleaning/sessions";
 
 /**
  * Les quatre sources de données du suivi des intervenants, partagées par le cron
@@ -50,17 +60,46 @@ export async function doorArrivals(people: TrackedPerson[], since: Date): Promis
 }
 
 /**
- * La même lecture du journal, plus les entrées des voyageurs au clavier (`guestKeypadEntries`),
- * qui bornent la sortie estimée d'un ménage un jour de rotation. Une seule lecture Nuki.
+ * La même lecture du journal, plus les entrées au clavier par les codes gérés des séjours
+ * (`guestKeypadCodes`, partants comme arrivants). Celles des voyageurs **qui arrivent** bornent la
+ * sortie estimée d'un ménage un jour de rotation (`guestKeypadEntries`, avec `guestArrivalDays`).
+ * Une seule lecture Nuki.
  */
 export async function doorReading(
   people: TrackedPerson[],
   since: Date,
-): Promise<{ arrivals: CleaningArrival[]; guestEntries: Date[] }> {
+): Promise<{ arrivals: CleaningArrival[]; guestCodes: GuestKeypadCode[] }> {
   if (!process.env.NUKI_API_TOKEN || !process.env.NUKI_SMARTLOCK_ID) throw new Error("no-credentials");
   const log = await listLogSince(nukiConfig(), since);
   // Les codes gérés des séjours (« <n° résa>: Sophie ») sont exclus par `doorLogArrivals`.
-  return { arrivals: doorLogArrivals(log, people), guestEntries: guestKeypadEntries(log) };
+  return { arrivals: doorLogArrivals(log, people), guestCodes: guestKeypadCodes(log) };
+}
+
+/** Jours d'arrivée des réservations arrivées sur la fenêtre lue, gardés 30 min (quota Beds24). */
+const ARRIVAL_DAYS_TTL_SECONDS = 1800;
+
+/**
+ * Le jour d'arrivée (« YYYY-MM-DD ») des réservations dont un code géré apparaît au journal :
+ * **une** requête Beds24 sur les arrivées des jours couverts par ces entrées, gardée 30 min dans
+ * Redis. Relue avant ce délai seulement si une réservation inconnue apparaît (réservée le jour
+ * même). Aucun code géré : aucun appel. Lève si Beds24 ne répond pas.
+ */
+export async function guestArrivalDays(codes: readonly GuestKeypadCode[]): Promise<Map<number, string>> {
+  if (codes.length === 0) return new Map();
+  const days = codes.map((c) => parisDayOf(c.at)).sort();
+  const from = days[0];
+  const to = days[days.length - 1];
+  const ids = [...new Set(codes.map((c) => c.bookingId))];
+  const key = redisKey("cleaning", "arrival-days", from, to);
+  const cached = await getJson<Record<string, string>>(key).catch(() => null);
+  if (cached && ids.every((id) => String(id) in cached)) return new Map(Object.entries(cached).map(([id, d]) => [Number(id), d]));
+  const bookings = await getBookings({ arrivalFrom: from, arrivalTo: to });
+  const out: Record<string, string> = {};
+  for (const b of bookings) if (b.arrival) out[String(b.id)] = b.arrival;
+  // Les réservations encore inconnues sont notées « hors fenêtre » : pas de relecture pour elles.
+  for (const id of ids) if (!(String(id) in out)) out[String(id)] = "";
+  await setJson(key, out, ARRIVAL_DAYS_TTL_SECONDS).catch(() => {});
+  return new Map(Object.entries(out).filter(([, d]) => d !== "").map(([id, d]) => [Number(id), d]));
 }
 
 /** Instants des mouvements de toutes les caméras (pour estimer la sortie). */

@@ -426,6 +426,14 @@ export function departureLockTitle(departureHour: number | null, guestReturned =
  * l'intérieur) après le constat l'annule : `returned`.
  * ══════════════════════════════════════════════════════════════════════════ */
 
+/**
+ * Début de l'observation le jour du départ (heure de Paris), et début du « jour » pour la porte
+ * fermée derrière les voyageurs (`doorClosedBehind`) : une ouverture à 2 h (retour de soirée,
+ * verrouillage de l'intérieur) n'est pas une sortie du jour (relecture Fable, 2026-11-20). Un
+ * départ avant 5 h n'est pas constaté par l'observation ; le relevé de la porte reste.
+ */
+export const OBSERVE_FROM_HOUR = 5;
+
 /** Passages de suite sans présence pour conclure (30 à 45 min). À régler sur l'observation. */
 export const EMPTY_PASSES = 3;
 /** En dessous, la présence de la maison est « illisible » : trop peu de radiateurs pour conclure. */
@@ -548,7 +556,7 @@ export function lockFacts(log: readonly NukiLogEntry[], since: Date, ctx: LockCo
 
 /**
  * Porte fermée derrière quelqu'un qui sort : verrouillée, **une ouverture le jour même**
- * (`dayStart`), puis un verrouillage après la dernière ouverture. On ne sort que par la porte
+ * (`dayStart`, `OBSERVE_FROM_HOUR` le jour du départ), puis un verrouillage après la dernière ouverture. On ne sort que par la porte
  * d'entrée : sans ouverture ce jour-là, personne n'est sorti. Un verrouillage de la veille au
  * soir (de l'intérieur, à 23 h 30) ou aucun événement ne prouvent rien (relecture Fable,
  * 2026-11-20 : des dormeurs sans palier `cft` donnaient un faux départ à 7 h 15).
@@ -677,6 +685,33 @@ export function initialDepartureState(day: string, now: Date): DepartureState {
 }
 
 /**
+ * Le retour d'un voyageur après le constat (`departedAt`) : **toutes** les ouvertures qui le
+ * suivent sont examinées, pas la seule dernière (2026-11-20) — un retour par le code du séjour
+ * suivi d'une ouverture du ménage passait inaperçu.
+ *
+ * - Une ouverture par le **code du séjour qui part** est un retour, où qu'elle soit.
+ * - Une ouverture **à la main** (molette, bouton) l'est seulement tant que personne d'autre (ménage,
+ *   hôte, voyageurs suivants) n'est entré depuis le constat : après, c'est cette personne qui
+ *   manœuvre de l'intérieur.
+ *
+ * Rend la première ouverture qui vaut retour, sinon `null`. Exporté pour les tests.
+ */
+export function returnAfter(events: readonly LockEvent[], departedAt: string): LockEvent | null {
+  const from = Date.parse(departedAt);
+  let someoneElse = false;
+  for (const e of events) {
+    if (e.kind !== "ouverture" || Date.parse(e.at) <= from) continue;
+    if (e.actor === "séjour") return e;
+    if (e.actor === "à la main") {
+      if (!someoneElse) return e;
+      continue;
+    }
+    someoneElse = true;
+  }
+  return null;
+}
+
+/**
  * Fait avancer l'état d'un départ — **pure**, état passé en argument (patron :
  * `powerCutTransition`).
  *
@@ -687,9 +722,10 @@ export function initialDepartureState(day: string, now: Date): DepartureState {
  *   départ). Départ daté du verrouillage. Notifie `departed`, à chaque constat (un après retour
  *   compris ; l'appelant ne notifie jamais deux fois le même constat).
  * - Message reçu, porte non verrouillée : `left-unlocked` (une fois), statut `suspected`.
- * - Après `empty`, une ouverture par le code du séjour, ou à la main, annule le constat :
- *   `returned`, et la détection repart (un nouveau constat est possible, et notifié). Une ouverture par le ménage, l'hôte ou les voyageurs suivants n'est pas un
- *   retour.
+ * - Après `empty`, une ouverture par le code du séjour, ou à la main avant toute autre entrée,
+ *   annule le constat (`returnAfter`, toutes les ouvertures depuis le constat) : `returned`, et la
+ *   détection repart (un nouveau constat est possible, et notifié). Une ouverture par le ménage,
+ *   l'hôte ou les voyageurs suivants n'est pas un retour.
  */
 export function departureTransition(
   previous: DepartureState | null,
@@ -719,13 +755,8 @@ export function departureTransition(
   const unreadable = facts.lock === null || !facts.presence?.readable;
 
   if (prev.status === "empty") {
-    const o = facts.lock?.lastOpening;
-    if (
-      o &&
-      prev.departedAt &&
-      (o.actor === "séjour" || o.actor === "à la main") &&
-      Date.parse(o.at) > Date.parse(prev.departedAt)
-    ) {
+    const o = prev.departedAt && facts.lock ? returnAfter(facts.lock.events, prev.departedAt) : null;
+    if (o) {
       next.status = "returned";
       next.returnedAt = o.at;
       next.absentPasses = 0;
@@ -736,7 +767,7 @@ export function departureTransition(
     return { state: next, notify, unreadable };
   }
 
-  const closed = facts.lock !== null && doorClosedBehind(facts.lockState, facts.lock, parisInstant(day, 0));
+  const closed = facts.lock !== null && doorClosedBehind(facts.lockState, facts.lock, parisInstant(day, OBSERVE_FROM_HOUR));
   // Fermée derrière eux ⇒ le dernier verrouillage est du jour et suit leur sortie.
   const lockedAt = closed ? facts.lock!.lastLockAt! : null;
   // Après un retour, seul un message postérieur au retour compte.
