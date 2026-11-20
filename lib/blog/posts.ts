@@ -3360,9 +3360,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Le Mans mit der Familie: was kann man im Sarthe besichtigen?",
+        title: "Le Mans mit der Familie: was kann man in der Sarthe besichtigen?",
         description:
-          "Reiseführer zur Entdeckung von Le Mans und dem Sarthe mit der Familie: Cité Plantagenêt, Abtei von Épau, Zoo von La Flèche, Gastronomie, kulturelle Veranstaltungen.",
+          "Reiseführer zur Entdeckung von Le Mans und der Sarthe mit der Familie: Cité Plantagenêt, Abtei von Épau, Zoo von La Flèche, Gastronomie, kulturelle Veranstaltungen.",
         metaDescription:
           "Reiseführer für Le Mans und die Sarthe mit der Familie: Cité Plantagenêt, Abtei von Épau, Zoo von La Flèche, Gastronomie, Kulturveranstaltungen.",
         excerpt:
