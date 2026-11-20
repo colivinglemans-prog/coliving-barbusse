@@ -1,5 +1,5 @@
 import { getRedis, redisKey } from "@/lib/redis";
-import type { ArrivalSource, CleaningSession } from "@/lib/cleaning/sessions";
+import { collapseVisits, SAME_VISIT_GAP_MS, type ArrivalSource, type CleaningSession } from "@/lib/cleaning/sessions";
 
 /**
  * Magasin **persistant** des passages (ménage, dépannage), dans un hash Redis
@@ -12,6 +12,13 @@ import type { ArrivalSource, CleaningSession } from "@/lib/cleaning/sessions";
  * Principe : **une sortie estimée, une fois captée, est gravée et ne peut que s'améliorer**. Le
  * cron rafraîchit le magasin chaque heure (il ne fait que préciser la sortie, jamais la réeffacer),
  * et le dashboard **lit le magasin** au lieu de recalculer. L'arrivée est la clé stable.
+ *
+ * **Une venue, un champ** (audit du 15/11) : quand une source manquait à un passage (garage ou
+ * porte illisibles), l'arrivée retenue n'était plus la même (porte 9 h 00, puis garage 9 h 20
+ * seul) et la venue prenait une seconde clé — comptée deux fois, heures et coût compris. Une
+ * session entrante est désormais rapprochée d'une session gardée de la même personne à moins de
+ * 45 min (`SAME_VISIT_GAP_MS`) : un seul champ, à l'arrivée la plus tôt. La lecture fusionne
+ * aussi les doublons déjà écrits (`collapseVisits`).
  */
 
 const LOG_KEY = redisKey("cleaning", "log");
@@ -67,24 +74,35 @@ export async function loadSessions(): Promise<CleaningSession[]> {
     const s = parse(value);
     if (s) out.push(fromStored(s));
   }
-  return out.sort((a, b) => b.arrival.getTime() - a.arrival.getTime());
+  return collapseVisits(out);
 }
 
 /**
  * Insère ou met à jour des sessions. Règle d'or : on conserve l'arrivée (clé) et on ne met la
  * sortie que si elle **progresse** — nouvelle sortie plus tardive que l'ancienne, ou première
- * sortie connue. **Jamais** on ne remplace une sortie connue par `null`. Rend le nombre de champs
- * réellement écrits.
+ * sortie connue. **Jamais** on ne remplace une sortie connue par `null`. Une session de la même
+ * personne gardée à moins de 45 min est la même venue : fusionnée sous l'arrivée la plus tôt
+ * (l'ancien champ est retiré s'il change de clé). Rend le nombre de champs réellement écrits.
  */
 export async function upsertSessions(incoming: CleaningSession[]): Promise<number> {
   if (incoming.length === 0) return 0;
   const redis = getRedis();
-  const existing = (await redis.hgetall<Record<string, unknown>>(LOG_KEY)) ?? {};
+  const raw = (await redis.hgetall<Record<string, unknown>>(LOG_KEY)) ?? {};
+  // Vue de travail du magasin : champ → session, mise à jour au fil des fusions de ce passage.
+  const stored = new Map<string, StoredSession>();
+  for (const [key, value] of Object.entries(raw)) {
+    const v = parse(value);
+    if (v) stored.set(key, v);
+  }
   const updates: Record<string, string> = {};
+  const removed = new Set<string>();
 
   for (const s of incoming) {
-    const key = sessionKey(s.who, s.arrival);
-    const prev = parse(existing[key]);
+    const exactKey = sessionKey(s.who, s.arrival);
+    const sameVisit = stored.has(exactKey) ? exactKey : closestVisit(stored, s.who, s.arrival.getTime());
+    const prev = sameVisit ? stored.get(sameVisit)! : null;
+    const prevArrival = prev ? new Date(prev.arrival).getTime() : null;
+    const arrivalMs = prevArrival !== null ? Math.min(prevArrival, s.arrival.getTime()) : s.arrival.getTime();
     const prevExit = prev?.exit ? new Date(prev.exit).getTime() : null;
     const newExit = s.exitEstimate ? s.exitEstimate.getTime() : null;
 
@@ -96,24 +114,51 @@ export async function upsertSessions(incoming: CleaningSession[]): Promise<numbe
       by = s.exitBy;
     }
 
+    const earlier = prevArrival === null || s.arrival.getTime() < prevArrival;
     const merged: StoredSession = {
       who: s.who,
-      arrival: s.arrival.toISOString(),
+      arrival: new Date(arrivalMs).toISOString(),
       exit: exit !== null ? new Date(exit).toISOString() : null,
       by,
-      source: prev?.source ?? s.arrivalSource,
+      source: prev && !earlier ? prev.source : s.arrivalSource,
     };
+    const key = sessionKey(s.who, new Date(arrivalMs));
 
-    // N'écrit que si c'est nouveau ou si la sortie a changé.
-    if (!prev || prev.exit !== merged.exit) {
+    // N'écrit que si c'est nouveau, si l'arrivée avance plus tôt ou si la sortie a changé.
+    if (!prev || prev.arrival !== merged.arrival || prev.exit !== merged.exit) {
       updates[key] = JSON.stringify(merged);
+      removed.delete(key);
+      if (sameVisit && sameVisit !== key) {
+        stored.delete(sameVisit);
+        delete updates[sameVisit];
+        removed.add(sameVisit);
+      }
+      stored.set(key, merged);
     }
   }
 
   if (Object.keys(updates).length > 0) {
     await redis.hset(LOG_KEY, updates);
   }
+  if (removed.size > 0) {
+    await redis.hdel(LOG_KEY, ...removed);
+  }
   return Object.keys(updates).length;
+}
+
+/** Le champ de la session gardée de `who` la plus proche de `arrivalMs`, à moins de 45 min. */
+function closestVisit(stored: Map<string, StoredSession>, who: string, arrivalMs: number): string | null {
+  let best: string | null = null;
+  let bestGap = SAME_VISIT_GAP_MS;
+  for (const [key, v] of stored) {
+    if (v.who !== who) continue;
+    const gap = Math.abs(new Date(v.arrival).getTime() - arrivalMs);
+    if (gap < bestGap) {
+      best = key;
+      bestGap = gap;
+    }
+  }
+  return best;
 }
 
 /** Supprime les sessions dont l'arrivée dépasse 18 mois. Rend le nombre de champs retirés. */

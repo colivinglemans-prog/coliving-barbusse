@@ -158,9 +158,13 @@ export async function GET(request: NextRequest) {
 
     // La borne n'avance que si tout ce qui a été lu a été traité : un envoi raté sera relu.
     if (keypadError === null && errors.length === 0) await saveLogSince("checkin", startedAt);
+    // Le planificateur est vivant (battement `ok`), mais le passage n'a pas fait son travail : la
+    // réponse ne dit plus « succès » quand le journal est illisible (audit du 15/11). HTTP 200
+    // quand même : l'alerte ci-dessus suit la règle commune, un 5xx ferait écrire cron-job.org à
+    // l'hôte à chaque passage, en double.
     await beat("checkin-notifications", "ok");
     return NextResponse.json({
-      success: true,
+      success: keypadError === null,
       window: { arrivalFrom, arrivalTo },
       scanned: bookings.length,
       notified,

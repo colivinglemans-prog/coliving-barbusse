@@ -69,6 +69,19 @@ export interface AjDevice {
 
 export class AjCloudError extends Error {}
 
+/**
+ * Une session ouverte (`login`), pour la réutiliser d'un appel à l'autre au lieu de refaire la
+ * poignée de main complète (`lib/camera/session.ts`). Secret : jamais journalisée ni renvoyée.
+ */
+export interface AjSession {
+  agentToken: string;
+  accessToken: string;
+  signToken: string;
+  uid: string | null;
+  countryCode: string;
+  continentCode: string;
+}
+
 export class AjCloud {
   private readonly email: string;
   private readonly password: string;
@@ -149,6 +162,29 @@ export class AjCloud {
     this.uid = r.uid;
     this.countryCode = (r.ident?.region ?? this.countryCode).toUpperCase();
     this.continentCode = r.ident?.continent ?? this.continentCode;
+  }
+
+  /** La session en cours, `null` avant `login()`. */
+  session(): AjSession | null {
+    if (!this.accessToken || !this.signToken) return null;
+    return {
+      agentToken: this.agentToken,
+      accessToken: this.accessToken,
+      signToken: this.signToken,
+      uid: this.uid,
+      countryCode: this.countryCode,
+      continentCode: this.continentCode,
+    };
+  }
+
+  /** Reprend une session ouverte plus tôt, sans `login()`. */
+  restore(session: AjSession): void {
+    this.agentToken = session.agentToken;
+    this.accessToken = session.accessToken;
+    this.signToken = session.signToken;
+    this.uid = session.uid;
+    this.countryCode = session.countryCode;
+    this.continentCode = session.continentCode;
   }
 
   /** Liste les caméras du compte, enrichies de leur image instantanée et de leurs passerelles. */

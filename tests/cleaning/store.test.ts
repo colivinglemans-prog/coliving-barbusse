@@ -84,6 +84,40 @@ describe("upsert + load", () => {
   });
 });
 
+describe("une venue, un champ (source manquante à un passage)", () => {
+  it("porte 9 h 00, puis garage 9 h 20 seul : une seule session, à 9 h 00", async () => {
+    await upsertSessions([{ ...sess("Sophie", "2026-11-04T09:00:00Z", 60), arrivalSource: "porte" }]);
+    await upsertSessions([sess("Sophie", "2026-11-04T09:20:00Z", 150)]);
+    expect(hash.size).toBe(1);
+    const [only] = await loadSessions();
+    expect(only.arrival.toISOString()).toBe("2026-11-04T09:00:00.000Z");
+    expect(only.arrivalSource).toBe("porte");
+    expect(only.minutes).toBe(170); // sortie 11 h 50, la plus tardive
+  });
+
+  it("garage 9 h 20 seul, puis porte 9 h 00 : le champ passe à 9 h 00, l'ancien est retiré", async () => {
+    await upsertSessions([sess("Sophie", "2026-11-04T09:20:00Z", 60)]);
+    await upsertSessions([{ ...sess("Sophie", "2026-11-04T09:00:00Z", null), arrivalSource: "porte" }]);
+    expect([...hash.keys()]).toEqual([sessionKey("Sophie", new Date("2026-11-04T09:00:00Z"))]);
+    const [only] = await loadSessions();
+    expect(only.minutes).toBe(80); // la sortie connue (10 h 20) est gardée
+  });
+
+  it("deux venues à plus de 45 min : deux sessions", async () => {
+    await upsertSessions([sess("Sophie", "2026-11-04T09:00:00Z", 30)]);
+    await upsertSessions([sess("Sophie", "2026-11-04T14:00:00Z", 30)]);
+    expect(await loadSessions()).toHaveLength(2);
+  });
+
+  it("doublons déjà écrits : fusionnés à la lecture", async () => {
+    hash.set("a", JSON.stringify({ who: "Sophie", arrival: "2026-11-04T09:00:00.000Z", exit: "2026-11-04T10:00:00.000Z", by: "camera", source: "porte" }));
+    hash.set("b", JSON.stringify({ who: "Sophie", arrival: "2026-11-04T09:20:00.000Z", exit: "2026-11-04T11:00:00.000Z", by: "camera", source: "garage" }));
+    const got = await loadSessions();
+    expect(got).toHaveLength(1);
+    expect(got[0].minutes).toBe(120);
+  });
+});
+
 describe("pruneOldSessions", () => {
   it("retire les passages de plus de 18 mois", async () => {
     await upsertSessions([

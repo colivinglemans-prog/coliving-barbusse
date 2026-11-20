@@ -3,7 +3,7 @@ import type { KeypadOpening } from "@/lib/cleaning/intratone";
 import { parseOpenings, parseFrenchDate } from "@/lib/cleaning/intratone";
 import {
   trackedOpenings, matchPerson, doorLogArrivals, parsePeople, mergeArrivals, newArrivalsSince,
-  maxArrivalMs, estimateExit, buildSessions, type CleaningArrival, type TrackedPerson,
+  maxArrivalMs, estimateExit, buildSessions, guestKeypadEntries, type CleaningArrival, type TrackedPerson,
 } from "@/lib/cleaning/sessions";
 
 const d = (iso: string) => new Date(iso);
@@ -172,5 +172,24 @@ describe("monthlyBuckets", () => {
     const buckets = monthlyBuckets(sessions);
     expect(buckets.map((b) => b.month)).toEqual(["2026-10", "2026-11"]);
     expect(buckets[1].counts).toEqual({ Eric: 1, Sophie: 1 });
+  });
+});
+
+describe("jour de rotation : l'arrivée des voyageurs borne la sortie du ménage", () => {
+  const log = [
+    { trigger: 255, state: 0, name: "# Sophie", date: "2026-11-04T10:00:00Z" },
+    { trigger: 255, state: 0, name: "7000001: Voyageur", date: "2026-11-04T16:00:00Z" },
+    { trigger: 255, state: 1, name: "7000002: Autre", date: "2026-11-04T15:00:00Z" },
+  ];
+  it("ne garde que les codes gérés, ouvertures réussies", () => {
+    expect(guestKeypadEntries(log).map((x) => x.toISOString())).toEqual(["2026-11-04T16:00:00.000Z"]);
+  });
+  it("les mouvements après l'entrée des voyageurs ne font plus la sortie", () => {
+    const motions = [d("2026-11-04T13:30:00Z"), d("2026-11-04T16:20:00Z")];
+    expect(estimateExit(d("2026-11-04T10:00:00Z"), motions, [], guestKeypadEntries(log)).exit?.toISOString()).toBe(
+      "2026-11-04T13:30:00.000Z",
+    );
+    // Sans le journal, l'ancienne lecture : 16 h 20.
+    expect(estimateExit(d("2026-11-04T10:00:00Z"), motions, []).exit?.toISOString()).toBe("2026-11-04T16:20:00.000Z");
   });
 });

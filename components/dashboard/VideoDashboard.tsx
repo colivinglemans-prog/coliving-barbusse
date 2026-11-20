@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * Page « Vidéo » (admin) : les caméras Wansview/AJCloud avec leur **image instantanée** (rafraîchie
- * ≈ 30 s → pseudo-direct) et la **galerie des événements de mouvement** (image + court clip vidéo
- * jouable en ligne). ICSee/ANRAN (clouds distincts) s'affichent en encarts « non connectées ».
+ * ≈ 30 s → pseudo-direct, en pause quand l'onglet est caché) et la **galerie des événements de
+ * mouvement** (image + court clip vidéo jouable en ligne). ICSee/ANRAN (clouds distincts) s'affichent en encarts « non connectées ».
  *
  * Le **vrai direct** (flux live continu) viendra d'un pont local (go2rtc sur la VM Freebox) — pas
  * d'un serverless. Les clips sont du MPEG-TS, lus par `mpegts.js` (chargé à la demande).
@@ -61,11 +61,26 @@ export default function VideoDashboard() {
           }
         })
         .catch((e) => alive && setError(String(e)));
-    fetchOnce();
-    const id = setInterval(fetchOnce, REFRESH_MS);
+    // Onglet caché (autre onglet, appli en arrière-plan sur mobile) : plus aucun appel. Chaque
+    // appel interroge le cloud caméra ; ~120 par heure d'onglet oublié (audit du 15/11). Au
+    // retour, une lecture tout de suite, puis la cadence reprend.
+    let id: ReturnType<typeof setInterval> | null = null;
+    const start = () => {
+      if (id !== null) return;
+      fetchOnce();
+      id = setInterval(fetchOnce, REFRESH_MS);
+    };
+    const stop = () => {
+      if (id !== null) clearInterval(id);
+      id = null;
+    };
+    const onVisibility = () => (document.visibilityState === "hidden" ? stop() : start());
+    if (document.visibilityState !== "hidden") start();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       alive = false;
-      clearInterval(id);
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
