@@ -3,7 +3,7 @@ import { managedBookingId } from "@sejour/socle/lib/access-codes";
 import { nukiConfig } from "@/lib/access-sync";
 import { AjCloud } from "@/lib/camera/ajcloud";
 import { Intratone } from "@/lib/cleaning/intratone";
-import { doorLogArrivals, trackedOpenings, type CleaningArrival, type TrackedPerson } from "@/lib/cleaning/sessions";
+import { doorLogArrivals, guestKeypadEntries, trackedOpenings, type CleaningArrival, type TrackedPerson } from "@/lib/cleaning/sessions";
 
 /**
  * Les quatre sources de données du suivi des intervenants, partagées par le cron
@@ -46,9 +46,21 @@ export async function garageOpenings(): Promise<Array<{ at: Date; who: string }>
  * laissait filer un passage un soir chargé. Lève si le journal ne peut pas être lu en entier.
  */
 export async function doorArrivals(people: TrackedPerson[], since: Date): Promise<CleaningArrival[]> {
+  return (await doorReading(people, since)).arrivals;
+}
+
+/**
+ * La même lecture du journal, plus les entrées des voyageurs au clavier (`guestKeypadEntries`),
+ * qui bornent la sortie estimée d'un ménage un jour de rotation. Une seule lecture Nuki.
+ */
+export async function doorReading(
+  people: TrackedPerson[],
+  since: Date,
+): Promise<{ arrivals: CleaningArrival[]; guestEntries: Date[] }> {
   if (!process.env.NUKI_API_TOKEN || !process.env.NUKI_SMARTLOCK_ID) throw new Error("no-credentials");
+  const log = await listLogSince(nukiConfig(), since);
   // Les codes gérés des séjours (« <n° résa>: Sophie ») sont exclus par `doorLogArrivals`.
-  return doorLogArrivals(await listLogSince(nukiConfig(), since), people);
+  return { arrivals: doorLogArrivals(log, people), guestEntries: guestKeypadEntries(log) };
 }
 
 /** Instants des mouvements de toutes les caméras (pour estimer la sortie). */

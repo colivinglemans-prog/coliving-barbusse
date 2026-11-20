@@ -113,6 +113,11 @@ const site = {
     { from: "/reservation", to: "/fr" },
     { from: "/blog", to: "/fr/blog" },
     { from: "/chambres", to: "/fr/chambres" },
+    { from: "/seminaires", to: "/fr/seminaires" },
+    { from: "/conditions", to: "/fr/conditions" },
+    { from: "/guide-arrivee", to: "/fr/guide-arrivee" },
+    { from: "/tarifs", to: "/fr/tarifs" },
+    { from: "/mentions-legales", to: "/fr/mentions-legales" },
   ],
 
   reviews: reviewsSummary(),

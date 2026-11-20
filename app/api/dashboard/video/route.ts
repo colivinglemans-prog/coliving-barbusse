@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { guard } from "@/lib/auth";
-import { AjCloud } from "@/lib/camera/ajcloud";
+import { withCameraSession } from "@/lib/camera/session";
 
 /**
  * Charge utile de la page « Vidéo » (admin) : les caméras Wansview/AJCloud de la maison, avec
@@ -11,6 +11,8 @@ import { AjCloud } from "@/lib/camera/ajcloud";
  * Le **direct** (flux live) ne vit pas ici : un serverless ne tient pas une connexion persistante.
  * Il viendra d'un pont local (go2rtc sur la VM Freebox) via `CAMERA_LIVE_BASE`. ICSee/ANRAN sont
  * sur des clouds distincts, non branchés → signalés en `others`.
+ *
+ * Session AJCloud gardée dans Redis et reprise d'un appel à l'autre (`lib/camera/session.ts`).
  *
  * Admin seulement, revérifié ici. Aucune donnée sensible : ni identifiant, ni jeton. Les URLs
  * d'image/clip (signées, temporaires) ne sont renvoyées qu'à l'admin authentifié.
@@ -32,34 +34,35 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const client = new AjCloud({ email, password, region: "eu" });
-    await client.login();
-    const devices = await client.devices();
-
-    const cameras = await Promise.all(
-      devices.map(async (d) => {
-        let events: Array<{ at: string; imageUrl: string; videoUrl: string | null }> = [];
-        if (d.emcUrl) {
-          const alarms = await client.alarmsSurvey(d).catch(() => []);
-          events = alarms
-            .map((a) => ({
-              at: new Date(Number(a.cts)).toISOString(),
-              imageUrl: firstUrl(a.images),
-              videoUrl: firstUrl(a.avs),
-            }))
-            .filter((e) => e.imageUrl)
-            .sort((x, y) => y.at.localeCompare(x.at))
-            .slice(0, EVENTS_PER_CAMERA) as Array<{ at: string; imageUrl: string; videoUrl: string | null }>;
-        }
-        return {
-          deviceId: d.deviceId,
-          name: d.name,
-          online: d.online,
-          snapshotUrl: d.snapshotUrl,
-          events,
-        };
-      }),
-    );
+    // Session réutilisée d'un appel à l'autre (`lib/camera/session.ts`) : la page se rafraîchit
+    // toutes les 30 s, une connexion complète à chaque fois faisait ~120 connexions par heure.
+    const cameras = await withCameraSession({ email, password, region: "eu" }, async (client) => {
+      const devices = await client.devices();
+      return Promise.all(
+        devices.map(async (d) => {
+          let events: Array<{ at: string; imageUrl: string; videoUrl: string | null }> = [];
+          if (d.emcUrl) {
+            const alarms = await client.alarmsSurvey(d).catch(() => []);
+            events = alarms
+              .map((a) => ({
+                at: new Date(Number(a.cts)).toISOString(),
+                imageUrl: firstUrl(a.images),
+                videoUrl: firstUrl(a.avs),
+              }))
+              .filter((e) => e.imageUrl)
+              .sort((x, y) => y.at.localeCompare(x.at))
+              .slice(0, EVENTS_PER_CAMERA) as Array<{ at: string; imageUrl: string; videoUrl: string | null }>;
+          }
+          return {
+            deviceId: d.deviceId,
+            name: d.name,
+            online: d.online,
+            snapshotUrl: d.snapshotUrl,
+            events,
+          };
+        }),
+      );
+    });
 
     return NextResponse.json({
       generatedAt: new Date().toISOString(),

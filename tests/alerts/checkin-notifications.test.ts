@@ -61,6 +61,10 @@ beforeEach(() => {
 });
 
 describe("checkin-notifications", () => {
+  it("journal lisible : succès", async () => {
+    expect((await (await call()).json()).success).toBe(true);
+  });
+
   it("deux passages concurrents : une seule notification", async () => {
     await Promise.all([call(), call()]);
     expect(checkinSends()).toHaveLength(1);
@@ -80,7 +84,10 @@ describe("checkin-notifications", () => {
 
   it("journal de la serrure illisible : alerte au 2e passage, une seule fois", async () => {
     h.keypad.mockRejectedValue(new Error("Nuki 503 : lecture du journal"));
-    await call();
+    const first = await call();
+    // Plus de « succès » quand le journal est illisible ; 200 quand même (pas de courriel cron-job.org).
+    expect(first.status).toBe(200);
+    expect((await first.json()).success).toBe(false);
     expect(h.sendNtfy).not.toHaveBeenCalled();
     await call();
     await call();

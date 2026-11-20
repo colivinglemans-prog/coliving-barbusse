@@ -9,6 +9,7 @@ import {
 } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { PROPERTY_INFO } from "@/lib/property-info";
+import { STANDARD_HOURS } from "@/lib/stay-hours-rules";
 import { aggregateRatingJsonLd } from "@/lib/reviews";
 import { isLocale, type Locale } from "@/lib/i18n";
 import PhotoGallery from "@/components/public/PhotoGallery";
@@ -73,9 +74,15 @@ export default async function Home({
     es: { parking: "Aparcamiento gratuito en la calle", gym: "Gimnasio", zen: "Espacio zen" },
   };
   const amenity = AMENITY[locale] ?? AMENITY.fr;
+  const hour = (h: number) => `${String(h).padStart(2, "0")}:00`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",
+    /*
+     * Une seule entité pour les cinq langues : le même `@id` sur `/fr`, `/en`… (le `url`, lui,
+     * reste celui de la page). Distinct du `…/seminaires#lodging`, qui décrit l'usage séminaire.
+     */
+    "@id": `${SITE_URL}/#lodging`,
     name: "Coliving Barbusse",
     description: JSONLD_DESC[locale] ?? JSONLD_DESC.fr,
     url: `${SITE_URL}/${locale}`,
@@ -93,6 +100,12 @@ export default async function Home({
       longitude: PROPERTY_INFO.geo.longitude,
     },
     numberOfRooms: PROPERTY_INFO.bedrooms,
+    telephone: PROPERTY_INFO.contact.phone,
+    // Heures annoncées par le site et `llms.txt` (« à partir de 17h », « avant 11h »).
+    checkinTime: hour(STANDARD_HOURS.arrival),
+    checkoutTime: hour(STANDARD_HOURS.departure),
+    // « Animaux non autorisés, ni dans la maison ni dans le jardin » (`llms.txt`, règlement).
+    petsAllowed: false,
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Wi-Fi", value: true },
       { "@type": "LocationFeatureSpecification", name: amenity.parking, value: true },

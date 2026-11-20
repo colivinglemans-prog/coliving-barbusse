@@ -11,8 +11,9 @@ import { getRedis, hasRedis, redisKey } from "@/lib/redis";
  * un sans changer celui des autres. La résolution est dans le socle.
  *
  * **Tentatives limitées** (socle v3.31.0, 2026-11-20) : 5 mots de passe faux en 15 min depuis
- * une même IP ⇒ 429 + `Retry-After`, même avec le bon mot de passe ; un succès remet l'adresse à
- * zéro. Compteur partagé entre instances dans Redis (`barbusse:login-failures:<ip>`, expire avec
+ * une même IP ⇒ 429 + `Retry-After`, même avec le bon mot de passe ; seul un succès **admin** remet
+ * l'adresse à zéro (socle v3.33.0 : une connexion viewer ne touche plus au compteur).
+ * Compteur partagé entre instances dans Redis (`barbusse:login-failures:<ip>`, expire avec
  * la fenêtre) ; Redis absent ou en panne ⇒ mémoire de l'instance, la connexion n'est jamais
  * bloquée par la panne. **Une seule alerte ntfy** au franchissement, jamais une par refus.
  * Réponses : `{ ok, success, role }` / `{ erreur, error }` — la page de connexion lit `error`.

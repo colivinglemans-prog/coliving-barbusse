@@ -4,24 +4,26 @@ import { lastWebhookCall, type WebhookTrace } from "@/lib/webhook-trace";
 
 export const dynamic = "force-dynamic";
 
-const RESULT: Record<WebhookTrace["result"], string> = {
-  accepted: "accepté",
-  "no-header": "refusé : aucun secret reçu (champ « Custom Header » vide ?)",
-  "bad-secret": "refusé : secret incorrect",
-  "no-config": "refusé : BEDS24_WEBHOOK_SECRET absent sur le serveur",
+/**
+ * Témoin du dernier appel **accepté** (les refus n'écrivent plus rien, audit du 15/11). La voie
+ * du secret dit si `?key=` peut être retiré de l'URL du webhook dans Beds24 : « par l'en-tête »
+ * prouve que Beds24 envoie le « Custom Header ».
+ */
+const VIA: Record<NonNullable<WebhookTrace["via"]>, string> = {
+  header: "secret reçu par l'en-tête",
+  query: "secret reçu par l'URL (?key=), pas par l'en-tête",
 };
 
 function WebhookStatus({ trace }: { trace: WebhookTrace | null }) {
   const when = trace
     ? new Date(trace.at).toLocaleString("fr-FR", { timeZone: "Europe/Paris", dateStyle: "short", timeStyle: "short" })
     : null;
-  const ok = trace?.result === "accepted";
   return (
-    <p className={`mx-auto max-w-5xl px-4 pt-4 text-sm ${trace && !ok ? "text-red-700" : "text-gray-600"}`}>
+    <p className="mx-auto max-w-5xl px-4 pt-4 text-sm text-gray-600">
       Webhook Beds24 —{" "}
       {trace
-        ? `dernier appel le ${when} : ${RESULT[trace.result]}${trace.bracketed ? " (la valeur reçue est entre chevrons : les retirer dans Beds24)" : ""}`
-        : "aucun appel reçu depuis la mise en place du témoin (le 2026-11-08)"}
+        ? `dernier appel accepté le ${when}${trace.via ? ` (${VIA[trace.via]})` : ""}`
+        : "aucun appel accepté noté depuis la mise en place du témoin (les refus ne sont pas notés)"}
     </p>
   );
 }

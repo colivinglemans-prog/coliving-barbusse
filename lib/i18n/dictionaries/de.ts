@@ -62,6 +62,7 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     features: "Bett bei Anreise bezogen · Bettdecke und 2 Kopfkissen · Nachttisch · Eigenes Duschbad · Handtuchheizkörper · Smart TV · Schreibtisch · Kleiderschrank · Eigener Schlüssel",
     prevPhoto: "Vorheriges Foto",
     nextPhoto: "Nächstes Foto",
+    photoAlt: (room, n) => `${room} — Foto ${n}`,
   },
   commonSpaces: {
     title: "Sportbereich",
@@ -70,6 +71,11 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     gymDesc: "Fitnessgeräte verfügbar: Crosstrainer, Hanteln und Hantelbank, Yogamatten zum Dehnen.",
     zen: "Zen-Raum",
     zenDesc: "Ein Erholungsbereich zum Auftanken: Yoga, Meditation und Entspannung.",
+    alts: {
+      gym: "Fitnessraum",
+      gymEquipment: "Fitnessraum — Geräte",
+      zen: "Zen-Raum",
+    },
   },
   garden: {
     title: "Garten",
@@ -81,6 +87,11 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
       "Gartensofa für 8 Personen, perfekt für Aperitifs",
       "Große Tische zum Essen im Freien für bis zu 20 Personen",
     ],
+    alts: {
+      enclosed: "Umschlossener Garten, 90 m² — Südausrichtung",
+      lounge: "Gartensofa für 8 Personen — für den Aperitif",
+      tables: "Große Tische zum Essen im Freien für bis zu 20 Personen",
+    },
   },
   amenities: {
     title: "Was diese Unterkunft bietet",
@@ -224,5 +235,22 @@ Zwei Zimmer verfügen zusätzlich über ein Einzel-Schlafsofa: Das Haus beherber
     showAllPhotos: "Alle Fotos anzeigen",
     previous: "Zurück",
     next: "Weiter",
+    alts: {
+      kitchenTable: "Küche und großer Tisch mit 16 Plätzen",
+      kitchenTable2: "Großer Küchentisch — andere Ansicht",
+      verandaAperitif: "Veranda — kleiner Stehtisch, Aperitif-Ecke im Hintergrund",
+      verandaCoffee: "Veranda — zweiter kleiner Stehtisch, Kaffee-Ecke im Hintergrund",
+      livingVeranda: "Wohnzimmer, zur Veranda hin offen",
+      living: "Wohnzimmer",
+      livingAperitif: "Wohnzimmer und Aperitif-Ecke",
+      entrance: "Eingang und Waschbereich",
+      exterior: "Außenansicht des Hauses",
+    },
+  },
+  notFound: {
+    title: "Seite nicht gefunden",
+    text: "Diese Seite existiert nicht oder wurde verschoben.",
+    home: "Zurück zur Startseite",
+    book: "Verfügbarkeit ansehen und buchen",
   },
 };
