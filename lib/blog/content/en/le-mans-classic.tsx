@@ -4,7 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic is the world's largest gathering of vintage racing cars. Every two
+        Le Mans Classic is a gathering of vintage racing cars. Every two
         years, over 235,000 enthusiasts descend on the Le Mans Circuit to watch 700
         legendary cars in action — from the Bentley Blower to the Porsche 962. Here's
         how to plan your weekend.
@@ -63,8 +63,7 @@ export default function Article() {
 
       <h3>In town, for easy access</h3>
       <p>
-        Le Mans centre remains the most practical option: 20 minutes from the circuit
-        off-event (30-45 min on race days), but away from the jams and campsites. Ideal
+        Le Mans centre remains the most practical option: less than 5 km from the circuit, but away from the jams and campsites. Ideal
         for families and enthusiasts who also want to enjoy the heritage of Plantagenet
         City.
       </p>
@@ -84,8 +83,7 @@ export default function Article() {
       <h2>Our house: perfect for collector clubs</h2>
       <p>
         Our <strong>9 private suites with en-suite shower rooms</strong> welcome up to 20
-        guests in a quiet setting, 20 minutes from the Bugatti Circuit off-event
-        (30-45 min on race days):
+        guests in a quiet setting, less than 5 km from the Bugatti Circuit:
       </p>
       <ul>
         <li>Free street parking in a quiet residential area</li>

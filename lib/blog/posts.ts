@@ -1678,7 +1678,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         metaDescription:
           "Le Mans Classic Heritage 2027, du 1ᵉʳ au 4 juillet, voitures de course anciennes : dates, programme, hébergement et conseils pour passionnés et clubs.",
         excerpt:
-          "700 voitures mythiques de 1923 à 1993, 24 heures de course, 235 000 spectateurs. Préparez votre séjour pour la plus grande fête de l'automobile de collection.",
+          "700 voitures mythiques de 1923 à 1993, 24 heures de course. Préparez votre séjour pour cette fête de l'automobile de collection.",
         keywords: [
           "Le Mans Classic Heritage 2027",
           "Le Mans Classic hébergement",
@@ -1694,7 +1694,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         metaDescription:
           "Le Mans Classic Heritage 2027, 1-4 July, vintage racing cars: dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
         excerpt:
-          "700 legendary cars from 1923 to 1993, 24 hours of racing, 235,000 spectators. Plan your stay for the greatest vintage motoring celebration.",
+          "700 legendary cars from 1923 to 1993, 24 hours of racing. Plan your stay for this vintage motoring celebration.",
         keywords: [
           "Le Mans Classic Heritage 2027",
           "Le Mans Classic accommodation",
@@ -1710,7 +1710,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         metaDescription:
           "Le Mans Classic Heritage 2027, 1-4 luglio, auto da corsa d'epoca: date, programma, alloggio e consigli pratici per appassionati e club.",
         excerpt:
-          "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa, 235.000 spettatori. Preparate il vostro soggiorno per la più grande festa dell'automobile d'epoca.",
+          "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa. Preparate il vostro soggiorno per questa festa dell'automobile d'epoca.",
         keywords: [
           "Le Mans Classic Heritage 2027",
           "alloggio Le Mans Classic",
@@ -1726,7 +1726,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         metaDescription:
           "Le Mans Classic Heritage 2027, 1.-4. Juli, historische Rennwagen: Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
         excerpt:
-          "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen, 235.000 Zuschauer. Planen Sie Ihren Aufenthalt für das größte Fest des klassischen Automobilsports.",
+          "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen. Planen Sie Ihren Aufenthalt für dieses Fest des klassischen Automobilsports.",
         keywords: [
           "Le Mans Classic Heritage 2027",
           "Le Mans Classic Unterkunft",
@@ -1742,7 +1742,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         metaDescription:
           "Le Mans Classic Heritage 2027, 1-4 de julio, coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
         excerpt:
-          "700 coches míticos de 1923 a 1993, 24 horas de carrera, 235.000 espectadores. Prepare su estancia para la mayor fiesta del automovilismo de colección.",
+          "700 coches míticos de 1923 a 1993, 24 horas de carrera. Prepare su estancia para esta fiesta del automovilismo de colección.",
         keywords: [
           "Le Mans Classic Heritage 2027",
           "alojamiento Le Mans Classic",
@@ -2095,9 +2095,9 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       fr: {
         title: "Le Mans Classic : guide du rassemblement de voitures anciennes",
         description:
-          "Le Mans Classic, plus grand rassemblement mondial de voitures de course anciennes : dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
+          "Le Mans Classic, rassemblement de voitures de course anciennes : dates, programme, hébergement et conseils pratiques pour les passionnés et clubs.",
         excerpt:
-          "700 voitures mythiques de 1923 à 1993, 24 heures de course, 235 000 spectateurs. Préparez votre séjour pour la plus grande fête de l'automobile de collection.",
+          "700 voitures mythiques de 1923 à 1993, 24 heures de course. Préparez votre séjour pour cette fête de l'automobile de collection.",
         keywords: [
           "Le Mans Classic 2026",
           "Le Mans Classic hébergement",
@@ -2107,11 +2107,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       en: {
-        title: "Le Mans Classic: the world's largest vintage racing gathering",
+        title: "Le Mans Classic: guide to the vintage racing car gathering",
         description:
-          "Le Mans Classic, the world's largest gathering of vintage racing cars: dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
+          "Le Mans Classic, a gathering of vintage racing cars: dates, schedule, accommodation and practical tips for enthusiasts and clubs.",
         excerpt:
-          "700 legendary cars from 1923 to 1993, 24 hours of racing, 235,000 spectators. Plan your stay for the greatest vintage motoring celebration.",
+          "700 legendary cars from 1923 to 1993, 24 hours of racing. Plan your stay for this vintage motoring celebration.",
         keywords: [
           "Le Mans Classic 2026",
           "Le Mans Classic accommodation",
@@ -2121,11 +2121,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       it: {
-        title: "Le Mans Classic: il più grande raduno mondiale di auto d'epoca",
+        title: "Le Mans Classic: guida al raduno di auto da corsa d'epoca",
         description:
-          "Le Mans Classic, il più grande raduno mondiale di auto da corsa d'epoca: date, programma, alloggio e consigli pratici per appassionati e club.",
+          "Le Mans Classic, il raduno delle auto da corsa d'epoca: date, programma, alloggio e consigli pratici per appassionati e club.",
         excerpt:
-          "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa, 235.000 spettatori. Preparate il vostro soggiorno per la più grande festa dell'automobile d'epoca.",
+          "700 vetture mitiche dal 1923 al 1993, 24 ore di corsa. Preparate il vostro soggiorno per questa festa dell'automobile d'epoca.",
         keywords: [
           "Le Mans Classic 2026",
           "alloggio Le Mans Classic",
@@ -2135,11 +2135,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       de: {
-        title: "Le Mans Classic: Guide zum weltgrößten Oldtimer-Rennsporttreffen",
+        title: "Le Mans Classic: Guide zum Treffen historischer Rennwagen",
         description:
-          "Le Mans Classic, das weltgrößte Treffen historischer Rennwagen: Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
+          "Le Mans Classic, Treffen historischer Rennwagen: Daten, Programm, Unterkunft und praktische Tipps für Enthusiasten und Clubs.",
         excerpt:
-          "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen, 235.000 Zuschauer. Planen Sie Ihren Aufenthalt für das größte Fest des klassischen Automobilsports.",
+          "700 legendäre Fahrzeuge von 1923 bis 1993, 24 Stunden Rennen. Planen Sie Ihren Aufenthalt für dieses Fest des klassischen Automobilsports.",
         keywords: [
           "Le Mans Classic 2026",
           "Le Mans Classic Unterkunft",
@@ -2149,11 +2149,11 @@ export const BLOG_POSTS: BlogPostMeta[] = [
         ],
       },
       es: {
-        title: "Le Mans Classic: el mayor encuentro mundial de coches clásicos",
+        title: "Le Mans Classic: guía del encuentro de coches clásicos",
         description:
-          "Le Mans Classic, el mayor encuentro mundial de coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
+          "Le Mans Classic, encuentro de coches de carreras clásicos: fechas, programa, alojamiento y consejos prácticos para aficionados y clubes.",
         excerpt:
-          "700 coches míticos de 1923 a 1993, 24 horas de carrera, 235.000 espectadores. Prepare su estancia para la mayor fiesta del automovilismo de colección.",
+          "700 coches míticos de 1923 a 1993, 24 horas de carrera. Prepare su estancia para esta fiesta del automovilismo de colección.",
         keywords: [
           "Le Mans Classic 2026",
           "alojamiento Le Mans Classic",

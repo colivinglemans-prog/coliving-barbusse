@@ -4,8 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic es la mayor reunión mundial de coches antiguos de
-        competición. Cada dos años, más de 235.000 aficionados se reúnen en
+        Le Mans Classic es una reunión de coches antiguos de competición. Cada dos años, más de 235.000 aficionados se reúnen en
         el Circuito de las 24 Horas para ver rodar 700 coches míticos, desde
         el Bentley Blower hasta el Porsche 962. Le explicamos cómo preparar
         su fin de semana.
@@ -68,9 +67,7 @@ export default function Article() {
 
       <h3>En la ciudad, para un acceso fácil</h3>
       <p>
-        El centro de Le Mans sigue siendo la opción más práctica: 20
-        minutos del circuito fuera de evento (30-45 min los días de
-        carrera), pero lejos de los atascos y los campamentos. Ideal para
+        El centro de Le Mans sigue siendo la opción más práctica: a menos de 5 km del circuito, pero lejos de los atascos y los campamentos. Ideal para
         las familias y los aficionados que también quieren disfrutar del
         patrimonio de la Cité Plantagenêt.
       </p>
@@ -92,8 +89,7 @@ export default function Article() {
       <h2>Nuestra casa: perfecta para los clubes de coleccionistas</h2>
       <p>
         Nuestras <strong>9 suites privadas con baño con ducha</strong> acogen hasta 20
-        personas en un entorno tranquilo, a 20 minutos del Circuito Bugatti
-        fuera de evento (30-45 min los días de carrera):
+        personas en un entorno tranquilo, a menos de 5 km del Circuito Bugatti:
       </p>
       <ul>
         <li>Aparcamiento gratuito en una calle residencial tranquila</li>

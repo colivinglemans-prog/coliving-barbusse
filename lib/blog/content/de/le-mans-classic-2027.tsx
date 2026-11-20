@@ -66,8 +66,7 @@ export default function Article() {
 
       <h3>In der Stadt, für leichten Zugang</h3>
       <p>
-        Das Zentrum von Le Mans bleibt die praktischste Option: 20 Minuten von
-        der Rennstrecke außerhalb des Events (30-45 Min. an Renntagen), aber
+        Das Zentrum von Le Mans bleibt die praktischste Option: weniger als 5 km von der Rennstrecke, aber
         fern von Staus und Camps. Ideal für Familien und Liebhaber, die auch
         das Erbe der Cité Plantagenêt genießen wollen.
       </p>
@@ -89,8 +88,7 @@ export default function Article() {
       <h2>Unser Haus: perfekt für Sammlerclubs</h2>
       <p>
         Unsere <strong>9 privaten Suiten mit eigenem Duschbad</strong> beherbergen
-        bis zu 20 Personen in ruhiger Umgebung, 20 Minuten vom Circuit Bugatti
-        entfernt außerhalb des Events (30-45 Min. an Renntagen):
+        bis zu 20 Personen in ruhiger Umgebung, weniger als 5 km vom Circuit Bugatti entfernt:
       </p>
       <ul>
         <li>Kostenfreies Parken in einer ruhigen Wohnstraße</li>
