@@ -1,14 +1,16 @@
 import { listLogSince } from "@sejour/socle/lib/nuki";
-import { managedBookingId } from "@sejour/socle/lib/access-codes";
 import { nukiConfig } from "@/lib/access-sync";
 import { AjCloud } from "@/lib/camera/ajcloud";
-import { Intratone } from "@/lib/cleaning/intratone";
+import { Intratone, type KeypadOpening } from "@/lib/cleaning/intratone";
 import { getBookings } from "@/lib/beds24";
+import { OPENING_ACTIONS } from "@/lib/departure-detection";
 import { getJson, redisKey, setJson } from "@/lib/redis";
 import {
   doorLogArrivals,
   guestKeypadCodes,
+  namedOpenings,
   parisDayOf,
+  personalDoorArrivals,
   trackedOpenings,
   type CleaningArrival,
   type GuestKeypadCode,
@@ -29,26 +31,28 @@ import {
  */
 
 export async function garageArrivals(people: TrackedPerson[]): Promise<CleaningArrival[]> {
+  return trackedOpenings(await readGarageOpenings(), people);
+}
+
+/**
+ * Toutes les ouvertures du digicode du garage, brutes : une seule connexion Intratone par passage
+ * du cron, qui en tire les personnes suivies (`trackedOpenings`) et les autres codes perso
+ * (`personalGarageArrivals`).
+ */
+export async function readGarageOpenings(): Promise<KeypadOpening[]> {
   const client = intratoneClient();
   if (!client) throw new Error("no-credentials");
   await client.login();
-  return trackedOpenings(await client.keypadOpenings(), people);
+  return client.keypadOpenings();
 }
 
 /**
  * **Toutes** les ouvertures du digicode du garage par un code **nommé**, sans le filtre des
- * personnes suivies (`trackedOpenings`) : les voyageurs n'ont pas de code garage, donc tout code
- * nommé est celui d'une personne de la maison (relevé de la porte au départ,
- * `lib/departure-lock.ts`). Un code donné un jour à un groupe (motos) se nomme avec le numéro de
- * réservation : il est alors exclu. Même connexion que `garageArrivals`.
+ * personnes suivies (`trackedOpenings`) : relevé de la porte au départ (`lib/departure-lock.ts`)
+ * et caméra du garage. Les codes nommés par un numéro de réservation sont exclus (`namedOpenings`).
  */
 export async function garageOpenings(): Promise<Array<{ at: Date; who: string }>> {
-  const client = intratoneClient();
-  if (!client) throw new Error("no-credentials");
-  await client.login();
-  return (await client.keypadOpenings())
-    .map((o) => ({ at: o.at, who: o.name.trim() }))
-    .filter((o) => o.who !== "" && managedBookingId(o.who) === null);
+  return namedOpenings(await readGarageOpenings());
 }
 
 /**
@@ -63,16 +67,21 @@ export async function doorArrivals(people: TrackedPerson[], since: Date): Promis
  * La même lecture du journal, plus les entrées au clavier par les codes gérés des séjours
  * (`guestKeypadCodes`, partants comme arrivants). Celles des voyageurs **qui arrivent** bornent la
  * sortie estimée d'un ménage un jour de rotation (`guestKeypadEntries`, avec `guestArrivalDays`).
- * Une seule lecture Nuki.
+ * Plus les arrivées des autres codes perso « # Nom » (`personalDoorArrivals`). Une seule lecture
+ * Nuki.
  */
 export async function doorReading(
   people: TrackedPerson[],
   since: Date,
-): Promise<{ arrivals: CleaningArrival[]; guestCodes: GuestKeypadCode[] }> {
+): Promise<{ arrivals: CleaningArrival[]; guestCodes: GuestKeypadCode[]; personal: CleaningArrival[] }> {
   if (!process.env.NUKI_API_TOKEN || !process.env.NUKI_SMARTLOCK_ID) throw new Error("no-credentials");
   const log = await listLogSince(nukiConfig(), since);
   // Les codes gérés des séjours (« <n° résa>: Sophie ») sont exclus par `doorLogArrivals`.
-  return { arrivals: doorLogArrivals(log, people), guestCodes: guestKeypadCodes(log) };
+  return {
+    arrivals: doorLogArrivals(log, people),
+    guestCodes: guestKeypadCodes(log),
+    personal: personalDoorArrivals(log, people, OPENING_ACTIONS),
+  };
 }
 
 /** Jours d'arrivée des réservations arrivées sur la fenêtre lue, gardés 30 min (quota Beds24). */

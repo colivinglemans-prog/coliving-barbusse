@@ -231,6 +231,22 @@ passage live de la synchro. Notée dans le journal sous « Arrivée imminente »
   voyageurs arrivent et la panne dure. « Plusieurs radiateurs → 4 » se décide à l'envoi, sur les
   seuls confirmés (option `priority` de `reportAlerts`).
 - **Passages Sophie / Eric** (`cleaning-watch`) : priorité 2.
+- **Arrivée d'un autre code perso** (`cleaning-watch`, 2026-11-18) : priorité 2, une par venue
+  (même nom à moins de 45 min, garage et porte confondus). Tout code Intratone **nommé** du garage
+  et tout code Nuki manuel « # Nom » de la porte, hors personnes suivies (`TRACKED_PEOPLE`, déjà
+  signalées) et hors codes de séjour (« <n° résa>: Prénom »). Mêmes lectures Intratone et Nuki
+  que le suivi ménage. Ligne de base **par source** `barbusse:cleaning:last-personal`
+  (`{ garage, porte }`) : rien au premier passage ; une source illisible ne signale rien et
+  garde la sienne, ses arrivées partent au passage suivant. Titre « Accès maison — <Nom> », texte
+  « Code « <Nom> » à HH:MM — garage|porte. » ; le nom ne part que dans ntfy : journal des
+  notifications « Accès maison — code perso », réponse du cron `personal` / `personalLate`
+  (nombres). N'entre pas dans le journal des intervenants (page « Suivi »).
+  Garde-fous (relecture du 20/11) : même nom au garage et à la porte comparé sans casse, accents
+  ni « # » (`personalKey`) ; venues de plus de 3 h (retour de panne) en **un seul** résumé « N
+  passages de codes perso pendant la panne (garage/porte) », priorité 2 ; ligne de base écrite
+  après chaque envoi réussi (pas de doublon sur échec partiel) ; tout échec (ntfy, Redis, ligne
+  de base corrompue, reposée sans rafale) noté dans `notes.personal`, sans faire tomber le cron
+  ni retarder les alertes des personnes suivies (envoyées avant).
 
 ### Journal des notifications (30 jours)
 

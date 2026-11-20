@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@sejour/socle/lib/cron-auth";
 import { sendNtfy } from "@/lib/ntfy";
-import { buildSessions, guestKeypadEntries, mergeArrivals, maxArrivalMs, newArrivalsSince, trackedPeople, type CleaningArrival, type CleaningSession, type GuestKeypadCode, type TrackedPerson } from "@/lib/cleaning/sessions";
-import { garageArrivals, doorReading, cameraMotions, buttonPresses, guestArrivalDays } from "@/lib/cleaning/sources";
+import {
+  advancePersonalBaseline, buildSessions, coverPersonalVenues, freshPersonalVenues, guestKeypadEntries, mergeArrivals, maxArrivalMs,
+  newArrivalsSince, parsePersonalBaseline, personalGarageArrivals, trackedOpenings, trackedPeople,
+  type CleaningArrival, type CleaningSession, type GuestKeypadCode, type PersonalBaseline, type PersonalVenue, type TrackedPerson,
+} from "@/lib/cleaning/sessions";
+import { readGarageOpenings, doorReading, cameraMotions, buttonPresses, guestArrivalDays } from "@/lib/cleaning/sources";
+import type { KeypadOpening } from "@/lib/cleaning/intratone";
 import { upsertSessions, pruneOldSessions } from "@/lib/cleaning/store";
 import { getRedis, hasRedis, redisKey } from "@/lib/redis";
 import { beat } from "@/lib/heartbeat";
@@ -26,6 +31,13 @@ import { sendCronAlert } from "@/lib/alerts";
  * s'ajoute au journal `barbusse:cleaning:sessions` (avec la fin estimée). Les heures servent à
  * **recouper une facture**, pas à pointer (cf. statut auto-entrepreneur).
  *
+ * **Codes perso** (2026-11-18, demande de l'hôte) : une alerte aussi, priorité 2, à l'arrivée de
+ * **tout autre code perso** — code nommé du garage, code manuel « # Nom » de la porte —, une par
+ * venue, tirée des **mêmes** lectures Intratone et Nuki (`notifyPersonal`). Ligne de base par
+ * source `barbusse:cleaning:last-personal` : rien au premier passage, et une source illisible ne
+ * fait pas avancer la sienne. Ces venues n'entrent pas dans le journal des intervenants, et leur
+ * nom ne part que dans ntfy (ni log, ni réponse, ni journal des notifications : un compteur).
+ *
  * Variables : `INTRATONE_USER/PASS`, `INTRATONE_CENTRALE_ID`, `TRACKED_PEOPLE`
  * (« Sophie:ménage,Eric:dépannage »), `NUKI_API_TOKEN/SMARTLOCK_ID`, `AJCLOUD_EMAIL/PASSWORD`,
  * `NTFY_TOPIC`, `CRON_SECRET`. `CLEANING_WATCH_ENABLED=false` le coupe. `?dry=1` calcule sans
@@ -36,6 +48,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const LAST_KEY = redisKey("cleaning", "last-arrival");
+/** Ligne de base des codes perso, par source (`PersonalBaseline`). */
+const LAST_PERSONAL_KEY = redisKey("cleaning", "last-personal");
 /** Journal de la porte relu sur 10 h au moins : la fenêtre de sortie (8 h) plus deux passages de marge. */
 const CLEANING_LOOKBACK_MS = 10 * 3600_000;
 
@@ -56,10 +70,14 @@ export async function GET(request: NextRequest) {
   const notes: Record<string, string> = {};
 
   try {
-    const garage = await garageArrivals(people).catch((e) => {
+    // Une seule lecture du garage : personnes suivies d'un côté, autres codes perso de l'autre.
+    let garageOk = true;
+    const garageRaw = await readGarageOpenings().catch((e) => {
+      garageOk = false;
       notes.garage = short(e);
-      return [] as CleaningArrival[];
+      return [] as KeypadOpening[];
     });
+    const garage = trackedOpenings(garageRaw, people);
     const startedAt = new Date();
     let doorOk = true;
     // Le curseur ne sert qu'à ne rien manquer : une venue doit rester lue tant que sa sortie peut
@@ -67,11 +85,12 @@ export async function GET(request: NextRequest) {
     // garage dans les 45 min devient une seconde session. D'où au moins 10 h de journal.
     const cursor = await readLogSince("cleaning", startedAt);
     const since = new Date(Math.min(cursor.getTime(), startedAt.getTime() - CLEANING_LOOKBACK_MS));
-    const { arrivals: door, guestCodes } = await doorReading(people, since).catch((e) => {
+    const { arrivals: door, guestCodes, personal: personalDoor } = await doorReading(people, since).catch((e) => {
       doorOk = false;
       notes.porte = short(e);
-      return { arrivals: [] as CleaningArrival[], guestCodes: [] as GuestKeypadCode[] };
+      return { arrivals: [] as CleaningArrival[], guestCodes: [] as GuestKeypadCode[], personal: [] as CleaningArrival[] };
     });
+    const personal = mergeArrivals(personalGarageArrivals(garageRaw, people), personalDoor);
     // Seuls les codes des voyageurs qui **arrivent** ce jour-là bornent la sortie : un partant qui
     // revient après l'arrivée du ménage ne la tronque plus (2026-11-20). Beds24 illisible : comme un
     // journal illisible, la sortie n'avance pas à ce passage (pas d'alerte : le suivant la précise).
@@ -125,6 +144,8 @@ export async function GET(request: NextRequest) {
     }
 
     const redis = getRedis();
+    // Codes perso : après les alertes des personnes suivies, et sans jamais les faire tomber.
+    const runPersonal = () => notifyPersonal(redis, personal, { garage: garageOk, porte: doorOk }, startedAt, dry, notes);
     const stored = await redis.get<number>(LAST_KEY);
     const lastMs = typeof stored === "number" ? stored : Number(stored ?? 0);
 
@@ -133,8 +154,9 @@ export async function GET(request: NextRequest) {
       const baseline = maxArrivalMs(arrivals, 0);
       if (!dry && baseline > 0) await redis.set(LAST_KEY, baseline);
       if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
+      const personalSent = await runPersonal();
       if (!dry) await succeeded();
-      return NextResponse.json({ success: sourcesOk, baseline: true, garage: garage.length, porte: door.length, upserted, notes });
+      return NextResponse.json({ success: sourcesOk, baseline: true, garage: garage.length, porte: door.length, ...personalSent, upserted, notes });
     }
 
     const fresh = newArrivalsSince(arrivals, lastMs);
@@ -155,6 +177,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!dry && doorOk) await saveLogSince("cleaning", startedAt);
+    const personalSent = await runPersonal();
     if (!dry) await succeeded();
     return NextResponse.json({
       success: sourcesOk,
@@ -164,6 +187,7 @@ export async function GET(request: NextRequest) {
       porte: door.length,
       motions: motions.length,
       fresh: fresh.length,
+      ...personalSent,
       upserted,
       sessions: freshSessions.map(serializeSession),
       notes,
@@ -196,6 +220,85 @@ function sourceAlerts(notes: Record<string, string>): TrackedAlert[] {
     if (note && note !== "no-credentials") out.push({ id, priority: 3, line: `  - ${label} : ${note}` });
   }
   return out;
+}
+
+/**
+ * Alerte d'arrivée des autres codes perso. Une par venue de moins de 3 h (`freshPersonalVenues`),
+ * un seul résumé pour les plus anciennes (retour d'une panne longue : pas de rafale). La ligne de
+ * base est écrite **après chaque envoi réussi** (`coverPersonalVenues`) : un échec à mi-chemin ne
+ * fait rien renvoyer de ce qui est parti. Puis elle avance pour les seules sources lues
+ * (`advancePersonalBaseline`). Premier passage : ligne de base posée sans rien envoyer.
+ *
+ * **Isolée** : une erreur (ntfy, Redis) est notée dans `notes.personal` et le cron continue ; une
+ * ligne de base illisible est reposée (sans rafale). Rend des **compteurs**, jamais les noms.
+ */
+async function notifyPersonal(
+  redis: ReturnType<typeof getRedis>,
+  arrivals: CleaningArrival[],
+  readable: Record<"garage" | "porte", boolean>,
+  now: Date,
+  dry: boolean,
+  notes: Record<string, string>,
+): Promise<{ personal: number; personalLate: number }> {
+  let sent = 0;
+  let late = 0;
+  try {
+    const parsed = parsePersonalBaseline(await redis.get<unknown>(LAST_PERSONAL_KEY));
+    if (parsed === null) notes.personal = "ligne de base illisible, reposée";
+    let baseline: PersonalBaseline = parsed ?? {};
+    const { recent, stale } = freshPersonalVenues(arrivals, baseline, readable, now);
+    if (dry) return { personal: recent.length, personalLate: stale.length };
+    if ((recent.length > 0 || stale.length > 0) && !process.env.NTFY_TOPIC) {
+      throw new Error("NTFY_TOPIC manquant");
+    }
+    const save = async (next: PersonalBaseline) => {
+      if (JSON.stringify(next) === JSON.stringify(baseline)) return;
+      baseline = next;
+      await redis.set(LAST_PERSONAL_KEY, baseline);
+    };
+    if (stale.length > 0) {
+      await sendPersonalSummary(stale);
+      late = stale.length;
+      await save(coverPersonalVenues(baseline, stale, recent));
+    }
+    for (let i = 0; i < recent.length; i++) {
+      await sendPersonalArrival(recent[i][0]);
+      sent++;
+      await save(coverPersonalVenues(baseline, [recent[i]], recent.slice(i + 1)));
+    }
+    await save(advancePersonalBaseline(arrivals, baseline, readable, now));
+  } catch (e) {
+    notes.personal = short(e);
+    console.error("[cleaning-watch] codes perso:", short(e));
+  }
+  return { personal: sent, personalLate: late };
+}
+
+const PERSONAL_LOG_TITLE = "Accès maison — code perso";
+
+async function sendPersonalArrival(a: CleaningArrival): Promise<void> {
+  const when = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" }).format(a.at);
+  await sendNtfy(
+    `Code « ${a.who} » à ${when} — ${a.source}.`,
+    {
+      title: `Accès maison — ${a.who}`,
+      priority: 2, // une information
+      tags: a.source === "garage" ? ["house", "oncoming_automobile"] : ["house", "key"],
+    },
+    // Le journal des notifications (page « Alertes ») ne garde pas le nom.
+    { title: PERSONAL_LOG_TITLE },
+  );
+}
+
+/** Les venues de plus de 3 h, vues au retour d'une panne : un seul message, sans les noms. */
+async function sendPersonalSummary(stale: PersonalVenue[]): Promise<void> {
+  const sources = (["garage", "porte"] as const).filter((src) => stale.some((v) => v.some((a) => a.source === src)));
+  const n = stale.length;
+  await sendNtfy(
+    `${n} passage${n > 1 ? "s" : ""} de codes perso pendant la panne (${sources.join("/")}).`,
+    { title: "Accès maison — codes perso pendant la panne", priority: 2, tags: ["house"] },
+    { title: PERSONAL_LOG_TITLE },
+  );
 }
 
 function roleOf(who: string, people: TrackedPerson[]): string {
