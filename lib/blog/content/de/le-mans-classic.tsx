@@ -4,7 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic ist ein Treffen historischer Rennwagen. Alle zwei Jahre kommen über 235.000 Enthusiasten zum
+        Le Mans Classic ist ein Treffen historischer Rennwagen. Alle zwei Jahre kommen Zehntausende Enthusiasten zum
         24-Stunden-Circuit, um 700 legendäre Autos in Fahrt zu erleben, vom
         Bentley Blower bis zum Porsche 962. So bereiten Sie Ihr Wochenende vor.
       </p>

@@ -5,7 +5,7 @@ export default function Article() {
     <>
       <p className="lead">
         Le Mans Classic is a gathering of vintage racing cars. Every two
-        years, over 235,000 enthusiasts descend on the Le Mans Circuit to watch 700
+        years, tens of thousands of enthusiasts descend on the Le Mans Circuit to watch 700
         legendary cars in action — from the Bentley Blower to the Porsche 962. Here's
         how to plan your weekend.
       </p>

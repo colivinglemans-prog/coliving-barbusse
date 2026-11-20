@@ -4,7 +4,7 @@ export default function Article() {
   return (
     <>
       <p className="lead">
-        Le Mans Classic est un rassemblement de voitures anciennes de course. Tous les deux ans, plus de 235 000 passionnés se rassemblent au Circuit des
+        Le Mans Classic est un rassemblement de voitures anciennes de course. Tous les deux ans, des dizaines de milliers de passionnés se rassemblent au Circuit des
         24 Heures pour voir rouler 700 autos mythiques, du Bentley Blower à la Porsche 962.
         Voici comment préparer votre week-end.
       </p>
