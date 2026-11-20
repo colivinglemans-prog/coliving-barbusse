@@ -119,6 +119,8 @@ export const maxDuration = 60;
  * changement d'état (`barbusse:alert:heating-automation`).
  */
 export async function GET(request: NextRequest) {
+  // Début du passage : l'observation du départ se saute au-delà de 35 s (plafond Hobby de 60 s).
+  const startedAt = Date.now();
   if (!verifyCronAuth(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -402,6 +404,7 @@ export async function GET(request: NextRequest) {
       readings,
       lockedDids: lockedDevices,
       ignoredDids: alertIgnoredDids(config),
+      startedAt,
     });
 
     // Serrure non verrouillée après le départ (`lib/departure-detection.ts`) : alerte au 2e relevé.

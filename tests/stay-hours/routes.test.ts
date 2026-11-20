@@ -9,6 +9,8 @@ const h = vi.hoisted(() => ({
   hash: new Map<string, string>(),
   /** États de départ (`barbusse:departure:<id>`), phase B. */
   departures: new Map<string, unknown>(),
+  houseCache: null as unknown,
+  getBookingsCalls: 0,
   booking: { id: 1000001, propertyId: 303771, arrival: "2027-01-08", departure: "2027-01-10", status: "confirmed", firstName: "Test", email: "x@exemple.fr" } as Record<string, unknown>,
   sync: vi.fn(async (options: { dryRun: boolean; trigger: string }): Promise<{ mode: string; actions: Array<{ ok?: boolean }>; skipped?: string }> => {
     void options;
@@ -31,10 +33,14 @@ vi.mock("@/lib/redis", () => ({
     scan: async () => ["0", [...h.departures.keys()]],
     mget: async (...keys: string[]) => keys.map((k) => h.departures.get(k) ?? null),
   }),
+  // Cache des réservations de la maison (5 min) : vide par défaut, Beds24 lu.
+  getJson: async () => h.houseCache,
+  setJson: async () => {},
 }));
 vi.mock("@/lib/beds24", () => ({
   getBookingById: async () => h.booking,
   getBookings: async () => {
+    h.getBookingsCalls++;
     if (h.beds24Down) throw new Error("Beds24 injoignable");
     return [h.booking, ...h.others];
   },
@@ -68,6 +74,8 @@ const params = { params: Promise.resolve({ id: "1000001" }) };
 beforeEach(() => {
   h.hash.clear();
   h.departures.clear();
+  h.houseCache = null;
+  h.getBookingsCalls = 0;
   h.neighbours = [];
   h.others = [];
   h.beds24Down = false;
@@ -205,5 +213,12 @@ describe("GET /api/dashboard/stay-status", () => {
       hours: {},
       departures: { "1000001": { icon: "gone", line: "Départ confirmé par message à 9 h 05 (estimation)" } },
     });
+  });
+
+  it("réservations de la maison en cache : Beds24 n'est pas relu", async () => {
+    h.hash.set("1000001", JSON.stringify({ departureHour: 16 }));
+    h.houseCache = [{ id: 1000001, status: "confirmed" }];
+    expect((await (await GET(await req("/api/dashboard/stay-status", "viewer"))).json()).hours).toEqual({ "1000001": { departureHour: 16 } });
+    expect(h.getBookingsCalls).toBe(0);
   });
 });

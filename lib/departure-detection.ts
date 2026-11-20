@@ -546,56 +546,69 @@ export function lockFacts(log: readonly NukiLogEntry[], since: Date, ctx: LockCo
   };
 }
 
-/** Porte fermée derrière quelqu'un : verrouillée, et aucune ouverture après le dernier verrouillage. */
-export function doorClosedBehind(lockState: number | null, facts: LockFacts): boolean {
-  if (lockState !== LOCK_STATE_LOCKED) return false;
-  if (!facts.lastOpening) return true;
-  return facts.lastLockAt !== null && Date.parse(facts.lastLockAt) > Date.parse(facts.lastOpening.at);
+/**
+ * Porte fermée derrière quelqu'un qui sort : verrouillée, **une ouverture le jour même**
+ * (`dayStart`), puis un verrouillage après la dernière ouverture. On ne sort que par la porte
+ * d'entrée : sans ouverture ce jour-là, personne n'est sorti. Un verrouillage de la veille au
+ * soir (de l'intérieur, à 23 h 30) ou aucun événement ne prouvent rien (relecture Fable,
+ * 2026-11-20 : des dormeurs sans palier `cft` donnaient un faux départ à 7 h 15).
+ */
+export function doorClosedBehind(lockState: number | null, facts: LockFacts, dayStart: Date): boolean {
+  if (lockState !== LOCK_STATE_LOCKED || !facts.lastOpening || facts.lastLockAt === null) return false;
+  const opened = Date.parse(facts.lastOpening.at);
+  return opened >= dayStart.getTime() && Date.parse(facts.lastLockAt) > opened;
 }
 
 /* ── Message de départ du voyageur ───────────────────────────────────── */
 
 /**
- * Mots-clés (texte replié : minuscules, sans accents) qui disent « nous sommes partis », dans les
- * 5 langues du site. Volontairement étroits : « on part à 10 h » n'est pas un départ.
+ * Tournures **affirmatives** (texte replié : minuscules, sans accents) qui disent « nous sommes
+ * partis », dans les 5 langues du site. Volontairement étroites : « on part à 10 h » n'est pas un
+ * départ, ni un mot isolé (« partis » seul acceptait « à quelle heure devons-nous être partis ? »).
  */
 const DEPARTED_PATTERNS: readonly RegExp[] = [
-  // fr
-  /\b(sommes|suis|est|sont|etes)\s+(bien\s+)?(tous\s+|toutes\s+)?parti(e|s|es)?\b/,
-  /\b(avons|ai|a|ont)\s+(bien\s+)?quitte\b/,
-  /\bpartis\b/,
-  // en
-  /\b(we|i|we've|i've|we have|i have|have|has)\s+(just\s+|now\s+|all\s+)?(left|checked[\s-]?out)\b/,
-  /\bchecked[\s-]?out\b/,
-  /\bjust left\b/,
-  // it
+  // fr : « nous sommes (bien) partis », « on est partis », « je suis partie », « nous avons quitté »
+  /\b(sommes|suis|est|sont)\s+(bien\s+)?(tous\s+|toutes\s+)?parti(e|s|es)?\b/,
+  /\b(avons|ai)\s+(bien\s+)?quitte\b/,
+  // en : « we (have) (just) left », « we've checked out »
+  /\b(we|i)\s+(have\s+|'ve\s+|’ve\s+)?(just\s+|now\s+|all\s+)?(left|checked[\s-]?out)\b/,
+  /\b(we've|i've|we’ve|i’ve)\s+(just\s+|now\s+|all\s+)?(left|checked[\s-]?out)\b/,
+  // it : « siamo partiti », « abbiamo lasciato la casa »
   /\b(siamo|sono)\s+(gia\s+)?(partit[ie]|uscit[ie])\b/,
   /\babbiamo\s+lasciato\b/,
-  // de
-  /\babgereist\b/,
-  /\bausgecheckt\b/,
-  /\bsind\s+(jetzt\s+|schon\s+)?(weg|losgefahren|abgefahren)\b/,
-  /\bhaben\s+(das\s+haus\s+)?verlassen\b/,
-  // es
-  /\b(hemos\s+salido|salimos|nos\s+fuimos|nos\s+hemos\s+ido)\b/,
+  // de : « wir sind abgereist / weg », « wir haben ausgecheckt / das Haus verlassen »
+  /\b(sind|bin)\s+(jetzt\s+|schon\s+|gerade\s+)?(abgereist|weg|losgefahren|abgefahren)\b/,
+  /\b(haben|habe)\s+(jetzt\s+|gerade\s+)?(ausgecheckt|das\s+haus\s+verlassen)\b/,
+  // es : « (ya) hemos salido », « (ya) salimos », « nos fuimos »
+  /\b(hemos\s+salido|ya\s+salimos|salimos\s+de|nos\s+fuimos|nos\s+hemos\s+ido)\b/,
 ];
 
-/** « pas encore partis », « not yet left »… : pas un départ. */
-const NOT_YET =
-  /\b(pas encore|pas tous|pas toutes|not yet|haven't|have not|noch nicht|non ancora|non siamo|todavia no|aun no)\b/;
+/**
+ * Négation **sur le verbe du départ** : « nous ne sommes pas (encore) partis », « pas encore »,
+ * « we haven't (yet) left », « not yet », « wir sind noch nicht… », « non siamo… », « no hemos… ».
+ * Étroite exprès : « nous sommes partis, n'hésitez pas » reste un départ.
+ */
+const NEGATION =
+  /\bn(e\s+|')(sommes|suis|est|sont|etes|avons|ai)\b[^.!?]*\b(pas|plus|jamais)\b|\bpas\s+(encore|tous|toutes)\b|\b(we|i|have|has)\s+not\b|n['’]t\s+(yet\s+|all\s+)?(left|checked)\b|\bnot\s+(yet|all)\b|\b(sind|bin|haben|habe)\s+(noch\s+)?nicht\b|\bnoch\s+nicht\b|\bnon\s+(siamo|sono|abbiamo|ancora)\b|\bno\s+(hemos|nos|salimos|fuimos)\b|\b(todavia|aun)\s+no\b/;
 
 const foldText = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
-/** Le texte dit-il que les voyageurs sont partis ? Exporté pour les tests. */
+/**
+ * Le texte dit-il que les voyageurs sont partis ? Phrase par phrase : une **question** (« ? »)
+ * ou une phrase **négative** ne compte pas. Exporté pour les tests.
+ */
 export function saysDeparted(text: string): boolean {
-  const t = foldText(text);
-  if (NOT_YET.test(t)) return false;
-  return DEPARTED_PATTERNS.some((p) => p.test(t));
+  const sentences = foldText(text).match(/[^.!?\n]+[.!?]?/g) ?? [];
+  return sentences.some((raw) => {
+    const sentence = raw.trim();
+    if (sentence.endsWith("?") || sentence.includes("¿") || NEGATION.test(sentence)) return false;
+    return DEPARTED_PATTERNS.some((p) => p.test(sentence));
+  });
 }
 
 /**
  * Le voyageur confirme-t-il son départ ? Seulement ses messages (`source: "guest"`) reçus depuis
- * `since` (le matin du départ). Rend l'heure du premier message reconnu, **jamais le texte** :
+ * `since` (la veille du départ à 18 h : un groupe qui part à l'aube écrit parfois le soir). Rend l'heure du premier message reconnu, **jamais le texte** :
  * il n'est ni journalisé, ni notifié, ni servi.
  */
 export function departureMessage(
@@ -632,8 +645,10 @@ export interface DepartureState {
   /** Relevé de la porte après l'heure de départ (`departureLockCheck`), sans lecture de plus. */
   door?: "locked" | "unlocked" | "reoccupied";
   returnedAt?: string;
-  /** Dernière lecture du fil de messages (un passage sur deux). */
+  /** Dernière lecture du fil de messages (un passage sur deux), réussie ou non. */
   messageCheckedAt?: string;
+  /** Notifications décidées mais pas encore parties (ntfy en échec) : réessayées au passage suivant. */
+  notifyPending?: Array<"departed" | "left-unlocked">;
   updatedAt: string;
 }
 
@@ -667,12 +682,13 @@ export function initialDepartureState(day: string, now: Date): DepartureState {
  *
  * - Radiateurs illisibles : la série sans présence ne bouge pas (seul un message peut conclure).
  * - Serrure illisible, hors ligne ou en état de passage : aucun constat, aucune notification.
- * - `empty` : porte fermée derrière les voyageurs (`doorClosedBehind`) **et** (`EMPTY_PASSES`
- *   passages sans présence **ou** message de départ). Notifie `departed`.
+ * - `empty` : porte fermée derrière les voyageurs le jour même (`doorClosedBehind` : ouverture
+ *   du jour, puis verrouillage) **et** (`EMPTY_PASSES` passages sans présence **ou** message de
+ *   départ). Départ daté du verrouillage. Notifie `departed`, à chaque constat (un après retour
+ *   compris ; l'appelant ne notifie jamais deux fois le même constat).
  * - Message reçu, porte non verrouillée : `left-unlocked` (une fois), statut `suspected`.
  * - Après `empty`, une ouverture par le code du séjour, ou à la main, annule le constat :
- *   `returned`, et la détection repart (un nouveau constat est possible, sans nouvelle
- *   notification). Une ouverture par le ménage, l'hôte ou les voyageurs suivants n'est pas un
+ *   `returned`, et la détection repart (un nouveau constat est possible, et notifié). Une ouverture par le ménage, l'hôte ou les voyageurs suivants n'est pas un
  *   retour.
  */
 export function departureTransition(
@@ -720,31 +736,21 @@ export function departureTransition(
     return { state: next, notify, unreadable };
   }
 
-  const closed = facts.lock !== null && doorClosedBehind(facts.lockState, facts.lock);
-  const lockToday =
-    facts.lock?.lastLockAt && Date.parse(facts.lock.lastLockAt) >= parisInstant(day, 0).getTime()
-      ? facts.lock.lastLockAt
-      : null;
+  const closed = facts.lock !== null && doorClosedBehind(facts.lockState, facts.lock, parisInstant(day, 0));
+  // Fermée derrière eux ⇒ le dernier verrouillage est du jour et suit leur sortie.
+  const lockedAt = closed ? facts.lock!.lastLockAt! : null;
   // Après un retour, seul un message postérieur au retour compte.
   const message =
     next.messageAt && (!next.returnedAt || Date.parse(next.messageAt) > Date.parse(next.returnedAt))
       ? next.messageAt
       : null;
-  const firstTime = !prev.returnedAt;
 
-  if (closed && message) {
+  if (lockedAt && (message || next.absentPasses >= EMPTY_PASSES)) {
+    // Le départ, c'est la porte verrouillée en sortant — que le message la précède ou la suive.
     next.status = "empty";
-    next.by = "message";
-    next.departedAt = lockToday && Date.parse(lockToday) <= Date.parse(message) ? lockToday : message;
-    if (firstTime) notify.push("departed");
-  } else if (closed && next.absentPasses >= EMPTY_PASSES) {
-    next.status = "empty";
-    next.by = "presence";
-    const since = next.absentSince ?? nowIso;
-    // Le verrouillage du jour s'il précède l'absence ; sinon (verrouillé la veille au soir) le
-    // début de l'absence : le constat de la porte seul ne date pas un départ.
-    next.departedAt = lockToday && Date.parse(lockToday) <= Date.parse(since) ? lockToday : since;
-    if (firstTime) notify.push("departed");
+    next.by = message ? "message" : "presence";
+    next.departedAt = lockedAt;
+    notify.push("departed");
   } else {
     if (message && facts.lockState !== LOCK_STATE_LOCKED && !prev.leftUnlocked) {
       next.leftUnlocked = true;

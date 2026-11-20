@@ -757,13 +757,18 @@ tout ce qui dépend de l'heure. Sans accord, **rien ne change** (tests de non-r�
   hors radiateurs verrouillés et `alerts: false`), état de la serrure (1 appel Nuki), journal
   depuis la veille 18 h (1 appel) **seulement porte verrouillée ou départ déjà constaté**, fil
   Beds24 (`getBookingMessages`) **un passage sur deux au plus** (25 min), jamais une fois le
-  message reçu ou le départ constaté. « Vide » = porte verrouillée sans ouverture depuis le
-  dernier verrouillage **et** (3 passages sans présence **ou** message de départ du voyageur,
-  mots-clés 5 langues, texte jamais gardé). Code du séjour (ou ouverture à la main) après le
+  message reçu ou le départ constaté (un échec, 429 compris, compte comme une lecture). Lectures
+  plafonnées à 4,5 s ; passage déjà long de plus de 35 s : observation sautée. « Vide » = porte
+  verrouillée **avec une ouverture le jour même suivie d'un verrouillage** (on ne sort que par la
+  porte d'entrée : un verrouillage de la veille au soir ne prouve rien) **et** (3 passages sans
+  présence **ou** message de départ du voyageur depuis la veille 18 h, tournures affirmatives en
+  5 langues, questions et négations écartées, texte jamais gardé) ; départ daté du verrouillage. Code du séjour (ou ouverture à la main) après le
   constat → `returned`. État `barbusse:departure:<id>` (7 j), journal
   `barbusse:departure-journal:<jour>` (14 j, une entrée par passage, catégorie du code et jamais
   son nom) relu par `node --env-file=.env.local scripts/departure-journal.mjs AAAA-MM-JJ`.
-  Notifications priorité 2, **une fois par réservation** (`SET NX barbusse:departure-notified:*`) :
+  Notifications priorité 2 (`SET NX barbusse:departure-notified:*`), « Départ estimé » **une fois
+  par constat** (un constat après retour est notifié), envoi raté réessayé au passage suivant
+  (`notifyPending`) :
   « Départ estimé à 8 h 42 (observation : chauffage non modifié) », et « message de départ, porte
   non verrouillée ». Serrure ou radiateurs illisibles : rien. **Interrupteur `DEPARTURE_DETECTION`
   = `observe` (défaut) | `live` | `off`** ; `live` n'est pas codé (TODO phase C, se comporte comme
