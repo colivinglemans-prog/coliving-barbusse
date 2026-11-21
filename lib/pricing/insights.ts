@@ -124,8 +124,8 @@ export function pricingInsights(input: {
       priority: 3,
       line:
         `${e.name} à J-60 : ${free.length}/${nights.length} nuit(s) encore libres à ${avg} € en moyenne. ` +
-        `La baisse automatique (−10 % toutes les 3 semaines depuis J-120) est en cours : vérifier le palier ` +
-        `sur la page Pricing, et le figer si une négociation est en cours.`,
+        `Vérifier sur la page Pricing le palier de baisse automatique (ou son gel si une nuit est vendue), ` +
+        `et le figer si une négociation est en cours.`,
     });
   }
 

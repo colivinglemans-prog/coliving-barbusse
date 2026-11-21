@@ -24,9 +24,9 @@ const discount = (minStay) => (minStay >= 28 ? 0.7 : minStay >= 7 ? 0.9 : minSta
 const BOUNDS = { min: 250, max: 3_500 };
 // Blocs ancrés sur la référence (lib/pricing/overrides.ts) : à tenir alignés.
 const BLOCKS = [
-  { label: "24H Moto", from: "2027-04-07", to: "2027-04-11", minStay: 3, fallback: 940 },
-  { label: "MotoGP", from: "2027-05-13", to: "2027-05-16", minStay: 3, fallback: 1_400 },
-  { label: "Le Mans Classic", from: "2027-06-30", to: "2027-07-04", minStay: 4, fallback: 1_860 },
+  { label: "24H Moto", from: "2027-04-07", to: "2027-04-11", minStay: 3, fallback: 940, floor: 600 },
+  { label: "MotoGP", from: "2027-05-13", to: "2027-05-16", minStay: 3, fallback: 1_400, floor: 650 },
+  { label: "Le Mans Classic", from: "2027-06-30", to: "2027-07-04", minStay: 4, fallback: 1_860, floor: 1_050 },
 ];
 
 const url = process.env.KV_REST_API_URL;
@@ -61,11 +61,12 @@ for (const b of BLOCKS) {
   console.log(`\n${b.label} (séjour min. ${b.minStay}) :`);
   for (let d = b.from; d <= b.to; d = addDay(d)) {
     const n = nights[d];
-    const eff = n ? n[0] : b.fallback;
+    const eff = Math.max(n ? n[0] : b.fallback, b.floor);
     const price1 = Math.round(eff / discount(b.minStay));
     console.log(
       `  ${d} : ${eff} € effectif${n ? ` (Beyond, séjour min. ${n[1]})` : ` (REPLI : pas de référence valide)`}` +
-        ` → price1 ${price1} €${snap.days[d]?.[2] === 0 ? " — vendue" : ""}`,
+        ` → price1 ${price1} €${n && n[0] < b.floor ? ` — RELEVÉ AU PLANCHER (${b.floor} €)` : ""}` +
+        `${snap.days[d]?.[2] === 0 ? " — vendue" : ""}`,
     );
   }
 }

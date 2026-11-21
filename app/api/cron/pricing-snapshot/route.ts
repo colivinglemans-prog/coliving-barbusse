@@ -8,6 +8,7 @@ import { ENGINE_CONFIG } from "@/lib/pricing/engine-config";
 import { beyondHigherInsights, lastSaleDate, pricingInsights } from "@/lib/pricing/insights";
 import { getBeyondCalendarFromWitness, takeBeyondWitness, type WitnessOutcome } from "@/lib/pricing/beyond-witness";
 import { CUTOVER } from "@/lib/pricing/cutover";
+import { CUTOVER_REF } from "@/lib/pricing/cutover-ref";
 import { PRICE_OVERRIDES } from "@/lib/pricing/overrides";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
@@ -104,8 +105,19 @@ export async function GET(request: NextRequest) {
     // Après la bascule : Beyond suggère-t-il nettement plus haut sur un grand événement libre ?
     if (today >= CUTOVER.startedOn && witness.status === "stored") {
       const suggested = await getBeyondCalendarFromWitness(today).catch(() => ({}));
+      // Comparé à l'ancrage (référence de bascule), pas au prix baissé : sinon l'alerte partirait
+      // par construction dès le 2e palier (relecture Fable).
+      const anchored = {
+        ...snapshot,
+        days: Object.fromEntries(
+          Object.entries(snapshot.days).map(([d, v]) => {
+            const r = CUTOVER_REF.nights[d]?.[0];
+            return [d, [typeof r === "number" && r > 0 ? r : v[0], v[1], v[2]] as typeof v];
+          }),
+        ),
+      };
       insights.push(
-        ...beyondHigherInsights({ snapshot, suggested, blocks: PRICE_OVERRIDES.filter((o) => o.markdown) }),
+        ...beyondHigherInsights({ snapshot: anchored, suggested, blocks: PRICE_OVERRIDES.filter((o) => o.markdown) }),
       );
     }
     if (!dry) {

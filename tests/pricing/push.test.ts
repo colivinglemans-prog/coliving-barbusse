@@ -23,9 +23,16 @@ const h = vi.hoisted(() => {
   };
 });
 
+// Référence complète inventée : 470 € par nuit sur 420 jours à partir du 30/11/2026.
+const REF_NIGHTS: Record<string, [number, number]> = {};
+for (let i = 0; i < 420; i++) {
+  const x = new Date(Date.UTC(2026, 10, 30 + i));
+  REF_NIGHTS[x.toISOString().slice(0, 10)] = [470, 2];
+}
+
 vi.mock("@/lib/pricing/cutover-ref", () => ({
   get CUTOVER_REF() {
-    return { date: h.refDate, nights: {} };
+    return { date: h.refDate, nights: h.refDate ? REF_NIGHTS : {} };
   },
   refFromSnapshot: (snap: { date: string }) => ({ date: snap.date, nights: {}, provisional: true }),
 }));
@@ -102,9 +109,9 @@ beforeEach(() => {
   h.writes.length = 0;
   h.alerts.length = 0;
   h.refDate = "2026-11-30";
-  // Paramètres de bascule : on veut que l'écriture passe pour tester ce qui l'entoure.
-  process.env.PRICING_MAX_DATES = "395";
-  process.env.PRICING_MAX_CHANGE = "10";
+  // Plus de variables de bascule : les limites sont datées dans lib/pricing/cutover.ts.
+  delete process.env.PRICING_MAX_DATES;
+  delete process.env.PRICING_MAX_CHANGE;
 });
 afterEach(() => {
   process.env = { ...env };
@@ -242,5 +249,33 @@ describe("runPricingPush", () => {
     expect(run.outcome).toBe("rejected");
     expect(run.rejections[0]).toMatch(/Référence de bascule absente/);
     expect(h.writes).toHaveLength(0);
+  });
+
+  it("réel : le palier et la fin de bascule ne sont mémorisés qu'après une écriture réelle", async () => {
+    process.env.PRICING_PUSH_MODE = "live";
+    const dry = await runPricingPush({ today: TODAY, forceDry: true });
+    expect(dry.outcome).toBe("dry");
+    expect(h.mem.has("barbusse:pricing:markdown:24h-moto-2027")).toBe(false);
+    expect(h.mem.has("barbusse:pricing:cutover-done")).toBe(false);
+
+    const run = await runPricingPush({ today: TODAY });
+    expect(run.outcome).toBe("written");
+    expect(JSON.parse(String(h.mem.get("barbusse:pricing:markdown:24h-moto-2027")))).toMatchObject({ step: 0, frozen: false });
+    expect(h.mem.has("barbusse:pricing:cutover-done")).toBe(true);
+  });
+
+  it("réel : référence provisoire ou incomplète = rejet en bloc", async () => {
+    const { referenceProblems } = await import("@/lib/pricing/push");
+    expect(referenceProblems({ date: "2026-11-30", nights: {} }, TODAY)[0]).toMatch(/incomplète/);
+    expect(referenceProblems({ date: "2026-11-30", nights: REF_NIGHTS, provisional: true }, TODAY)[0]).toMatch(/provisoire/);
+    expect(referenceProblems({ date: "2026-11-30", nights: REF_NIGHTS }, TODAY)).toEqual([]);
+  });
+
+  it("une variable plus large que le garde-fou est ignorée et reste signalée même après écriture", async () => {
+    process.env.PRICING_PUSH_MODE = "live";
+    process.env.PRICING_MAX_CHANGE = "10";
+    const run = await runPricingPush({ today: TODAY });
+    expect(run.outcome).toBe("written");
+    expect(run.warnings.some((w) => w.startsWith("PRICING_MAX_CHANGE=10 ignorée"))).toBe(true);
   });
 });

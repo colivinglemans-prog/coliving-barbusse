@@ -77,7 +77,8 @@ export const MARKDOWN_RULE: MarkdownRule = { startLeadDays: 120, everyDays: 21, 
 
 /** Palier atteint aujourd'hui pour un événement dont la première nuit est `firstNight`. */
 export function markdownStep(today: string, firstNight: string, rule: MarkdownRule): number {
-  const lead = daysBetween(today, firstNight);
+  // Plafonné à la première nuit : un événement commencé ou passé ne baisse plus (relecture Fable).
+  const lead = Math.max(0, daysBetween(today, firstNight));
   if (lead > rule.startLeadDays) return 0;
   const k = Math.floor((rule.startLeadDays - lead) / rule.everyDays) + 1;
   return Math.min(k, rule.freezeAtStep ?? Infinity);
@@ -103,8 +104,9 @@ export interface PushLimits {
 
 /**
  * Limites de l'envoi pour `today`.
- * - Le jour de la bascule : variation libre jusqu'à +150 % (décembre monte de +65 %, les fêtes
- *   davantage), toutes les dates de l'horizon.
+ * - Pendant la rampe et **tant que le premier envoi réel n'a pas été écrit** (`cutoverDone`) :
+ *   variation libre jusqu'à +100 % (décembre monte de +65 %, les fêtes de +63 %). Si l'envoi du
+ *   01/12 échoue (quota, coupe-circuit…), le lendemain le rattrape (relecture Fable).
  * - Pendant la rampe : toutes les dates de l'horizon (la rampe change ~150 nuits chaque semaine).
  * - Sinon : les défauts (0,25 et 60).
  * Une variable d'environnement ne peut que **resserrer** (valeur sous le défaut) ; plus large, elle
@@ -114,10 +116,11 @@ export function pushLimits(
   today: string,
   env: { maxChange?: number; maxDates?: number },
   horizonDays: number,
+  cutoverDone = false,
 ): PushLimits {
   const warnings: string[] = [];
   const inRamp = today >= CUTOVER.startedOn && today < CUTOVER.rampUntil;
-  let maxChange = today === CUTOVER.startedOn ? 1.5 : DEFAULT_MAX_CHANGE;
+  let maxChange = inRamp && !cutoverDone ? 1 : DEFAULT_MAX_CHANGE;
   let maxDates = inRamp ? horizonDays : DEFAULT_MAX_DATES;
 
   if (env.maxChange !== undefined) {

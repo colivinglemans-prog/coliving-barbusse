@@ -106,6 +106,25 @@ describe("baisse automatique des grands événements", () => {
     expect(markdownFactor(2, MARKDOWN_RULE)).toBeCloseTo(0.81);
   });
 
+  it("plus de palier une fois l'événement commencé", () => {
+    expect(markdownStep("2027-04-07", FIRST, MARKDOWN_RULE)).toBe(markdownStep("2027-06-30", FIRST, MARKDOWN_RULE));
+  });
+
+  it("un bloc terminé n'a plus de palier, et la vente ne se lit que sur les nuits à venir", () => {
+    expect(planMarkdown("2027-04-12", {}, {}).some((b) => b.id === "24h-moto-2027")).toBe(false);
+    // Le 10/04, la nuit du 08/04 (passée) ne compte plus : seules 10 et 11/04 sont lues.
+    const cal = { "2027-04-08": { available: false }, "2027-04-10": { available: true }, "2027-04-11": { available: true } };
+    expect(planMarkdown("2027-04-10", cal, {}).find((b) => b.id === "24h-moto-2027")?.sold).toBe(false);
+  });
+
+  it("l'ancre ne descend jamais sous le plancher, même au palier 0", () => {
+    const ref: CutoverRef = { date: "2026-11-30", nights: { "2027-04-11": [400, 3] } };
+    expect(buildTargets("2027-04-11", free(["2027-04-11"]), 1, { ref, markdownSteps: {} })["2027-04-11"]).toMatchObject({
+      price: 600,
+      source: "override",
+    });
+  });
+
   it("annonce le palier suivant", () => {
     expect(nextMarkdownDate("2026-12-01", FIRST, MARKDOWN_RULE)).toBe("2026-12-08");
     expect(nextMarkdownDate("2026-12-08", FIRST, MARKDOWN_RULE)).toBe("2026-12-29");
@@ -161,10 +180,12 @@ describe("baisse automatique des grands événements", () => {
 });
 
 describe("limites datées de l'envoi", () => {
-  it("défauts hors fenêtre, tout l'horizon pendant la rampe, variation libre le seul jour J", () => {
+  it("défauts hors fenêtre, tout l'horizon pendant la rampe, variation libre jusqu'au premier envoi écrit", () => {
     expect(pushLimits("2026-11-25", {}, 395)).toMatchObject({ maxChange: 0.25, maxDates: 60 });
-    expect(pushLimits("2026-12-01", {}, 395)).toMatchObject({ maxChange: 1.5, maxDates: 395 });
-    expect(pushLimits("2026-12-02", {}, 395)).toMatchObject({ maxChange: 0.25, maxDates: 395 });
+    expect(pushLimits("2026-12-01", {}, 395)).toMatchObject({ maxChange: 1, maxDates: 395 });
+    // L'envoi du 01/12 a échoué : le 02/12 le rattrape.
+    expect(pushLimits("2026-12-02", {}, 395, false)).toMatchObject({ maxChange: 1, maxDates: 395 });
+    expect(pushLimits("2026-12-02", {}, 395, true)).toMatchObject({ maxChange: 0.25, maxDates: 395 });
     expect(pushLimits("2027-02-01", {}, 395)).toMatchObject({ maxChange: 0.25, maxDates: 60 });
   });
 
@@ -173,5 +194,17 @@ describe("limites datées de l'envoi", () => {
     expect(wide).toMatchObject({ maxChange: 0.25, maxDates: 60 });
     expect(wide.warnings).toHaveLength(2);
     expect(pushLimits("2026-12-01", { maxChange: 0.1, maxDates: 30 }, 395)).toMatchObject({ maxChange: 0.1, maxDates: 30 });
+  });
+});
+
+describe("fichier de référence (lib/pricing/cutover-ref.json)", () => {
+  it("non rempli avant le 30/11, ou complet et valide une fois rempli", async () => {
+    const { CUTOVER_REF } = await import("@/lib/pricing/cutover-ref");
+    const { referenceProblems } = await import("@/lib/pricing/push");
+    if (CUTOVER_REF.date === null) {
+      expect(Object.keys(CUTOVER_REF.nights)).toHaveLength(0);
+    } else {
+      expect(referenceProblems(CUTOVER_REF, CUTOVER.startedOn)).toEqual([]);
+    }
   });
 });

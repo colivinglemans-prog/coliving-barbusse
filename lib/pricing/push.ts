@@ -53,6 +53,30 @@ const LAST_RUN_KEY = redisKey("pricing", "push-last");
 const JOURNAL_PREFIX = redisKey("pricing", "push-journal");
 const TARGETS_PREFIX = redisKey("pricing", "push-targets");
 const MARKDOWN_PREFIX = redisKey("pricing", "markdown");
+/** Posé au premier envoi réel réussi après la bascule : la variation élargie s'arrête alors. */
+const CUTOVER_DONE_KEY = redisKey("pricing", "cutover-done");
+
+/** Nuits valides minimales attendues dans la référence (la photo couvre ~365 nuits). */
+export const MIN_REFERENCE_NIGHTS = 300;
+
+/** Problèmes de la référence qui interdisent un envoi réel (fail closed). */
+export function referenceProblems(ref: CutoverRef | null, today: string): string[] {
+  if (!ref) return ["Référence de bascule absente (lib/pricing/cutover-ref.json non rempli)"];
+  if (ref.provisional) return ["Référence provisoire : interdite en envoi réel"];
+  const valid = Object.values(ref.nights).filter(([p]) => validReference(p)).length;
+  const problems: string[] = [];
+  if (valid < MIN_REFERENCE_NIGHTS) problems.push(`Référence de bascule incomplète (${valid} nuits valides)`);
+  for (const o of PRICE_OVERRIDES) {
+    if (typeof o.price === "number" || o.to < today) continue;
+    for (let d = o.from; d <= o.to; d = addDays(d, 1)) {
+      if (!validReference(ref.nights[d]?.[0])) {
+        problems.push(`Référence sans prix valide pour ${o.label} (${d})`);
+        break;
+      }
+    }
+  }
+  return problems;
+}
 
 export function pushMode(): PushMode {
   const v = process.env.PRICING_PUSH_MODE;
@@ -166,9 +190,10 @@ export function planMarkdown(
 ): MarkdownBlock[] {
   const out: MarkdownBlock[] = [];
   for (const o of list) {
-    if (!o.markdown) continue;
+    // Bloc terminé : plus de palier ni d'alerte (relecture Fable).
+    if (!o.markdown || o.to < today) continue;
     const nights: string[] = [];
-    for (let d = o.from; d <= o.to; d = addDays(d, 1)) nights.push(d);
+    for (let d = o.from > today ? o.from : today; d <= o.to; d = addDays(d, 1)) nights.push(d);
     const sold = nights.some((d) => calendar[d] !== undefined && !calendar[d].available);
     const prev = states[o.id] ?? null;
     let step: number;
@@ -234,10 +259,12 @@ export function buildTargets(
   for (const date of dates) {
     const forced = overrideOn(date);
     if (forced) {
-      const { price: anchor } = anchorPrice(forced, date, reference);
+      // L'ancre ne descend jamais sous le plancher, même au palier 0 : une nuit de bord que Beyond
+      // tarife bas ferait sinon rejeter tout l'envoi (relecture Fable).
+      const floor = eventFloorOn(date, today)?.floor ?? 0;
+      const anchor = Math.max(anchorPrice(forced, date, reference).price, floor);
       const step = forced.markdown ? (ctx.markdownSteps[forced.id] ?? 0) : 0;
       if (step > 0 && forced.markdown) {
-        const floor = eventFloorOn(date, today)?.floor ?? 0;
         const price = Math.max(Math.round(anchor * markdownFactor(step, forced.markdown)), floor);
         target[date] = { price, minStay: forced.minStay, source: "markdown" };
       } else {
@@ -320,9 +347,7 @@ export async function runPricingPush(options: {
       const snap = await loadSnapshot(from).catch(() => null);
       if (snap) ref = refFromSnapshot(snap, true);
     }
-    if (!ref && mode === "live" && from >= CUTOVER.startedOn) {
-      preflight.push("Référence de bascule absente (lib/pricing/cutover-ref.json non rempli)");
-    }
+    if (mode === "live") preflight.push(...referenceProblems(ref, from));
 
     // Paliers de baisse : état gardé dans Redis. Illisible en réel = rejet (on ne devine pas un
     // palier gelé) ; à blanc, on calcule sans état.
@@ -343,11 +368,16 @@ export async function runPricingPush(options: {
     const targets = compact(target);
     const yesterday = await getJson<CompactTargets>(`${TARGETS_PREFIX}:${addDays(from, -1)}`);
     const dailyChanges = countDailyChanges(yesterday, targets, from);
-    if (!options.forceDry) await setJson(`${TARGETS_PREFIX}:${from}`, targets, 14 * 24 * 3600);
+    const saveTargets = () =>
+      options.forceDry ? Promise.resolve() : setJson(`${TARGETS_PREFIX}:${from}`, targets, 14 * 24 * 3600);
 
     // Limites datées (lib/pricing/cutover.ts). Un envoi à blanc d'avant la bascule montre le plan
     // du jour J, avec ses limites.
     const limitsDay = mode === "dry" && from < CUTOVER.startedOn ? CUTOVER.startedOn : from;
+    const cutoverDone = await getRedis()
+      .get(CUTOVER_DONE_KEY)
+      .then((v) => v !== null)
+      .catch(() => true);
     const limits = pushLimits(
       limitsDay,
       {
@@ -355,12 +385,14 @@ export async function runPricingPush(options: {
         maxDates: envOptionalNumber(process.env.PRICING_MAX_DATES),
       },
       PUSH_HORIZON_DAYS,
+      cutoverDone,
     );
     const plan = planPush({ current, target, maxChange: limits.maxChange, maxDates: limits.maxDates, today: from });
     if (preflight.length) {
       plan.status = "rejected";
       plan.rejections.unshift(...preflight);
       plan.writes = {};
+      plan.quarantined = [];
     }
     const lines: PushWriteLine[] = Object.entries(plan.writes).map(([date, w]) => ({
       date,
@@ -383,6 +415,8 @@ export async function runPricingPush(options: {
       reference: ref ? (ref.provisional ? `${ref.date} (provisoire)` : ref.date) : null,
     };
 
+    if (!preflight.length) await saveTargets();
+
     let run: PushRun;
     if (plan.status === "rejected") run = { ...planned, outcome: "rejected" };
     else if (lines.length === 0) run = { ...planned, outcome: "nothing" };
@@ -394,9 +428,13 @@ export async function runPricingPush(options: {
     // un envoi coupé ou rejeté le recalcule au passage suivant.
     if (mode === "live" && (run.outcome === "written" || run.outcome === "nothing")) {
       for (const b of markdown) {
+        // Une nuit du bloc en quarantaine : le palier n'est pas en place, on ne le mémorise pas.
+        const o = PRICE_OVERRIDES.find((x) => x.id === b.id)!;
+        if (plan.quarantined.some((q) => q.date >= o.from && q.date <= o.to)) continue;
         const state: MarkdownState = { step: b.step, frozen: b.frozen, at: run.at };
         await setJson(`${MARKDOWN_PREFIX}:${b.id}`, state);
       }
+      if (from >= CUTOVER.startedOn) await getRedis().set(CUTOVER_DONE_KEY, run.at).catch(() => undefined);
     }
 
     await record(run, lines);
@@ -431,9 +469,9 @@ async function writeAndVerify(
       );
     if (mismatches.length || warnings.length) {
       await setHalt(`Écart à la relecture (${mismatches.length} date(s), ${warnings.length} avertissement(s))`, now);
-      return { ...planned, outcome: "mismatch", warnings, mismatches };
+      return { ...planned, outcome: "mismatch", warnings: [...planned.warnings, ...warnings], mismatches };
     }
-    return { ...planned, outcome: "written", warnings };
+    return { ...planned, outcome: "written", warnings: [...planned.warnings, ...warnings] };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await setHalt(`Panne pendant l'envoi : ${message.slice(0, 160)}`, now).catch(() => undefined);
