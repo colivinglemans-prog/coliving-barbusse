@@ -83,7 +83,7 @@ Depuis le 2026-11-07, `water-heater-automation` ajoute à chaque passage réel u
 
 Profil calculé à partir du nombre de personnes présentes (somme `numAdult + numChild` sur les bookings actifs + arrivants du jour dès 11h + partants du jour jusqu’à 11h, cf. `countGuests`) :
 
-| Profil | Personnes | Hors pic | Heures de pic (4 h 45-7 h, 16 h 45-22 h) |
+| Profil | Personnes | Hors pic | Heures de pic (4 h 38-7 h, 16 h 38-22 h) |
 |---|---|---|---|
 | `vacant` | 0 | Éco 50 °C | Éco 50 °C |
 | `low` | 1–4 | Éco 55 °C | **Absence** |
@@ -91,7 +91,7 @@ Profil calculé à partir du nombre de personnes présentes (somme `numAdult + n
 | `high` | 9–12 | Éco 55 °C | **Absence** |
 | `xl` | 13+ | Éco 55 °C | **Absence** |
 
-Jamais de boost automatique. **Pourquoi l'Absence** (mesures du 9/11 au soir, compteur `core:ElectricEnergyConsumptionState`) : en **Éco** (`manualEcoActive`), le thermo consommait ≈ 2,1 kW toute la soirée — **l'appoint tourne aussi en Éco** ; PAC seule ≈ 300 W ; appoint seul 1 800 W. En **Absence** (`setAbsenceMode on`), compteur figé 10 à 15 min après la commande : **seul interrupteur qui coupe la chauffe**. Les états de puissance (`PowerHeatPumpState` ≈ 1 000 W, c'est la chaleur produite ; `PowerHeatElectricalState` = 1 800 W) et `HeatingStatusState` restent figés : ne pas s'y fier. L'Absence est posée à 16 h 45 et 4 h 45 pour agir aux pics de 17 h et 5 h.
+Jamais de boost automatique. **Pourquoi l'Absence** (mesures du 9/11 au soir, compteur `core:ElectricEnergyConsumptionState`) : en **Éco** (`manualEcoActive`), le thermo consommait ≈ 2,1 kW toute la soirée — **l'appoint tourne aussi en Éco** ; PAC seule ≈ 300 W ; appoint seul 1 800 W. En **Absence** (`setAbsenceMode on`), compteur figé 10 à 15 min après la commande : **seul interrupteur qui coupe la chauffe**. Les états de puissance (`PowerHeatPumpState` ≈ 1 000 W, c'est la chaleur produite ; `PowerHeatElectricalState` = 1 800 W) et `HeatingStatusState` restent figés : ne pas s'y fier. L'Absence est posée par le passage de 16 h 38 et de 4 h 38 (crons à :08/:23/:38/:53 depuis le 21/11/2026) pour agir aux pics de 17 h et 5 h.
 
 **Logique** :
 - Ballon dans un garage non chauffé → COP meilleur en journée (air ambiant chaud), mauvais la nuit (≈ 1 mesuré la nuit du 8 au 9/11). L'appoint ne remplace jamais une PAC qui tourne : le 9/11, il a chauffé seul 7 h pendant que la PAC était bloquée (≈ 8 kWh de plus qu'à la PAC).

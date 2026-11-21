@@ -2,14 +2,14 @@ import { describe, expect, it } from "vitest";
 import { getExpectedSettings, getProfileSettings, heatPumpStalled, isPeak, PAC_STALL } from "@/lib/cozytouch";
 import { absenceSince, entryOlderThan, type WaterHeaterLogEntry } from "@/lib/water-heater-log";
 
-describe("heures de pic : 4 h 45-7 h et 16 h 45-22 h", () => {
+describe("heures de pic : 4 h 38-7 h et 16 h 38-22 h", () => {
   it("bornes", () => {
-    expect(isPeak(4, 30)).toBe(false);
-    expect(isPeak(4, 45)).toBe(true);
+    expect(isPeak(4, 37)).toBe(false);
+    expect(isPeak(4, 38)).toBe(true);
     expect(isPeak(6, 59)).toBe(true);
     expect(isPeak(7, 0)).toBe(false);
-    expect(isPeak(16, 30)).toBe(false);
-    expect(isPeak(16, 45)).toBe(true);
+    expect(isPeak(16, 37)).toBe(false);
+    expect(isPeak(16, 38)).toBe(true);
     expect(isPeak(20, 0)).toBe(true);
     expect(isPeak(21, 45)).toBe(true);
     expect(isPeak(22, 0)).toBe(false);

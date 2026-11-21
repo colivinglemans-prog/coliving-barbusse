@@ -6,7 +6,8 @@ import { redisKey, stringStore } from "./redis";
  * Redis (`barbusse:heartbeat:<nom>` et `…:ok`), la route publique `/api/health/heartbeat`
  * dit s'il y en a en retard — **le compte seulement**, jamais les noms.
  *
- * Retard accepté = cadence **réelle** (cron-job.org, relevée le 2026-11-15 ; `vercel.json` pour
+ * Retard accepté = cadence **réelle** (cron-job.org, relevée le 2026-11-15, minutes étalées le
+ * 2026-11-21 pour ne plus tout lancer à :00 ; `vercel.json` pour
  * les crons Vercel) plus une marge qui laisse passer **un** passage raté, pas deux : trois
  * cadences sous l'heure, deux cadences et demie au-delà, 26 h pour un quotidien. Les
  * hebdomadaires ont ~8 jours (demandé par l'hôte le 2026-11-16) : un lundi raté se voit le mardi.
@@ -22,28 +23,28 @@ const WEEK_PLUS_A_DAY = 8 * 24 * 60;
 const DAY_PLUS_TWO_HOURS = 26 * 60;
 
 export const EXPECTED_CRONS = [
-  // `0 * * * *` : un passage manqué toléré, pas deux.
+  // `3 * * * *` : un passage manqué toléré, pas deux.
   { name: "nuki-sync", maxAgeMinutes: 150 },
-  // `*/15 * * * *` (et 7 h, Vercel).
+  // :02, :17, :32, :47 (et 7 h, Vercel).
   { name: "heating-automation", maxAgeMinutes: 45 },
-  // `*/15 * * * *` depuis le 2026-11-09 (150 min jusqu'au 2026-11-16, reste de l'ancien horaire).
+  // Toutes les 15 min depuis le 2026-11-09, à :08, :23, :38, :53 depuis le 2026-11-21.
   { name: "water-heater-automation", maxAgeMinutes: 45 },
-  // Grille de la page Tarifs, toutes les heures (cron-job.org).
-  { name: "price-grid", maxAgeMinutes: 150 },
+  // Grille de la page Tarifs, toutes les 20 min depuis le 2026-11-21 (:06, :26, :46).
+  { name: "price-grid", maxAgeMinutes: 90 },
   // `35 * * * *`, jour et nuit : les heures de silence sont gérées par la route, pas par l'horaire.
   { name: "arrival-readiness", maxAgeMinutes: 150 },
   // 8 h 10 heure de Paris (cron-job.org), une fois par jour.
   { name: "pricing-push", maxAgeMinutes: DAY_PLUS_TWO_HOURS },
-  // `*/10 * * * *`.
+  // Toutes les 10 min : messages à :00, check-in à :01, ménage à :04 (camera-watch : toutes les 5 min).
   { name: "messages-voyageurs", maxAgeMinutes: 30 },
   { name: "checkin-notifications", maxAgeMinutes: 30 },
   { name: "camera-watch", maxAgeMinutes: 30 },
   { name: "cleaning-watch", maxAgeMinutes: 30 },
-  // `*/30 * * * *` (et 8 h, Vercel).
+  // :09 et :39 (et 8 h, Vercel).
   { name: "heating-health", maxAgeMinutes: 90 },
-  // `0 */2 * * *`.
+  // Heures paires à :13.
   { name: "water-heater-health", maxAgeMinutes: 300 },
-  // `0 */4 * * *`.
+  // 0 h, 4 h, 8 h… à :12.
   { name: "heating-reset", maxAgeMinutes: 600 },
   // Lundi 4 h : l'échange des refresh tokens Beds24, qui meurent à 30 jours sans usage.
   { name: "beds24-keepalive", maxAgeMinutes: WEEK_PLUS_A_DAY },

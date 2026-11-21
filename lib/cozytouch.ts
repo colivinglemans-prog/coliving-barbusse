@@ -443,17 +443,20 @@ export function getWaterHeaterProfile(guests: number): WaterHeaterProfile {
  * 10 à 15 min de retard (compteur figé dès 22 h 34 pour une Absence posée à 22 h 20). C'est le
  * seul interrupteur qui marche.
  *
- * - **16 h 45 – 22 h** : le dîner, la bascule des chambres en confort à 20 h ; posé à 16 h 45
- *   pour agir à 17 h.
- * - **4 h 45 – 7 h** : la bascule du RDC en confort à 5 h et les premières douches.
+ * - **16 h 38 – 22 h** : le dîner, la bascule des chambres en confort à 20 h ; posé par le
+ *   passage de 16 h 38 pour agir à 17 h.
+ * - **4 h 38 – 7 h** : la bascule du RDC en confort à 5 h et les premières douches.
+ *
+ * Les bornes de début suivent le passage du cron `water-heater-automation` (:08, :23, :38, :53
+ * depuis l'étalement des crons du 21/11/2026 ; avant : :45 pile).
  *
  * Le ballon classique de 300 L, en aval, fournit l'eau chaude pendant ces plages. Hors pic, le
  * thermo est en Éco 55 °C et gère lui-même PAC et appoint (ce qui couvre une PAC bloquée).
  * Plages en minutes depuis minuit, heure de Paris.
  */
 export const PEAK_WINDOWS = [
-  { from: 4 * 60 + 45, to: 7 * 60 },
-  { from: 16 * 60 + 45, to: 22 * 60 },
+  { from: 4 * 60 + 38, to: 7 * 60 },
+  { from: 16 * 60 + 38, to: 22 * 60 },
 ] as const;
 
 export function isPeak(hour: number, minute = 0): boolean {

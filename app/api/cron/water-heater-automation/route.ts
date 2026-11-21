@@ -32,7 +32,7 @@ import {
  * Pilotage du ballon thermo, toutes les 15 min (cron-job.org).
  *
  * Éco 55 °C (50 °C maison vide), jamais de boost automatique ; **Absence aux heures de pic**
- * (`PEAK_WINDOWS`, `lib/cozytouch.ts` : 4 h 45-7 h et 16 h 45-22 h) quand des voyageurs sont
+ * (`PEAK_WINDOWS`, `lib/cozytouch.ts` : 4 h 38-7 h et 16 h 38-22 h) quand des voyageurs sont
  * là — seul moyen mesuré de couper l'appoint de 1 800 W (coupures des 7-9/11/2026 à 9 kVA).
  *
  * Ordre des commandes : boost coupé d'abord ; mode et consigne ensuite ; **l'Absence en dernier**,
