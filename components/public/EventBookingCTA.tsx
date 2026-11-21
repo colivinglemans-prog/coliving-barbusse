@@ -49,11 +49,11 @@ const COPY: Record<Locale, Copy> = {
     loading: "Vérification des disponibilités…",
     provisionalDates:
       "Dates prévisionnelles : l'organisateur n'a pas encore publié le calendrier, les nuits proposées suivent l'édition précédente. Nous mettrons cette page à jour dès l'annonce.",
-    nearbyTitle: "Réservée pendant l'événement, libre juste à côté",
+    nearbyTitle: "Réservée pendant l'événement, libre juste avant ou après",
     nearbyBefore: (_from, t) => `Libre juste avant : jusqu'au ${t}`,
     nearbyAfter: (f) => `Libre juste après : à partir du ${f}`,
     nearbyBody:
-      "Pratique pour les essais, le montage, ou pour arriver plus tôt. Mêmes 9 suites avec salle de bain, jusqu'à 20 personnes.",
+      "Pratique pour les essais, le montage, ou pour arriver plus tôt. Mêmes 9 suites avec salle de douche, jusqu'à 20 personnes.",
   },
   en: {
     availableTitle: "Our house is available for this event",
@@ -69,7 +69,7 @@ const COPY: Record<Locale, Copy> = {
     loading: "Checking availability…",
     provisionalDates:
       "Provisional dates: the organiser has not yet published the calendar; the suggested nights follow the previous edition. We will update this page as soon as the dates are announced.",
-    nearbyTitle: "Booked during the event, free right next to it",
+    nearbyTitle: "Booked for the event, free just before or after",
     nearbyBefore: (_from, t) => `Free just before: until ${t}`,
     nearbyAfter: (f) => `Free just after: from ${f}`,
     nearbyBody:
@@ -93,7 +93,7 @@ const COPY: Record<Locale, Copy> = {
     nearbyBefore: (_from, t) => `Libera subito prima: fino al ${t}`,
     nearbyAfter: (f) => `Libera subito dopo: dal ${f}`,
     nearbyBody:
-      "Comoda per i test, l'allestimento o per arrivare prima. Le stesse 9 suite con bagno, fino a 20 persone.",
+      "Comoda per i test, l'allestimento o per arrivare prima. Le stesse 9 suite con doccia privata, fino a 20 persone.",
   },
   de: {
     availableTitle: "Unser Haus ist für diese Veranstaltung verfügbar",
@@ -113,7 +113,7 @@ const COPY: Record<Locale, Copy> = {
     nearbyBefore: (_from, t) => `Frei direkt davor: bis ${t}`,
     nearbyAfter: (f) => `Frei direkt danach: ab ${f}`,
     nearbyBody:
-      "Praktisch für Testtage, den Aufbau oder eine frühere Anreise. Dieselben 9 Suiten mit eigenem Bad, bis zu 20 Personen.",
+      "Praktisch für Testtage, den Aufbau oder eine frühere Anreise. Dieselben 9 Suiten mit eigenem Duschbad, bis zu 20 Personen.",
   },
   es: {
     availableTitle: "Nuestra casa está disponible para este evento",
@@ -133,7 +133,7 @@ const COPY: Record<Locale, Copy> = {
     nearbyBefore: (_from, t) => `Libre justo antes: hasta el ${t}`,
     nearbyAfter: (f) => `Libre justo después: desde el ${f}`,
     nearbyBody:
-      "Práctico para los entrenamientos, el montaje o para llegar antes. Las mismas 9 suites con baño, hasta 20 personas.",
+      "Práctico para los entrenamientos, el montaje o para llegar antes. Las mismas 9 suites con baño con ducha, hasta 20 personas.",
   },
 };
 
