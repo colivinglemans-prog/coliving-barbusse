@@ -54,6 +54,8 @@ const COPY: Record<Locale, Copy> = {
     nearbyAfter: (f) => `Libre juste après : à partir du ${f}`,
     nearbyBody:
       "Pratique pour les essais, le montage, ou pour arriver plus tôt. Mêmes 9 suites avec salle de douche, jusqu'à 20 personnes.",
+    nearbyStay: (n, side) =>
+      `À partir de ${n} nuits, ${side === "before" ? "arrivée" : "départ"} au choix. Dates modifiables sur la page de réservation.`,
   },
   en: {
     availableTitle: "Our house is available for this event",
@@ -74,6 +76,8 @@ const COPY: Record<Locale, Copy> = {
     nearbyAfter: (f) => `Free just after: from ${f}`,
     nearbyBody:
       "Handy for test days, set-up, or arriving early. The same 9 en-suite bedrooms, up to 20 guests.",
+    nearbyStay: (n, side) =>
+      `${n} nights minimum, choose your ${side === "before" ? "arrival" : "departure"} date. You can change the dates on the booking page.`,
   },
   it: {
     availableTitle: "La nostra casa è disponibile per questo evento",
@@ -94,6 +98,8 @@ const COPY: Record<Locale, Copy> = {
     nearbyAfter: (f) => `Libera subito dopo: dal ${f}`,
     nearbyBody:
       "Comoda per i test, l'allestimento o per arrivare prima. Le stesse 9 suite con doccia privata, fino a 20 persone.",
+    nearbyStay: (n, side) =>
+      `Da ${n} notti, ${side === "before" ? "arrivo" : "partenza"} a scelta. Date modificabili nella pagina di prenotazione.`,
   },
   de: {
     availableTitle: "Unser Haus ist für diese Veranstaltung verfügbar",
@@ -114,6 +120,8 @@ const COPY: Record<Locale, Copy> = {
     nearbyAfter: (f) => `Frei direkt danach: ab ${f}`,
     nearbyBody:
       "Praktisch für Testtage, den Aufbau oder eine frühere Anreise. Dieselben 9 Suiten mit eigenem Duschbad, bis zu 20 Personen.",
+    nearbyStay: (n, side) =>
+      `Ab ${n} Nächten, ${side === "before" ? "Anreise" : "Abreise"} nach Wahl. Die Reisedaten lassen sich auf der Buchungsseite ändern.`,
   },
   es: {
     availableTitle: "Nuestra casa está disponible para este evento",
@@ -134,6 +142,8 @@ const COPY: Record<Locale, Copy> = {
     nearbyAfter: (f) => `Libre justo después: desde el ${f}`,
     nearbyBody:
       "Práctico para los entrenamientos, el montaje o para llegar antes. Las mismas 9 suites con baño con ducha, hasta 20 personas.",
+    nearbyStay: (n, side) =>
+      `A partir de ${n} noches, ${side === "before" ? "llegada" : "salida"} a elegir. Fechas modificables en la página de reserva.`,
   },
 };
 
