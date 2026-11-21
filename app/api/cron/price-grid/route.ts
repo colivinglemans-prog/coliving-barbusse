@@ -19,7 +19,7 @@ import { computePriceGrid, PRICE_GRID_COMPOSITION, PRICE_GRID_KEY } from "@/lib/
  * Après chaque déploiement qui change la composition, appeler la route une fois à la main.
  */
 export const dynamic = "force-dynamic";
-// Plafond du plan Hobby. Le calcul s'arrête à ~22 s (`timeBudgetMs`, cron-job.org coupe à 30 s) :
+// Plafond du plan Hobby. Le calcul s'arrête à ~18 s (`timeBudgetMs`, cron-job.org coupe à 30 s) :
 // à froid, la grille de travail est rangée à chaque passage (`…:work`) et la grille servie est
 // remplacée par la première grille complète, vers le 3e ou 4e passage (socle v3.37.0).
 export const maxDuration = 60;

@@ -441,8 +441,8 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
     - Si rien n'est rangé ou si la composition a changé, elle renvoie au calendrier, sans jamais
       d'erreur 500.
     - Si la grille a plus de 24 h, les lignes passées sont retirées et le JSON-LD n'est pas émis.
-- **Fiche cron-job.org** : toutes les heures, en-tête `Authorization: Bearer <CRON_SECRET>`, **délai de
-  30 s** (valeur par défaut de cron-job.org) — d'où `timeBudgetMs` ≈ 22 s : le calcul s'arrête avant,
+- **Fiche cron-job.org** : toutes les 20 min (:06, :26, :46 depuis le 21/11/2026), en-tête `Authorization: Bearer <CRON_SECRET>`, **délai de
+  30 s** (valeur par défaut de cron-job.org) — d'où `timeBudgetMs` ≈ 18 s (22 s jusqu'au 21/11/2026, passages de 24-26 s mesurés) : le calcul s'arrête avant,
   la grille de travail est rangée à chaque passage, la grille servie remplacée une fois complète (socle v3.37.0) ; la grille (~96 prix) se complète à froid en 3 ou 4 passages
   (`incomplete`). Au 6e `incomplete` de suite (`maxIncompleteStreak`, socle v3.28.0), ou sans succès depuis 24 h, c'est un relevé KO
   (`stalled`, alerte au 2e). Un verrou (`…:lock`, 90 s) empêche deux calculs simultanés.
@@ -475,7 +475,7 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
   - une plage par période, lue en 2 appels v2 (`getAvailability` puis `getMinStay`) ;
   - jamais `monthlyAvailability`, qui lancerait environ 22 appels en parallèle ;
   - prix demandés un par un, sans cache (`fetchRoomPrice` sans `revalidate`), espacés de 400 ms (403 en rafale ; 30/30 acceptés à 250 ms le 20/11), les plus vieux d'abord (voir ci-dessous).
-  - ⚠️ **Grille renouvelée par âge (socle v3.37.0, depuis le 20/11/2026)** : plus aucun cache de Next pour les prix de la grille (`fetchRoomPrice(req)` sans `revalidate`). Chaque cellule porte `pricedAt` ; à chaque passage du cron (`incremental: true`), les cellules jamais demandées puis les plus vieilles sont redemandées (pause 400 ms, ~30 prix par passage de 22 s, ~96 cellules à Barbusse, 4 passages à froid, cycle complet en 2 à 4 h). La grille de travail est rangée sous `…:price-grid:work` à chaque passage, même partielle ; la grille servie n'est remplacée que complète. La page affiche « Prix relevés entre le … et le … » (`readPriceGrid().priced`, prop `priced` de `PriceGrid`), et le cron appelle `revalidateTag("price-grid", { expire: 0 })` chaque fois que la grille **servie** est remplacée (jamais pour la seule grille de travail). Alerte : grille incomplète 6 fois de suite, ou plus vieux prix > 24 h. Pare-feu « Limite API IA » : réponse **429** (plus 403) depuis le 20/11, annoncée dans `llms.txt`.
+  - ⚠️ **Grille renouvelée par âge (socle v3.37.0, depuis le 20/11/2026)** : plus aucun cache de Next pour les prix de la grille (`fetchRoomPrice(req)` sans `revalidate`). Chaque cellule porte `pricedAt` ; à chaque passage du cron (`incremental: true`), les cellules jamais demandées puis les plus vieilles sont redemandées (pause 400 ms, ~25 prix par passage de 18 s, ~96 cellules à Barbusse, 4 passages à froid, cycle complet en 2 à 4 h). La grille de travail est rangée sous `…:price-grid:work` à chaque passage, même partielle ; la grille servie n'est remplacée que complète. La page affiche « Prix relevés entre le … et le … » (`readPriceGrid().priced`, prop `priced` de `PriceGrid`), et le cron appelle `revalidateTag("price-grid", { expire: 0 })` chaque fois que la grille **servie** est remplacée (jamais pour la seule grille de travail). Alerte : grille incomplète 6 fois de suite, ou plus vieux prix > 24 h. Pare-feu « Limite API IA » : réponse **429** (plus 403) depuis le 20/11, annoncée dans `llms.txt`.
 - **Colonnes** : 10, 15 et 20 **adultes**, et la ligne « autre effectif : prix exact dans le
   calendrier ».
   - On écrit « tout compris (ménage, draps et serviettes, taxe de séjour) », jamais de

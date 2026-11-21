@@ -1,4 +1,9 @@
-import { overdueCrons, recordHeartbeat, type ExpectedCron, type HeartbeatStore } from "@sejour/socle/lib/heartbeat";
+import {
+  overdueWithGrace as socleOverdueWithGrace,
+  recordHeartbeat,
+  type ExpectedCron,
+  type HeartbeatStore,
+} from "@sejour/socle/lib/heartbeat";
 import { redisKey, stringStore } from "./redis";
 
 /**
@@ -81,44 +86,16 @@ export async function beat(name: MonitoredCron, outcome: "ok" | "error", now: Da
   }
 }
 
-/** Première fois que la route du battement a vu ce cron dans `EXPECTED_CRONS` (sans expiration). */
-const watchedSinceKey = (name: string) => `${HEARTBEAT_PREFIX}:${name}:watched-since`;
-
 /**
- * `overdueCrons` du socle, avec un **délai de grâce au démarrage** : un cron qui n'a encore jamais
- * battu n'est pas déclaré en retard tant que sa surveillance a moins de `maxAgeMinutes`.
- *
- * Sans lui, l'ajout d'un cron à `EXPECTED_CRONS` le ferait sortir « en retard » dès le premier
- * appel de la route après le déploiement (le socle traite une clé absente comme un retard) — un
- * hebdomadaire, jusqu'à six jours avant son premier passage. L'instant de la première vue est
- * posé ici, à la première lecture, sous `…:<nom>:watched-since`, **sans expiration** : quand la
- * clé `…:ok` d'un cron mort depuis 30 jours expire, le délai de grâce est déjà écoulé depuis
- * longtemps, le cron reste en retard (pas de faux « rétabli »).
+ * `overdueWithGrace` du socle (v3.38.0, remonté d'ici) avec le préfixe et la liste de Barbusse :
+ * un cron qui n'a encore jamais battu n'est pas en retard tant que sa surveillance a moins de
+ * `maxAgeMinutes` (`…:<nom>:watched-since`, sans expiration — d'où le magasin **sans** TTL passé
+ * par la route, jamais celui de `beat()`).
  */
-export async function overdueWithGrace(
+export function overdueWithGrace(
   store: HeartbeatStore,
   now: Date,
   expected: readonly ExpectedCron[] = EXPECTED_CRONS,
 ): Promise<{ overdue: number; names: string[] }> {
-  const since = new Map<string, number>();
-  for (const { name } of expected) {
-    const raw = await store.get(watchedSinceKey(name));
-    const at = raw === null ? NaN : Date.parse(raw);
-    if (Number.isNaN(at)) {
-      await store.set(watchedSinceKey(name), now.toISOString());
-      since.set(name, now.getTime());
-    } else {
-      since.set(name, at);
-    }
-  }
-  const { names } = await overdueCrons(store, HEARTBEAT_PREFIX, expected, now);
-  const late: string[] = [];
-  for (const name of names) {
-    const cron = expected.find((c) => c.name === name)!;
-    const neverBeat = (await store.get(`${HEARTBEAT_PREFIX}:${name}:ok`)) === null;
-    const inGrace = now.getTime() - (since.get(name) ?? now.getTime()) <= cron.maxAgeMinutes * 60_000;
-    if (neverBeat && inGrace) continue;
-    late.push(name);
-  }
-  return { overdue: late.length, names: late };
+  return socleOverdueWithGrace(store, HEARTBEAT_PREFIX, expected, now);
 }
