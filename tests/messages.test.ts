@@ -125,10 +125,53 @@ describe("messages voyageurs de Barbusse", () => {
 
   it("dernière minute : départ à partir de 2 nuits, lendemain de l'arrivée à partir de 3, messages de confort", () => {
     const by = (id: string) => TEMPLATES.find((t) => t.id === id)!;
-    expect(by("depart").conditions).toMatchObject({ minNights: 2, quietHours: 12 });
+    // Le départ porte des consignes : plus de quietHours (2026-11-21).
+    expect(by("depart").conditions).toEqual({ minNights: 2 });
     expect(by("bien-installe").conditions).toMatchObject({ minNights: 3, quietHours: 12 });
     expect(by("avis").conditions).toMatchObject({ quietHours: 12 });
     // L'arrivée porte le code : elle part toujours.
     expect(by("arrivee-code").conditions?.quietHours).toBeUndefined();
+  });
+});
+
+describe("correctifs du bilan du 2026-11-21", () => {
+  const stay = (over: Record<string, unknown> = {}) => ({
+    id: 1, status: "confirmed", channel: "Airbnb" as const, arrival: "2026-11-13", departure: "2026-11-15",
+    bookingTime: "2026-10-25T14:43:00Z", locale: "fr" as const, localeSource: "beds24" as const, infoCodes: [], ledger: [], ...over,
+  });
+
+  it("veille du départ : un « bien installé » parti le matin ne la fait plus sauter (2 nuits)", async () => {
+    const { messageState } = await import("@sejour/socle/lib/guest-messaging/schedule");
+    const depart = TEMPLATES.find((t) => t.id === "depart")!;
+    const b = stay({ ledger: [{ templateId: "bien-installe", state: "sent", at: "2026-11-14T08:00:00Z", source: "thread" }] });
+    expect(messageState(b, depart, new Date("2026-11-14T16:05:00Z")).kind).toBe("due");
+  });
+
+  it("veille du départ : une nuit reste exclue", async () => {
+    const { messageState } = await import("@sejour/socle/lib/guest-messaging/schedule");
+    const depart = TEMPLATES.find((t) => t.id === "depart")!;
+    expect(messageState(stay({ departure: "2026-11-14" }), depart, new Date("2026-11-13T16:05:00Z"))).toEqual({ kind: "excluded", reason: "min-nights" });
+  });
+
+  it("HomeToGo part par e-mail comme une directe, sans le bloc « réservez en direct »", async () => {
+    const { channelOf } = await import("@/lib/messages/engine");
+    expect(channelOf({ apiSourceId: 78, channel: "hometogo", referer: "HOMETOGO_FR" } as never)).toEqual({ channel: "Direct", directBooking: false });
+    expect(channelOf({ apiSourceId: 0 } as never)).toEqual({ channel: "Direct", directBooking: true });
+    expect(channelOf({ apiSourceId: 46 } as never).channel).toBe("Airbnb");
+    // Un autre canal inconnu reste « Autre » : jamais d'e-mail par défaut.
+    expect(channelOf({ apiSourceId: 99 } as never)).toEqual({ channel: "Autre", directBooking: false });
+  });
+
+  it("HomeToGo sans adresse réelle : rien ne part (no-email)", async () => {
+    const { messageState } = await import("@sejour/socle/lib/guest-messaging/schedule");
+    const avis = TEMPLATES.find((t) => t.id === "avis")!;
+    expect(messageState(stay({ channel: "Direct", email: undefined }), avis, new Date("2026-11-16T09:05:00Z"))).toEqual({ kind: "excluded", reason: "no-email" });
+  });
+
+  it("réservations lointaines : fusion sans doublon, la lecture principale fait foi", async () => {
+    const { mergeBookings } = await import("@/lib/messages/engine");
+    const main = [{ id: 1, v: "principale" }, { id: 2, v: "principale" }];
+    const recent = [{ id: 2, v: "récente" }, { id: 3, v: "récente" }];
+    expect(mergeBookings(main, recent)).toEqual([{ id: 1, v: "principale" }, { id: 2, v: "principale" }, { id: 3, v: "récente" }]);
   });
 });

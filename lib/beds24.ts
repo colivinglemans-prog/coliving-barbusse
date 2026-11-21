@@ -726,6 +726,25 @@ export async function reservationsMessagerie(params: { departDu: string; arrivee
   return data.filter((b) => b.propertyId === PROPERTY_ID);
 }
 
+/**
+ * Réservations **créées** depuis `depuisIso` (ISO UTC), quelle que soit leur date d'arrivée — pour
+ * qu'une réservation lointaine (24 Heures réservées à l'automne) reçoive sa confirmation : la
+ * lecture principale ne voit que les arrivées à 120 jours. Filtre Beds24 `bookingTimeFrom`, mesuré
+ * le 2026-11-21 (1 crédit).
+ */
+export async function reservationsCreeesDepuis(depuisIso: string): Promise<Beds24Booking[]> {
+  const { data = [] } = await client.get<{ data: Beds24Booking[] }>("/bookings", {
+    params: {
+      propertyId: String(PROPERTY_ID),
+      bookingTimeFrom: depuisIso,
+      includeInfoItems: "true",
+    },
+    route: "messagerie",
+    fresh: true,
+  });
+  return data.filter((b) => b.propertyId === PROPERTY_ID);
+}
+
 /** Une réservation de la maison, fraîche, avec `infoItems` et données du voyageur. */
 export async function reservationMessagerie(id: number): Promise<Beds24Booking | null> {
   const { data = [] } = await client.get<{ data: Beds24Booking[] }>("/bookings", {

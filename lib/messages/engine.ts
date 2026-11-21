@@ -1,4 +1,5 @@
 import type { Beds24Booking } from "@sejour/socle/lib/beds24-types";
+import type { Channel } from "@sejour/socle/lib/channels";
 import { messagingChannel, realGuestEmail } from "@sejour/socle/lib/guest-messaging/channel-rules";
 import { sendNow, sendPlanned, type DispatchDeps, type DispatchItemResult, type DispatchResult } from "@sejour/socle/lib/guest-messaging/dispatch";
 import { pickGuestLocale } from "@sejour/socle/lib/guest-messaging/language";
@@ -32,6 +33,7 @@ import {
   messagesHote,
   nukiCodeOf,
   reservationMessagerie,
+  reservationsCreeesDepuis,
   reservationsMessagerie,
   type Beds24Message,
 } from "@/lib/beds24";
@@ -68,6 +70,8 @@ import { TEMPLATES } from "./templates";
 /** Fenêtre lue : séjours terminés depuis 60 jours (historique) jusqu'aux arrivées à 4 mois. */
 const PAST_DAYS = 60;
 const AHEAD_DAYS = 120;
+/** Réservations créées depuis 3 jours, lues en plus quelle que soit leur arrivée (confirmation : 24 h de rattrapage). */
+const RECENT_DAYS = 3;
 /** Plafond d'envois par passage : au-delà, rien ne part. */
 export const CAP = 5;
 /**
@@ -84,6 +88,8 @@ export function modes(): { modes: Record<string, TemplateMode>; display: Record<
 }
 
 type Row = MessagingBooking & {
+  /** Vraie réservation directe (site, Beds24) — seule à recevoir le bloc « réservez en direct ». */
+  directBooking?: boolean;
   firstName?: string;
   pin?: string;
   adults?: number;
@@ -93,13 +99,24 @@ type Row = MessagingBooking & {
   departureHour?: number;
 };
 
+/**
+ * Canal de messagerie d'une réservation. HomeToGo (`apiSourceId` 78) est traité comme une directe —
+ * e-mail au voyageur, l'adresse étant réelle (décision de l'hôte du 2026-11-21) ; le socle le range
+ * dans « Autre », sans envoi. `directBooking` reste réservé aux vraies directes : lui seul ouvre le
+ * bloc « réservez en direct » de l'avis.
+ */
+export function channelOf(b: Pick<Beds24Booking, "channel" | "apiSourceId" | "referer">): { channel: Channel; directBooking: boolean } {
+  const raw = messagingChannel(b);
+  return { channel: raw === "Autre" && b.apiSourceId === 78 ? "Direct" : raw, directBooking: raw === "Direct" };
+}
+
 function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[], table: StayHoursTable): Row {
   const agreed = table[b.id] ?? {};
   const { locale, source } = pickGuestLocale({ lang: b.lang, country: b.country });
   return {
     id: b.id,
     status: b.status,
-    channel: messagingChannel(b),
+    ...channelOf(b),
     arrival: b.arrival,
     departure: b.departure,
     bookingTime: b.bookingTime,
@@ -121,14 +138,34 @@ function toMessagingBooking(b: Beds24Booking, thread: readonly Beds24Message[], 
 
 async function loadRows(): Promise<Row[]> {
   const today = todayParis();
-  const [bookings, host, table] = await Promise.all([
+  const [main, recent, host, table] = await Promise.all([
     reservationsMessagerie({ departDu: addDays(today, -PAST_DAYS), arriveeAu: addDays(today, AHEAD_DAYS) }),
+    recentBookings(),
     messagesHote(PAST_DAYS + AHEAD_DAYS),
     readStayHours(),
   ]);
   const byBooking = new Map<number, Beds24Message[]>();
   for (const m of host) byBooking.set(m.bookingId, [...(byBooking.get(m.bookingId) ?? []), m]);
-  return bookings.map((b) => toMessagingBooking(b, byBooking.get(b.id) ?? [], table));
+  return mergeBookings(main, recent).map((b) => toMessagingBooking(b, byBooking.get(b.id) ?? [], table));
+}
+
+/**
+ * Fusion de la lecture principale (arrivées à 120 jours) et des réservations créées récemment,
+ * sans doublon : la première lecture fait foi pour une réservation présente dans les deux.
+ */
+export function mergeBookings<T extends { id: number }>(main: readonly T[], recent: readonly T[]): T[] {
+  const seen = new Set(main.map((b) => b.id));
+  return [...main, ...recent.filter((b) => !seen.has(b.id))];
+}
+
+/** Lecture des réservations récentes, **isolée** : un échec n'empêche jamais le passage principal. */
+async function recentBookings(): Promise<Beds24Booking[]> {
+  try {
+    return await reservationsCreeesDepuis(new Date(Date.now() - RECENT_DAYS * 86_400_000).toISOString());
+  } catch (e) {
+    console.error(JSON.stringify({ scope: "guest-message", event: "failed", reason: "recent-bookings", error: e instanceof Error ? e.name : typeof e }));
+    return [];
+  }
 }
 
 async function reload(id: number): Promise<Row | null> {
@@ -191,7 +228,9 @@ async function variables(b: Row): Promise<Vars> {
     avisGoogle: GOOGLE_REVIEW_URL,
     // Réservation directe seulement : on ne propose jamais de réserver en direct par la messagerie
     // d'une plateforme.
-    direct: b.channel === "Direct" ? `${SITE_URL}/${b.locale}` : undefined,
+    // HomeToGo part par e-mail comme une directe (décision du 2026-11-21) mais n'a pas ce bloc :
+    // le voyageur a réservé par une plateforme.
+    direct: b.directBooking ? `${SITE_URL}/${b.locale}` : undefined,
   };
 }
 

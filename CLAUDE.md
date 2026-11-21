@@ -1028,11 +1028,18 @@ l'avis du lendemain le fait déjà.
   par l'hôte le 2026-11-08). Jamais « si vous avez aimé » ; la version directe ne parle pas de
   plateforme.
 - **Dernière minute** (décision de l'hôte du 2026-11-08) : départ à partir de 2 nuits, lendemain de
-  l'arrivée à partir de 3 ; ces deux messages et l'avis sautent si un autre message — ou la
+  l'arrivée à partir de 3 ; le lendemain de l'arrivée et l'avis sautent si un autre message — ou la
   confirmation Beds24, à la création — est parti dans les 12 h précédentes (`quietHours`).
-  L'arrivée part toujours.
-- **Canal** : Airbnb, Booking.com, Abritel → messagerie ; direct → e-mail SMTP OVH (`SMTP_*`, non
-  posées au 2026-11-08 : une directe est alors « bloquée ») ; HomeToGo et autres → rien, visible.
+  L'arrivée et la **veille du départ** partent toujours (2026-11-21 : un « bien installé » Beds24
+  le matin faisait sauter les consignes d'un séjour de 2 nuits).
+- **Canal** : Airbnb, Booking.com, Abritel → messagerie ; direct → e-mail SMTP OVH (`SMTP_*`) ;
+  **HomeToGo → e-mail comme une directe** (`channelOf`, décision du 2026-11-21 : l'adresse est
+  réelle), mais sans le bloc « réservez en direct » de l'avis ; l'écran l'affiche « Direct ».
+  Autres canaux non identifiés → rien, visible.
+- **Réservations lointaines** : la lecture principale ne voit que les arrivées à 120 jours ; les
+  réservations **créées depuis 3 jours** sont lues en plus (`bookingTimeFrom`, isolée : un échec
+  n'arrête pas le passage) pour la confirmation. Une réservation lointaine apparaît donc 3 jours
+  à l'écran, puis disparaît jusqu'à J-120.
 - **Registre** : `infoItems` `MSG_*` (jeton d'écriture) + messages de l'hôte reconnus dans les fils
   — l'écran reprend donc tout l'historique des auto-actions. ⚠️ Chaque écriture déclenche le
   webhook Beds24 : deux écritures par envoi (`pending`, `sent`), donc la synchro Nuki repasse deux

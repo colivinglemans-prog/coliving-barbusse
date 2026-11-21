@@ -33,9 +33,10 @@ import type { MessageTemplate } from "@sejour/socle/lib/guest-messaging/types";
  *   standard reçoit les textes d'avant au caractère près (`tests/stay-hours/messages.test.ts`).
  *
  * Dernière minute (décision de l'hôte du 2026-11-08) : départ à partir de 2 nuits, lendemain de
- * l'arrivée à partir de 3 ; tous deux, et l'avis, sont des messages de confort (`quietHours`) qui
- * sautent si un autre message — ou la confirmation Beds24, à la création — vient de partir.
- * L'arrivée, qui porte le code, part toujours.
+ * l'arrivée à partir de 3. Le lendemain de l'arrivée et l'avis sont des messages de confort
+ * (`quietHours`) qui sautent si un autre message — ou la confirmation Beds24, à la création — vient
+ * de partir. L'arrivée (le code) et la veille du départ (les consignes, depuis le 2026-11-21)
+ * partent toujours.
  *
  * Avis (règles du Lot 4 « parcours voyageur », `docs/auto-actions-beds24.md`) : jamais « si vous
  * avez aimé », jamais « 5 étoiles », aucune contrepartie.
@@ -435,8 +436,10 @@ const depart: MessageTemplate = {
   version: 4,
   trigger: { anchor: "departure", offsetDays: -1, at: "17:00" },
   late: { mode: "skip", graceHours: 6 },
-  // Sur une nuit, la veille du départ est le jour de l'arrivée : le guide suffit.
-  conditions: { minNights: 2, quietHours: 12 },
+  // Sur une nuit, la veille du départ est le jour de l'arrivée : le guide suffit. Pas de
+  // `quietHours` (2026-11-21) : ce message porte des consignes, et un « bien installé » ou un code
+  // envoyé le matin le ferait sauter — un séjour de 2 nuits sans consignes de départ.
+  conditions: { minNights: 2 },
   onAnchorChange: "ignore",
   variables: ["telephone", "whatsapp", "heureDepart"],
   optionalVariables: ["prenom", "departConvenu"],
