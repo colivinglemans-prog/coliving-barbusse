@@ -1053,7 +1053,7 @@ l'avis du lendemain le fait déjà.
   **tous** les modèles en `test` sont bloqués (`no-test-transport`, une alerte ntfy par
   réservation et modèle) — poser `SMTP_*` avant de passer en `test`. Cron `/api/cron/messages-voyageurs`, cron-job.org toutes les
   10 min, verrou Redis `barbusse:messages:cron:lock`, plafond 5 envois par passage, alertes ntfy
-  (échec, blocage, orphelin). Pas encore dans `EXPECTED_CRONS` : à ajouter au passage en réel.
+  (échec, blocage, orphelin). Surveillé par `EXPECTED_CRONS` (30 min). **En réel depuis le 2026-11-21 : l'avis** (`avis:live`) — les autres modèles restent en `test`.
 - **Écran** : [/dashboard/messages](app/(dashboard)/dashboard/messages/page.tsx) et le panneau
   « Messages au voyageur » de la fiche du calendrier (admin seulement).
 - **Bascule, un message à la fois, dans cet ordre : avis, départ, bien-installé, arrivée**
