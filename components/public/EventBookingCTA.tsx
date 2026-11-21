@@ -49,6 +49,11 @@ const COPY: Record<Locale, Copy> = {
     loading: "Vérification des disponibilités…",
     provisionalDates:
       "Dates prévisionnelles : l'organisateur n'a pas encore publié le calendrier, les nuits proposées suivent l'édition précédente. Nous mettrons cette page à jour dès l'annonce.",
+    nearbyTitle: "Réservée pendant l'événement, libre juste à côté",
+    nearbyBefore: (_from, t) => `Libre juste avant : jusqu'au ${t}`,
+    nearbyAfter: (f) => `Libre juste après : à partir du ${f}`,
+    nearbyBody:
+      "Pratique pour les essais, le montage, ou pour arriver plus tôt. Mêmes 9 suites avec salle de bain, jusqu'à 20 personnes.",
   },
   en: {
     availableTitle: "Our house is available for this event",
@@ -64,6 +69,11 @@ const COPY: Record<Locale, Copy> = {
     loading: "Checking availability…",
     provisionalDates:
       "Provisional dates: the organiser has not yet published the calendar; the suggested nights follow the previous edition. We will update this page as soon as the dates are announced.",
+    nearbyTitle: "Booked during the event, free right next to it",
+    nearbyBefore: (_from, t) => `Free just before: until ${t}`,
+    nearbyAfter: (f) => `Free just after: from ${f}`,
+    nearbyBody:
+      "Handy for test days, set-up, or arriving early. The same 9 en-suite bedrooms, up to 20 guests.",
   },
   it: {
     availableTitle: "La nostra casa è disponibile per questo evento",
@@ -79,6 +89,11 @@ const COPY: Record<Locale, Copy> = {
     loading: "Verifica delle disponibilità…",
     provisionalDates:
       "Date provvisorie: l'organizzatore non ha ancora pubblicato il calendario, le notti proposte seguono l'edizione precedente. Aggiorneremo questa pagina appena saranno annunciate.",
+    nearbyTitle: "Prenotata durante l'evento, libera subito prima o dopo",
+    nearbyBefore: (_from, t) => `Libera subito prima: fino al ${t}`,
+    nearbyAfter: (f) => `Libera subito dopo: dal ${f}`,
+    nearbyBody:
+      "Comoda per i test, l'allestimento o per arrivare prima. Le stesse 9 suite con bagno, fino a 20 persone.",
   },
   de: {
     availableTitle: "Unser Haus ist für diese Veranstaltung verfügbar",
@@ -94,6 +109,11 @@ const COPY: Record<Locale, Copy> = {
     loading: "Verfügbarkeit wird geprüft…",
     provisionalDates:
       "Vorläufige Termine: Der Veranstalter hat den Kalender noch nicht veröffentlicht, die vorgeschlagenen Nächte folgen der vorigen Ausgabe. Wir aktualisieren diese Seite, sobald sie bekannt sind.",
+    nearbyTitle: "Während der Veranstaltung belegt, direkt davor oder danach frei",
+    nearbyBefore: (_from, t) => `Frei direkt davor: bis ${t}`,
+    nearbyAfter: (f) => `Frei direkt danach: ab ${f}`,
+    nearbyBody:
+      "Praktisch für Testtage, den Aufbau oder eine frühere Anreise. Dieselben 9 Suiten mit eigenem Bad, bis zu 20 Personen.",
   },
   es: {
     availableTitle: "Nuestra casa está disponible para este evento",
@@ -109,6 +129,11 @@ const COPY: Record<Locale, Copy> = {
     loading: "Comprobando disponibilidad…",
     provisionalDates:
       "Fechas provisionales: el organizador aún no ha publicado el calendario, las noches propuestas siguen la edición anterior. Actualizaremos esta página en cuanto se anuncien.",
+    nearbyTitle: "Reservada durante el evento, libre justo antes o después",
+    nearbyBefore: (_from, t) => `Libre justo antes: hasta el ${t}`,
+    nearbyAfter: (f) => `Libre justo después: desde el ${f}`,
+    nearbyBody:
+      "Práctico para los entrenamientos, el montaje o para llegar antes. Las mismas 9 suites con baño, hasta 20 personas.",
   },
 };
 
@@ -129,6 +154,9 @@ export default function EventBookingCTALocal({
       availabilityUrl={(from, to) => `/api/availability?mode=map&from=${from}&to=${to}`}
       calendarHref={`/${locale}#disponibilite`}
       defaultMinStay={DEFAULT_MIN_STAY}
+      // Fenêtre prise (ex. 24H 2027 réservées) : proposer les nuits libres collées à elle —
+      // Journée Test, pesage, arrivée en avance. 10 jours avant, 5 après (socle v3.39.0).
+      nearby={{ before: 10, after: 5 }}
       labels={COPY[locale] ?? COPY.fr}
     />
   );
