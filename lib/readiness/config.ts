@@ -9,7 +9,7 @@ import type { PassKind, Severity } from "@sejour/socle/lib/arrival-readiness/typ
  * Le cron (cron-job.org) tourne **toutes les heures à :35, jour et nuit**. Avec une tolérance
  * de 30 min et des fenêtres semi-ouvertes, chaque passage nominal est pris exactement une fois
  * (15h30 → passage de 15h35, J-1 19h → 18h35, J+1 9h → 8h35), et :35 laisse à
- * `heating-automation` (:00, :15, :30) le temps de poser le confort de 15 h avant le contrôle.
+ * `heating-automation` (:02, :17, :32, :47 depuis le 21/11/2026) le temps de poser le confort de 15 h avant le contrôle.
  * Les heures de silence (22 h → 8 h) sont appliquées par le socle, pas par l'horaire du cron :
  * le passage `late` d'une arrivée annoncée à 23 h tombe à 22 h et doit pouvoir parler.
  */

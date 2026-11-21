@@ -8,7 +8,7 @@ import WaterHeaterCard from "@/components/dashboard/WaterHeaterCard";
 interface WaterHeaterData {
   status: CozytouchWaterHeaterStatus;
   seriesNote: string;
-  /** Heure de pic (4 h 45-7 h, 16 h 45-22 h) : le thermo doit être en Absence. */
+  /** Heure de pic (4 h 38-7 h, 16 h 38-22 h) : le thermo doit être en Absence. */
   peak?: boolean;
 }
 
@@ -116,7 +116,7 @@ export default function WaterHeaterPage() {
             }`}
           >
             {data.peak
-              ? "Heure de pic (4 h 45-7 h, 16 h 45-22 h) : thermo en Absence, le ballon classique fournit l'eau chaude."
+              ? "Heure de pic (4 h 38-7 h, 16 h 38-22 h) : thermo en Absence, le ballon classique fournit l'eau chaude."
               : "Hors pic : thermo en Éco 55 °C, il gère seul PAC et appoint."}
             {" "}Absence constatée : {data.status.absenceActive ? "oui" : "non"}.
             {effectiveRole === "admin" && (

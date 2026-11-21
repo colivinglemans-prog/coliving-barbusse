@@ -131,12 +131,13 @@ exemption. Un passage sauté par décision (coupe-circuit `…_ENABLED=false`, m
 `live`) bat `ok`. Redis `barbusse:heartbeat:<nom>` et `…:ok` (TTL 30 j).
 
 Retards acceptés (dernier passage **réussi**, cadence réelle relevée le 2026-11-15 plus un
-passage manqué) :
+passage manqué ; minutes étalées le 2026-11-21, voir la table des crons du CLAUDE.md) :
 
 | Cadence | Crons | Retard |
 |---|---|---|
 | 10 min | `messages-voyageurs`, `checkin-notifications`, `camera-watch`, `cleaning-watch` | 30 min |
 | 15 min | `heating-automation`, `water-heater-automation` | 45 min |
+| 20 min | `price-grid` | 90 min |
 | 30 min | `heating-health` | 90 min |
 | 1 h | `nuki-sync`, `arrival-readiness` | 150 min |
 | 2 h | `water-heater-health` | 5 h |

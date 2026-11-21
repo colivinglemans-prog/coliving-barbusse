@@ -97,7 +97,7 @@ app/
       heating-automation/  # Modes par zone (décalés), consignes ramenées, délestage (observation), alerte de coupure
       heating-reset/       # Reset modes + températures (0h,4h,8h,12h,16h,20h)
       heating-health/      # Check connectivité + alertes ntfy
-      water-heater-automation/ # Éco 55 °C, Absence aux heures de pic (4 h 45-7 h, 16 h 45-22 h)
+      water-heater-automation/ # Éco 55 °C, Absence aux heures de pic (4 h 38-7 h, 16 h 38-22 h)
       water-heater-health/     # Absence manquante/restée, boost, mode, consigne, PAC à l'arrêt, hors ligne → ntfy
       checkin-notifications/   # Première ouverture au clavier → ntfy
       nuki-sync/               # Horaire : codes du clavier ← réservations Beds24
@@ -426,10 +426,10 @@ Les assistants ne lisent ni le calendrier, ni `llms.txt`, ni l'API de devis.
 Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
 
 - **Architecture : le calcul ne passe jamais par une page visitée.**
-  - Le cron `app/api/cron/price-grid` tourne **toutes les heures via cron-job.org** (le plan
+  - Le cron `app/api/cron/price-grid` tourne **toutes les 20 min via cron-job.org** (:06, :26, :46 ; le plan
     Hobby n'accepte que des crons Vercel quotidiens), avec `Authorization: Bearer $CRON_SECRET` et
     `maxDuration = 60` (plafond Hobby ; voir la fiche cron-job.org ci-dessous). Battement `price-grid`
-    (150 min) : `error` pour un échec ou un `incomplete` qui dure (`stalled`).
+    (90 min) : `error` pour un échec ou un `incomplete` qui dure (`stalled`).
   - Il calcule la grille (`computePriceGrid`, `lib/tarifs.ts`) et la range dans Upstash sous
     `barbusse:price-grid`, au format `{ grid, generatedAt, composition }`, via
     `@sejour/socle/lib/price-grid-job`.
@@ -441,8 +441,8 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
     - Si rien n'est rangé ou si la composition a changé, elle renvoie au calendrier, sans jamais
       d'erreur 500.
     - Si la grille a plus de 24 h, les lignes passées sont retirées et le JSON-LD n'est pas émis.
-- **Fiche cron-job.org** : toutes les heures, en-tête `Authorization: Bearer <CRON_SECRET>`, **délai de
-  30 s** (valeur par défaut de cron-job.org) — d'où `timeBudgetMs` ≈ 22 s : le calcul s'arrête avant,
+- **Fiche cron-job.org** : toutes les 20 min (:06, :26, :46 depuis le 21/11/2026), en-tête `Authorization: Bearer <CRON_SECRET>`, **délai de
+  30 s** (valeur par défaut de cron-job.org) — d'où `timeBudgetMs` ≈ 18 s (22 s jusqu'au 21/11/2026, passages de 24-26 s mesurés) : le calcul s'arrête avant,
   la grille de travail est rangée à chaque passage, la grille servie remplacée une fois complète (socle v3.37.0) ; la grille (~96 prix) se complète à froid en 3 ou 4 passages
   (`incomplete`). Au 6e `incomplete` de suite (`maxIncompleteStreak`, socle v3.28.0), ou sans succès depuis 24 h, c'est un relevé KO
   (`stalled`, alerte au 2e). Un verrou (`…:lock`, 90 s) empêche deux calculs simultanés.
@@ -475,7 +475,7 @@ Plan : `curried-mapping-stallman` (plan de la session) (lot 1).
   - une plage par période, lue en 2 appels v2 (`getAvailability` puis `getMinStay`) ;
   - jamais `monthlyAvailability`, qui lancerait environ 22 appels en parallèle ;
   - prix demandés un par un, sans cache (`fetchRoomPrice` sans `revalidate`), espacés de 400 ms (403 en rafale ; 30/30 acceptés à 250 ms le 20/11), les plus vieux d'abord (voir ci-dessous).
-  - ⚠️ **Grille renouvelée par âge (socle v3.37.0, depuis le 20/11/2026)** : plus aucun cache de Next pour les prix de la grille (`fetchRoomPrice(req)` sans `revalidate`). Chaque cellule porte `pricedAt` ; à chaque passage du cron (`incremental: true`), les cellules jamais demandées puis les plus vieilles sont redemandées (pause 400 ms, ~30 prix par passage de 22 s, ~96 cellules à Barbusse, 4 passages à froid, cycle complet en 2 à 4 h). La grille de travail est rangée sous `…:price-grid:work` à chaque passage, même partielle ; la grille servie n'est remplacée que complète. La page affiche « Prix relevés entre le … et le … » (`readPriceGrid().priced`, prop `priced` de `PriceGrid`), et le cron appelle `revalidateTag("price-grid", { expire: 0 })` chaque fois que la grille **servie** est remplacée (jamais pour la seule grille de travail). Alerte : grille incomplète 6 fois de suite, ou plus vieux prix > 24 h. Pare-feu « Limite API IA » : réponse **429** (plus 403) depuis le 20/11, annoncée dans `llms.txt`.
+  - ⚠️ **Grille renouvelée par âge (socle v3.37.0, depuis le 20/11/2026)** : plus aucun cache de Next pour les prix de la grille (`fetchRoomPrice(req)` sans `revalidate`). Chaque cellule porte `pricedAt` ; à chaque passage du cron (`incremental: true`), les cellules jamais demandées puis les plus vieilles sont redemandées (pause 400 ms, ~25 prix par passage de 18 s, ~96 cellules à Barbusse, 4 passages à froid, cycle complet en 2 à 4 h). La grille de travail est rangée sous `…:price-grid:work` à chaque passage, même partielle ; la grille servie n'est remplacée que complète. La page affiche « Prix relevés entre le … et le … » (`readPriceGrid().priced`, prop `priced` de `PriceGrid`), et le cron appelle `revalidateTag("price-grid", { expire: 0 })` chaque fois que la grille **servie** est remplacée (jamais pour la seule grille de travail). Alerte : grille incomplète 6 fois de suite, ou plus vieux prix > 24 h. Pare-feu « Limite API IA » : réponse **429** (plus 403) depuis le 20/11, annoncée dans `llms.txt`.
 - **Colonnes** : 10, 15 et 20 **adultes**, et la ligne « autre effectif : prix exact dans le
   calendrier ».
   - On écrit « tout compris (ménage, draps et serviettes, taxe de séjour) », jamais de
@@ -1253,7 +1253,7 @@ en ligne comme archive, et une nouvelle version datée est créée à côté.
 - ⚠️ Consigne plafonnée à **60 °C** : au-delà, la résistance électrique prend le relais (coût ×3). Statuts `cancelled` / `black` exclus du comptage.
 - ⚠️ Le thermo **alimente un ballon classique** (résistance seule, ~3 kW, permanent) : de l'eau tiède en sortie du thermo, c'est le classique qui chauffe. Aux heures de pic, il porte **seul** l'eau chaude (thermo en Absence) ; à 14 personnes, il peut s'épuiser en fin de série de douches — surveiller les retours voyageurs.
 - ⚠️ **Le boost n'ajoute que de la résistance** : la PAC chauffe dans tous les modes tant que l'eau est sous la consigne. Un boost hors des tirages remplace de la PAC par de la résistance.
-- ⚠️ **Absence aux heures de pic (2026-11-09, coupures à 9 kVA)** : **mesuré le 9/11 au soir avec le compteur d'énergie du thermo, le mode Éco (`manualEcoActive`) ne coupe PAS l'appoint** (≈ 2,1 kW toute la soirée ; PAC seule ≈ 300 W). **Seul le mode Absence coupe toute la chauffe** (`setAbsenceMode`, effet en 10-15 min). Règle (`getExpectedSettings`, `PEAK_WINDOWS`) : **Éco 55 °C** (50 °C vide), **jamais de boost automatique**, **Absence de 4 h 45 à 7 h et de 16 h 45 à 22 h** quand des voyageurs sont là ; le ballon classique 300 L fournit l'eau chaude pendant ces plages. Hors pic, le thermo gère seul PAC et appoint. Ordre des commandes : boost off, mode, consigne, **Absence en dernier** (posée ou levée) ; chaque commande dans son `try`, l'Absence tentée même si une commande précédente est refusée, échecs → alerte `water-heater-commands` et réponse 502 (`lib/water-heater-commands.ts`, 2026-11-16). Le boost de rattrapage est supprimé. Les puissances remontées (`PowerHeatPumpState` ≈ 1 000 W = chaleur produite, `PowerHeatElectricalState` = 1 800 W figé) ne mesurent rien : se fier au compteur `ElectricEnergyConsumptionState`.
+- ⚠️ **Absence aux heures de pic (2026-11-09, coupures à 9 kVA)** : **mesuré le 9/11 au soir avec le compteur d'énergie du thermo, le mode Éco (`manualEcoActive`) ne coupe PAS l'appoint** (≈ 2,1 kW toute la soirée ; PAC seule ≈ 300 W). **Seul le mode Absence coupe toute la chauffe** (`setAbsenceMode`, effet en 10-15 min). Règle (`getExpectedSettings`, `PEAK_WINDOWS`) : **Éco 55 °C** (50 °C vide), **jamais de boost automatique**, **Absence de 4 h 38 à 7 h et de 16 h 38 à 22 h (début calé sur le passage de :38 depuis l'étalement des crons du 21/11/2026)** quand des voyageurs sont là ; le ballon classique 300 L fournit l'eau chaude pendant ces plages. Hors pic, le thermo gère seul PAC et appoint. Ordre des commandes : boost off, mode, consigne, **Absence en dernier** (posée ou levée) ; chaque commande dans son `try`, l'Absence tentée même si une commande précédente est refusée, échecs → alerte `water-heater-commands` et réponse 502 (`lib/water-heater-commands.ts`, 2026-11-16). Le boost de rattrapage est supprimé. Les puissances remontées (`PowerHeatPumpState` ≈ 1 000 W = chaleur produite, `PowerHeatElectricalState` = 1 800 W figé) ne mesurent rien : se fier au compteur `ElectricEnergyConsumptionState`.
 - **Contrôle** (`lib/water-heater-health.ts`) : recalcule les réglages attendus à la même heure ; Absence manquante au pic ou restée hors pic, boost actif, mode ou consigne divergents, **« PAC à l'arrêt »** (compteur immobile 2 h, hors Absence) ; un constat n'alerte que s'il était déjà là au contrôle précédent, une seule fois tant qu'il dure (règle commune, `barbusse:alert:water-heater-health`).
 - **Thermo injoignable** (`getConnectivity`, `isUnreachable`) : `available` de l'appareil et passerelle Overkiz — les états restent en cache quand le thermo n'a plus de courant (circuit du garage coupé le 10/11, maison vide). Alerte priorité 5 après deux passages de suite (`water-heater-reach`).
 - **Dashboard** : boost, Éco+ et Performance manuels **refusés (409) aux heures de pic** ; l'admin peut forcer après confirmation, mais **l'automation reprend la main au passage suivant (15 min)**.
@@ -1276,21 +1276,25 @@ Estimation indicative (IR + PS/SSI, test LMP) depuis les séjours Beds24, `data/
 
 ## Cron Jobs (via cron-job.org)
 
-Cadences **relevées sur cron-job.org le 2026-11-15** (heure de Paris) :
+Cadences **relevées sur cron-job.org le 2026-11-15, minutes étalées le 2026-11-21** (heure de
+Paris). Plus rien ne part en bloc à :00 : la plupart des crons lisent Beds24, dont le quota de
+5 min est partagé par tout le compte. Règle pour en ajouter un : les crons de 10 min occupent les
+minutes en 0, 1 et 4 (5 pour la caméra) ; un cron de 15 min ne peut prendre que (2, 7) ou (3, 8).
 
-| Job | URL | Fréquence |
+| Job | URL | Minutes |
 |-----|-----|-----------|
-| Automation chauffage | `/api/cron/heating-automation` | `*/15 * * * *` |
-| Reset chauffage | `/api/cron/heating-reset` | `0 */4 * * *` |
-| Health chauffage | `/api/cron/heating-health` | `*/30 * * * *` |
-| Automation ECS | `/api/cron/water-heater-automation` | `*/15 * * * *` (depuis le 2026-11-09 ; journal : une entrée par heure ou par commande) |
-| Health ECS | `/api/cron/water-heater-health` | `0 */2 * * *` |
-| Notifications check-in | `/api/cron/checkin-notifications` | `*/10 * * * *` |
-| Messages voyageurs | `/api/cron/messages-voyageurs` | `*/10 * * * *` |
-| Synchro serrure Nuki | `/api/cron/nuki-sync` | `0 * * * *` |
-| Veille caméra (mouvement) | `/api/cron/camera-watch` | `*/10 * * * *` |
-| Suivi ménage | `/api/cron/cleaning-watch` | `*/10 * * * *` |
-| Préparation d'arrivée | `/api/cron/arrival-readiness` | `35 * * * *` (jour et nuit) |
+| Veille caméra (mouvement) | `/api/cron/camera-watch` | toutes les 5 min (:00, :05…) |
+| Messages voyageurs | `/api/cron/messages-voyageurs` | :00, :10, :20… |
+| Notifications check-in | `/api/cron/checkin-notifications` | :01, :11, :21… |
+| Automation chauffage | `/api/cron/heating-automation` | :02, :17, :32, :47 |
+| Synchro serrure Nuki | `/api/cron/nuki-sync` | :03 toutes les heures |
+| Suivi ménage | `/api/cron/cleaning-watch` | :04, :14, :24… |
+| Grille de prix | `/api/cron/price-grid` | :06, :26, :46 |
+| Automation ECS | `/api/cron/water-heater-automation` | :08, :23, :38, :53 (`PEAK_WINDOWS` calées sur :38) |
+| Health chauffage | `/api/cron/heating-health` | :09, :39 |
+| Reset chauffage | `/api/cron/heating-reset` | 0 h, 4 h, 8 h, 12 h, 16 h, 20 h à :12 |
+| Health ECS | `/api/cron/water-heater-health` | heures paires à :13 |
+| Préparation d'arrivée | `/api/cron/arrival-readiness` | :35 (jour et nuit) |
 | Envoi des prix | `/api/cron/pricing-push` | `10 8 * * *` — **8 h 10 heure de Paris** depuis le 2026-11-15 (05:10 UTC avant) |
 | Keepalive Beds24 | `/api/cron/beds24-keepalive` | `0 4 * * 1` |
 | Veille événements | `/api/cron/events-watch` | `0 11 * * 1` |
@@ -1380,7 +1384,7 @@ lit l'état, l'image instantanée et surtout les **événements de mouvement** (
 |---|---|
 | [lib/camera/ajcloud.ts](lib/camera/ajcloud.ts) | Client API cloud AJCloud : login (défi NaCl Box + signature HMAC-SHA256 `X-UAC-Signature`), `device-list`, `fetch-infos` (snapshot, RTSP local, en ligne), `alarms-survey` (mouvement). `tweetnacl` pour le chiffrement. |
 | [lib/camera/watch.ts](lib/camera/watch.ts) | Logique pure : nouveaux événements depuis le dernier `cts`, mise en forme. Testée (`tests/camera/`). |
-| `/api/cron/camera-watch` | Toutes les 10 min (cron-job.org ; battement toléré 30 min). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. Depuis le 2026-11-16, filtre de scène pour les caméras de `CAMERA_SCENE_FILTER_DIDS` (le garage) : un mouvement dont l'image ne change pas (linge qui bouge) est ignoré pendant un séjour, muet (priorité 1) maison vide (`lib/camera/scene.ts`, seuil `CAMERA_SCENE_THRESHOLD`, défaut 12 ; `CAMERA_SCENE_FILTER=false` le coupe ; ignorés dans `barbusse:camera:ignored`, envoyés avec leur écart dans `barbusse:camera:sent`, 50 derniers chacun). Depuis le 2026-11-18 : **la seule caméra branchée est celle du garage** (nommée « Porte d'entrée » dans l'appli ; entrée et jardin pas encore connectées). Le garage n'est pas un espace des voyageurs : **priorité 4 même pendant un séjour, sauf la nuit (22 h-8 h) où un séjour la ramène à 2** le temps de recalibrer le filtre de nuit (`garagePriority`) ; maison vide toujours 4 ; sauf un mouvement qui suit une ouverture du digicode Intratone par un code **nommé** de la maison (Perso, ménage, dépannage — `garageOpenings`) : aucune alerte tant que l'activité continue (`lib/camera/household.ts` : 30 min après l'ouverture, 10 min avant, chaîne de 30 min prolongée **seulement par un mouvement significatif** au sens du filtre de scène, 12 h au plus après la dernière ouverture ; échéance `barbusse:camera:household-until:<did>` ; `last-real` garde sa condition). Inclut les intervenants et tout futur code nommé sans n° de réservation. Les futures caméras d'entrée et de jardin : rien pendant un séjour (décision de l'hôte, à faire au branchement). |
+| `/api/cron/camera-watch` | Toutes les 5 min (cron-job.org ; battement toléré 30 min). Relaie vers ntfy les nouveaux mouvements, image en pièce jointe, clip vidéo au tap. `?dry=1` calcule sans envoyer. Depuis le 2026-11-16, filtre de scène pour les caméras de `CAMERA_SCENE_FILTER_DIDS` (le garage) : un mouvement dont l'image ne change pas (linge qui bouge) est ignoré pendant un séjour, muet (priorité 1) maison vide (`lib/camera/scene.ts`, seuil `CAMERA_SCENE_THRESHOLD`, défaut 12 ; `CAMERA_SCENE_FILTER=false` le coupe ; ignorés dans `barbusse:camera:ignored`, envoyés avec leur écart dans `barbusse:camera:sent`, 50 derniers chacun). Depuis le 2026-11-18 : **la seule caméra branchée est celle du garage** (nommée « Porte d'entrée » dans l'appli ; entrée et jardin pas encore connectées). Le garage n'est pas un espace des voyageurs : **priorité 4 même pendant un séjour, sauf la nuit (22 h-8 h) où un séjour la ramène à 2** le temps de recalibrer le filtre de nuit (`garagePriority`) ; maison vide toujours 4 ; sauf un mouvement qui suit une ouverture du digicode Intratone par un code **nommé** de la maison (Perso, ménage, dépannage — `garageOpenings`) : aucune alerte tant que l'activité continue (`lib/camera/household.ts` : 30 min après l'ouverture, 10 min avant, chaîne de 30 min prolongée **seulement par un mouvement significatif** au sens du filtre de scène, 12 h au plus après la dernière ouverture ; échéance `barbusse:camera:household-until:<did>` ; `last-real` garde sa condition). Inclut les intervenants et tout futur code nommé sans n° de réservation. Les futures caméras d'entrée et de jardin : rien pendant un séjour (décision de l'hôte, à faire au branchement). |
 
 - **Anti-inondation** : au premier passage d'une caméra, aucune notification — on pose seulement
   la ligne de base `barbusse:camera:last-cts:<did>` (Redis). Les passages suivants ne notifient

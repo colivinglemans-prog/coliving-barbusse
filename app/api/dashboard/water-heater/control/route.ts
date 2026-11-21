@@ -26,7 +26,7 @@ async function boosterRefusal(request: NextRequest, force: boolean): Promise<Nex
   return NextResponse.json(
     {
       error:
-        "Heure de pic (4 h 45-7 h, 16 h 45-22 h) : le thermo est en Absence pour ne pas dépasser la puissance souscrite. Le ballon classique fournit l'eau chaude.",
+        "Heure de pic (4 h 38-7 h, 16 h 38-22 h) : le thermo est en Absence pour ne pas dépasser la puissance souscrite. Le ballon classique fournit l'eau chaude.",
       refused: "booster",
     },
     { status: 409 },

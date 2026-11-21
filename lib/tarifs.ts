@@ -147,12 +147,13 @@ export async function computePriceGrid(
       parties: PRICE_PARTIES,
       enabled: publicPricesEnabled(),
       // getroomprice répond 403 aux rafales (19/11/2026) ; 30 appels sur 30 acceptés à 250 ms
-      // (20/11/2026). Chaque appel part chez Beds24 : environ 30 prix par passage de 22 s.
+      // (20/11/2026). Chaque appel part chez Beds24 : environ 25 prix par passage de 18 s.
       pauseMs: 400,
-      // cron-job.org coupe la requête à 30 s par défaut (la route en a 60) : on s'arrête à ~22 s.
+      // cron-job.org coupe la requête à 30 s par défaut (la route en a 60) : on s'arrête à ~18 s
+      // (22 s jusqu'au 21/11/2026 : passages mesurés à 24-26 s avec la lecture des dispos).
       // Renouvellement par âge : les cellules jamais demandées d'abord, puis les plus vieilles ; la
       // grille de travail est rangée à chaque passage (`price-grid-job`, `incremental`).
-      timeBudgetMs: 22_000,
+      timeBudgetMs: 18_000,
       previous,
     },
   );
