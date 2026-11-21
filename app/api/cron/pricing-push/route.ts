@@ -95,6 +95,57 @@ export async function GET(request: NextRequest) {
         4,
       ).catch((e) => console.error("[pricing-push] alerte écart:", e));
     }
+
+    // Baisse automatique des grands événements (plan du 2026-11-21) : un palier n'est annoncé
+    // qu'une fois réellement écrit ; un bloc gelé dont la nuit vendue s'est libérée est signalé.
+    if (run.mode === "live" && run.outcome === "written" && run.markdown) {
+      const stepped = run.markdown.filter((b) => !b.frozen && b.step > (b.previousStep ?? 0));
+      if (stepped.length) {
+        await sendPricingAlert(
+          stepped.length === 1 ? `${stepped[0].label} : baisse automatique appliquée` : "Baisses automatiques appliquées",
+          stepped
+            .map(
+              (b) =>
+                `${b.label} : rien de vendu, palier ${b.step} (−${Math.round((1 - Math.pow(0.9, b.step)) * 100)} %).` +
+                (b.next ? ` Prochain palier le ${b.next.slice(8, 10)}/${b.next.slice(5, 7)}.` : " Dernier palier avant l'événement."),
+            )
+            .join("\n"),
+          3,
+        ).catch((e) => console.error("[pricing-push] alerte palier:", e));
+      }
+    }
+    if (run.mode === "live" && run.markdown) {
+      await reportAlerts(
+        "pricing-markdown-released",
+        run.markdown
+          .filter((b) => b.frozen && !b.sold)
+          .map((b) => ({
+            id: b.id,
+            priority: 3 as const,
+            line: `${b.label} : la nuit vendue s'est libérée. La baisse reste gelée au palier ${b.step} : à revoir.`,
+          })),
+        sendPricingAlert,
+        {
+          title: () => "Grand événement de nouveau libre",
+          intro: "Une annulation a rouvert des nuits d'un événement dont la baisse automatique était gelée :",
+          recoveredTitle: "Événement de nouveau vendu",
+          confirmAfter: 1,
+        },
+      ).catch((e) => console.error("[pricing-push] alerte libération:", e));
+    }
+    await reportAlerts(
+      "pricing-limits",
+      run.warnings
+        .filter((w) => w.includes("ignorée"))
+        .map((w) => ({ id: w.split("=")[0], priority: 4 as const, line: w })),
+      sendPricingAlert,
+      {
+        title: () => "Garde-fous de l'envoi : variable ignorée",
+        intro: "Une variable plus large que le garde-fou est posée sur Vercel (sans effet, à retirer) :",
+        recoveredTitle: "Variables des garde-fous retirées",
+        confirmAfter: 1,
+      },
+    ).catch((e) => console.error("[pricing-push] alerte limites:", e));
   }
 
   // Coupe-circuit oublié : un rappel (une seule fois) au-delà de 48 h, sinon le cron reste « ok ».
@@ -123,6 +174,9 @@ export async function GET(request: NextRequest) {
     quarantined: run.quarantined.length,
     rejections: run.rejections.length,
     mismatches: run.mismatches.length,
+    reference: run.reference ?? null,
+    markdown: run.markdown ?? [],
+    warnings: run.warnings,
     ...(forceDry && { sample: run.sample, rejectionsDetail: run.rejections, quarantinedDetail: run.quarantined }),
   });
 }

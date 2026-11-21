@@ -5,11 +5,24 @@ import { PROPERTY_ID } from "@/lib/beds24-property";
 import { sendPricingAlert } from "@/lib/alerts";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { getJson, getRedis, redisKey, setJson } from "@/lib/redis";
-import { computeEnginePrices } from "./engine";
+import { computeEnginePrices, nightCategories } from "./engine";
 import { ENGINE_CONFIG } from "./engine-config";
-import { DEFAULT_MAX_CHANGE, DEFAULT_MAX_DATES, envNumber } from "./guards";
-import { overrideOn } from "./overrides";
+import { eventFloorOn } from "./guards";
+import {
+  CUTOVER,
+  RAMP_RULE,
+  envOptionalNumber,
+  markdownFactor,
+  markdownStep,
+  nextMarkdownDate,
+  pushLimits,
+  rampTarget,
+  validReference,
+} from "./cutover";
+import { CUTOVER_REF, refFromSnapshot, type CutoverRef } from "./cutover-ref";
+import { PRICE_OVERRIDES, anchorPrice, overrideOn, type PriceOverride } from "./overrides";
 import { planPush, type CurrentNight, type PushPlan, type TargetNight } from "./push-plan";
+import { loadSnapshot } from "./snapshot";
 
 /**
  * **La seule porte d'écriture des prix vers Beds24** (plan du 2026-11-14). Appelée par le seul
@@ -39,6 +52,7 @@ const LOCK_KEY = redisKey("pricing", "push-lock");
 const LAST_RUN_KEY = redisKey("pricing", "push-last");
 const JOURNAL_PREFIX = redisKey("pricing", "push-journal");
 const TARGETS_PREFIX = redisKey("pricing", "push-targets");
+const MARKDOWN_PREFIX = redisKey("pricing", "markdown");
 
 export function pushMode(): PushMode {
   const v = process.env.PRICING_PUSH_MODE;
@@ -99,6 +113,10 @@ export interface PushRun {
   dailyChanges: number | null;
   /** Échantillon des écritures (20 au plus) pour `push-last` ; le journal garde tout. */
   sample: PushWriteLine[];
+  /** Grands événements à baisse automatique : palier, gel, prochain palier (absent avant le 2026-11-21). */
+  markdown?: MarkdownBlock[];
+  /** Jour de la référence de bascule utilisée (« provisoire » si construite depuis une photo). */
+  reference?: string | null;
 }
 
 export async function lastPushRun(): Promise<PushRun | null> {
@@ -116,11 +134,83 @@ export async function readCalendar(from: string, days: number): Promise<Record<s
   return out;
 }
 
-/** Construit les cibles : prix forcé s'il existe, sinon le moteur. Prix **effectifs**. */
+/** État de la baisse d'un bloc, gardé entre deux envois réels (le palier atteint, s'il est gelé). */
+export interface MarkdownState {
+  step: number;
+  frozen: boolean;
+  at: string;
+}
+
+export interface MarkdownBlock {
+  id: string;
+  label: string;
+  step: number;
+  previousStep: number | null;
+  /** Gelé : une nuit du bloc a été vendue (ou l'a été depuis le gel). */
+  frozen: boolean;
+  sold: boolean;
+  /** Prochain palier si rien ne change (`null` : gelé, ou plus de palier avant l'événement). */
+  next: string | null;
+}
+
+/**
+ * Paliers de baisse de chaque grand événement — **pur**. Dès qu'une nuit du bloc est vendue, la
+ * baisse s'arrête pour tout le bloc au palier précédent (décision du 2026-11-21) et y reste, même
+ * si la nuit se libère ensuite (pas de remontée, pas de reprise automatique).
+ */
+export function planMarkdown(
+  today: string,
+  calendar: Readonly<Record<string, { available: boolean }>>,
+  states: Readonly<Record<string, MarkdownState | null>>,
+  list: readonly PriceOverride[] = PRICE_OVERRIDES,
+): MarkdownBlock[] {
+  const out: MarkdownBlock[] = [];
+  for (const o of list) {
+    if (!o.markdown) continue;
+    const nights: string[] = [];
+    for (let d = o.from; d <= o.to; d = addDays(d, 1)) nights.push(d);
+    const sold = nights.some((d) => calendar[d] !== undefined && !calendar[d].available);
+    const prev = states[o.id] ?? null;
+    let step: number;
+    let frozen: boolean;
+    if (prev?.frozen) [step, frozen] = [prev.step, true];
+    else if (sold) [step, frozen] = [prev?.step ?? 0, true];
+    else [step, frozen] = [markdownStep(today, o.from, o.markdown), false];
+    out.push({
+      id: o.id,
+      label: o.label,
+      step,
+      previousStep: prev?.step ?? null,
+      frozen,
+      sold,
+      next: frozen ? null : nextMarkdownDate(today, o.from, o.markdown),
+    });
+  }
+  return out;
+}
+
+export interface TargetContext {
+  /** Référence de bascule (prix Beyond de la veille), `null` si absente. */
+  ref: CutoverRef | null;
+  /** Palier de baisse par bloc (`planMarkdown`). */
+  markdownSteps: Readonly<Record<string, number>>;
+}
+
+const NO_CONTEXT: TargetContext = { ref: null, markdownSteps: {} };
+
+/**
+ * Construit les cibles, nuit par nuit (prix **effectifs**) :
+ * 1. prix forcé : ancré (nombre fixe, ou référence valide, ou repli), baissé de son palier, jamais
+ *    sous le plancher du jour ;
+ * 2. sinon, la **rampe** pour une nuit ordinaire de `rampFrom` et plus, tant que la date d'envoi
+ *    est avant `rampUntil` et que la nuit a une référence valide ;
+ * 3. sinon, le moteur.
+ */
 export function buildTargets(
   today: string,
   calendar: Readonly<Record<string, CalendarDay>>,
   horizonDays: number = PUSH_HORIZON_DAYS,
+  ctx: TargetContext = NO_CONTEXT,
 ): Record<string, TargetNight> {
   // Toutes les nuits de l'horizon. Une nuit que Beds24 n'a pas rendue compte comme **vendable**
   // pour le moteur : la compter fermée fabriquerait un faux trou (×0,85, séjour min. 1) sur la
@@ -132,11 +222,38 @@ export function buildTargets(
     events: LE_MANS_EVENTS,
     config: ENGINE_CONFIG,
   });
+  // Périodes fixes et grands événements du moteur : jamais rampés (relecture Fable).
+  const categories = nightCategories(dates, LE_MANS_EVENTS, ENGINE_CONFIG);
+  const reference = (d: string) => {
+    const p = ctx.ref?.nights[d]?.[0];
+    return validReference(p) ? p : undefined;
+  };
+  const rampOn = today < CUTOVER.rampUntil;
+
   const target: Record<string, TargetNight> = {};
   for (const date of dates) {
     const forced = overrideOn(date);
-    if (forced) target[date] = { price: forced.price, minStay: forced.minStay, source: "override" };
-    else if (engine[date]) target[date] = { price: engine[date].price, minStay: engine[date].minStay, source: "engine" };
+    if (forced) {
+      const { price: anchor } = anchorPrice(forced, date, reference);
+      const step = forced.markdown ? (ctx.markdownSteps[forced.id] ?? 0) : 0;
+      if (step > 0 && forced.markdown) {
+        const floor = eventFloorOn(date, today)?.floor ?? 0;
+        const price = Math.max(Math.round(anchor * markdownFactor(step, forced.markdown)), floor);
+        target[date] = { price, minStay: forced.minStay, source: "markdown" };
+      } else {
+        target[date] = { price: anchor, minStay: forced.minStay, source: "override" };
+      }
+      continue;
+    }
+    const e = engine[date];
+    if (!e) continue;
+    const ref = reference(date);
+    if (rampOn && date >= CUTOVER.rampFrom && !categories.has(date) && ref !== undefined) {
+      const price = rampTarget(e.price, ref, today, RAMP_RULE);
+      target[date] = { price, minStay: e.minStay, source: price === e.price ? "engine" : "ramp" };
+    } else {
+      target[date] = { price: e.price, minStay: e.minStay, source: "engine" };
+    }
   }
   return target;
 }
@@ -193,7 +310,34 @@ export async function runPricingPush(options: {
     const current: Record<string, CurrentNight> = Object.fromEntries(
       Object.entries(calendar).map(([d, c]) => [d, { price: c.price, minStay: c.minStay }]),
     );
-    const target = buildTargets(from, calendar);
+    const preflight: string[] = [];
+
+    // Référence de bascule : le fichier versionné. Avant qu'il soit rempli (30/11), un envoi à
+    // blanc antérieur à la bascule prend la photo du jour, marquée provisoire ; un envoi réel,
+    // jamais (fail closed : relectures cerbere et chef-de-stand).
+    let ref: CutoverRef | null = CUTOVER_REF.date ? CUTOVER_REF : null;
+    if (!ref && mode === "dry" && from < CUTOVER.startedOn) {
+      const snap = await loadSnapshot(from).catch(() => null);
+      if (snap) ref = refFromSnapshot(snap, true);
+    }
+    if (!ref && mode === "live" && from >= CUTOVER.startedOn) {
+      preflight.push("Référence de bascule absente (lib/pricing/cutover-ref.json non rempli)");
+    }
+
+    // Paliers de baisse : état gardé dans Redis. Illisible en réel = rejet (on ne devine pas un
+    // palier gelé) ; à blanc, on calcule sans état.
+    const states: Record<string, MarkdownState | null> = {};
+    try {
+      for (const o of PRICE_OVERRIDES) {
+        if (o.markdown) states[o.id] = await getJson<MarkdownState>(`${MARKDOWN_PREFIX}:${o.id}`);
+      }
+    } catch {
+      if (mode === "live") preflight.push("État des baisses automatiques illisible (Redis)");
+    }
+    const markdown = planMarkdown(from, calendar, states);
+    const markdownSteps = Object.fromEntries(markdown.map((b) => [b.id, b.step]));
+
+    const target = buildTargets(from, calendar, PUSH_HORIZON_DAYS, { ref, markdownSteps });
 
     // Régime quotidien : cible du jour contre cible de la veille (gardées 14 jours).
     const targets = compact(target);
@@ -201,12 +345,23 @@ export async function runPricingPush(options: {
     const dailyChanges = countDailyChanges(yesterday, targets, from);
     if (!options.forceDry) await setJson(`${TARGETS_PREFIX}:${from}`, targets, 14 * 24 * 3600);
 
-    const plan = planPush({
-      current,
-      target,
-      maxChange: envNumber("PRICING_MAX_CHANGE", DEFAULT_MAX_CHANGE, 0.05, 10),
-      maxDates: envNumber("PRICING_MAX_DATES", DEFAULT_MAX_DATES, 1, PUSH_HORIZON_DAYS),
-    });
+    // Limites datées (lib/pricing/cutover.ts). Un envoi à blanc d'avant la bascule montre le plan
+    // du jour J, avec ses limites.
+    const limitsDay = mode === "dry" && from < CUTOVER.startedOn ? CUTOVER.startedOn : from;
+    const limits = pushLimits(
+      limitsDay,
+      {
+        maxChange: envOptionalNumber(process.env.PRICING_MAX_CHANGE),
+        maxDates: envOptionalNumber(process.env.PRICING_MAX_DATES),
+      },
+      PUSH_HORIZON_DAYS,
+    );
+    const plan = planPush({ current, target, maxChange: limits.maxChange, maxDates: limits.maxDates, today: from });
+    if (preflight.length) {
+      plan.status = "rejected";
+      plan.rejections.unshift(...preflight);
+      plan.writes = {};
+    }
     const lines: PushWriteLine[] = Object.entries(plan.writes).map(([date, w]) => ({
       date,
       from: w.before?.price ?? null,
@@ -214,14 +369,18 @@ export async function runPricingPush(options: {
       minStay: w.minStay,
       source: w.source,
     }));
+    const warnings = [...limits.warnings, ...(ref?.provisional ? [`Référence provisoire (photo du ${ref.date})`] : [])];
     const planned: Omit<PushRun, "outcome"> = {
       ...base,
       writes: lines.length,
       quarantined: plan.quarantined,
       rejections: plan.rejections,
+      warnings,
       unchanged: plan.unchanged,
       dailyChanges,
       sample: lines.slice(0, 20),
+      markdown,
+      reference: ref ? (ref.provisional ? `${ref.date} (provisoire)` : ref.date) : null,
     };
 
     let run: PushRun;
@@ -230,6 +389,15 @@ export async function runPricingPush(options: {
     else if (mode === "dry") run = { ...planned, outcome: "dry" };
     else if (await isHalted()) run = { ...planned, outcome: "halted" };
     else run = await writeAndVerify(plan, planned, lines, now, record);
+
+    // Le palier n'est mémorisé qu'une fois réellement en place (écrit, ou rien à écrire en réel) :
+    // un envoi coupé ou rejeté le recalcule au passage suivant.
+    if (mode === "live" && (run.outcome === "written" || run.outcome === "nothing")) {
+      for (const b of markdown) {
+        const state: MarkdownState = { step: b.step, frozen: b.frozen, at: run.at };
+        await setJson(`${MARKDOWN_PREFIX}:${b.id}`, state);
+      }
+    }
 
     await record(run, lines);
     return run;

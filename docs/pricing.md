@@ -162,17 +162,22 @@ si Beyond écrivait encore. On lève le halt depuis le dashboard après avoir co
   |---|---|
   | 24H Moto | 600 € |
   | MotoGP | 650 € |
-  | Essais, avec les nuits d'approche du 7-8/06 | 1 560 € |
+  | Essais, avec les nuits d'approche du 7-8/06 | 1 560 €, puis **900 € à partir du 30/01/2027** (`lowerTo`, décision datée du 2026-11-21) |
   | 24 Heures | 2 220 € |
   | Classic Heritage | 1 050 € |
 
   Ils restent actifs même avec les paramètres de bascule relevés.
 - **Quarantaine** : une date qui varie de plus de `PRICING_MAX_CHANGE` (0,25 par défaut) garde son prix
   et part dans une alerte. Une date sans prix actuel en est exemptée.
-- **Plafond de dates** : au-delà de `PRICING_MAX_DATES` (60 par défaut, 395 au plus), l'envoi est
-  rejeté.
-- **Pour la bascule** : relever les deux paramètres (`PRICING_MAX_DATES=395`, `PRICING_MAX_CHANGE=10`)
-  le temps du premier envoi, puis les remettre.
+- **Plafond de dates** : au-delà de 60 dates par envoi, l'envoi est rejeté.
+- **Limites datées, écrites dans le code** (`pushLimits`, `lib/pricing/cutover.ts`, depuis le
+  2026-11-21) : plus aucune variable à relever ni à oublier le jour J.
+  - le **01/12/2026** (bascule) : variation libre jusqu'à +150 %, tout l'horizon (395 dates) ;
+  - du **01/12/2026 au 31/01/2027** (rampe) : tout l'horizon, quarantaine à 25 % ;
+  - ensuite : 60 dates et 25 %.
+  `PRICING_MAX_CHANGE` / `PRICING_MAX_DATES` ne peuvent plus que **resserrer** (valeur sous le
+  défaut) ; plus larges, elles sont ignorées et signalées (avertissement dans `push-last`, alerte
+  `pricing-limits` unique). Un envoi à blanc d'avant la bascule montre le plan du jour J.
 - **On ne desserre jamais un garde-fou pour faire passer un envoi.**
 
 ### Remise de durée : compensée par le moteur
@@ -191,20 +196,56 @@ effectif**, et l'envoi écrit `price1 = effectif ÷ remise garantie` dès que le
 certaine (`price1For` : ÷ 0,92 à partir de 4 nuits). C'est ce qui avait coûté environ 1 000 € sur les
 24 Heures 2027.
 
-### Prix forcés (`lib/pricing/overrides.ts`)
+### Prix forcés et bascule du 01/12 (`overrides.ts`, `cutover.ts`, `cutover-ref.ts`)
 
-Liste versionnée, sans interface en v1. Grands événements 2027 **figés au milieu entre le moteur et
-Beyond** (décision du 2026-11-14), sans paliers d'anticipation :
+Décisions de l'exploitant du 2026-11-21 (plan version 2, relu par Fable, cerbere, le-douanier et
+chef-de-stand) :
 
-| Événement | Prix effectif |
-|---|---|
-| 24H Moto | 940 € |
-| MotoGP | 1 400 € |
-| Essais et 7-8/06 | 1 560 € |
-| 24 Heures (déjà vendues, en cas d'annulation) | 2 800 € |
-| Classic Heritage | 1 860 € |
+- **Référence de bascule** : les prix Beyond publiés la veille de la bascule, figés dans
+  `lib/pricing/cutover-ref.json` (versionné, aucune dépendance à Redis à l'envoi). Le 30/11 :
+  `node --env-file=.env.local scripts/pricing-cutover-ref.mjs` (à blanc, affiche le tableau des
+  événements), validation de l'exploitant, puis `--write` et commit (`--date=` pour la veille si la
+  photo du jour manque ou est douteuse). Une nuit vaut si son prix effectif est dans les bornes
+  absolues. **En réel sans référence remplie : rejet en bloc.** À blanc avant la bascule : photo du
+  jour, marquée « provisoire ».
+- **Grands événements** (`PRICE_OVERRIDES`, un bloc = un `id`) :
 
-**À recalculer sur le relevé de la veille de la bascule** et à montrer à l'exploitant avant le `live`.
+  | Bloc | Prix d'ancrage | Baisse auto | Plancher |
+  |---|---|---|---|
+  | 24H Moto, 07 → 11/04 | référence par nuit (repli 940 €) | oui | 600 € |
+  | MotoGP, 13 → 16/05 | référence par nuit (repli 1 400 €) | oui | 650 € |
+  | Essais + 7-8/06, 31/05 → 08/06 | 1 560 € | oui | 1 560 €, puis 900 € dès le 30/01 |
+  | 24 Heures, 09 → 13/06 (vendues) | 2 800 € | non | 2 220 € |
+  | Classic, 30/06 → 04/07 | référence par nuit (repli 1 860 €) | oui | 1 050 € |
+
+- **Baisse automatique** (`markdownStep`, `MARKDOWN_RULE`) : −10 % toutes les 3 semaines à partir de
+  J-120 (premier palier le jour même : 24H Moto le 08/12, MotoGP le 13/01, essais le 31/01, Classic
+  le 02/03), jamais sous le plancher. **Dès qu'une nuit du bloc est vendue, la baisse s'arrête pour
+  tout le bloc** au palier atteint, et y reste même si la nuit se libère (alerte
+  `pricing-markdown-released`). État par bloc dans Redis (`barbusse:pricing:markdown:<id>`),
+  mémorisé seulement après une écriture réelle ; illisible en réel = rejet. `freezeAtStep` fige un
+  palier à la main (négociation). Source `markdown` dans le journal, **sans** exemption de
+  quarantaine (seul le palier 0, `override`, en a une). Alerte « baisse automatique appliquée »
+  envoyée par `pricing-push` **seulement après une écriture réelle**.
+- **Décembre 2026** : prix du moteur dès le 01/12.
+- **Rampe des nuits ordinaires** (`rampTarget`, `RAMP_RULE`) : du 02/01/2027, tant que la date d'envoi
+  est avant le 01/02/2027, le prix du moteur est ramené dans `[réf × 0,9^(w+1), réf × 1,1^(w+1)]`
+  (w = semaines depuis le 01/12, jamais négatif). Hors périodes fixes, grands événements et nuits
+  sans référence valide. Source `ramp`.
+- **Retour arrière** : coupe-circuit (page Pricing) → `PRICING_PUSH_MODE=off` + redéploiement →
+  réactiver la synchro Beyond → relevé et vérification. **Garder l'abonnement Beyond au moins
+  jusqu'au 01/02/2027** (sans lui, pas de retour arrière).
+
+### Témoin Beyond (API en lecture, depuis le 2026-11-21)
+
+`lib/pricing/beyond-client.ts` (client pur, GET seulement, jeton en en-tête, erreurs sans jeton) et
+`lib/pricing/beyond-witness.ts` (tâche) : chaque matin, **après** la photo et dans son propre `try`,
+`pricing-snapshot` relève le calendrier Beyond de l'annonce **3757925** sur 365 jours et le range
+sous `barbusse:pricing:beyond:<jour>` (suggéré, publié, minimum effectif, séjour minimum, facteur
+événement). Jeton `BEYOND_API_TOKEN` (PAT, lecture, **Vercel Production seulement** + `.env.local`),
+lu seulement par la tâche (test `push-import`) ; il exige un abonnement Beyond Pro actif. Panne :
+alerte au 2e relevé raté. Après la bascule, alerte « Beyond voit plus haut » (+15 % sur une nuit
+libre de grand événement) : un signal, **jamais une hausse automatique**.
 
 ### Grille (corrections du 2026-11-14)
 

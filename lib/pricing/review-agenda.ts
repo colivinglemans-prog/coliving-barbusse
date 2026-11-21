@@ -16,10 +16,10 @@ import type { SnapshotDiff } from "./snapshot";
 
 /** Échéances du pricing hors événements (les J-60 se calculent depuis le catalogue). */
 export const PRICING_MILESTONES: readonly { date: string; label: string }[] = [
-  { date: "2026-11-30", label: "Fin des 7 jours d'envoi à blanc (phase 2) : bilan avant la bascule" },
-  { date: "2026-12-01", label: "Bascule visée : Beyond en pause, envoi réel (sous condition, sinon 08/12)" },
-  { date: "2027-01-31", label: "Critères techniques au 31/01 : résilier Beyond ?" },
-  { date: "2027-04-01", label: "Semaine des essais à 1 560 € : baisser si rien n'est vendu" },
+  { date: "2026-11-30", label: "Référence de bascule : script, tableau des prix d'événements à valider, commit" },
+  { date: "2026-12-01", label: "Bascule : Beyond en pause (synchro seulement), envoi réel, relance de la page Tarifs" },
+  { date: "2027-01-30", label: "Plancher de la semaine des essais abaissé de 1 560 à 900 € (baisse automatique dès le 31/01)" },
+  { date: "2027-02-01", label: "Fin de la rampe des nuits ordinaires : garder Beyond jusqu'ici, puis résilier ?" },
   { date: "2027-04-15", label: "Albiez : décision de sortie de Beyond après la saison" },
 ];
 
@@ -90,7 +90,7 @@ export function buildReviewAgenda(input: {
   for (const e of events) {
     if (!config.majorEvents.some((r) => r.keyPrefix === keyPrefix(e.key))) continue;
     const j60 = addDays(e.start, -60);
-    if (j60 >= today && j60 <= horizon) due.push({ date: j60, label: `${e.name} à J-60 : trancher le prix si invendu` });
+    if (j60 >= today && j60 <= horizon) due.push({ date: j60, label: `${e.name} à J-60 : point sur la baisse automatique` });
   }
   due.sort((a, b) => a.date.localeCompare(b.date));
   if (due.length) {

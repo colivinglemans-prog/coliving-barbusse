@@ -7,7 +7,7 @@ import {
   guaranteedDiscount,
   price1For,
 } from "@/lib/pricing/guards";
-import { PRICE_OVERRIDES, overrideOn } from "@/lib/pricing/overrides";
+import { PRICE_OVERRIDES, anchorPrice, overrideOn } from "@/lib/pricing/overrides";
 
 const engine = (price: number, minStay = 2): TargetNight => ({ price, minStay, source: "engine" });
 const now = (price: number, minStay = 2): CurrentNight => ({ price, minStay });
@@ -120,20 +120,39 @@ describe("planPush", () => {
 });
 
 describe("prix forcés 2027", () => {
-  it("respectent tous les bornes absolues et les planchers, compensation comprise", () => {
+  it("respectent tous les bornes absolues et les planchers, compensation comprise (repli si pas de référence)", () => {
     for (const o of PRICE_OVERRIDES) {
       for (let d = o.from; d <= o.to; d = nextDay(d)) {
-        const p = plan({}, { [d]: { price: o.price, minStay: o.minStay, source: "override" } });
+        const { price } = anchorPrice(o, d, () => undefined);
+        const p = plan({}, { [d]: { price, minStay: o.minStay, source: "override" } });
         expect(p.status, `${d} (${o.reason})`).toBe("ok");
       }
     }
   });
 
-  it("couvrent les nuits du 7 et 8/06/2027 au prix de la semaine des essais", () => {
-    expect(overrideOn("2027-06-07")?.price).toBe(1_560);
+  it("couvrent les nuits du 7 et 8/06/2027 avec la semaine des essais (même bloc, même baisse)", () => {
+    expect(overrideOn("2027-06-07")?.id).toBe("essais-2027");
     expect(overrideOn("2027-06-08")?.price).toBe(1_560);
-    expect(eventFloorOn("2027-06-08")?.floor).toBe(1_560);
     expect(overrideOn("2027-06-14")).toBeNull();
+  });
+
+  it("plancher des essais : 1 560 € jusqu'au 29/01/2027, 900 € à partir du 30/01 (décision datée)", () => {
+    expect(eventFloorOn("2027-06-08")?.floor).toBe(1_560);
+    expect(eventFloorOn("2027-06-08", "2027-01-29")?.floor).toBe(1_560);
+    expect(eventFloorOn("2027-06-08", "2027-01-30")?.floor).toBe(900);
+    expect(eventFloorOn("2027-04-08", "2027-03-30")?.floor).toBe(600);
+  });
+
+  it("un prix forcé ancré prend la référence valide, sinon son repli", () => {
+    const moto = overrideOn("2027-04-09")!;
+    expect(anchorPrice(moto, "2027-04-09", () => 1_060)).toEqual({ price: 1_060, fromReference: true });
+    expect(anchorPrice(moto, "2027-04-09", () => undefined)).toEqual({ price: 940, fromReference: false });
+  });
+
+  it("une baisse (source markdown) n'est pas exemptée de quarantaine, le prix validé (override) l'est", () => {
+    const cur = { "2027-04-09": now(1_000, 3) };
+    expect(plan(cur, { "2027-04-09": { price: 600, minStay: 3, source: "markdown" } }).quarantined).toHaveLength(1);
+    expect(plan(cur, { "2027-04-09": { price: 600, minStay: 3, source: "override" } }).quarantined).toHaveLength(0);
   });
 });
 

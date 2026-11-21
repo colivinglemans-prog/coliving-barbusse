@@ -55,4 +55,16 @@ describe("porte unique d'écriture des prix", () => {
     expect(dashboard.map((f) => f.path)).toEqual(["app/api/dashboard/pricing/halt/route.ts"]);
     expect(dashboard[0].text).not.toMatch(/runPricingPush|writeCalendar/);
   });
+
+  it("le jeton Beyond n'est lu que par le témoin, et le client Beyond ne parle pas à Beds24", () => {
+    const readers = all.filter((f) => /process\.env\.BEYOND_API_TOKEN/.test(f.text)).map((f) => f.path);
+    expect(readers).toEqual(["lib/pricing/beyond-witness.ts"]);
+    for (const path of ["lib/pricing/beyond-client.ts", "lib/pricing/beyond-witness.ts", "lib/pricing/cutover.ts"]) {
+      const f = all.find((x) => x.path === path)!;
+      expect(f.text, path).not.toMatch(/lib\/beds24|writeCalendar|updateCalendar/);
+    }
+    const client = all.find((x) => x.path === "lib/pricing/beyond-client.ts")!;
+    expect(client.text).not.toMatch(/process\.env|from "@\//);
+    expect(client.text).not.toMatch(/method:\s*"(POST|PUT|PATCH|DELETE)"/);
+  });
 });

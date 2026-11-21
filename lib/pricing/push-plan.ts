@@ -32,7 +32,11 @@ export interface TargetNight {
   /** Prix effectif visé (après remise de durée). */
   price: number;
   minStay: number;
-  source: "engine" | "override";
+  /**
+   * `override` : prix forcé au palier 0 (validé par l'exploitant) — seul exempté de quarantaine ;
+   * `markdown` : prix forcé baissé d'au moins un palier ; `ramp` : moteur bridé par la rampe.
+   */
+  source: "engine" | "override" | "markdown" | "ramp";
 }
 
 export interface PlannedWrite {
@@ -63,8 +67,10 @@ export function planPush(input: {
   target: Readonly<Record<string, TargetNight>>;
   maxChange: number;
   maxDates: number;
+  /** Jour d'envoi, pour les planchers datés (sans lui : le plancher le plus strict). */
+  today?: string;
 }): PushPlan {
-  const { current, target, maxChange, maxDates } = input;
+  const { current, target, maxChange, maxDates, today } = input;
   const rejections: string[] = [];
   const writes: Record<string, PlannedWrite> = {};
   const quarantined: Quarantined[] = [];
@@ -83,7 +89,7 @@ export function planPush(input: {
       rejections.push(`${date} : prix ${Math.round(effective)} € hors bornes absolues`);
       continue;
     }
-    const floor = eventFloorOn(date);
+    const floor = eventFloorOn(date, today);
     // Tolérance d'un euro : l'arrondi de `price1For` peut repasser le plancher d'une fraction.
     if (floor && effective < floor.floor - 1) {
       rejections.push(`${date} : ${Math.round(effective)} € sous le plancher ${floor.label} (${floor.floor} €)`);

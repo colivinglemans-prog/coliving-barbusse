@@ -324,6 +324,7 @@ Politique tarifaire configurée **dans Beds24**, pas dans le code : le site n'af
 - ⚠️ **Ne jamais ajouter `/dashboard/pricing` ni `/api/dashboard/pricing` à `allowedPaths`** de `proxy.ts` : page admin, interne (aucun chiffre du moteur dans `/dashboard/stats`).
 - ⚠️ **Une seule porte d'écriture des prix : `lib/pricing/push.ts`, appelée par le seul cron `pricing-push`.** Le jeton `BEDS24_PRICING_REFRESH_TOKEN` (voie `tarifs`) n'a **aucun repli** et `writeCalendar` n'est importé nulle part ailleurs (test `tests/pricing/push-import.test.ts`). Aucune route du dashboard n'écrit dans Beds24 : le coupe-circuit n'écrit que dans Redis. Les bornes absolues et planchers d'événement (`lib/pricing/guards.ts`) ne viennent pas d'`ENGINE_CONFIG` et **ne s'assouplissent jamais pour faire passer un envoi** : on corrige la grille ou un prix forcé.
 - ⚠️ Beds24 ne sait pas plafonner la taxe de séjour : jamais 2,75 % sur le direct, un forfait bas. Jamais un frais ou une remise actifs **à la fois** sur Airbnb et dans Beds24 (double comptage).
+- **Bascule du 01/12/2026** (plan du 2026-11-21) : grands événements ancrés sur la référence Beyond (`lib/pricing/cutover-ref.json`, rempli le 30/11 par `scripts/pricing-cutover-ref.mjs`) puis **baisse automatique** −10 %/3 sem. dès J-120, gelée dès une nuit vendue ; décembre au moteur ; rampe ±10 %/semaine sur les nuits ordinaires de 2027 jusqu'au 01/02 ; limites d'envoi **datées dans le code** (`pushLimits`). Témoin Beyond en lecture (`beyond-witness.ts`) après la photo du matin. Garder l'abonnement Beyond jusqu'au 01/02/2027 (retour arrière).
 - Détail complet (markups, occupation, paliers, frais, HomeToGo, relevés, moteur, page v1.1, essais 2027) : [docs/pricing.md](docs/pricing.md).
 
 ## Calendrier public de réservation
@@ -1465,8 +1466,9 @@ BEDS24_REFRESH_TOKEN        # Notes de ménage, NUKI_PIN, confirmation : read:bo
 BEDS24_MESSAGES_REFRESH_TOKEN # Messages voyageur : read:bookings + read/write:bookings-personal.
 BEDS24_PRICING_REFRESH_TOKEN  # Envoi des prix : read:inventory + write:inventory, aucun repli (à créer).
 PRICING_PUSH_MODE           # off (défaut) | dry | live — l'envoi réel exige live ET pas de coupe-circuit.
-PRICING_MAX_DATES           # Dates modifiées par envoi, 60 par défaut (395 au plus, relevé pour la bascule).
-PRICING_MAX_CHANGE          # Variation avant quarantaine, 0.25 par défaut (relevé pour la bascule).
+PRICING_MAX_DATES           # Ne peut que RESSERRER (< 60) : les limites de la bascule sont datées dans lib/pricing/cutover.ts.
+PRICING_MAX_CHANGE          # Ne peut que RESSERRER (< 0.25) ; plus large = ignorée + alerte. À retirer de Vercel.
+BEYOND_API_TOKEN            # Beyond Pricing, jeton personnel en LECTURE (témoin, annonce 3757925). Production seulement.
                             # /bookings/messages refuse tout jeton sans la variante -personal.
                             # Les cinq sont des refresh tokens — plus aucun long life depuis le 2026-09-11.
                             # Obtenus via un invite code (Settings → API → Invites) échangé par

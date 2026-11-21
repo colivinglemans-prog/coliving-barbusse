@@ -22,10 +22,31 @@ export const ABSOLUTE_BOUNDS = {
  * grille : une grille fausse ne doit pas pouvoir vendre les 24 Heures à 520 €. Bornes de nuits
  * incluses (la nuit du `to` comprise). Ils s'appliquent aussi pendant la bascule.
  */
-export const EVENT_FLOORS: readonly { label: string; from: string; to: string; floor: number }[] = [
+export interface EventFloor {
+  label: string;
+  from: string;
+  to: string;
+  floor: number;
+  /**
+   * Plancher abaissé à partir d'un jour d'envoi : décision tarifaire de l'exploitant, datée et
+   * indépendante de la baisse automatique (relecture cerbere : un plancher qui se desserre tout
+   * de suite laisserait une grille fausse vendre la semaine à 900 € dès décembre).
+   */
+  lowerTo?: { floor: number; from: string };
+}
+
+export const EVENT_FLOORS: readonly EventFloor[] = [
   { label: "24 Heures Moto 2027", from: "2027-04-07", to: "2027-04-11", floor: 600 },
   { label: "MotoGP France 2027", from: "2027-05-13", to: "2027-05-16", floor: 650 },
-  { label: "Semaine des essais 2027", from: "2027-05-31", to: "2027-06-08", floor: 1_560 },
+  // 1 560 € jusqu'au début de la baisse automatique (J-120 = 31/01/2027), puis 900 € : décision
+  // de l'exploitant du 2026-11-21 (fourchette de révision prévue : 650 à 900 €).
+  {
+    label: "Semaine des essais 2027",
+    from: "2027-05-31",
+    to: "2027-06-08",
+    floor: 1_560,
+    lowerTo: { floor: 900, from: "2027-01-30" },
+  },
   { label: "24 Heures du Mans 2027", from: "2027-06-09", to: "2027-06-13", floor: 2_220 },
   { label: "Le Mans Classic Heritage 2027", from: "2027-06-30", to: "2027-07-04", floor: 1_050 },
 ];
@@ -59,9 +80,15 @@ export function price1For(targetEffective: number, minStay: number): number {
   return Math.round(targetEffective / guaranteedDiscount(minStay));
 }
 
-export function eventFloorOn(date: string): { label: string; floor: number } | null {
+/**
+ * Plancher d'une nuit d'événement, vu le jour d'envoi `today`. Sans `today`, le plancher le plus
+ * strict (jamais l'abaissé).
+ */
+export function eventFloorOn(date: string, today?: string): { label: string; floor: number } | null {
   const hit = EVENT_FLOORS.find((f) => date >= f.from && date <= f.to);
-  return hit ? { label: hit.label, floor: hit.floor } : null;
+  if (!hit) return null;
+  const lowered = hit.lowerTo && today !== undefined && today >= hit.lowerTo.from;
+  return { label: hit.label, floor: lowered ? hit.lowerTo!.floor : hit.floor };
 }
 
 /** Variation maximale par rapport au prix actuel avant quarantaine (paramétrable pour la bascule). */

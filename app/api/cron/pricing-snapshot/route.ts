@@ -5,7 +5,10 @@ import { todayParis } from "@sejour/socle/lib/time";
 import { LE_MANS_EVENTS } from "@/lib/events";
 import { computeEnginePrices } from "@/lib/pricing/engine";
 import { ENGINE_CONFIG } from "@/lib/pricing/engine-config";
-import { lastSaleDate, pricingInsights } from "@/lib/pricing/insights";
+import { beyondHigherInsights, lastSaleDate, pricingInsights } from "@/lib/pricing/insights";
+import { getBeyondCalendarFromWitness, takeBeyondWitness, type WitnessOutcome } from "@/lib/pricing/beyond-witness";
+import { CUTOVER } from "@/lib/pricing/cutover";
+import { PRICE_OVERRIDES } from "@/lib/pricing/overrides";
 import { reportAlerts, reportCronRun } from "@/lib/alert-memory";
 import { beat } from "@/lib/heartbeat";
 import { isDryRun } from "@/lib/cron-params";
@@ -63,6 +66,28 @@ export async function GET(request: NextRequest) {
 
     if (!dry) await Promise.all([saveSnapshot(snapshot), saveShadow(shadow)]);
 
+    // Témoin Beyond (API en lecture) : **après** la photo, dans son propre `try`. Sa panne ne
+    // touche jamais la photo ; elle n'alerte qu'au deuxième relevé raté, jamais répétée.
+    let witness: WitnessOutcome = { status: "not-configured" };
+    try {
+      witness = await takeBeyondWitness(today, { dry });
+      if (!dry && witness.status !== "not-configured") {
+        await reportAlerts(
+          "pricing-beyond-witness",
+          witness.status === "error" ? [{ id: "witness", priority: 3, line: witness.message }] : [],
+          sendPricingAlert,
+          {
+            title: () => "Témoin Beyond : relevé impossible",
+            intro: "Le prix suggéré par Beyond n'a pas pu être relevé (l'envoi des prix n'est pas concerné) :",
+            recoveredTitle: "Témoin Beyond : relevé rétabli",
+            confirmAfter: 2,
+          },
+        );
+      }
+    } catch (e) {
+      console.error("[pricing-snapshot] témoin Beyond:", e);
+    }
+
     const diff = yesterday ? diffSnapshots(yesterday, snapshot) : null;
 
     // Alertes pour affiner le pricing (vente précoce, nuits orphelines, J-60, creux à venir).
@@ -76,6 +101,13 @@ export async function GET(request: NextRequest) {
       events: LE_MANS_EVENTS,
       config: ENGINE_CONFIG,
     });
+    // Après la bascule : Beyond suggère-t-il nettement plus haut sur un grand événement libre ?
+    if (today >= CUTOVER.startedOn && witness.status === "stored") {
+      const suggested = await getBeyondCalendarFromWitness(today).catch(() => ({}));
+      insights.push(
+        ...beyondHigherInsights({ snapshot, suggested, blocks: PRICE_OVERRIDES.filter((o) => o.markdown) }),
+      );
+    }
     if (!dry) {
       await reportAlerts(
         "pricing-insights",
@@ -96,6 +128,7 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json({
       insights,
+      witness,
       success: true,
       dry,
       date: today,

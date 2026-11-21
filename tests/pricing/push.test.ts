@@ -18,8 +18,17 @@ const h = vi.hoisted(() => {
     reads: [] as { start: string; end: string }[],
     writes: [] as { from: string; to: string; price1?: number; minStay?: number }[][],
     alerts: [] as string[],
+    /** Référence de bascule simulée (`null` = fichier non rempli). */
+    refDate: "2026-11-30" as string | null,
   };
 });
+
+vi.mock("@/lib/pricing/cutover-ref", () => ({
+  get CUTOVER_REF() {
+    return { date: h.refDate, nights: {} };
+  },
+  refFromSnapshot: (snap: { date: string }) => ({ date: snap.date, nights: {}, provisional: true }),
+}));
 
 vi.mock("@/lib/redis", () => ({
   redisKey: (...p: Array<string | number>) => ["barbusse", ...p].join(":"),
@@ -92,6 +101,7 @@ beforeEach(() => {
   h.reads.length = 0;
   h.writes.length = 0;
   h.alerts.length = 0;
+  h.refDate = "2026-11-30";
   // Paramètres de bascule : on veut que l'écriture passe pour tester ce qui l'entoure.
   process.env.PRICING_MAX_DATES = "395";
   process.env.PRICING_MAX_CHANGE = "10";
@@ -223,5 +233,14 @@ describe("runPricingPush", () => {
         "2027-01-01",
       ),
     ).toBe(1);
+  });
+
+  it("live sans référence de bascule : rejet en bloc, rien n'est écrit (fail closed)", async () => {
+    process.env.PRICING_PUSH_MODE = "live";
+    h.refDate = null;
+    const run = await runPricingPush({ today: TODAY });
+    expect(run.outcome).toBe("rejected");
+    expect(run.rejections[0]).toMatch(/Référence de bascule absente/);
+    expect(h.writes).toHaveLength(0);
   });
 });

@@ -13,7 +13,7 @@ import { diffSnapshots, type PriceSnapshot, type SnapshotDiff } from "./snapshot
  *   des 24 Heures 2027, vendues à J-208 trois jours après une baisse de 13 %) ;
  * - **nuits orphelines** : un trou plus court que le séjour minimum, invendable en l'état (leçon
  *   des 7-8/06/2027) ;
- * - **grand événement à J-60 invendu** : la date où l'on tranche (plan du 2026-11-14) ;
+ * - **grand événement à J-60 invendu** : point d'étape sur la baisse automatique (plan du 2026-11-21) ;
  * - **creux à venir** : peu de nuits réservées sur les 30 prochains jours et aucune vente récente.
  *
  * Chaque constat a un identifiant stable : `reportAlerts` ne le renvoie pas tant qu'il dure.
@@ -21,7 +21,7 @@ import { diffSnapshots, type PriceSnapshot, type SnapshotDiff } from "./snapshot
 
 export interface PricingInsight {
   id: string;
-  kind: "early-sale" | "orphan" | "event-j60" | "slow-pace";
+  kind: "early-sale" | "orphan" | "event-j60" | "slow-pace" | "beyond-higher";
   priority: 2 | 3;
   line: string;
 }
@@ -124,7 +124,8 @@ export function pricingInsights(input: {
       priority: 3,
       line:
         `${e.name} à J-60 : ${free.length}/${nights.length} nuit(s) encore libres à ${avg} € en moyenne. ` +
-        `Décision prévue : baisser si le prix dépasse 1,5 × le réalisé de l'édition précédente.`,
+        `La baisse automatique (−10 % toutes les 3 semaines depuis J-120) est en cours : vérifier le palier ` +
+        `sur la page Pricing, et le figer si une négociation est en cours.`,
     });
   }
 
@@ -165,4 +166,39 @@ export function lastSaleDate(
     if (diffSnapshots(present[i - 1].snapshot!, present[i].snapshot!).sold.length) return present[i].date;
   }
   return null;
+}
+
+/**
+ * « Beyond voit plus haut » (plan du 2026-11-21, B5) : sur une nuit libre de grand événement,
+ * Beyond suggère plus de `threshold` au-dessus du prix publié. Un **signal** pour remonter à la
+ * main, jamais une hausse automatique. N'a de sens qu'après la bascule (avant, Beyond publie).
+ */
+export function beyondHigherInsights(input: {
+  snapshot: PriceSnapshot;
+  /** Jour → prix suggéré par Beyond (`null` si inconnu). */
+  suggested: Readonly<Record<string, number | null>>;
+  blocks: readonly { id: string; label: string; from: string; to: string }[];
+  threshold?: number;
+}): PricingInsight[] {
+  const { snapshot, suggested, blocks, threshold = 0.15 } = input;
+  const out: PricingInsight[] = [];
+  for (const b of blocks) {
+    const hits: { date: string; ours: number; beyond: number }[] = [];
+    for (const [d, [price, , available]] of Object.entries(snapshot.days)) {
+      if (d < b.from || d > b.to || available !== 1) continue;
+      const s = suggested[d];
+      if (typeof s === "number" && price > 0 && s > price * (1 + threshold)) hits.push({ date: d, ours: price, beyond: s });
+    }
+    if (!hits.length) continue;
+    const avg = (xs: number[]) => Math.round(xs.reduce((a, x) => a + x, 0) / xs.length);
+    out.push({
+      id: `beyond-higher:${b.id}`,
+      kind: "beyond-higher",
+      priority: 3,
+      line:
+        `${b.label} : Beyond suggère ${avg(hits.map((h) => h.beyond))} € en moyenne sur ${hits.length} nuit(s) libre(s), ` +
+        `contre ${avg(hits.map((h) => h.ours))} € publiés. Remonter le prix forcé ? (jamais automatique)`,
+    });
+  }
+  return out;
 }
